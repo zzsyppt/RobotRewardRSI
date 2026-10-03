@@ -33,6 +33,13 @@ class EvidenceBuildTests(unittest.TestCase):
         self.assertEqual(result["cohort_numeric_summary"]["outcome_counts"], {"forbidden_contact": 1, "success": 1})
         self.assertEqual(result["evidence"]["sha256"], manifests[1]["evidence"]["sha256"])
         records = [json.loads(line) for line in (outputs[0] / "evidence.jsonl").read_text("utf-8").splitlines()]
+        self.assertIn("all_nonfoot_body_contact_forces", result["limitations"]["missing_capabilities"])
+        headers = [r for r in records if r["record_type"] == "episode"]
+        for header in headers:
+            inventory = header["source"]["input_inventory"]
+            self.assertEqual(inventory["contact_force_scope"]["support_entity_ids"], header["entities"]["support"])
+            self.assertEqual(inventory["contact_force_scope"]["non_support_entity_ids"], header["entities"]["forbidden"])
+            self.assertEqual(inventory["derived_locators"]["source_row"]["representation"], "evidence_ref.chunks.rows_half_open")
         ids = {r["record_id"] for r in records if "record_id" in r}
         self.assertEqual(len(ids), len(records) - 2)
         for record in records:

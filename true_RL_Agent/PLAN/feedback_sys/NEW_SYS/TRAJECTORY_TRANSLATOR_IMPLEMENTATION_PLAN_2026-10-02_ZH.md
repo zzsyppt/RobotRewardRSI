@@ -763,6 +763,7 @@ project_public(card, task_adapter, public_contract) -> ExistingTaskReport
 |---|---|---|
 | P0：证据和语义冻结 | 固定公开输入/哈希；能力表；选第一批描述量；记录审计探针的命名修正 | 每个启用量都有公式、范围、允许措辞和缺测处理；不要求全部新增通道齐备 |
 | P1：数值卡片＋早期投递 | 现有Stair全队列测量→时序→聚合→模板；本地最终payload检查 | 四个最小产物；零成功、缺父代、接触缺测、短事件和超容量反例通过；真实材料抽查达到E1 |
+| P1d：正常任务自动接线（2026-10-03工程增补） | 每个新public-dev archive在既有runner释放GPU后的CPU阶段复用P1a/P1b函数；显式profile经composition绑定finalizer和Genesis | 正常composition构造runner，真实归档注入进phase→generation/private receipt→下一作者HTTP；两trial、兄弟lane、父代、恢复、旧配置、缺档和预算检查；不把CPU注入验收算GPU或新策略资格 |
 | P1并行：采集缺口原型 | 最小profile、短录制对齐及吞吐验证，优先补物理上下文/必要肢体字段 | 明确每项新能力是否启用，实测成本；不阻塞P1可测部分 |
 | P2：跨策略与Push有限迁移 | 冻结目录；不同训练lineage回放；Push先已有根部能力 | E2报告、适配变更及不支持项；不能把106个checkpoint当106个独立策略 |
 | P2可选：视觉增益试验 | 少量完整视频概览＋密集补查；代表例和随机例 | 新增正确事实、错误、成本对照；无增益则不进入常规链路 |
@@ -772,6 +773,8 @@ project_public(card, task_adapter, public_contract) -> ExistingTaskReport
 依赖从 P0 → P1 开始。达到E1后可在既有域开展受限P3试用；扩大到新策略范围的P3需相应P2/E2证据；P4再按新域或闭环问题满足对应确认条件。捕获与视觉试验可并行，视觉不是P1/P2数值能力的前置门。P1的本地投递检查也不代表已经运行作者模型。
 
 P1最小实现有明确停止范围：使用当前档案可支持的数值目录、逐回合过程、全队列卡片和最终序列化审计。缺真实动作/力矩/奖励时给缺口，不为“做全”而扩张第一轮。
+
+P1d增补依据：P1c已放行的受限离线HTTP捕获只证明显式卡片能送达；原composition的finalizer未传卡，普通新trial仍生成旧report。用户及父线程要求补齐正常入口，避免长期依赖手工sidecar。默认保留`legacy_process_v1`以回放既有session；`trajectory_numeric_v1`仅显式支持Stair Go2 unified v2/v3及numeric v2，G1/Push新卡接口未资格化。full.v4/public.v5与8192B上限保留；自动卡18必保槽缺合格例时明示不可用，不硬编码P0事实、不借用R4。新增profile/预算绑定session身份，不能在同一session恢复时改配。开发与验收证据见[P1d](./P1d/DEVELOPMENT_ZH.md)，最终阶段放行以[阶段记录](./STAGE_GATE_ZH.md)为准；不自动进入P2。
 
 P3若只做既有域的小规模研究试用，可以基于E1并明确局限；声称下一代策略稳定适用需相应E2证据。所有正式训练、补采、模型调用和闭环运行属于后续实施动作，本次文档修订没有执行。
 

@@ -304,13 +304,18 @@ def measure_episode(episode: NumericEpisode) -> list[dict[str, Any]]:
             _channel(episode, "forbidden_contact_forces_w", (len(bodies), 3)))):
         channel = f"{prefix}_contact_forces_w"
         history_name = channel + "_history"
-        history_length = int(episode.source["contact_force_history"]["history_length"])
-        history = _channel(episode, history_name, (history_length, len(entities), 3))
-        hnorm = np.linalg.norm(history, axis=3)
-        hvalid = np.isfinite(history).all(axis=(1, 3))
+        if history_name in episode.arrays:
+            history_length = int(episode.source["contact_force_history"]["history_length"])
+            history = _channel(episode, history_name, (history_length, len(entities), 3))
+            hnorm = np.linalg.norm(history, axis=3)
+            hvalid = np.isfinite(history).all(axis=(1, 3))
+            hmarkers = predicate((hnorm > threshold).any(axis=1), hvalid)
+        else:
+            # Missing buffers have no slots and no physical or readout events.
+            hvalid = np.zeros((n, len(entities)), dtype=bool)
+            hmarkers = np.full((n, len(entities)), -1, dtype=np.int8)
         cvalid = np.isfinite(current).all(axis=2)
         cnorm = np.linalg.norm(current, axis=2)
-        hmarkers = predicate((hnorm > threshold).any(axis=1), hvalid)
         cmarkers = predicate(cnorm > threshold, cvalid)
         for i, entity in enumerate(entities):
             if prefix == "forbidden":
@@ -340,7 +345,7 @@ def measure_episode(episode: NumericEpisode) -> list[dict[str, Any]]:
     tail = {name: [bool(v) if np.isfinite(v) and v in (0, 1) else None
                    for v in episode.arrays[name][-min(5, n):]] for name in flags if name in episode.arrays}
     forbidden_force = _channel(episode, "forbidden_contact_forces_w", (len(bodies), 3))
-    forbidden_history = _channel(episode, "forbidden_contact_forces_w_history", (history_length, len(bodies), 3))
+    forbidden_history = episode.arrays.get("forbidden_contact_forces_w_history")
     def finite_tail(values):
         array = values[-min(5, n):]
         return np.where(np.isfinite(array), array.astype(object), None).tolist()
@@ -354,7 +359,8 @@ def measure_episode(episode: NumericEpisode) -> list[dict[str, Any]]:
         "tail_steps": steps[-min(5, n):].tolist(), "tail_flags": tail,
         "tail_forbidden_norms_n": finite_tail(np.linalg.norm(forbidden_force, axis=2)),
         "tail_support_norms_n": finite_tail(fnorm),
-        "tail_forbidden_history_norms_n": finite_tail(np.linalg.norm(forbidden_history, axis=3)),
+        "tail_forbidden_history_norms_n": (finite_tail(np.linalg.norm(np.asarray(forbidden_history, dtype=np.float64), axis=3))
+                                            if forbidden_history is not None else None),
         "geometry_clearance": "deferred_pending_independent_geometry_validation"},
         "m; time s; force N; flags bool", "task", "M10 immutable archived outcome and valid terminal; no outcome reassignment")
 

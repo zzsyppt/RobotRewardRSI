@@ -122,6 +122,8 @@ def build_push_phase_summary(
 
 def finalize_push_eval_phase_summary(
     eval_spec: EvalPhaseJobSpec, summary: Mapping[str, Any], *, output_dir: Path,
+    behavior_feedback_profile: str = "legacy_process_v1", trajectory_report_max_bytes: int = 12288,
+    expected_seed_count: int | None = None,
 ) -> dict[str, Any]:
     """Derive one public-dev behavior on CPU before the runner seals it."""
     from true_rl_agent.tasks.push_recovery.behavior import project_push_behavior
@@ -147,10 +149,22 @@ def finalize_push_eval_phase_summary(
     if expected_identity["backend_execution_environment_verification"] is None:
         expected_identity.pop("backend_execution_environment_verification")
     wall_started, cpu_started = time.perf_counter(), time.process_time()
-    for seed in evidence["seed_summaries"]:
-        validate_push_numeric_reference(seed["numeric_evidence_ref"], seed, expected_identity=expected_identity)
-    full = build_push_process_behavior(evidence["seed_summaries"], context=context)
-    evidence["behavior"] = project_push_behavior(full)
+    from .trajectory_pipeline import TRAJECTORY_PROFILE, validate_feedback_profile, build_phase_trajectory
+    validate_feedback_profile(behavior_feedback_profile, trajectory_report_max_bytes, context["cell_variant_id"])
+    if behavior_feedback_profile == TRAJECTORY_PROFILE:
+        # Capture records training lineage; capability is bound by the outer
+        # phase/plan receipt, not claimed as a channel in historical archives.
+        expected_identity["training_binding_hash"] = eval_spec.training_binding_hash
+        if expected_seed_count is None:
+            raise ValueError("Push automatic trajectory requires the composition seed count")
+        full, evidence["behavior"], evidence["trajectory_build"] = build_phase_trajectory(
+            evidence["seed_summaries"], expected_identity=expected_identity, context=context,
+            expected_seed_count=expected_seed_count, output_dir=output_dir, max_bytes=trajectory_report_max_bytes)
+    else:
+        for seed in evidence["seed_summaries"]:
+            validate_push_numeric_reference(seed["numeric_evidence_ref"], seed, expected_identity=expected_identity)
+        full = build_push_process_behavior(evidence["seed_summaries"], context=context)
+        evidence["behavior"] = project_push_behavior(full)
     full_bytes = canonical_json_bytes(full)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)

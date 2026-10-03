@@ -304,6 +304,9 @@ class StairClimbingPromptAdapter:
         public_context: Mapping[str, Any],
     ) -> Mapping[str, Any]:
         policy = self.prompt_public_record_scrub_policy()
+        # Bind the new reference view before projection/scrubbing removes its
+        # private phase receipt. Only the verified public profile is delivered.
+        reference_behavior = _reference_behavior_feedback(public_context) if not public_records else None
         prompt_projection = self.project_prompt_public_history(
             public_records=public_records,
             initial_anchor_public_evidence=(
@@ -368,8 +371,11 @@ class StairClimbingPromptAdapter:
         )
         behavior = _latest_behavior_feedback(safe_records)
         if behavior is None and not safe_records:
-            behavior = _reference_behavior_feedback(safe_context)
+            behavior = reference_behavior
         if behavior is not None:
+            if behavior["profile"].get("schema_version") in {"true_rl_agent.stair.behavior.public.v5", "true_rl_agent.stair.behavior.public.v6"}:
+                if behavior["profile"]["domain"]["task_protocol_hash"] != self.config.task_protocol_hash:
+                    raise ValueError("Stair trajectory prompt task domain mismatch")
             sections["public_feedback_summary"]["behavior"] = behavior
         sections = _compact_public_feedback_to_fit_task_sections(
             sections,
@@ -3110,6 +3116,7 @@ def _project_unified_prompt_generation(
     *, config: StairClimbingTaskConfig,
     objective_family_mask_provider: Callable[[], Mapping[str, Any] | None] | None,
 ) -> dict[str, Any]:
+    _validate_trajectory_trial_reports(generation.get("trials", ()))
     projected = {
         key: copy.deepcopy(generation[key])
         for key in (
@@ -3269,6 +3276,23 @@ def _reference_behavior_feedback(public_context: Mapping[str, Any]) -> dict[str,
     behavior = metrics.get("behavior", _mapping(metrics.get("public_dev")).get("behavior"))
     if result.get("status") != "pass" or not isinstance(behavior, Mapping):
         return None
+    profile = project_stair_behavior(behavior)
+    if profile.get("schema_version") in {"true_rl_agent.stair.behavior.public.v5", "true_rl_agent.stair.behavior.public.v6"}:
+        from true_rl_agent.evaluation.binding import canonical_json_hash
+        from .trajectory_report import require_trajectory_phase_binding
+        if anchor.get("public_result_hash") != canonical_json_hash(result):
+            raise ValueError("Stair trajectory reference public result hash mismatch")
+        binding = metrics.get("trajectory_phase_binding", anchor.get("trajectory_phase_binding"))
+        if not isinstance(binding, Mapping):
+            raise ValueError("Stair trajectory reference requires explicit phase binding")
+        require_trajectory_phase_binding(profile, **binding)
+        return {"source_kind": "bound_public_dev_observation", "source_public_result_hash": anchor.get("public_result_hash"),
+                "selection": "explicit source observation; no generation trial or accepted-best inference",
+                "source_evaluation_job_id": profile["domain"]["evaluation_job_id"],
+                "accepted_best_relationship": "not_established_by_behavior_card",
+                "author_code_relationship": "not_established_by_behavior_card",
+                "omitted_measured_trials": 0, "profile": profile,
+                "diff": {"status": "not_available", "reason": "missing_bound_parent_or_behavior"}}
     return {"source_kind": "reference_anchor", "source_public_result_hash": anchor.get("public_result_hash"),
             "selection": "initial reference with no candidate history", "omitted_measured_trials": 0,
             "profile": project_stair_behavior(behavior),
@@ -3284,6 +3308,7 @@ def _latest_behavior_feedback(public_records: Sequence[Mapping[str, Any]]) -> di
         trials = [trial for trial in generation.get("trials", ())
                   if isinstance(trial, Mapping) and isinstance(_mapping(trial.get("public_dev")).get("public_summary"), Mapping)]
         if trials:
+            _validate_trajectory_trial_reports(trials)
             trial = trials[-1]
             if not isinstance(trial["public_dev"]["public_summary"].get("behavior"), Mapping):
                 return None
@@ -3297,17 +3322,41 @@ def _latest_behavior_feedback(public_records: Sequence[Mapping[str, Any]]) -> di
                 if "rows" in difference:
                     difference = {**{key: value for key, value in difference.items() if key != "rows"},
                                   "omitted_stratum_diff_rows": len(difference["rows"])}
+            trajectory_selection = {}
+            if behavior.get("schema_version") in {"true_rl_agent.stair.behavior.public.v5", "true_rl_agent.stair.behavior.public.v6"}:
+                formal = _mapping(generation.get("formal"))
+                trajectory_selection = {"source_evaluation_job_id": behavior["domain"]["evaluation_job_id"],
+                    "accepted_best_relationship": ("accepted_in_this_generation" if formal.get("accepted") is True
+                        and formal.get("selected_trial_id") == trial.get("trial_id") else "not_established_for_selected_trial"),
+                    "author_code_relationship": "not_established_by_behavior_card"}
             return {"source_trial_id": trial.get("trial_id"), "source_lane_id": trial.get("lane_id"),
+                    **trajectory_selection,
                     "selection": "last measured lane in latest generation; independent of acceptance",
                     "omitted_measured_trials": len(trials)-1, "profile": behavior,
                     "diff": difference}
         metrics = _mapping(_mapping(record.get("public_result")).get("metrics"))
         behavior = metrics.get("behavior", _mapping(metrics.get("public_dev")).get("behavior"))
         if isinstance(behavior, Mapping):
+            if behavior.get("schema_version") in {"true_rl_agent.stair.behavior.full.v4", "true_rl_agent.stair.behavior.public.v5",
+                "true_rl_agent.stair.behavior.full.v5", "true_rl_agent.stair.behavior.public.v6"}:
+                raise ValueError("Stair trajectory round feedback requires an explicit phase or generation trial binding")
             return {"source_trial_id": record.get("round_id"), "omitted_measured_trials": 0,
                     "selection": "latest measured round with behavior", "profile": project_stair_behavior(behavior),
                     "diff": {"status": "not_available", "reason": "missing_bound_parent_or_behavior"}}
     return None
+
+
+def _validate_trajectory_trial_reports(trials: Sequence[Mapping[str, Any]]) -> None:
+    from .behavior import project_stair_behavior
+    from .trajectory_report import require_trajectory_trial_binding
+
+    for trial in trials:
+        if not isinstance(trial, Mapping):
+            continue
+        behavior = _mapping(_mapping(_mapping(trial.get("public_dev")).get("public_summary")).get("behavior"))
+        if behavior.get("schema_version") in {"true_rl_agent.stair.behavior.full.v4", "true_rl_agent.stair.behavior.public.v5",
+                "true_rl_agent.stair.behavior.full.v5", "true_rl_agent.stair.behavior.public.v6"}:
+            require_trajectory_trial_binding(project_stair_behavior(behavior), trial)
 
 
 def _feedback_trial_records(

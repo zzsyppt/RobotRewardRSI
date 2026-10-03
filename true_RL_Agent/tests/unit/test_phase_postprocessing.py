@@ -23,7 +23,7 @@ from true_rl_agent.runner.subprocess_runner import SubprocessRunner
 
 
 class PhasePostprocessingTests(unittest.TestCase):
-    def _fixture(self, root):
+    def _fixture(self, root, *, status="postprocessing", numeric_capture=False):
         helper = fixtures.SubprocessRunnerTests()
         metadata = {
             "summary_path": str(root / "summary.json"),
@@ -32,6 +32,9 @@ class PhasePostprocessingTests(unittest.TestCase):
                 fixtures.TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH
             ),
         }
+        if numeric_capture:
+            metadata["numeric_evidence_dir"] = str(root / "numeric_evidence")
+            metadata["numeric_evidence_max_bytes"] = 1048576
         plan = fixtures._eval_job_spec(
             job_id="postprocessing-plan", task_id="unitree_push_recovery",
             candidate_id="postprocessing-candidate",
@@ -55,7 +58,7 @@ class PhasePostprocessingTests(unittest.TestCase):
             "schema_version": EVALUATION_PHASE_SUMMARY_SCHEMA_VERSION,
             "evaluation_phase": spec.phase.value,
             "evaluation_plan_hash": spec.evaluation_plan_hash,
-            "status": "postprocessing", "task_evidence": evidence,
+            "status": status, "task_evidence": evidence,
             "task_evidence_hash": canonical_json_hash(evidence),
             "evaluation_execution_cost": {"splits": {"public_dev": {}}},
             "environment_source_preflight": {"status": "pass"},
@@ -72,7 +75,11 @@ class PhasePostprocessingTests(unittest.TestCase):
             f"Path({str(root / 'summary.json')!r}).write_text({json.dumps(summary)!r})\n"
             f"with Path({str(root / 'launches.txt')!r}).open('a') as f: f.write('launch\\n')\n"
         )
-        spec = fixtures._with_eval_argv(spec, helper._checkpoint_cli_argv(plan.execution_checkpoint(), code))
+        argv = helper._checkpoint_cli_argv(plan.execution_checkpoint(), code)
+        if numeric_capture:
+            argv = [*argv, "--numeric-evidence-dir", metadata["numeric_evidence_dir"],
+                    "--numeric-evidence-max-bytes", str(metadata["numeric_evidence_max_bytes"])]
+        spec = fixtures._with_eval_argv(spec, argv)
         return spec, manager
 
     def test_child_exits_and_lease_releases_before_finalization_and_seal(self):
@@ -145,6 +152,23 @@ class PhasePostprocessingTests(unittest.TestCase):
                 runner.run_eval_phase(spec)
             receipt = json.loads(next((root / "attempts").rglob("attempt_*.result.json")).read_text())
             self.assertIsNone(receipt["output_hash"])
+
+    def test_fresh_capture_cannot_skip_cpu_handoff(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            spec, manager = self._fixture(root, status="pass", numeric_capture=True)
+            calls = []
+            runner = SubprocessRunner((sys.executable,), timeout_s=10,
+                gpu_lease_manager=manager,
+                eval_phase_summary_finalizer=lambda *args, **kwargs: calls.append(args))
+            with self.assertRaisesRegex(RunnerExecutionError, "CPU postprocessing handoff") as raised:
+                runner.run_eval_phase(spec)
+            self.assertEqual(raised.exception.failure_kind, RunnerFailureKind.SUMMARY_INVALID)
+            self.assertEqual(calls, [])
+            self.assertEqual((root / "launches.txt").read_text(), "launch\n")
+            receipt = json.loads(next((root / "attempts").rglob("attempt_*.result.json")).read_text())
+            self.assertIsNone(receipt["output_hash"])
+            self.assertFalse(receipt["retryable"])
 
 
 if __name__ == "__main__":

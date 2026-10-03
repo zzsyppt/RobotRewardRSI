@@ -1,0 +1,174 @@
+{
+  "scope": "descriptive source qualification only; no paired or causal estimate",
+  "source_manifests": {
+    "k1": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+    "k2": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+    "k3": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83"
+  },
+  "k1_k2_equal_metadata": [
+    "coordinates",
+    "coverage",
+    "evaluation_suite",
+    "invalid_padding",
+    "media_status",
+    "resolved_cell_manifest",
+    "runtime_projection",
+    "semantics",
+    "training_profile"
+  ],
+  "k1_k2_different_metadata": [
+    "contact_force_history",
+    "profile",
+    "seeds",
+    "summary"
+  ],
+  "identity_differences": {
+    "backend_execution_environment_verification": {
+      "k1": {
+        "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+        "backend_id": "isaac_lab_rsl_rl",
+        "status": "pass",
+        "expected_manifest_hash": "c472e507378f1256f95a7ffd69a3408cadd69fdcfdc6282a842e54562916fac0",
+        "actual_manifest_hash": "c472e507378f1256f95a7ffd69a3408cadd69fdcfdc6282a842e54562916fac0"
+      },
+      "k2": {
+        "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+        "backend_id": "isaac_lab_rsl_rl",
+        "status": "pass",
+        "expected_manifest_hash": "5a5358ba6672f5d3ec6d69e01e1adbcffe13c56e7212130d6ef79b62470b7949",
+        "actual_manifest_hash": "5a5358ba6672f5d3ec6d69e01e1adbcffe13c56e7212130d6ef79b62470b7949"
+      }
+    },
+    "checkpoint_hash": {
+      "k1": "sha256:fca6a59c8142d0120c5b534addab03885995dd64931fc3b974b9f94b997fe729",
+      "k2": "sha256:bcd8de3a9d0e6e6a6c84b8c7833dc4a1b0ed697758ddee6f9c9eb31416a2f93c"
+    },
+    "environment_source_preflight": {
+      "k1": {
+        "schema_version": "true_rl_agent.task.stair_climbing.execution_source_preflight.v1",
+        "status": "pass",
+        "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+        "source_manifest_hash": "ef434773192061f3e8d32c369a64c8178da802727440ebcf35aee855e77e9991"
+      },
+      "k2": {
+        "schema_version": "true_rl_agent.task.stair_climbing.execution_source_preflight.v1",
+        "status": "pass",
+        "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+        "source_manifest_hash": "dc4f199cf0c1fcca156291aa32f0747f99134c216572ed3c7d28399abf7a6520"
+      }
+    },
+    "evaluation_plan_hash": {
+      "k1": "febc1c36a47b3681812197eef04c19d2e1b9de258d8332b73be571e84f6b76ea",
+      "k2": "d9b080b250ea4bb53b12e003818e9de7387e61ebbb4781d2958ad96ab07b0e6e"
+    },
+    "job_id": {
+      "k1": "stair-dev-replay-fca6a59c8142d012-eval-public-dev",
+      "k2": "stair-dev-replay-bcd8de3a9d0e6e6a-eval-public-dev"
+    },
+    "program_source_checksum": {
+      "k1": "sha256:10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+      "k2": "sha256:29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45"
+    },
+    "subject_id": {
+      "k1": "go2-stair-official-flat-derived-v1",
+      "k2": "stair_swing_foot_level_sweep_penalty_v1"
+    },
+    "subject_kind": {
+      "k1": "reference",
+      "k2": "candidate"
+    },
+    "subject_manifest_hash": {
+      "k1": "ece5ad653267f11e5b791403208472f42622e44661fdbc7162776799a370dbd4",
+      "k2": "e9f40a3c33000bb34ec29f81035cb7c8b15043b0e52b8de8dfff8894533cde69"
+    }
+  },
+  "equal_evaluation_binding": {
+    "schema_version": "true_rl_agent.evaluation.binding.v1",
+    "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+    "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+    "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+    "seed_cohort_hash": "a7830816449821400a6ae51fabbb046f8d98ab3084bfcaeb56b240249ea790ea",
+    "evaluation_binding_hash": "ff0b754f727af4df616e77d10f8f67019cea485ed76b1b9c6b00cf902c451178"
+  },
+  "seed_runs": {
+    "k1": [
+      {
+        "run_index": 1,
+        "runner_seed": 194951408,
+        "step_dt": 0.02,
+        "episode_count": 288
+      },
+      {
+        "run_index": 2,
+        "runner_seed": 983587461,
+        "step_dt": 0.02,
+        "episode_count": 288
+      },
+      {
+        "run_index": 3,
+        "runner_seed": 1752039737,
+        "step_dt": 0.02,
+        "episode_count": 288
+      }
+    ],
+    "k2": [
+      {
+        "run_index": 1,
+        "runner_seed": 194951408,
+        "step_dt": 0.02,
+        "episode_count": 288
+      },
+      {
+        "run_index": 2,
+        "runner_seed": 983587461,
+        "step_dt": 0.02,
+        "episode_count": 288
+      },
+      {
+        "run_index": 3,
+        "runner_seed": 1752039737,
+        "step_dt": 0.02,
+        "episode_count": 288
+      }
+    ],
+    "k3": [
+      {
+        "run_index": 1,
+        "runner_seed": 648978242,
+        "step_dt": 0.02,
+        "episode_count": 288
+      },
+      {
+        "run_index": 2,
+        "runner_seed": 13688135,
+        "step_dt": 0.02,
+        "episode_count": 288
+      },
+      {
+        "run_index": 3,
+        "runner_seed": 1557805454,
+        "step_dt": 0.02,
+        "episode_count": 288
+      }
+    ]
+  },
+  "k3_evaluation_binding": {
+    "schema_version": "true_rl_agent.evaluation.binding.v1",
+    "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+    "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+    "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+    "seed_cohort_hash": "d41ac09594b4a4b4b48c2df075088328301a68d293bf9310882030574115ac32",
+    "evaluation_binding_hash": "1db7a52e1cec0769caf34926267b41981c8aa066341ca26354962ee758b5905b"
+  },
+  "comparable": [
+    "same declared Go2 mapping, public suite/cells/protocol and current-force measurement definitions",
+    "per-source whole available episode metrics, outcomes and denominators with termination-length/selection caveats"
+  ],
+  "not_comparable": [
+    "history: K2 did not record it",
+    "paired episode treatment effects or policy causality",
+    "verified same execution environment: K1/K2 execution source and backend fingerprints differ",
+    "K3 with K1/K2 episode pairing: binding/cohort differ"
+  ],
+  "parent_followup": "Bind archives from the same current environment, same protocol conditions and explicit parent/child identities; review code-version changes by relevance, not mechanical equality of every source hash. No cross-environment bridge framework in P2a. Compare common qualified descriptors and state whole-episode or common-window scope and outcome composition."
+}

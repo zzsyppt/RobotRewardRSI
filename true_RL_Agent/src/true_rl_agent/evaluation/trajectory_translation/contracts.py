@@ -88,9 +88,15 @@ class NumericEpisode:
                               "rows_half_open": [int(self.chunk_rows[first]), int(self.chunk_rows[end - 1]) + 1],
                               "env_index": self.env_index})
                 first = end
-        return {"manifest_sha256": self.source["manifest_sha256"], "run_index": self.run_index,
+        reference = {"manifest_sha256": self.source["manifest_sha256"], "run_index": self.run_index,
                 "channels": list(channels), "steps_half_open": [int(self.steps[start]), int(self.steps[stop - 1]) + 1],
                 "chunks": spans}
+        missing = [name for name in channels if name not in self.arrays]
+        if missing:
+            reference["channels"] = [name for name in channels if name in self.arrays]
+            reference["missing_channels"] = missing
+            reference["missing_basis"] = "source.input_inventory; chunk array inventory; no numeric observation"
+        return reference
 
     def record(self, key: str, record_type: str, entities: tuple[str, ...],
                channels: tuple[str, ...], value: dict[str, Any], *, unit: str,

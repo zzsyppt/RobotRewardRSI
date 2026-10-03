@@ -185,6 +185,12 @@ def build_context(case, arm, spec, *, diagnostic_phase_ref, diagnostic_plan_ref,
     observation = {"status": "pass", "metrics": {"public_dev": copy.deepcopy(projected)}}
     task_input = {"anchor_kind": "reference_program", "public_result": observation,
         "public_result_hash": canonical_json_hash(observation)}
+    if behavior.get("schema_version") == "true_rl_agent.stair.behavior.public.v5":
+        task_input["trajectory_phase_binding"] = {"job_id": phase.job_id,
+            "checkpoint_hash": phase.checkpoint_hash, "evaluation_plan_hash": phase.evaluation_plan_hash,
+            "evaluation_binding_hash": phase.evaluation_binding_hash,
+            "archive_hash": phase.task_evidence["numeric_evidence"]["manifest_sha256"],
+            "seed_namespace": phase.task_evidence["execution_identity"]["seed_namespace"]}
     feedback = comp.task_plugin.prompt_adapter().build_prompt_sections(public_records=(),
         public_context={"initial_anchor_public_evidence": task_input})["public_feedback_summary"]
     feedback = copy.deepcopy(feedback)

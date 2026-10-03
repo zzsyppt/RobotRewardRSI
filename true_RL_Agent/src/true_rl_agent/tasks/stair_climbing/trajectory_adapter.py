@@ -1,4 +1,4 @@
-"""Bind public Stair v2 archives to source-traceable numeric episodes.
+"""Bind qualified public Stair v1/v2 archives to numeric episodes.
 
 The complete archive is checked before the first episode is exposed. Task
 outcomes remain recorded authority; this adapter never runs an outcome tracker.
@@ -25,6 +25,12 @@ from true_rl_agent.tasks.stair_climbing.runtime_projection import (
 )
 from true_rl_agent.tasks.stair_climbing.unified_evaluation import StairUnifiedEvaluationSuite
 from true_rl_agent.tasks.stair_climbing.unified_training import StairUnifiedTrainingProfile
+
+ARCHIVE_CAPABILITIES = {
+    "stair.unified_first_episode.v1": {"contact_force_history": "not_recorded"},
+    "stair.unified_first_episode.v2": {"contact_force_history": "recorded"},
+    "stair.unified_first_episode.v3": {"contact_force_history": "recorded"},
+}
 
 
 def _require(condition: bool, message: str) -> None:
@@ -55,7 +61,7 @@ class _Archive:
     cells: tuple
     lengths: dict[int, np.ndarray]
     float_shapes: dict[str, tuple[int, ...]]
-    header_history: dict[str, Any]
+    header_history: dict[str, Any] | None
     manager_terms: set[str]
     control_dt: float
 
@@ -68,9 +74,10 @@ def _load_contract(reference: dict) -> _Archive:
                        "splits", "task_id", "resolved_cell_manifest_hash", "evaluation_binding"}, "identity")
     _fields(context, {"profile", "resolved_cell_manifest", "runtime_projection", "semantics",
                       "training_profile", "evaluation_suite", "coordinates", "coverage", "invalid_padding",
-                      "contact_force_history", "seeds"}, "Stair v2 metadata")
+                      "seeds"}, "Stair metadata")
     _require(identity["splits"] == ["public_dev"], "identity splits must be exactly public_dev")
-    _require(context["profile"] == "stair.unified_first_episode.v2", "Stair v2 profile required")
+    _require(context["profile"] in ARCHIVE_CAPABILITIES, "qualified Stair v1/v2 profile required")
+    has_history = ARCHIVE_CAPABILITIES[context["profile"]]["contact_force_history"] == "recorded"
     for name in ("job_id", "subject_kind", "subject_id", "checkpoint_hash", "seed_namespace"):
         _require(isinstance(identity[name], str) and bool(identity[name]), f"identity {name} is missing")
     resolved = ResolvedCellManifestV1.from_mapping(context["resolved_cell_manifest"])
@@ -81,6 +88,10 @@ def _load_contract(reference: dict) -> _Archive:
     _require(identity["evaluation_binding"]["task_protocol_hash"] == resolved.resolved_cell_task_protocol_hash,
              "resolved task protocol identity mismatch")
     _require(context["runtime_projection"] == projection.to_summary_dict(), "runtime projection/entity order mismatch")
+    if context["profile"] == "stair.unified_first_episode.v3":
+        from .trajectory_capabilities import validate_measurement_contract
+        _fields(context, {"measurement_contract"}, "Stair v3 metadata")
+        validate_measurement_contract(context["measurement_contract"], projection)
     raw_semantics = context["semantics"]
     _fields(raw_semantics, {"task_id", "task_protocol_hash", "episode_outcomes"}, "semantics")
     semantics = StairEvaluationSemantics.from_task_outcomes(
@@ -102,35 +113,44 @@ def _load_contract(reference: dict) -> _Archive:
              "pre-reset first-episode coverage declaration mismatch")
     _require(context["invalid_padding"] == "valid=false; zero-filled numeric values are not observations",
              "padding declaration mismatch")
-    history = context["contact_force_history"]
-    expected_history = {
-        "schema_version": "true_rl_agent.stair.contact_force_history.v1", "status": "recorded",
-        "history_length": projection.contact_history_length,
-        "source": "contact_sensor.net_forces_w_history",
-        "force_semantics": "world_frame_net_normal_contact_force_N_not_contact_pair_or_surface",
-        "history_order": "newest_to_oldest", "history_clock": "contact_sensor_buffer_update_events",
-        "per_history_slot_timestamps": "not_recorded; configured_update_period_is_not_observed_sample_spacing",
-        "coverage": "existing_sensor_buffer_at_pre_reset_control_step_end; not_full_physics_trajectory",
-        "reset_history": "sensor_zeroes_history_on_reset; no_per_slot_validity_flags",
-        "array_axes": ["control_step", "environment", "history", "bound_body", "xyz"],
-    }
-    _fields(history, set(expected_history) | {"control_dt_s", "physics_dt_s", "configured_sensor_update_period_s",
-                                             "physics_steps_per_control", "lazy_sensor_update"}, "contact history")
-    for name, expected in expected_history.items():
-        _require(history[name] == expected, f"contact history {name} mismatch")
-    _require(type(history["lazy_sensor_update"]) is bool, "contact history lazy sensor update must be boolean")
-    control_dt = _positive_float(history["control_dt_s"], "control dt")
-    physics_dt = _positive_float(history["physics_dt_s"], "physics dt")
-    sensor_dt = _positive_float(history["configured_sensor_update_period_s"], "sensor period")
-    substeps = _positive_int(history["physics_steps_per_control"], "physics steps per control")
-    _require(math.isclose(control_dt, substeps * physics_dt, rel_tol=1e-9)
-             and math.isclose(sensor_dt, physics_dt, rel_tol=1e-9), "contact history clock mismatch")
     bound_control = resolved.robot_task_binding["task_projection"]["phase0_binding_facts"]["control"]
-    _require(math.isclose(control_dt, bound_control["control_dt_s"], rel_tol=1e-9)
-             and math.isclose(physics_dt, bound_control["simulation_dt_s"], rel_tol=1e-9)
-             and substeps == bound_control["decimation"]
-             and all(math.isclose(control_dt, cell.spec.control_dt_s, rel_tol=1e-9) for cell in cells),
-             "history/control clock differs from frozen robot binding or evaluation suite")
+    if has_history:
+        _fields(context, {"contact_force_history"}, "Stair v2 metadata")
+        history = context["contact_force_history"]
+        expected_history = {
+            "schema_version": "true_rl_agent.stair.contact_force_history.v1", "status": "recorded",
+            "history_length": projection.contact_history_length,
+            "source": "contact_sensor.net_forces_w_history",
+            "force_semantics": "world_frame_net_normal_contact_force_N_not_contact_pair_or_surface",
+            "history_order": "newest_to_oldest", "history_clock": "contact_sensor_buffer_update_events",
+            "per_history_slot_timestamps": "not_recorded; configured_update_period_is_not_observed_sample_spacing",
+            "coverage": "existing_sensor_buffer_at_pre_reset_control_step_end; not_full_physics_trajectory",
+            "reset_history": "sensor_zeroes_history_on_reset; no_per_slot_validity_flags",
+            "array_axes": ["control_step", "environment", "history", "bound_body", "xyz"],
+        }
+        _fields(history, set(expected_history) | {"control_dt_s", "physics_dt_s", "configured_sensor_update_period_s",
+                                                 "physics_steps_per_control", "lazy_sensor_update"}, "contact history")
+        for name, expected in expected_history.items():
+            _require(history[name] == expected, f"contact history {name} mismatch")
+        _require(type(history["lazy_sensor_update"]) is bool, "contact history lazy sensor update must be boolean")
+        control_dt = _positive_float(history["control_dt_s"], "control dt")
+        physics_dt = _positive_float(history["physics_dt_s"], "physics dt")
+        sensor_dt = _positive_float(history["configured_sensor_update_period_s"], "sensor period")
+        substeps = _positive_int(history["physics_steps_per_control"], "physics steps per control")
+        _require(math.isclose(control_dt, substeps * physics_dt, rel_tol=1e-9)
+                 and math.isclose(sensor_dt, physics_dt, rel_tol=1e-9), "contact history clock mismatch")
+        bound_control = resolved.robot_task_binding["task_projection"]["phase0_binding_facts"]["control"]
+        _require(math.isclose(control_dt, bound_control["control_dt_s"], rel_tol=1e-9)
+                 and math.isclose(physics_dt, bound_control["simulation_dt_s"], rel_tol=1e-9)
+                 and substeps == bound_control["decimation"]
+                 and all(math.isclose(control_dt, cell.spec.control_dt_s, rel_tol=1e-9) for cell in cells),
+                 "history/control clock differs from frozen robot binding or evaluation suite")
+    else:
+        _require("contact_force_history" not in context, "v1 profile must not declare v2 history")
+        history = None
+        control_dt = _positive_float(bound_control["control_dt_s"], "bound control dt")
+        _require(all(math.isclose(control_dt, cell.spec.control_dt_s, rel_tol=1e-9) for cell in cells),
+                 "bound control clock differs from evaluation suite")
     seeds = context["seeds"]
     _require(isinstance(seeds, list) and bool(seeds), "no recorded seeds")
     lengths = {}
@@ -160,11 +180,12 @@ def _load_contract(reference: dict) -> _Archive:
     support, forbidden = projection.support_count, projection.forbidden_contact_count
     float_shapes = {"base_pos_w": (3,), "base_quat_w": (4,), "joint_pos": (projection.joint_count,),
                     "support_pos_w": (support, 3), "support_lin_vel_w": (support, 3),
-                    "support_contact_forces_w": (support, 3), "forbidden_contact_forces_w": (forbidden, 3),
-                    "support_contact_forces_w_history": (history["history_length"], support, 3),
-                    "forbidden_contact_forces_w_history": (history["history_length"], forbidden, 3)}
+                    "support_contact_forces_w": (support, 3), "forbidden_contact_forces_w": (forbidden, 3)}
+    if has_history:
+        float_shapes.update(support_contact_forces_w_history=(history["history_length"], support, 3),
+                            forbidden_contact_forces_w_history=(history["history_length"], forbidden, 3))
     return _Archive(manifest, projection, cells, lengths, float_shapes,
-                    {key: value for key, value in history.items() if key not in {"status", "array_axes"}},
+                    {key: value for key, value in history.items() if key not in {"status", "array_axes"}} if has_history else None,
                     manager_terms, control_dt)
 
 
@@ -197,8 +218,12 @@ def _validate_chunks(reference: dict, archive: _Archive) -> tuple[str, ...]:
             "runtime_projection_hash": projection.projection_hash,
             "reward_input_schema_hash_vnext": projection.reward_input_schema_hash_vnext,
             "support_count": projection.support_count, "forbidden_contact_count": projection.forbidden_contact_count,
-            "contact_force_history": archive.header_history,
         }
+        if archive.header_history is not None:
+            expected_header["contact_force_history"] = archive.header_history
+        else:
+            _require("contact_force_history" not in metadata["transition_header"],
+                     "v1 transition header must not declare v2 history")
         _fields(metadata["transition_header"], set(expected_header), "transition header")
         for name, expected in expected_header.items():
             _require(metadata["transition_header"][name] == expected, f"transition header {name} mismatch")
@@ -273,7 +298,9 @@ def iter_stair_episodes(reference: dict, *, source_id: str) -> Iterator[NumericE
         "runtime_projection": context["runtime_projection"],
         "runtime_projection_hash": projection.projection_hash,
         "evaluation_binding": identity["evaluation_binding"], "semantics_hash": context["semantics"]["protocol_hash"],
-        "coordinates": context["coordinates"], "contact_force_history": context["contact_force_history"],
+        "coordinates": context["coordinates"], "contact_force_history": context.get("contact_force_history", {
+            "status": "not_recorded", "availability": "missing",
+            "reason": "stair.unified_first_episode.v1_did_not_capture_history"}),
         "public_dev_provenance": {"identity_splits": identity["splits"],
                                   "seed_splits": [seed["split"] for seed in context["seeds"]],
                                   "validation": "all_declared_chunks_and_public_seed_assignments"},
@@ -301,6 +328,34 @@ def iter_stair_episodes(reference: dict, *, source_id: str) -> Iterator[NumericE
                 arrays = {name: np.empty((length, *values[name].shape[2:]), dtype=values[name].dtype)
                           for name in dynamic_names}
                 source = {**deepcopy(common_source), "runner_seed": seed["runner_seed"]}
+                # This versioned profile records these arrays only. Clock/chunk/row
+                # locators are derived representations, never extra raw arrays.
+                source["input_inventory"] = {
+                    "schema_version": "trajectory.input_inventory.v1",
+                    "raw_temporal_channels": list(dynamic_names),
+                    "unavailable_quantities": ["actions", "joint_velocities", "applied_torques",
+                        "per_step_reward_terms", "tangential_contact_forces",
+                        "all_nonfoot_body_contact_forces", "per_environment_actual_mass",
+                        "effective_joint_limits", "parent_archive"],
+                    "contact_force_scope": {
+                        "support_entity_ids": list(entities["support"]),
+                        "non_support_entity_ids": list(entities["forbidden"]),
+                        "all_nonfoot_body_contact_forces": "not_recorded",
+                        "contact_objects": "not_recorded"},
+                    "derived_locators": {
+                        "control_step": {"source_array": "episode_length",
+                            "representation": "evidence_ref.steps_half_open", "indexing": "one_based_half_open"},
+                        "source_chunk": {"representation": "evidence_ref.chunks",
+                            "identity_fields": ["file", "sha256"], "resolution": "source_manifest.chunks"},
+                        "source_row": {"representation": "evidence_ref.chunks.rows_half_open",
+                            "indexing": "zero_based_half_open"}},
+                }
+                if archive.header_history is None:
+                    source["input_inventory"]["unavailable_quantities"].append("contact_force_history")
+                    source["input_inventory"]["capability_profile"] = {
+                        "schema_version": "stair.trajectory_archive_capabilities.v1",
+                        "archive_profile": context["profile"],
+                        **ARCHIVE_CAPABILITIES[context["profile"]]}
                 chunk = source_chunks[chunk_index]
                 task = {"outcome": deepcopy(seed["outcomes"][env]),
                         "outcome_authority": {"kind": "recorded_task_outcome", "semantics_hash": source["semantics_hash"],

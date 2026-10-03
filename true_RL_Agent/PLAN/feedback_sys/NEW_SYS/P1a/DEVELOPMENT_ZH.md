@@ -1,5 +1,8 @@
 # P1a 数值测量与时序证据
 
+本文件及 `verification.json` 记录0960aa开发交付历史；该提交未通过父线程P1a阶段门。
+后续T1/T2修复及新验收证据见 [REPAIR_T1_T2_ZH.md](REPAIR_T1_T2_ZH.md) 与 `repair_verification.json`。
+
 起点：`2d888a846636ffb0e3a732d9d3423288ff3b2cac`，专用分支
 `codex/trajectory-translator-upgrade`。正常权限只读工作区干净；沙箱长路径 D 为假删除。
 仓库根及项目内无适用 AGENTS.md，`.agents`/`.codex` 正常权限枚举为空。

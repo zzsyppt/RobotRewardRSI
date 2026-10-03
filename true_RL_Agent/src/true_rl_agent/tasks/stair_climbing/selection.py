@@ -626,10 +626,14 @@ def build_stair_public_dev_screen_evidence(
     else:
         raise ValueError("Stair screen role is invalid")
     raw_evidence = phase_result.task_evidence
+    # Numeric feedback is a qualified phase attachment. Validate its source and
+    # receipt using the same task contract as final evaluation, while screening
+    # continues to consume only the unchanged evaluator summary below.
+    from .phased_evaluation import canonical_stair_phase_result_summary
+    canonical_stair_phase_result_summary(config=config, expected_phase=EvaluationPhase.PUBLIC_DEV,
+                                         result=phase_result)
     if (
-        set(raw_evidence)
-        != {"schema_version", "phase", "execution_identity", "summary"}
-        or raw_evidence.get("schema_version") != STAIR_PHASE_EVIDENCE_SCHEMA_VERSION
+        raw_evidence.get("schema_version") != STAIR_PHASE_EVIDENCE_SCHEMA_VERSION
         or raw_evidence.get("phase") != EvaluationPhase.PUBLIC_DEV.value
     ):
         raise ValueError("Stair public-dev phase evidence contract mismatch")

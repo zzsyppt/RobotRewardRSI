@@ -1,0 +1,193 @@
+{
+  "schema_version": "stair.replay_profile_cli_fix.verification.v1",
+  "base_commit": "c8600e206b00b11be4e0225ee84b70546ada97bb",
+  "source_failure_log_sha256": "7bbaaa798d741cf24822b9947e4d7aa52edc48d551e1b770aa5f795a5bb00b9b",
+  "code": [
+    {
+      "path": "scripts/stair_numeric_dev_replay.py",
+      "sha256": "af84e5ca885d0a89711817ec3a1921b2039973703c51adee5cb93db5a33a6f12",
+      "bytes": 22789
+    },
+    {
+      "path": "tests/unit/test_stair_numeric_dev_replay.py",
+      "sha256": "59accbadb36e5b1323bdd416986e2d4da0d18e8d73bc9dad2a19fa53ede711f3",
+      "bytes": 27365
+    }
+  ],
+  "documentation": {
+    "path": "PLAN/feedback_sys/NEW_SYS/P1d/REPLAY_PROFILE_CLI_FIX_ZH.md",
+    "sha256": "3aa6003a4de064ef1ec2be95a3ad5d39ce0f77a3b1c488fa05e3be098b984f2d",
+    "bytes": 3487
+  },
+  "test_command": [
+    "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+    "-B",
+    "-m",
+    "unittest",
+    "tests.unit.test_stair_numeric_dev_replay",
+    "tests.unit.test_stair_trajectory_pipeline",
+    "tests.unit.test_gpu_binding_projection_contract",
+    "-v"
+  ],
+  "tests": {
+    "count": 26,
+    "pass": 26,
+    "skip": 0,
+    "fail": 0,
+    "wall_seconds": 34.423,
+    "test_ids": {
+      "tests.unit.test_stair_numeric_dev_replay.StairNumericDevReplayTests.test_actual_cli_help_and_trajectory_preflight_accept_profile_options": "ok",
+      "tests.unit.test_stair_numeric_dev_replay.StairNumericDevReplayTests.test_bad_completion_budget_binding_and_source_are_rejected": "ok",
+      "tests.unit.test_stair_numeric_dev_replay.StairNumericDevReplayTests.test_diagnostic_preflight_uses_new_cohort_without_changing_source_identity": "ok",
+      "tests.unit.test_stair_numeric_dev_replay.StairNumericDevReplayTests.test_entrypoint_releases_probe_and_runner_lease_before_cpu_finalization": "ok",
+      "tests.unit.test_stair_numeric_dev_replay.StairNumericDevReplayTests.test_existing_output_cannot_be_overwritten": "ok",
+      "tests.unit.test_stair_numeric_dev_replay.StairNumericDevReplayTests.test_feedback_cli_reaches_real_composition_finalizer_and_keeps_legacy_defaults": "ok",
+      "tests.unit.test_stair_numeric_dev_replay.StairNumericDevReplayTests.test_feedback_invalid_budget_uses_existing_composition_validation_before_gpu": "ok",
+      "tests.unit.test_stair_numeric_dev_replay.StairNumericDevReplayTests.test_feedback_parser_matches_normal_composition_choices_and_defaults": "ok",
+      "tests.unit.test_stair_numeric_dev_replay.StairNumericDevReplayTests.test_named_diagnostic_cohort_is_rejected_in_formal_mode_before_output": "ok",
+      "tests.unit.test_stair_numeric_dev_replay.StairNumericDevReplayTests.test_named_diagnostic_cohort_preflight": "ok",
+      "tests.unit.test_stair_numeric_dev_replay.StairNumericDevReplayTests.test_preflight_on_off_preserves_v1_identity_without_environment_probe_or_launch": "ok",
+      "tests.unit.test_stair_numeric_dev_replay.StairNumericDevReplayTests.test_run_releases_lease_when_environment_probe_fails": "ok",
+      "tests.unit.test_stair_numeric_dev_replay.StairNumericDevReplayTests.test_run_uses_production_phase_runner_and_keeps_candidate_authorship": "ok",
+      "tests.unit.test_stair_numeric_dev_replay.StairNumericDevReplayTests.test_video_presentation_flags_reach_eval_argv_only": "ok",
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_automatic_selection_has_no_frozen_examples_or_other_source": "ok",
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_changed_profile_and_nonpublic_archive_rejected": "ok",
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_foreign_job_checkpoint_plan_never_reuses_card": "ok",
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_incomplete_owned_stage_restarts": "ok",
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_manifest_published_only_after_complete_write": "ok",
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_missing_manifest_does_not_fallback": "ok",
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_normal_composition_wires_profile_and_preserves_old_defaults": "ok",
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_private_receipt_replay_binds_configuration_source_and_public_bytes": "ok",
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_removed_unavailable_slot_rejected_even_with_consistent_projection_hashes": "ok",
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_repeated_build_and_budget_change_reuse_artifacts": "ok",
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_versions_robots_and_budget_reject_explicitly": "ok",
+      "tests.unit.test_gpu_binding_projection_contract.GpuBindingProjectionContractTests.test_persisted_binding_projections_have_explicit_public_private_fields": "ok"
+    }
+  },
+  "actual_cli": {
+    "fixture": "synthetic source-training contract and non-policy checkpoint bytes; CPU preflight only, not real trained-policy or GPU qualification",
+    "commands": [
+      {
+        "name": "help",
+        "command": [
+          "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+          "-B",
+          "scripts/stair_numeric_dev_replay.py",
+          "--help"
+        ],
+        "exit_code": 0,
+        "wall_seconds": 0.5409448000136763
+      },
+      {
+        "name": "preflight",
+        "command": [
+          "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+          "-B",
+          "scripts/stair_numeric_dev_replay.py",
+          "--checkpoint",
+          "D:\\humanoid_agent\\true_RL_Agent\\outputs\\profile_cli\\fixture\\synthetic.pt",
+          "--train-summary",
+          "D:\\humanoid_agent\\true_RL_Agent\\outputs\\profile_cli\\fixture\\synthetic_train_summary.json",
+          "--protocol",
+          "D:\\humanoid_agent\\true_RL_Agent\\configs\\tasks\\stair_go2_12dof_unified_protocol_v3.json",
+          "--output",
+          "D:\\humanoid_agent\\true_RL_Agent\\outputs\\profile_cli\\preflight",
+          "--device",
+          "cuda:1",
+          "--mode",
+          "preflight",
+          "--capture-numeric",
+          "on",
+          "--behavior-feedback-profile",
+          "trajectory_numeric_v1",
+          "--trajectory-report-max-bytes",
+          "8192"
+        ],
+        "exit_code": 0,
+        "wall_seconds": 1.4117951999651268
+      }
+    ]
+  },
+  "scope": {
+    "all_src_unchanged_from_base": true,
+    "p2a_unchanged_from_base": true,
+    "gpu_binding_retained": true,
+    "new_gpu_runs": 0,
+    "new_server_writes": 0,
+    "new_llm_calls": 0,
+    "synthetic_preflight_is_not_gpu_qualification": true
+  },
+  "review": "read-only Astra ultra final diff, original failure log, all final test and actual CLI logs: PASS",
+  "evidence": [
+    {
+      "path": "outputs/profile_cli/actual_cli_commands.json",
+      "sha256": "69e9e07648b8e5ebd907ceac42e460fab0ef0e158377590a45e0fbfba40169ca",
+      "bytes": 1476
+    },
+    {
+      "path": "outputs/profile_cli/fix.diff",
+      "sha256": "5c3d934b793b1eee2df2798a8b95d7f673267557bbb3ed8971146013ce3de0f3",
+      "bytes": 9140
+    },
+    {
+      "path": "outputs/profile_cli/fixture/synthetic.pt",
+      "sha256": "cf055d4859467837cd28319ce6cada88fe03b0099052655d9e47b790295ad363",
+      "bytes": 60
+    },
+    {
+      "path": "outputs/profile_cli/fixture/synthetic_train_summary.json",
+      "sha256": "66deba418c2195b43e8d79c1c3a849126a1b73e0f534bc668d4ac8216938a4ab",
+      "bytes": 3274
+    },
+    {
+      "path": "outputs/profile_cli/help.log",
+      "sha256": "b9684902b5d89271d39251cdc2edbdbeb8893178625424e4f221378fdbc00abb",
+      "bytes": 3030
+    },
+    {
+      "path": "outputs/profile_cli/original_cpu_profile_preflight.log",
+      "sha256": "7bbaaa798d741cf24822b9947e4d7aa52edc48d551e1b770aa5f795a5bb00b9b",
+      "bytes": 1515
+    },
+    {
+      "path": "outputs/profile_cli/preflight/composition/resolved_cell_manifest.json",
+      "sha256": "01c9e6e216b41291707eb6b0deaa2f82cd0401011aa9df09710b6e5bd2d761cf",
+      "bytes": 11306
+    },
+    {
+      "path": "outputs/profile_cli/preflight/eval_template/go2-stair-official-flat-derived-v1/c179e38468a1c98311dfa77a541f0c81b6cab0d45b8223d97dbffe1c3b610c62/.true_rl_agent_reference_artifact.json",
+      "sha256": "fd2ca8eaa261ec4fd349aae20cac1641fea1a1b479f39d47ceeacb9405c57e31",
+      "bytes": 1301
+    },
+    {
+      "path": "outputs/profile_cli/preflight/eval_template/go2-stair-official-flat-derived-v1/c179e38468a1c98311dfa77a541f0c81b6cab0d45b8223d97dbffe1c3b610c62/training_code/components.py",
+      "sha256": "10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+      "bytes": 2326
+    },
+    {
+      "path": "outputs/profile_cli/preflight/public_dev_job.json",
+      "sha256": "c0f6c81714979d94f066d088cd8835697abed5bea009e35e29e545b2296b1504",
+      "bytes": 13836
+    },
+    {
+      "path": "outputs/profile_cli/preflight/result.json",
+      "sha256": "4779924efe17f48a9f634727c90b4fc4dfa229a4d1537b7be1a5ae9593f96569",
+      "bytes": 2694
+    },
+    {
+      "path": "outputs/profile_cli/preflight.log",
+      "sha256": "14118c224ec79673094f2486de611634a77b270251122b6e56de9a7e9d648ddf",
+      "bytes": 110
+    },
+    {
+      "path": "outputs/profile_cli/tests.log",
+      "sha256": "98f6f4d7aeaad459e33b31d9fe3041c56bb1397e68265cf4a6ce27263539dfb3",
+      "bytes": 6944
+    },
+    {
+      "path": "outputs/profile_cli/tests_final.log",
+      "sha256": "08915211c0c9154e46e8d9f66e17bedf7ec215bc2f74a12cfaed2cd83b9fea4f",
+      "bytes": 6944
+    }
+  ]
+}

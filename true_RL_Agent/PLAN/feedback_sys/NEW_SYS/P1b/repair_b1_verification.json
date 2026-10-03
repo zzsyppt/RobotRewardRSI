@@ -1,0 +1,689 @@
+{
+  "schema_version": "trajectory.p1b.b1_repair_verification.v1",
+  "status": "repair_self_tests_and_readonly_review_passed_parent_reacceptance_pending",
+  "base_commit": "c0cafa0d4b1684784eddab5efe639ec7bad647b8",
+  "branch": "codex/trajectory-translator-upgrade",
+  "parent_previous_decision": "P1b not accepted: sole B1 generic cohort metric/label/entity/unit/role binding; fixed artifact values and 801 statements passed",
+  "scope": "Only report.py generic metric wording/binding and corresponding unit tests; no measurement arithmetic, P0/P1a, selection, reward, outcome, old ABI or P1c changes",
+  "changed_code": [
+    {
+      "path": "src/true_rl_agent/evaluation/trajectory_translation/report.py",
+      "sha256": "5125a6e7eb54fd5c3dd48bc9969b2ac2fe61bef4e74804a461cd57b1b32ce335",
+      "bytes": 47392
+    },
+    {
+      "path": "tests/unit/test_trajectory_card.py",
+      "sha256": "4dce2ee0c131d6deb37dacd6f659add921f03e77284e891730f41da6d5854909",
+      "bytes": 22067
+    }
+  ],
+  "code_sha256": {
+    "scripts/build_policy_behavior_card.py": "0e68d1fb95c2c5d18d2a21daba0f4d463cdaee4568156b44c269a148bd097591",
+    "src/true_rl_agent/evaluation/trajectory_translation/cohort.py": "2e5e5a80f86e1dbe46bc3383cb1d058e574d526488a9da222093e92556faac20",
+    "src/true_rl_agent/evaluation/trajectory_translation/report.py": "5125a6e7eb54fd5c3dd48bc9969b2ac2fe61bef4e74804a461cd57b1b32ce335",
+    "src/true_rl_agent/evaluation/trajectory_translation/contracts.py": "672c9468761d1b30343c9f7562a7ba0c91559d60019c1250f9f1a626138a0c57",
+    "src/true_rl_agent/evaluation/trajectory_translation/measurement.py": "23a85e6e5a7665c152d6319c62eec60850c57743d488c2449548001278bc8c49",
+    "src/true_rl_agent/evaluation/trajectory_translation/temporal.py": "d628a872e4130563138e2fd74dbbfccd895e1da62f457b5a85b555a97ed9122b",
+    "src/true_rl_agent/tasks/stair_climbing/trajectory_adapter.py": "45f5c7315123d99b6a49231ee66e051834b3a5ebcc06ffe7adfee74f8a99a3ad",
+    "src/true_rl_agent/runner/numeric_evidence.py": "2283e8e9f770135a610506173e91948fdfc7dcf79b9b227f5f0932a44da30579"
+  },
+  "artifacts_comparison": {
+    "manifest.json": {
+      "before": {
+        "path": "outputs/trajectory_p1b/final_card/manifest.json",
+        "sha256": "58b7fea18bf36ae22113e651bde2616af2a934925b5fd34c831f157190bc9d5e",
+        "bytes": 8666
+      },
+      "after": {
+        "path": "outputs/trajectory_p1b/repair_b1/final_card/manifest.json",
+        "sha256": "3bfd19515481faa6d9f273426e6b14d141fe616642536d15a6a55c2b2f9990f0",
+        "bytes": 8667
+      },
+      "byte_identical": false
+    },
+    "evidence.jsonl": {
+      "before": {
+        "path": "outputs/trajectory_p1b/final_card/evidence.jsonl",
+        "sha256": "58f1014f557847c5ee32a3c03e4bebf4becdc2bc35552c6ac948a5fcc576af6e",
+        "bytes": 61332614
+      },
+      "after": {
+        "path": "outputs/trajectory_p1b/repair_b1/final_card/evidence.jsonl",
+        "sha256": "58f1014f557847c5ee32a3c03e4bebf4becdc2bc35552c6ac948a5fcc576af6e",
+        "bytes": 61332614
+      },
+      "byte_identical": true
+    },
+    "policy_card.json": {
+      "before": {
+        "path": "outputs/trajectory_p1b/final_card/policy_card.json",
+        "sha256": "d83ddf0b8ee28e8d00705de81029930474b47ba230532596d50aabd2e9b0d9a2",
+        "bytes": 1233288
+      },
+      "after": {
+        "path": "outputs/trajectory_p1b/repair_b1/final_card/policy_card.json",
+        "sha256": "d83ddf0b8ee28e8d00705de81029930474b47ba230532596d50aabd2e9b0d9a2",
+        "bytes": 1233288
+      },
+      "byte_identical": true
+    },
+    "policy_card_zh.md": {
+      "before": {
+        "path": "outputs/trajectory_p1b/final_card/policy_card_zh.md",
+        "sha256": "c5589b8b79efd605c5d5d305a84ba58f246de3fbba55a39d48cff0d7f90c90ac",
+        "bytes": 295251
+      },
+      "after": {
+        "path": "outputs/trajectory_p1b/repair_b1/final_card/policy_card_zh.md",
+        "sha256": "c5589b8b79efd605c5d5d305a84ba58f246de3fbba55a39d48cff0d7f90c90ac",
+        "bytes": 295251
+      },
+      "byte_identical": true
+    }
+  },
+  "main_view_changed": false,
+  "all_801_claims_and_ids_changed": false,
+  "all_numerical_records_changed": false,
+  "mutations_before": {
+    "passed": true,
+    "expected_mutant_status": "ACCEPTED",
+    "original_generic_claims_passed": 95,
+    "mutations": [
+      {
+        "name": "progress_to_time",
+        "status": "ACCEPTED",
+        "error": null,
+        "original_claim_id": "claim:5d6a6c02cbdd2a49de978387a2a26465ef5ece0367e3c40e427fe34d1a5954ed",
+        "original_text": "首末记录任务净进度：回合等权中位数4.254518m，四分位[3.535696,4.3658]；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_text": "首末记录任务净进度：回合等权中位数6.44m，四分位[6.075,7.4]；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_operands": {
+          "metric": {
+            "record_id": "cohort:036484266222503cf89e81de62231575476029d3a07a02ccdfe51be4b1906c36",
+            "path": [
+              "metrics",
+              "terminal_time_s"
+            ]
+          }
+        },
+        "changed_literals": {
+          "label": "首末记录任务净进度",
+          "unit": "m"
+        },
+        "re_rendered_and_rehashed": true
+      },
+      {
+        "name": "success_RL_to_RR",
+        "status": "ACCEPTED",
+        "error": null,
+        "original_claim_id": "claim:75f680f5d7a322e8e7972f76c722324f98f7c9040cfc4b1097d1a943af0198a1",
+        "original_text": "robot_0.support.RL_foot低XY速度off已观察连续记录格时长≥0.5s：已观察阳性3/可判定682回合，未知0、未处理0、总数682；仅限现有记录，未知不作阴性，多个模式可重叠。",
+        "changed_text": "robot_0.support.RL_foot低XY速度off已观察连续记录格时长≥0.5s：已观察阳性1/可判定682回合，未知0、未处理0、总数682；仅限现有记录，未知不作阴性，多个模式可重叠。",
+        "changed_operands": {
+          "metric": {
+            "record_id": "cohort:6ec32f3ebf6d0015357d34b991fc7593cb7ed69d8caf84fc43ef1f831e3d2ec8",
+            "path": [
+              "metrics",
+              "robot_0.support.RR_foot.low_speed_off.long_observed"
+            ]
+          }
+        },
+        "changed_literals": {
+          "label": "robot_0.support.RL_foot低XY速度off已观察连续记录格时长≥0.5s"
+        },
+        "re_rendered_and_rehashed": true
+      },
+      {
+        "name": "current_to_history",
+        "status": "ACCEPTED",
+        "error": null,
+        "original_claim_id": "claim:ca1be9b0e35da085f5a9769161c59295272e2f7e5c2bc19d15edffe49e26fa67",
+        "original_text": "robot_0.support.FL_foot current marker采样占比：回合等权均值0.704338，池化比值0.703179（分子4196.22/分母5967.5 sample_cell_s）；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_text": "robot_0.support.FL_foot current marker采样占比：回合等权均值0.716087，池化比值0.715006（分子4266.8/分母5967.5 sample_cell_s）；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_operands": {
+          "metric": {
+            "record_id": "cohort:036484266222503cf89e81de62231575476029d3a07a02ccdfe51be4b1906c36",
+            "path": [
+              "metrics",
+              "robot_0.support.FL_foot.history_diagnostic"
+            ]
+          }
+        },
+        "changed_literals": {
+          "label": "robot_0.support.FL_foot current marker采样占比"
+        },
+        "re_rendered_and_rehashed": true
+      },
+      {
+        "name": "off_runs_FL_to_RR",
+        "status": "ACCEPTED",
+        "error": null,
+        "original_claim_id": "claim:c5eb9943745c0d1bb8e8b3f4747feff913bae8984834f65ea6ee95e7fe9c0539",
+        "original_text": "robot_0.support.FL_foot的 marker-off 区间共11593段，完整10619段，左/右截尾864/110段（可重叠）；只在完整段内，按区间等权的观测跨度中位数0.12s；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_text": "robot_0.support.FL_foot的 marker-off 区间共15219段，完整14156段，左/右截尾864/199段（可重叠）；只在完整段内，按区间等权的观测跨度中位数0.12s；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_operands": {
+          "metric": {
+            "record_id": "cohort:036484266222503cf89e81de62231575476029d3a07a02ccdfe51be4b1906c36",
+            "path": [
+              "metrics",
+              "robot_0.support.RR_foot.marker"
+            ]
+          }
+        },
+        "changed_literals": {
+          "label": "",
+          "entity": "robot_0.support.FL_foot"
+        },
+        "re_rendered_and_rehashed": true
+      },
+      {
+        "name": "label_only",
+        "status": "ACCEPTED",
+        "error": null,
+        "original_claim_id": "claim:5d6a6c02cbdd2a49de978387a2a26465ef5ece0367e3c40e427fe34d1a5954ed",
+        "original_text": "首末记录任务净进度：回合等权中位数4.254518m，四分位[3.535696,4.3658]；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_text": "有效终点时刻：回合等权中位数4.254518m，四分位[3.535696,4.3658]；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_operands": {
+          "metric": {
+            "record_id": "cohort:036484266222503cf89e81de62231575476029d3a07a02ccdfe51be4b1906c36",
+            "path": [
+              "metrics",
+              "net_progress_m"
+            ]
+          }
+        },
+        "changed_literals": {
+          "label": "有效终点时刻",
+          "unit": "m"
+        },
+        "re_rendered_and_rehashed": true
+      },
+      {
+        "name": "unit_only",
+        "status": "ACCEPTED",
+        "error": null,
+        "original_claim_id": "claim:5d6a6c02cbdd2a49de978387a2a26465ef5ece0367e3c40e427fe34d1a5954ed",
+        "original_text": "首末记录任务净进度：回合等权中位数4.254518m，四分位[3.535696,4.3658]；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_text": "首末记录任务净进度：回合等权中位数4.254518s，四分位[3.535696,4.3658]；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_operands": {
+          "metric": {
+            "record_id": "cohort:036484266222503cf89e81de62231575476029d3a07a02ccdfe51be4b1906c36",
+            "path": [
+              "metrics",
+              "net_progress_m"
+            ]
+          }
+        },
+        "changed_literals": {
+          "label": "首末记录任务净进度",
+          "unit": "s"
+        },
+        "re_rendered_and_rehashed": true
+      },
+      {
+        "name": "entity_only",
+        "status": "ACCEPTED",
+        "error": null,
+        "original_claim_id": "claim:c5eb9943745c0d1bb8e8b3f4747feff913bae8984834f65ea6ee95e7fe9c0539",
+        "original_text": "robot_0.support.FL_foot的 marker-off 区间共11593段，完整10619段，左/右截尾864/110段（可重叠）；只在完整段内，按区间等权的观测跨度中位数0.12s；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_text": "robot_0.support.RR_foot的 marker-off 区间共11593段，完整10619段，左/右截尾864/110段（可重叠）；只在完整段内，按区间等权的观测跨度中位数0.12s；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_operands": {
+          "metric": {
+            "record_id": "cohort:036484266222503cf89e81de62231575476029d3a07a02ccdfe51be4b1906c36",
+            "path": [
+              "metrics",
+              "robot_0.support.FL_foot.marker"
+            ]
+          }
+        },
+        "changed_literals": {
+          "label": "",
+          "entity": "robot_0.support.RR_foot"
+        },
+        "re_rendered_and_rehashed": true
+      },
+      {
+        "name": "current_role_label_only",
+        "status": "ACCEPTED",
+        "error": null,
+        "original_claim_id": "claim:ca1be9b0e35da085f5a9769161c59295272e2f7e5c2bc19d15edffe49e26fa67",
+        "original_text": "robot_0.support.FL_foot current marker采样占比：回合等权均值0.704338，池化比值0.703179（分子4196.22/分母5967.5 sample_cell_s）；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_text": "robot_0.support.FL_foot history ANY采样占比：回合等权均值0.704338，池化比值0.703179（分子4196.22/分母5967.5 sample_cell_s）；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_operands": {
+          "metric": {
+            "record_id": "cohort:036484266222503cf89e81de62231575476029d3a07a02ccdfe51be4b1906c36",
+            "path": [
+              "metrics",
+              "robot_0.support.FL_foot.marker"
+            ]
+          }
+        },
+        "changed_literals": {
+          "label": "robot_0.support.FL_foot history ANY采样占比"
+        },
+        "re_rendered_and_rehashed": true
+      }
+    ]
+  },
+  "mutations_after": {
+    "passed": true,
+    "expected_mutant_status": "REJECTED",
+    "original_generic_claims_passed": 95,
+    "mutations": [
+      {
+        "name": "progress_to_time",
+        "status": "REJECTED",
+        "error": "cohort metric label/entity/unit/role mismatch",
+        "original_claim_id": "claim:5d6a6c02cbdd2a49de978387a2a26465ef5ece0367e3c40e427fe34d1a5954ed",
+        "original_text": "首末记录任务净进度：回合等权中位数4.254518m，四分位[3.535696,4.3658]；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_text": "首末记录任务净进度：回合等权中位数6.44m，四分位[6.075,7.4]；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_operands": {
+          "metric": {
+            "record_id": "cohort:036484266222503cf89e81de62231575476029d3a07a02ccdfe51be4b1906c36",
+            "path": [
+              "metrics",
+              "terminal_time_s"
+            ]
+          }
+        },
+        "changed_literals": {
+          "label": "首末记录任务净进度",
+          "unit": "m"
+        },
+        "re_rendered_and_rehashed": true
+      },
+      {
+        "name": "success_RL_to_RR",
+        "status": "REJECTED",
+        "error": "cohort metric label/entity/unit/role mismatch",
+        "original_claim_id": "claim:75f680f5d7a322e8e7972f76c722324f98f7c9040cfc4b1097d1a943af0198a1",
+        "original_text": "robot_0.support.RL_foot低XY速度off已观察连续记录格时长≥0.5s：已观察阳性3/可判定682回合，未知0、未处理0、总数682；仅限现有记录，未知不作阴性，多个模式可重叠。",
+        "changed_text": "robot_0.support.RL_foot低XY速度off已观察连续记录格时长≥0.5s：已观察阳性1/可判定682回合，未知0、未处理0、总数682；仅限现有记录，未知不作阴性，多个模式可重叠。",
+        "changed_operands": {
+          "metric": {
+            "record_id": "cohort:6ec32f3ebf6d0015357d34b991fc7593cb7ed69d8caf84fc43ef1f831e3d2ec8",
+            "path": [
+              "metrics",
+              "robot_0.support.RR_foot.low_speed_off.long_observed"
+            ]
+          }
+        },
+        "changed_literals": {
+          "label": "robot_0.support.RL_foot低XY速度off已观察连续记录格时长≥0.5s"
+        },
+        "re_rendered_and_rehashed": true
+      },
+      {
+        "name": "current_to_history",
+        "status": "REJECTED",
+        "error": "unsupported cohort template/metric semantics",
+        "original_claim_id": "claim:ca1be9b0e35da085f5a9769161c59295272e2f7e5c2bc19d15edffe49e26fa67",
+        "original_text": "robot_0.support.FL_foot current marker采样占比：回合等权均值0.704338，池化比值0.703179（分子4196.22/分母5967.5 sample_cell_s）；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_text": "robot_0.support.FL_foot current marker采样占比：回合等权均值0.716087，池化比值0.715006（分子4266.8/分母5967.5 sample_cell_s）；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_operands": {
+          "metric": {
+            "record_id": "cohort:036484266222503cf89e81de62231575476029d3a07a02ccdfe51be4b1906c36",
+            "path": [
+              "metrics",
+              "robot_0.support.FL_foot.history_diagnostic"
+            ]
+          }
+        },
+        "changed_literals": {
+          "label": "robot_0.support.FL_foot current marker采样占比"
+        },
+        "re_rendered_and_rehashed": true
+      },
+      {
+        "name": "off_runs_FL_to_RR",
+        "status": "REJECTED",
+        "error": "cohort metric label/entity/unit/role mismatch",
+        "original_claim_id": "claim:c5eb9943745c0d1bb8e8b3f4747feff913bae8984834f65ea6ee95e7fe9c0539",
+        "original_text": "robot_0.support.FL_foot的 marker-off 区间共11593段，完整10619段，左/右截尾864/110段（可重叠）；只在完整段内，按区间等权的观测跨度中位数0.12s；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_text": "robot_0.support.FL_foot的 marker-off 区间共15219段，完整14156段，左/右截尾864/199段（可重叠）；只在完整段内，按区间等权的观测跨度中位数0.12s；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_operands": {
+          "metric": {
+            "record_id": "cohort:036484266222503cf89e81de62231575476029d3a07a02ccdfe51be4b1906c36",
+            "path": [
+              "metrics",
+              "robot_0.support.RR_foot.marker"
+            ]
+          }
+        },
+        "changed_literals": {
+          "label": "",
+          "entity": "robot_0.support.FL_foot"
+        },
+        "re_rendered_and_rehashed": true
+      },
+      {
+        "name": "label_only",
+        "status": "REJECTED",
+        "error": "cohort metric label/entity/unit/role mismatch",
+        "original_claim_id": "claim:5d6a6c02cbdd2a49de978387a2a26465ef5ece0367e3c40e427fe34d1a5954ed",
+        "original_text": "首末记录任务净进度：回合等权中位数4.254518m，四分位[3.535696,4.3658]；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_text": "有效终点时刻：回合等权中位数4.254518m，四分位[3.535696,4.3658]；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_operands": {
+          "metric": {
+            "record_id": "cohort:036484266222503cf89e81de62231575476029d3a07a02ccdfe51be4b1906c36",
+            "path": [
+              "metrics",
+              "net_progress_m"
+            ]
+          }
+        },
+        "changed_literals": {
+          "label": "有效终点时刻",
+          "unit": "m"
+        },
+        "re_rendered_and_rehashed": true
+      },
+      {
+        "name": "unit_only",
+        "status": "REJECTED",
+        "error": "cohort metric label/entity/unit/role mismatch",
+        "original_claim_id": "claim:5d6a6c02cbdd2a49de978387a2a26465ef5ece0367e3c40e427fe34d1a5954ed",
+        "original_text": "首末记录任务净进度：回合等权中位数4.254518m，四分位[3.535696,4.3658]；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_text": "首末记录任务净进度：回合等权中位数4.254518s，四分位[3.535696,4.3658]；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_operands": {
+          "metric": {
+            "record_id": "cohort:036484266222503cf89e81de62231575476029d3a07a02ccdfe51be4b1906c36",
+            "path": [
+              "metrics",
+              "net_progress_m"
+            ]
+          }
+        },
+        "changed_literals": {
+          "label": "首末记录任务净进度",
+          "unit": "s"
+        },
+        "re_rendered_and_rehashed": true
+      },
+      {
+        "name": "entity_only",
+        "status": "REJECTED",
+        "error": "cohort metric label/entity/unit/role mismatch",
+        "original_claim_id": "claim:c5eb9943745c0d1bb8e8b3f4747feff913bae8984834f65ea6ee95e7fe9c0539",
+        "original_text": "robot_0.support.FL_foot的 marker-off 区间共11593段，完整10619段，左/右截尾864/110段（可重叠）；只在完整段内，按区间等权的观测跨度中位数0.12s；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_text": "robot_0.support.RR_foot的 marker-off 区间共11593段，完整10619段，左/右截尾864/110段（可重叠）；只在完整段内，按区间等权的观测跨度中位数0.12s；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_operands": {
+          "metric": {
+            "record_id": "cohort:036484266222503cf89e81de62231575476029d3a07a02ccdfe51be4b1906c36",
+            "path": [
+              "metrics",
+              "robot_0.support.FL_foot.marker"
+            ]
+          }
+        },
+        "changed_literals": {
+          "label": "",
+          "entity": "robot_0.support.RR_foot"
+        },
+        "re_rendered_and_rehashed": true
+      },
+      {
+        "name": "current_role_label_only",
+        "status": "REJECTED",
+        "error": "cohort metric label/entity/unit/role mismatch",
+        "original_claim_id": "claim:ca1be9b0e35da085f5a9769161c59295272e2f7e5c2bc19d15edffe49e26fa67",
+        "original_text": "robot_0.support.FL_foot current marker采样占比：回合等权均值0.704338，池化比值0.703179（分子4196.22/分母5967.5 sample_cell_s）；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_text": "robot_0.support.FL_foot history ANY采样占比：回合等权均值0.704338，池化比值0.703179（分子4196.22/分母5967.5 sample_cell_s）；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。",
+        "changed_operands": {
+          "metric": {
+            "record_id": "cohort:036484266222503cf89e81de62231575476029d3a07a02ccdfe51be4b1906c36",
+            "path": [
+              "metrics",
+              "robot_0.support.FL_foot.marker"
+            ]
+          }
+        },
+        "changed_literals": {
+          "label": "robot_0.support.FL_foot history ANY采样占比"
+        },
+        "re_rendered_and_rehashed": true
+      }
+    ]
+  },
+  "executions": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest tests.unit.test_trajectory_cohort tests.unit.test_trajectory_card tests.unit.test_trajectory_card_verification tests.unit.test_project_boundaries -v",
+      "cwd": "D:/humanoid_agent/true_RL_Agent",
+      "environment": {
+        "PYTHONPATH": "src"
+      },
+      "exit_code": 0,
+      "test_count": 65,
+      "reported_seconds": 21.796,
+      "log": {
+        "path": "outputs/trajectory_p1b/repair_b1/new_tests.log",
+        "sha256": "1162df7ad6dfb0accdd25aad32858cd0cb376fba427f5569818c1f2ae8fd04cf",
+        "bytes": 11463
+      },
+      "raw_tail": "t.test_trajectory_card_verification.CardRawAuditTests.test_force_share_cannot_be_replaced_by_marker_occupancy) ... ok\ntest_group_denominator_unknown_and_membership_mutations (tests.unit.test_trajectory_card_verification.CardRawAuditTests.test_group_denominator_unknown_and_membership_mutations) ... ok\ntest_unknown_progress_window_cannot_be_counted_as_negative (tests.unit.test_trajectory_card_verification.CardRawAuditTests.test_unknown_progress_window_cannot_be_counted_as_negative) ... ok\ntest_generic_packages_do_not_import_concrete_task_packages (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_import_concrete_task_packages) ... ok\ntest_generic_packages_do_not_own_push_audit_literals (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_own_push_audit_literals) ... ok\ntest_generic_packages_do_not_own_stair_semantics (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_own_stair_semantics) ... ok\ntest_orchestration_does_not_read_legacy_provider_context (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_orchestration_does_not_read_legacy_provider_context) ... ok\ntest_package_imports_from_local_src_without_parent_project_imports (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_package_imports_from_local_src_without_parent_project_imports) ... ok\ntest_project_metadata_declares_independent_package (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_project_metadata_declares_independent_package) ... ok\ntest_push_recovery_package_does_not_own_stair_semantics (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_push_recovery_package_does_not_own_stair_semantics) ... ok\ntest_runtime_tree_does_not_reference_parent_project (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_runtime_tree_does_not_reference_parent_project) ... ok\n\n----------------------------------------------------------------------\nRan 65 tests in 21.796s\n\nOK\n"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest tests.unit.test_trajectory_temporal tests.unit.test_trajectory_measurement tests.unit.test_stair_trajectory_adapter tests.unit.test_stair_trajectory_evidence_build tests.unit.test_trajectory_evidence_verification tests.unit.test_project_boundaries -v",
+      "cwd": "D:/humanoid_agent/true_RL_Agent",
+      "environment": {
+        "PYTHONPATH": "src"
+      },
+      "exit_code": 0,
+      "test_count": 107,
+      "reported_seconds": 5.66,
+      "log": {
+        "path": "outputs/trajectory_p1b/repair_b1/p1a_regression.log",
+        "sha256": "8f1f13a19ae8b5ca37aeb6414935c9e607c6ab0440bb18da50381618858947c4",
+        "bytes": 21282
+      },
+      "raw_tail": "y_evidence_verification.InputIntegrityTests.test_reference_run_and_environment_require_exact_integers) ... ok\ntest_same_length_row_shift_fails_frozen_chunk_clock_binding (tests.unit.test_trajectory_evidence_verification.InputIntegrityTests.test_same_length_row_shift_fails_frozen_chunk_clock_binding) ... ok\ntest_successful_stream_reader_preserves_selected_ids (tests.unit.test_trajectory_evidence_verification.InputIntegrityTests.test_successful_stream_reader_preserves_selected_ids) ... ok\ntest_generic_packages_do_not_import_concrete_task_packages (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_import_concrete_task_packages) ... ok\ntest_generic_packages_do_not_own_push_audit_literals (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_own_push_audit_literals) ... ok\ntest_generic_packages_do_not_own_stair_semantics (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_own_stair_semantics) ... ok\ntest_orchestration_does_not_read_legacy_provider_context (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_orchestration_does_not_read_legacy_provider_context) ... ok\ntest_package_imports_from_local_src_without_parent_project_imports (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_package_imports_from_local_src_without_parent_project_imports) ... ok\ntest_project_metadata_declares_independent_package (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_project_metadata_declares_independent_package) ... ok\ntest_push_recovery_package_does_not_own_stair_semantics (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_push_recovery_package_does_not_own_stair_semantics) ... ok\ntest_runtime_tree_does_not_reference_parent_project (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_runtime_tree_does_not_reference_parent_project) ... ok\n\n----------------------------------------------------------------------\nRan 107 tests in 5.660s\n\nOK\n"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest tests.unit.test_stair_trajectory_input_inspection tests.unit.test_numeric_evidence tests.unit.test_process_report tests.unit.test_stair_process_report tests.unit.test_push_process_report tests.unit.test_visual_observer tests.unit.test_visual_review tests.unit.test_native_snapshot_media tests.unit.test_stair_behavior tests.unit.test_push_behavior tests.unit.test_feedback_evidence_boundary tests.unit.test_task_visual_observation tests.unit.test_stair_numeric_capture tests.unit.test_push_numeric_capture tests.unit.test_p3r_stair_projection tests.unit.test_push_feedback_projection tests.unit.test_stair_trajectory_reference_facts -v",
+      "cwd": "D:/humanoid_agent/true_RL_Agent",
+      "environment": {
+        "PYTHONPATH": "src"
+      },
+      "exit_code": 0,
+      "test_count": 201,
+      "reported_seconds": 52.314,
+      "log": {
+        "path": "outputs/trajectory_p1b/repair_b1/legacy_regression.log",
+        "sha256": "05688091930c77d104c7fda9f6d46e4366fd66799d28f8c372d1fcc5a2a9635a",
+        "bytes": 39646
+      },
+      "raw_tail": "jectionTests.test_trial_memory_uses_measured_parent_dev_and_is_idempotent) ... ok\ntest_real_r4_e35_step14_code11_and_episode_count135 (tests.unit.test_stair_trajectory_reference_facts.LockedRawReferenceTests.test_real_r4_e35_step14_code11_and_episode_count135) ... ok\ntest_real_r4_e60_fl_planar_run_and_step626_discriminate_xyz (tests.unit.test_stair_trajectory_reference_facts.LockedRawReferenceTests.test_real_r4_e60_fl_planar_run_and_step626_discriminate_xyz) ... ok\ntest_all_16_combinations_round_trip_with_low_role_index_bit (tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_all_16_combinations_round_trip_with_low_role_index_bit) ... ok\ntest_complete_left_and_right_censored_runs_keep_one_sample_event (tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_complete_left_and_right_censored_runs_keep_one_sample_event) ... ok\ntest_legacy_e54_specific_counterexample_uses_xy_too (tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_legacy_e54_specific_counterexample_uses_xy_too) ... ok\ntest_normalized_quaternion_controls_sign_and_body_frame_raw_is_diagnostic (tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_normalized_quaternion_controls_sign_and_body_frame_raw_is_diagnostic) ... ok\ntest_planar_speed_and_strict_force_and_speed_boundaries (tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_planar_speed_and_strict_force_and_speed_boundaries) ... ok\n\n----------------------------------------------------------------------\nRan 201 tests in 52.314s\n\nOK\n{\"status\": \"pass\", \"output\": \"C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpiswnmwex\\\\audit.json\", \"declaration\": \"every_control_step_of_each_scored_first_episode_including_pre_reset_terminal\", \"padding\": \"valid=false; zero-filled numeric values are not observations\", \"episode_count\": 288, \"valid_rows\": 861, \"padding_rows\": 3, \"post_outcome_observations\": \"not_collected\", \"reset_time_sample\": \"not_collected\"}\n"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\verify_stair_trajectory_evidence.py --input outputs\\trajectory_p1a\\repair_t1_t2\\r4 --input outputs\\trajectory_p1a\\repair_t1_t2\\legacy_dev --output outputs\\trajectory_p1b\\repair_b1\\frozen_verification.json",
+      "cwd": "D:/humanoid_agent/true_RL_Agent",
+      "environment": {
+        "PYTHONPATH": "src"
+      },
+      "exit_code": 0,
+      "test_count": null,
+      "reported_seconds": null,
+      "log": {
+        "path": "outputs/trajectory_p1b/repair_b1/frozen.log",
+        "sha256": "8c9e9d9c1a396aea44be3c7ae5c217ab3dd3485a664d8881dfc3beb59764ada5",
+        "bytes": 276
+      },
+      "raw_tail": "{\n  \"passed\": true,\n  \"necessary\": {\n    \"counts\": {\n      \"pass\": 247\n    },\n    \"fact_count\": 247,\n    \"compared_scalar_fields\": 4168\n  },\n  \"full\": {\n    \"counts\": {\n      \"pass\": 309\n    },\n    \"fact_count\": 309,\n    \"compared_scalar_fields\": 45157\n  }\n}\n"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\build_policy_behavior_card.py --input outputs\\trajectory_p1a\\repair_t1_t2\\r4\\manifest.json --input-sha256 69e812534d6080e10ddf522f239e49f729bc5eb1d4eff5bab396bb35a6c84397 --example-input outputs\\trajectory_p1a\\repair_t1_t2\\legacy_dev\\manifest.json cc56d3ed2ddf25a74ba87bee8371af0670b17f87012ee82c7619297575b2b3ad --selection PLAN\\feedback_sys\\NEW_SYS\\P0\\e1_selection.json --selection-sha256 4f45e1f9138a322a4f369a6ea3a287dc50c7de74519b4af5dca8208edeb777fc --output outputs\\trajectory_p1b\\repair_b1\\final_card",
+      "cwd": "D:/humanoid_agent/true_RL_Agent",
+      "environment": {
+        "PYTHONPATH": "src"
+      },
+      "exit_code": 0,
+      "test_count": null,
+      "reported_seconds": null,
+      "log": {
+        "path": "outputs/trajectory_p1b/repair_b1/build.log",
+        "sha256": "7d636f4ccc03dc74f92093e090db1b68f6c74e0788dcd48a9d4cf2104acdd3f5",
+        "bytes": 778
+      },
+      "raw_tail": "{\n  \"complete\": true,\n  \"primary_episodes\": 864,\n  \"primary_valid_rows\": 298375,\n  \"claim_count\": 801,\n  \"selected_example_count\": 27,\n  \"cost\": {\n    \"wall_seconds\": 21.919888600008562,\n    \"peak_process_memory_bytes\": 242003968,\n    \"external_model_calls\": 0,\n    \"api_cost\": 0,\n    \"training_runs\": 0\n  },\n  \"artifacts\": {\n    \"evidence.jsonl\": {\n      \"sha256\": \"58f1014f557847c5ee32a3c03e4bebf4becdc2bc35552c6ac948a5fcc576af6e\",\n      \"bytes\": 61332614\n    },\n    \"policy_card.json\": {\n      \"sha256\": \"d83ddf0b8ee28e8d00705de81029930474b47ba230532596d50aabd2e9b0d9a2\",\n      \"bytes\": 1233288\n    },\n    \"policy_card_zh.md\": {\n      \"sha256\": \"c5589b8b79efd605c5d5d305a84ba58f246de3fbba55a39d48cff0d7f90c90ac\",\n      \"bytes\": 295251\n    }\n  }\n}\n"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\verify_policy_behavior_card.py --input outputs\\trajectory_p1b\\repair_b1\\final_card --output outputs\\trajectory_p1b\\repair_b1\\raw_audit.json",
+      "cwd": "D:/humanoid_agent/true_RL_Agent",
+      "environment": {
+        "PYTHONPATH": "src"
+      },
+      "exit_code": 0,
+      "test_count": null,
+      "reported_seconds": null,
+      "log": {
+        "path": "outputs/trajectory_p1b/repair_b1/raw_audit.log",
+        "sha256": "7b0b6d0b3e1d0432ec6d7e036e3061aef5b159a00250e5489b8f55decd84ce4f",
+        "bytes": 237
+      },
+      "raw_tail": "{\n  \"passed\": true,\n  \"raw_episodes\": 866,\n  \"metric_checks\": 69280,\n  \"aggregate_metric_checks\": 8400,\n  \"references_checked\": 32042,\n  \"claim_count\": 801,\n  \"necessary_fact_count\": 247,\n  \"wall_seconds\": 18.448962899972685\n}\n"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B outputs\\trajectory_p1b\\repair_b1\\check_mutations.py --input outputs\\trajectory_p1b\\final_card --output outputs\\trajectory_p1b\\repair_b1\\before_mutations.json --expect ACCEPTED",
+      "cwd": "D:/humanoid_agent/true_RL_Agent",
+      "exit_code": 0,
+      "log": {
+        "path": "outputs/trajectory_p1b/repair_b1/before_mutations.log",
+        "sha256": "6c8e1cf295676e845b2d6c75b32b9966613f1706b81a6a5df7113b51bb958db7",
+        "bytes": 878
+      },
+      "raw_tail": "{\n  \"passed\": true,\n  \"original_generic_claims_passed\": 95,\n  \"results\": [\n    {\n      \"name\": \"progress_to_time\",\n      \"status\": \"ACCEPTED\",\n      \"error\": null\n    },\n    {\n      \"name\": \"success_RL_to_RR\",\n      \"status\": \"ACCEPTED\",\n      \"error\": null\n    },\n    {\n      \"name\": \"current_to_history\",\n      \"status\": \"ACCEPTED\",\n      \"error\": null\n    },\n    {\n      \"name\": \"off_runs_FL_to_RR\",\n      \"status\": \"ACCEPTED\",\n      \"error\": null\n    },\n    {\n      \"name\": \"label_only\",\n      \"status\": \"ACCEPTED\",\n      \"error\": null\n    },\n    {\n      \"name\": \"unit_only\",\n      \"status\": \"ACCEPTED\",\n      \"error\": null\n    },\n    {\n      \"name\": \"entity_only\",\n      \"status\": \"ACCEPTED\",\n      \"error\": null\n    },\n    {\n      \"name\": \"current_role_label_only\",\n      \"status\": \"ACCEPTED\",\n      \"error\": null\n    }\n  ]\n}\n"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B outputs\\trajectory_p1b\\repair_b1\\check_mutations.py --input outputs\\trajectory_p1b\\repair_b1\\final_card --output outputs\\trajectory_p1b\\repair_b1\\final_mutations.json --expect REJECTED",
+      "cwd": "D:/humanoid_agent/true_RL_Agent",
+      "exit_code": 0,
+      "log": {
+        "path": "outputs/trajectory_p1b/repair_b1/final_mutations.log",
+        "sha256": "f860ce8f1306fe9ae0cdf4ac3eb196bf5b0308852459959a63b6e6e3f115aea3",
+        "bytes": 1221
+      },
+      "raw_tail": "{\n  \"passed\": true,\n  \"original_generic_claims_passed\": 95,\n  \"results\": [\n    {\n      \"name\": \"progress_to_time\",\n      \"status\": \"REJECTED\",\n      \"error\": \"cohort metric label/entity/unit/role mismatch\"\n    },\n    {\n      \"name\": \"success_RL_to_RR\",\n      \"status\": \"REJECTED\",\n      \"error\": \"cohort metric label/entity/unit/role mismatch\"\n    },\n    {\n      \"name\": \"current_to_history\",\n      \"status\": \"REJECTED\",\n      \"error\": \"unsupported cohort template/metric semantics\"\n    },\n    {\n      \"name\": \"off_runs_FL_to_RR\",\n      \"status\": \"REJECTED\",\n      \"error\": \"cohort metric label/entity/unit/role mismatch\"\n    },\n    {\n      \"name\": \"label_only\",\n      \"status\": \"REJECTED\",\n      \"error\": \"cohort metric label/entity/unit/role mismatch\"\n    },\n    {\n      \"name\": \"unit_only\",\n      \"status\": \"REJECTED\",\n      \"error\": \"cohort metric label/entity/unit/role mismatch\"\n    },\n    {\n      \"name\": \"entity_only\",\n      \"status\": \"REJECTED\",\n      \"error\": \"cohort metric label/entity/unit/role mismatch\"\n    },\n    {\n      \"name\": \"current_role_label_only\",\n      \"status\": \"REJECTED\",\n      \"error\": \"cohort metric label/entity/unit/role mismatch\"\n    }\n  ]\n}\n"
+    }
+  ],
+  "raw_audit": {
+    "passed": true,
+    "raw_episodes": 866,
+    "metric_checks": 69280,
+    "aggregate_metric_checks": 8400,
+    "references_checked": 32042,
+    "claim_count": 801,
+    "necessary_fact_count": 247,
+    "wall_seconds": 18.448962899972685
+  },
+  "frozen_fact_gate": {
+    "necessary": {
+      "pass": 247,
+      "total": 247,
+      "scalar_fields": 4168
+    },
+    "full": {
+      "pass": 309,
+      "total": 309,
+      "scalar_fields": 45157
+    },
+    "unsupported": 0
+  },
+  "frozen_inputs_unchanged": [
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P0/source_lock.json",
+      "sha256": "c3f0f643eaead24df15da92c5247375c1a32c8d383639186587a02131d7fb412",
+      "bytes": 27337
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P0/input_contract.json",
+      "sha256": "582e3932bb8db8d7f33d941251db69d9c22c1c692d655c753510b1909b161a25",
+      "bytes": 25987
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P0/e1_selection.json",
+      "sha256": "4f45e1f9138a322a4f369a6ea3a287dc50c7de74519b4af5dca8208edeb777fc",
+      "bytes": 14600
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P0/necessary_facts.json",
+      "sha256": "ce3a6115793eb4e182f3bb5641f163dc9d7858e3f4682b9ee99806ab637d7c74",
+      "bytes": 115890
+    },
+    {
+      "path": "outputs/trajectory_p0/reference/full_reference_facts.json",
+      "sha256": "661c6782dc198d8367dc20c6b42b4a2d4d30b9d6d333dcebbf72d4e60528f009",
+      "bytes": 2747870
+    }
+  ],
+  "source_manifests_and_all_60_chunks_revalidated": true,
+  "cost": {
+    "wall_seconds": 21.919888600008562,
+    "peak_process_memory_bytes": 242003968,
+    "external_model_calls": 0,
+    "api_cost": 0,
+    "training_runs": 0
+  },
+  "test_count_note": "65 and107 each include the same8 project boundary tests; no all-repository pass claim",
+  "independent_review": {
+    "agent": "p1b_requirements_review",
+    "mode": "read-only python -B stdin; no writes",
+    "original_claims": 801,
+    "external_links": 999,
+    "generic_claims": 95,
+    "metric_swap_attempts": 7505,
+    "renderable_wrong_metric_mutants_rejected": 5947,
+    "not_renderable_attempts_not_counted_as_pass": 1558,
+    "literal_and_extra_operand_mutants_rejected": 380,
+    "metric_unit_mutants_rejected": 95,
+    "legal_key_plus_derived_semantics_switches_passed": 1687,
+    "metric_swap_rejections_by_template": {
+      "scalar_distribution": 711,
+      "ratio": 3792,
+      "presence": 1428,
+      "off_runs": 16
+    },
+    "legal_switches_by_template": {
+      "scalar_distribution": 27,
+      "ratio": 1440,
+      "presence": 204,
+      "off_runs": 16
+    },
+    "reviewed_report_sha256": "5125a6e7eb54fd5c3dd48bc9969b2ac2fe61bef4e74804a461cd57b1b32ce335",
+    "raw_first_run": "801 original claims / 999 refs passed; 5947 renderable wrong metric mutations REJECTED; 380 label/unit/entity/extra-operand mutations REJECTED; old Markdown byte-identical; summary IDs identical; exit0",
+    "raw_second_run": "1687 legal metric+derived-literals switches PASS; 95 bad-unit mutants REJECTED; all four parent counterexamples plus three additional concrete swaps REJECTED; no new B1 code blocker",
+    "final_artifact_review": "PASS; all801 claims/999 refs; three content hashes identical; manifest changes only report.py hash and two runtime cost fields; all8 code/two P1a manifests/frozen selection hashes match; commands exit0; parent final acceptance pending"
+  },
+  "supporting_artifacts": [
+    {
+      "path": "outputs/trajectory_p1b/repair_b1/raw_audit.json",
+      "sha256": "25943a821fc52d8f9e3a34b23e927508040afffc7dcc1bb56aff3623bff0a109",
+      "bytes": 1339049
+    },
+    {
+      "path": "outputs/trajectory_p1b/repair_b1/frozen_verification.json",
+      "sha256": "9545fa72e6fc784b02f14fc5182e6f768f4d69abaa8c8bb3f547aa2d11551b1e",
+      "bytes": 4703192
+    },
+    {
+      "path": "outputs/trajectory_p1b/repair_b1/before_mutations.json",
+      "sha256": "c89733c7f3afb7297d3bf9cdf4282d1258d24b1c2ad5248736901173b6647f8f",
+      "bytes": 8944
+    },
+    {
+      "path": "outputs/trajectory_p1b/repair_b1/final_mutations.json",
+      "sha256": "3815c8440ed1b336ab89f83e5ca39f2ee28edb4e01d85b189cd0b2f6b3fe9404",
+      "bytes": 9287
+    },
+    {
+      "path": "outputs/trajectory_p1b/repair_b1/check_mutations.py",
+      "sha256": "84bb0e8efee3bf23306d557250d64e5561bc0316ee5f1b364cdbd37e9fe57fcf",
+      "bytes": 3523
+    }
+  ],
+  "unchanged_boundaries": [
+    "P1c author protocol/byte budget/final request not started",
+    "P2/P3 not started",
+    "no API/credentials/install/training",
+    "no causal/generalization/closed-loop claim"
+  ],
+  "git_delivery": "New commit, no amend; exact commit and remote identity reported after push; stop for parent reacceptance"
+}

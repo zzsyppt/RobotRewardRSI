@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, fields, replace
+from dataclasses import MISSING, dataclass, fields, replace
 from functools import partial
 from pathlib import Path, PurePosixPath
 from typing import Any, Mapping
@@ -40,6 +40,7 @@ from true_rl_agent.tasks.stair_climbing.config import (
     STAIR_TASK_ID,
     StairClimbingTaskConfig,
 )
+from true_rl_agent.tasks.stair_climbing.trajectory_production import VERSIONS as PRODUCTION_VERSIONS, DEFAULT_PUBLIC_BYTES
 from true_rl_agent.tasks.stair_climbing.final_confirmation import (
     STAIR_FINAL_CONFIRMATION_FORMAL_SESSION_MODE,
     STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS,
@@ -107,8 +108,12 @@ class StairClimbingCompositionConfig:
     eval_num_envs: int
     runner_timeout_s: int
     cell_variant_id: str
+    behavior_feedback_profile: str = "legacy_process_v1"
+    trajectory_report_max_bytes: int = 8192
 
     def __post_init__(self) -> None:
+        from .trajectory_pipeline import validate_feedback_profile
+        validate_feedback_profile(self.behavior_feedback_profile, self.trajectory_report_max_bytes, self.cell_variant_id)
         for field_name in (
             "isaac_python",
             "train_entrypoint",
@@ -205,10 +210,13 @@ class StairClimbingCompositionConfig:
     @classmethod
     def from_values(cls, values: Mapping[str, Any]) -> "StairClimbingCompositionConfig":
         names = tuple(item.name for item in fields(cls))
-        missing = [name for name in names if name not in values]
+        missing = [item.name for item in fields(cls) if item.name not in values and item.default is MISSING]
         if missing:
             raise ValueError("stair composition values missing: " + ", ".join(missing))
-        normalized = {name: values[name] for name in names}
+        normalized = {name: values[name] for name in names if name in values}
+        if normalized.get("trajectory_report_max_bytes") is None:
+            normalized["trajectory_report_max_bytes"] = (
+                DEFAULT_PUBLIC_BYTES if normalized.get("behavior_feedback_profile") == "trajectory_numeric_v2" else 8192)
         normalized["runtime_config"] = stair_robot_row(
             str(normalized["cell_variant_id"])
         ).protocol_relative_path
@@ -270,7 +278,12 @@ class StairClimbingCompositionConfig:
         )
 
     def to_task_defaults(self) -> dict[str, Any]:
-        return {item.name: getattr(self, item.name) for item in fields(self)}
+        result = {item.name: getattr(self, item.name) for item in fields(self)}
+        if self.behavior_feedback_profile == "legacy_process_v1":
+            # Keep historical genesis/resume identities byte-for-byte stable.
+            result.pop("behavior_feedback_profile")
+            result.pop("trajectory_report_max_bytes")
+        return result
 
     def to_resolved_task_defaults(
         self,
@@ -316,6 +329,11 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
         return defaults
 
     def add_cli_arguments(self, parser: Any) -> None:
+        parser.add_argument("--behavior-feedback-profile", choices=("legacy_process_v1", "trajectory_numeric_v1", "trajectory_numeric_v2"),
+                            default="legacy_process_v1",
+                            help="Automatic per-archive CPU trajectory cards; v2 unifies base/cycle/qualified nominal measurements.")
+        parser.add_argument("--trajectory-report-max-bytes", type=int, default=None,
+                            help="UTF-8 bytes: default 10240 for trajectory_numeric_v2, 8192 for older profiles.")
         parser.add_argument(
             "--cell-variant-id",
             choices=active_unified_stair_cell_variant_ids(),
@@ -523,7 +541,9 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
                     if task_config.is_unified_protocol else None
                 ),
                 eval_phase_summary_finalizer=(
-                    partial(finalize_stair_eval_phase_summary, config=task_config)
+                    partial(finalize_stair_eval_phase_summary, config=task_config,
+                            behavior_feedback_profile=composition_config.behavior_feedback_profile,
+                            trajectory_report_max_bytes=composition_config.trajectory_report_max_bytes)
                     if task_config.is_unified_protocol else None
                 ),
             ),
@@ -534,6 +554,11 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
             scientific_parameters={
                 "training_agent_configuration_hash": backend.training_agent_configuration.agent_configuration_hash,
                 "session_start_profile": start_profile.to_public_dict(),
+                **({"behavior_feedback_profile": composition_config.behavior_feedback_profile,
+                    "trajectory_report_max_bytes": composition_config.trajectory_report_max_bytes}
+                   if composition_config.behavior_feedback_profile != "legacy_process_v1" else {}),
+                **({"trajectory_production_versions": PRODUCTION_VERSIONS}
+                   if composition_config.behavior_feedback_profile == "trajectory_numeric_v2" else {}),
                 **({"final_confirmation_precommit": dict(legacy_live_confirmation_commitment)}
                    if legacy_live_confirmation_commitment is not None else {}),
             },

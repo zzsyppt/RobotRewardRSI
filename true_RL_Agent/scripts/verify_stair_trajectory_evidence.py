@@ -30,7 +30,7 @@ MAPPING_NOTES = [
     "Sparse outcome counters may omit zero classes; cohort denominator and every episode count are checked independently.",
     "Frozen counterexample check=confirmed_by_raw_operands is an oracle receipt: compare its boolean proposition against emitted numeric/temporal records, without claiming new raw verification.",
     "Frozen low-speed threshold_source prose ('P0 development descriptive threshold, not task success/failure rule') maps explicitly to measurement_config.low_speed_and_progress_threshold_source=development_calibration; the 0.05 scalar and M04 XY/XYZ definition are checked independently, not inferred from threshold magnitude.",
-    "Full-ledger missing_channels/existing_temporal_channels are array-inventory claims, not omitted numeric operations. Product limitations and evidence refs express most corresponding concepts but do not serialize those exact complete inventories; they remain explicit unsupported fields rather than inferred from absent records.",
+    "Full-ledger missing_channels maps to the v2 input inventory's explicit unavailable quantities and exact force entity scope. P0 step_index/source_chunk_index/source_chunk_row are derived sample-export columns: they map to declared control_step/source_chunk/source_row locators, not raw channels. Raw channel lists, locator semantics and force scope are compared independently.",
 ]
 
 
@@ -106,12 +106,13 @@ def _identity(header: dict) -> tuple[str, int, int]:
     return header["source"]["manifest_sha256"], header["run_index"], header["env_index"]
 
 
-def load_output(directory: Path, wanted: set[tuple]) -> tuple[dict, dict]:
+def load_output(directory: Path, wanted: set[tuple], locked_sources: dict) -> tuple[dict, dict]:
     manifest = read_json(directory / "manifest.json")
     if manifest["schema_version"] != "trajectory.numeric_manifest.v1" or manifest["complete"] is not True:
         raise ValueError("incomplete or unsupported evidence manifest")
     if manifest["acceptance_split"] != "public_dev":
         raise ValueError("non-public output is not accepted")
+    locked_chunks = locked_sources[manifest["source_manifest_ref"]["manifest_sha256"]]
     evidence = manifest["evidence"]
     if evidence["path"] != "evidence.jsonl":
         raise ValueError("unexpected evidence path")
@@ -151,9 +152,31 @@ def load_output(directory: Path, wanted: set[tuple]) -> tuple[dict, dict]:
                 current_ids.add(row["record_id"])
                 ref = row["evidence_ref"]
                 if (ref["manifest_sha256"] != current["source"]["manifest_sha256"]
-                        or ref["run_index"] != current["run_index"]
-                        or any(c["env_index"] != current["env_index"] for c in ref["chunks"])):
+                        or type(ref["run_index"]) is not int or ref["run_index"] != current["run_index"]
+                        or any(type(c["env_index"]) is not int or c["env_index"] != current["env_index"] for c in ref["chunks"])):
                     raise ValueError(f"record source reference differs from episode at line {lineno}")
+                # These Stair archives are complete valid prefixes. The emitted
+                # clock/chunk/row representations must cover the same rows.
+                bounds = ref["steps_half_open"]
+                if (len(bounds) != 2 or any(type(v) is not int for v in bounds)
+                        or not current["coverage"]["first_step"] <= bounds[0] < bounds[1] <= current["coverage"]["last_step"] + 1):
+                    raise ValueError(f"invalid control-step locator at line {lineno}")
+                referenced_rows = 0
+                next_step = bounds[0]
+                for chunk in ref["chunks"]:
+                    rows = chunk["rows_half_open"]
+                    if (len(rows) != 2 or any(type(v) is not int for v in rows) or not 0 <= rows[0] < rows[1]
+                            or not chunk["file"] or not chunk["sha256"]):
+                        raise ValueError(f"invalid chunk/row locator at line {lineno}")
+                    locked = locked_chunks[chunk["file"]]
+                    if (chunk["sha256"] != locked["sha256"] or ref["run_index"] != locked["run_index"]
+                            or rows[1] > locked["last_step"] - locked["first_step"] + 1
+                            or locked["first_step"] + rows[0] != next_step):
+                        raise ValueError(f"chunk/row locator differs from frozen source clock at line {lineno}")
+                    referenced_rows += rows[1] - rows[0]
+                    next_step += rows[1] - rows[0]
+                if referenced_rows != bounds[1] - bounds[0]:
+                    raise ValueError(f"clock and chunk/row coverage differ at line {lineno}")
                 identity = _identity(current)
                 if identity in wanted:
                     selected[identity]["records"].append(row)
@@ -182,6 +205,24 @@ def run_value(row: dict | None, compact: bool) -> dict | None:
     if row["physical_continuity"] == "unknown":
         value["physical_continuous_duration_s"] = None
     return value
+
+
+def inventory_contract() -> dict:
+    """Independent expected representation for the frozen Go2 source roles."""
+    return {
+        "schema_version": "trajectory.input_inventory.v1",
+        "contact_force_scope": {
+            "support_entity_ids": ["robot_0.support." + s for s in SUPPORT],
+            "non_support_entity_ids": ["robot_0.body.base"],
+            "all_nonfoot_body_contact_forces": "not_recorded", "contact_objects": "not_recorded"},
+        "derived_locators": {
+            "control_step": {"source_array": "episode_length",
+                "representation": "evidence_ref.steps_half_open", "indexing": "one_based_half_open"},
+            "source_chunk": {"representation": "evidence_ref.chunks",
+                "identity_fields": ["file", "sha256"], "resolution": "source_manifest.chunks"},
+            "source_row": {"representation": "evidence_ref.chunks.rows_half_open",
+                "indexing": "zero_based_half_open"}},
+    }
 
 
 class EpisodeView:
@@ -333,6 +374,18 @@ class EpisodeView:
             for out, field in (("history_slot_timestamps", "slot_timestamps"), ("history_slot_validity", "slot_validity")):
                 if all(r[field] == "not_recorded" for r in rows):
                     value[out] = "not recorded"
+            if not compact:
+                self.used.add(h["episode_id"])
+                inventory = h["source"]["input_inventory"]
+                value["missing_channels"] = inventory["unavailable_quantities"]
+                # Only the explicit derived-locator declarations authorize
+                # equivalence to the three P0 sample-export locator columns.
+                locators = inventory["derived_locators"]
+                aliases = {"control_step": "step_index", "source_chunk": "source_chunk_index",
+                           "source_row": "source_chunk_row"}
+                value["existing_temporal_channels"] = sorted([
+                    *inventory["raw_temporal_channels"], *(alias for name, alias in aliases.items() if name in locators)])
+                value["inventory_contract"] = {key: inventory[key] for key in inventory_contract() if key in inventory}
             return value
         if template == "required_inverted_counterexample":
             runs = self.runs("body_up_negative", "true")
@@ -369,30 +422,12 @@ def cohort_mapping(manifest: dict, expected: dict) -> dict:
             "norm_share": v["sample_cell_weighted_norm_share"], "signed_fz_share": v["sample_cell_weighted_signed_fz_share"],
             "mean_norm_n": [x / count for x in v["sample_sum_norm_n"]],
             "mean_signed_fz_n": [x / count for x in v["sample_sum_signed_fz_n"]]}
-    return {"primary_outcome_counts": {k: c["outcome_counts"].get(k, 0) for k in set(expected["primary_outcome_counts"]) | set(c["outcome_counts"])},
+    return {"primary_outcome_counts": {k: c["outcome_counts"].get(k, 0) for k in sorted(set(expected["primary_outcome_counts"]) | set(c["outcome_counts"]))},
             "support_order": SUPPORT, "groups": groups}
 
 
 def result(fact_id: str, expected: dict, actual: dict, tolerance: dict, ids: list[str]) -> dict:
     changes, fields = compare_value(expected, actual, tolerance)
-    for change in changes:
-        if change["status"] != "unsupported":
-            continue
-        if change["path"] == "value.missing_channels":
-            change["reason"] = (
-                "Complete P0 absence inventory is not serialized. manifest.limitations names raw_action, "
-                "joint_velocity, torque_and_saturation, actual_reward_components_and_gates, "
-                "tangential_force_and_contact_objects, actual_mass_and_whole_body_momentum, parent_archive "
-                "and deferred nominal_or_effective_joint_limit_binding. All-nonfoot-body-force absence "
-                "is not explicit; only the bound forbidden entity base is listed. This field is an "
-                "inventory assertion, not an unimplemented numeric measurement.")
-        elif change["path"] == "value.existing_temporal_channels":
-            change["reason"] = (
-                "P0 sample-export array inventory is not serialized as a list. Thirteen numeric/flag "
-                "channels are dependencies in evidence_ref.channels; valid/padding and sample clock "
-                "are expressed in header/source coverage. P0 episode_length/step_index and derived "
-                "source_chunk_index/source_chunk_row have clock/chunk/row locator counterparts, "
-                "but those structured locators are not claimed as an exact source-array inventory.")
     statuses = {d["status"] for d in changes}
     status = "fail" if "fail" in statuses else "unsupported" if "unsupported" in statuses else "pass"
     return {"fact_id": fact_id, "status": status, "compared_scalar_fields": fields,
@@ -400,12 +435,19 @@ def result(fact_id: str, expected: dict, actual: dict, tolerance: dict, ids: lis
             "actual_mapped_value": actual}
 
 
+def acceptance_passed(reports: dict) -> bool:
+    """No unsupported paths or facts are allowed in either frozen ledger."""
+    return reports["necessary"]["counts"] == {"pass": 247} and reports["full"]["counts"] == {"pass": 309}
+
+
 def verify(root: Path, directories: list[Path]) -> dict:
     necessary, full = load_frozen(root)
     wanted = {(e["raw_reference"]["manifest_sha256"], e["raw_reference"]["run_index"], e["raw_reference"]["env_index"]) for e in necessary["episodes"]}
     outputs, manifests = {}, {}
+    locked_sources = {source["manifest_sha256"]: {chunk["file"]: chunk for chunk in source["chunks"]}
+                      for source in full["source_inventory"]}
     for directory in directories:
-        manifest, selected = load_output(directory, wanted)
+        manifest, selected = load_output(directory, wanted, locked_sources)
         source = manifest["source_manifest_ref"]["manifest_sha256"]
         if source in manifests or outputs.keys() & selected.keys():
             raise ValueError("duplicate input source/episode")
@@ -421,6 +463,8 @@ def verify(root: Path, directories: list[Path]) -> dict:
             for fact in episode["facts"]:
                 template = fact["template"] if label == "necessary" else fact["fact_id"].removeprefix(episode["episode_id"] + ".")
                 expected = dict(fact["value"])
+                if label == "full" and template == "history_and_missing_channels":
+                    expected["inventory_contract"] = inventory_contract()
                 if template.endswith(".low_speed_off") and "threshold_source" in expected:
                     if expected["threshold_source"] != "P0 development descriptive threshold, not task success/failure rule":
                         raise ValueError("unrecognized frozen threshold-source meaning")
@@ -464,9 +508,9 @@ def verify(root: Path, directories: list[Path]) -> dict:
             "output_sources": [{"source_id": m["source_id"], "source_manifest_sha256": s, "evidence_sha256": m["evidence"]["sha256"],
                                 "episodes": m["emitted_episodes"], "valid_rows": m["emitted_valid_rows"]} for s, m in manifests.items()],
             "mapping_notes": MAPPING_NOTES, "reports": reports,
-            "pass_criterion": "All 247 frozen necessary facts pass; no full-ledger numeric/temporal mismatch. Full-ledger unsupported fields remain listed and are not claimed as validated.",
+            "pass_criterion": "All 247 frozen necessary facts and all 309 full-ledger facts pass. Any fail or unsupported result fails acceptance; no allowlist.",
             "full_ledger_coverage_complete": reports["full"]["counts"] == {"pass": 309},
-            "passed": reports["necessary"]["counts"] == {"pass": 247} and reports["full"]["counts"].get("fail", 0) == 0}
+            "passed": acceptance_passed(reports)}
 
 
 def main() -> None:

@@ -1,0 +1,548 @@
+{
+  "schema_version": "p2c1.semantic_binding_repair.verification.v1",
+  "baseline_commit": "1831182aa06a73c1e4af07d585c4a65997c0a7f0",
+  "status": "self_check_PASS_pending_parent_gate",
+  "scope": "offline preview source and operand semantics only; no numeric qualification change",
+  "identity_policy": "existing v1 record IDs retained; fixed unit/frame and source/metric/entity are validated explicitly before aggregation; hashes are not signatures",
+  "input_trust_boundary": "adapter-audited measurements; replay checked original artifact hashes; no new full numeric extraction audit claimed",
+  "changed_code": [
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/trajectory_cycles.py",
+      "sha256": "66339a5d686e52afcc32e373c2fe70fda8c20d8b5519e5ff34538ce075f675b7",
+      "bytes": 17876
+    },
+    {
+      "path": "tests/unit/cycle_oracle.py",
+      "sha256": "06611df126e42759bd28120efbd8b8e6b53d082caa7aa9e83d7d4516ba60e1ad",
+      "bytes": 10625
+    },
+    {
+      "path": "tests/unit/test_trajectory_cycles.py",
+      "sha256": "e5adb799db807bf91031045e0a6759a26f8d40d3280d914108165211621cdb34",
+      "bytes": 9999
+    },
+    {
+      "path": "tests/unit/test_stair_cycle_supplement.py",
+      "sha256": "44fd3c9593b1be06be37801b641f9516f33d8f2cf6f52b7017a064cb310c8664",
+      "bytes": 8953
+    }
+  ],
+  "production_diff": {
+    "path": "outputs/p2c1/semantic_repair_01/production_diff.patch",
+    "sha256": "525af19b80674fadb7460f121c57c470b2ff66ae420513ce65dccf4a5a602666",
+    "bytes": 12509
+  },
+  "parent_before": {
+    "evidence": [
+      {
+        "path": "outputs/p2c1/semantic_repair_01/parent_result.json",
+        "sha256": "b6f3fd13ff38856d63a7a4f426428ddcd6a8cd671f0ecded7d71bc32bb77a82d",
+        "bytes": 2398
+      },
+      {
+        "path": "outputs/p2c1/semantic_repair_01/parent_root_oracle_semantic_gap.json",
+        "sha256": "11a6fa809d9ed496021e91a2fa6953ae3e7482661b6578a0af71d530590deb02",
+        "bytes": 235
+      },
+      {
+        "path": "outputs/p2c1/semantic_repair_01/parent_root_semantic_repro.py",
+        "sha256": "c575e64cb8e44b761f953f62209e50b00725107bd2dff7c5dd04336c28fb8a12",
+        "bytes": 2040
+      }
+    ],
+    "four_swaps_accepted": true
+  },
+  "after": {
+    "status": "PASS",
+    "sources": [
+      {
+        "source": "k1",
+        "manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+        "episodes": 864,
+        "records": 8640,
+        "artifact_hashes": {
+          "cycles.jsonl": {
+            "sha256": "1e240c412f226d52788968d09b64beafe57579740245af7e6c3348108a9253a3",
+            "bytes": 72503635
+          },
+          "report.json": {
+            "sha256": "3d989b3b3b319081eb355559eb39295a32e5f815e54465ac5dd3d6e8d98a41f5",
+            "bytes": 22568
+          },
+          "preview.json": {
+            "sha256": "b7247d0c5408b8b0d1578089dea784a60dbca83aef94b5147b2e4f00499c57d4",
+            "bytes": 8086
+          },
+          "preview_receipt.json": {
+            "sha256": "46bb0096723bc3a0bd0031d90740687f4b060a9cada8ac60918f320d734eec2e",
+            "bytes": 1083
+          }
+        },
+        "preview_bytes": 8086,
+        "preview_byte_identical": true,
+        "receipt_unchanged": true,
+        "statements_validated": [
+          {
+            "id": "cycle:1eeef901ec908ba1d12aa5a7f915fa3792a9ad4afc118775a76f739a6c4836b9",
+            "text": "robot_0.support.FL_foot: 3751/8122 four-cycle readout windows qualified; 5991/10714 unique complete cycles; 726/864 episodes contain a qualified local window. Median of per-episode median qualified periods 0.585s. Current >1N marker, no physical contact/gait claim; uncovered spans remain unqualified."
+          },
+          {
+            "id": "cycle:2e305194bb7bf90a9a9b2af6f34b6e3b82c252b1908ea81f93b78ac40e790ea0",
+            "text": "robot_0.support.FR_foot: 3741/7774 four-cycle readout windows qualified; 5996/10366 unique complete cycles; 738/864 episodes contain a qualified local window. Median of per-episode median qualified periods 0.6s. Current >1N marker, no physical contact/gait claim; uncovered spans remain unqualified."
+          },
+          {
+            "id": "cycle:84b0c13ffdd9bbb2b52a8d9ed89228b8eeb9759b3b4b0cf85fb9751722b5d8d5",
+            "text": "robot_0.support.RL_foot: 1982/7244 four-cycle readout windows qualified; 3573/9835 unique complete cycles; 526/864 episodes contain a qualified local window. Median of per-episode median qualified periods 0.56s. Current >1N marker, no physical contact/gait claim; uncovered spans remain unqualified."
+          },
+          {
+            "id": "cycle:a613b82231c4c068b950f5bbd39082206d02d657a4c7ac3662799fbe14af3f6a",
+            "text": "robot_0.support.RR_foot: 505/12816 four-cycle readout windows qualified; 1085/15408 unique complete cycles; 189/864 episodes contain a qualified local window. Median of per-episode median qualified periods 0.57s. Current >1N marker, no physical contact/gait claim; uncovered spans remain unqualified."
+          }
+        ]
+      },
+      {
+        "source": "k2",
+        "manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+        "episodes": 864,
+        "records": 8640,
+        "artifact_hashes": {
+          "cycles.jsonl": {
+            "sha256": "9ad7981b9cfe50c7de9aa33b144e2ebf374e8dfa23d16b974b82baadd32182ff",
+            "bytes": 73001185
+          },
+          "report.json": {
+            "sha256": "2c88a1b5d9630c7a27cc405fb6533d6c5d4e1067d44ca9b0acc33d1f1d816d89",
+            "bytes": 21914
+          },
+          "preview.json": {
+            "sha256": "cfa9059e0dbfca1a2d6932da5f1f841c878316a5f25e412befadc53b19f4f27c",
+            "bytes": 8032
+          },
+          "preview_receipt.json": {
+            "sha256": "da42785a59ba09a0e20707fdb1f0bbb6fa5a53e6760a26cbdc518bc0b25084c6",
+            "bytes": 1083
+          }
+        },
+        "preview_bytes": 8032,
+        "preview_byte_identical": true,
+        "receipt_unchanged": true,
+        "statements_validated": [
+          {
+            "id": "cycle:836b63957506e13dc01aa60fd760b960878fb84d4edf9c6295915f8f7c6186ca",
+            "text": "robot_0.support.FL_foot: 3989/8123 four-cycle readout windows qualified; 6190/10715 unique complete cycles; 723/864 episodes contain a qualified local window. Median of per-episode median qualified periods 0.57s. Current >1N marker, no physical contact/gait claim; uncovered spans remain unqualified."
+          },
+          {
+            "id": "cycle:2200e0a24db0b8d5453352c6a9ca64cb8953a30d20ed750ca176ec9b34176080",
+            "text": "robot_0.support.FR_foot: 4255/7664 four-cycle readout windows qualified; 6590/10256 unique complete cycles; 764/864 episodes contain a qualified local window. Median of per-episode median qualified periods 0.58s. Current >1N marker, no physical contact/gait claim; uncovered spans remain unqualified."
+          },
+          {
+            "id": "cycle:0bc6f0dfce5adb7e48ab8b11a5d94b45ab44a9895f970f272b4575a50f5669c7",
+            "text": "robot_0.support.RL_foot: 3877/8227 four-cycle readout windows qualified; 6200/10819 unique complete cycles; 749/864 episodes contain a qualified local window. Median of per-episode median qualified periods 0.58s. Current >1N marker, no physical contact/gait claim; uncovered spans remain unqualified."
+          },
+          {
+            "id": "cycle:3109e309c80a4fc879b0942911a270f7df5ee8cb6f5c1d48296e2e078bc86f1b",
+            "text": "robot_0.support.RR_foot: 4436/7951 four-cycle readout windows qualified; 6805/10543 unique complete cycles; 759/864 episodes contain a qualified local window. Median of per-episode median qualified periods 0.58s. Current >1N marker, no physical contact/gait claim; uncovered spans remain unqualified."
+          }
+        ]
+      },
+      {
+        "source": "k3",
+        "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+        "episodes": 864,
+        "records": 8640,
+        "artifact_hashes": {
+          "cycles.jsonl": {
+            "sha256": "342332bcd3206125c38980cd28e6f5e8d7e8adea90e342ecbfd5dbbebee2dfca",
+            "bytes": 74975811
+          },
+          "report.json": {
+            "sha256": "427f9c188b7642d9eb1b73d08ac077a8098d0c59585cedd3ba7d48c315e428bb",
+            "bytes": 22602
+          },
+          "preview.json": {
+            "sha256": "8a66d7d0da7540cb10ce45fd51edadc66e700434e52f94fd2bdef77d9bb44f3a",
+            "bytes": 8127
+          },
+          "preview_receipt.json": {
+            "sha256": "5cec3bf017084cffea81b959eb643b742cd073e948c1776c4d7632d8194c577f",
+            "bytes": 1083
+          }
+        },
+        "preview_bytes": 8127,
+        "preview_byte_identical": true,
+        "receipt_unchanged": true,
+        "statements_validated": [
+          {
+            "id": "cycle:64f9a6f02e10f750b5e82e39d7c0a067bc913b1fdec9e89fdaa0eb1cd6ffed44",
+            "text": "robot_0.support.FL_foot: 3554/8052 four-cycle readout windows qualified; 5548/10619 unique complete cycles; 640/864 episodes contain a qualified local window. Median of per-episode median qualified periods 0.56s. Current >1N marker, no physical contact/gait claim; uncovered spans remain unqualified."
+          },
+          {
+            "id": "cycle:afd78271478d4245a2045b1bb4e7e58505060b2537fea87af0a0a33c106e11de",
+            "text": "robot_0.support.FR_foot: 3266/8860 four-cycle readout windows qualified; 5323/11435 unique complete cycles; 638/864 episodes contain a qualified local window. Median of per-episode median qualified periods 0.56s. Current >1N marker, no physical contact/gait claim; uncovered spans remain unqualified."
+          },
+          {
+            "id": "cycle:37534a34123dd1fe1d1b415bea06abf8d6984635747dbd8651e843b7cbbd884c",
+            "text": "robot_0.support.RL_foot: 617/12894 four-cycle readout windows qualified; 1302/15486 unique complete cycles; 225/864 episodes contain a qualified local window. Median of per-episode median qualified periods 0.56s. Current >1N marker, no physical contact/gait claim; uncovered spans remain unqualified."
+          },
+          {
+            "id": "cycle:309e316e31e914f7d5733cc6a7eec72282ae276834f86100bc07818c5b4f0ea5",
+            "text": "robot_0.support.RR_foot: 966/11564 four-cycle readout windows qualified; 1964/14156 unique complete cycles; 309/864 episodes contain a qualified local window. Median of per-episode median qualified periods 0.58s. Current >1N marker, no physical contact/gait claim; uncovered spans remain unqualified."
+          }
+        ]
+      }
+    ],
+    "counterexamples": [
+      {
+        "case": "foreign_source",
+        "accepted": false,
+        "error_type": "ValueError",
+        "reason": "cycle preview source differs from base public report"
+      },
+      {
+        "case": "foot_swap_same_id",
+        "accepted": false,
+        "error_type": "ValueError",
+        "reason": "cycle supplement sentence differs from bound measurement operands"
+      },
+      {
+        "case": "unit_swap_same_id",
+        "accepted": false,
+        "error_type": "ValueError",
+        "reason": "cycle supplement sentence differs from bound measurement operands"
+      },
+      {
+        "case": "foot_swap_recomputed_id",
+        "accepted": false,
+        "error_type": "ValueError",
+        "reason": "cycle supplement sentence differs from bound measurement operands"
+      },
+      {
+        "case": "coherent_group_key_id_swap",
+        "accepted": false,
+        "error_type": "ValueError",
+        "reason": "cycle supplement summary differs from bound measurement operands"
+      },
+      {
+        "case": "preview_unit_same_id",
+        "accepted": false,
+        "error_type": "ValueError",
+        "reason": "cycle measurement metadata unit/frame/schema mismatch"
+      },
+      {
+        "case": "oracle_unit_same_id",
+        "accepted": false,
+        "error_type": "AssertionError",
+        "reason": "('metadata', 'unit', 'milliseconds; phase degrees', 's; phase turns')"
+      },
+      {
+        "case": "preview_unit_resigned",
+        "accepted": false,
+        "error_type": "ValueError",
+        "reason": "cycle measurement metadata unit/frame/schema mismatch"
+      },
+      {
+        "case": "oracle_unit_resigned",
+        "accepted": false,
+        "error_type": "AssertionError",
+        "reason": "('metadata', 'unit', 'milliseconds; phase degrees', 's; phase turns')"
+      },
+      {
+        "case": "preview_frame_same_id",
+        "accepted": false,
+        "error_type": "ValueError",
+        "reason": "cycle measurement metadata unit/frame/schema mismatch"
+      },
+      {
+        "case": "oracle_frame_same_id",
+        "accepted": false,
+        "error_type": "AssertionError",
+        "reason": "('metadata', 'frame', 'physical_contact_time', 'recorder_readout')"
+      },
+      {
+        "case": "preview_frame_resigned",
+        "accepted": false,
+        "error_type": "ValueError",
+        "reason": "cycle measurement metadata unit/frame/schema mismatch"
+      },
+      {
+        "case": "oracle_frame_resigned",
+        "accepted": false,
+        "error_type": "AssertionError",
+        "reason": "('metadata', 'frame', 'physical_contact_time', 'recorder_readout')"
+      }
+    ],
+    "metadata_records_checked": 25920,
+    "raw_episode_checks": [
+      {
+        "source": "k1",
+        "run_index": 1,
+        "env_index": 0,
+        "records": 10,
+        "path": "outputs\\p2c1\\semantic_repair_01\\k1_real_example.json",
+        "sha256": "6b1c3a69707e13818a735fb3764adcddf4bf28f1cc75b13c11d8f59f22fc7ff3",
+        "status": "PASS"
+      },
+      {
+        "source": "k3",
+        "run_index": 1,
+        "env_index": 0,
+        "records": 10,
+        "path": "outputs\\p2c1\\semantic_repair_01\\k3_real_example.json",
+        "sha256": "64d0902f690a6ec349ec59bcb0ca04940b6247e3abad7284173a7df5a9b79858",
+        "status": "PASS"
+      }
+    ],
+    "external_model_calls": 0,
+    "gpu_runs": 0,
+    "training_runs": 0,
+    "fresh_build": {
+      "manifest_sha256": "87e9435d0463fadad4a0a54879e7b75f563ef7ca02904a7f886e45bf4a2760c7",
+      "unchanged_artifacts": {
+        "cycles.jsonl": "1e240c412f226d52788968d09b64beafe57579740245af7e6c3348108a9253a3",
+        "report.json": "3d989b3b3b319081eb355559eb39295a32e5f815e54465ac5dd3d6e8d98a41f5",
+        "preview.json": "b7247d0c5408b8b0d1578089dea784a60dbca83aef94b5147b2e4f00499c57d4",
+        "preview_receipt.json": "46bb0096723bc3a0bd0031d90740687f4b060a9cada8ac60918f320d734eec2e"
+      }
+    }
+  },
+  "command_receipts": [
+    {
+      "name": "tests",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\semantic_repair_01\\tests.memory.json",
+        "-m",
+        "unittest",
+        "tests.unit.test_trajectory_cycles",
+        "tests.unit.test_stair_cycle_supplement",
+        "-v"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.unit.test_trajectory_cycles",
+        "tests.unit.test_stair_cycle_supplement",
+        "-v"
+      ],
+      "wall_seconds": 9.009418499888852,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 146554880
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "0429ab2e9c39f139d5c941ace58196ca794b979506ab11e4347deb87cbde16d7"
+    },
+    {
+      "name": "build_k1",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\semantic_repair_01\\build_k1.memory.json",
+        "scripts/build_stair_cycle_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1d\\raw\\k1_numeric_evidence\\manifest.json",
+        "--manifest-sha256",
+        "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+        "--source-id",
+        "k1",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\semantic_repair_01\\k1_rebuild",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k1\\public.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/build_stair_cycle_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1d\\raw\\k1_numeric_evidence\\manifest.json",
+        "--manifest-sha256",
+        "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+        "--source-id",
+        "k1",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\semantic_repair_01\\k1_rebuild",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k1\\public.json"
+      ],
+      "wall_seconds": 11.943770100013353,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 298905600
+      },
+      "stdout_sha256": "87e9435d0463fadad4a0a54879e7b75f563ef7ca02904a7f886e45bf4a2760c7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "semantic_replay",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\semantic_repair_01\\semantic_replay.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c1/semantic_repair_replay.py",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\semantic_repair_01"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c1/semantic_repair_replay.py",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\semantic_repair_01"
+      ],
+      "wall_seconds": 17.02492410002742,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 640716800
+      },
+      "stdout_sha256": "7813a16bb04ea1d331935eb28d7dfaa0381a1040c6ecb3aadc4d6660e66e61a6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "compatibility",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\semantic_repair_01\\compatibility.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c1/verify_compatibility.py"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c1/verify_compatibility.py"
+      ],
+      "wall_seconds": 3.365714199957438,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 113872896
+      },
+      "stdout_sha256": "12e18180e93c76e068ad611c3bb8ee8ce3c419bea252dba5eb5688c960c79aaa",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "raw_logs": [
+    {
+      "path": "outputs/p2c1/semantic_repair_01/build_k1.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "outputs/p2c1/semantic_repair_01/build_k1.stdout.txt",
+      "sha256": "87e9435d0463fadad4a0a54879e7b75f563ef7ca02904a7f886e45bf4a2760c7",
+      "bytes": 5668
+    },
+    {
+      "path": "outputs/p2c1/semantic_repair_01/compatibility.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "outputs/p2c1/semantic_repair_01/compatibility.stdout.txt",
+      "sha256": "12e18180e93c76e068ad611c3bb8ee8ce3c419bea252dba5eb5688c960c79aaa",
+      "bytes": 8115
+    },
+    {
+      "path": "outputs/p2c1/semantic_repair_01/semantic_replay.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "outputs/p2c1/semantic_repair_01/semantic_replay.stdout.txt",
+      "sha256": "7813a16bb04ea1d331935eb28d7dfaa0381a1040c6ecb3aadc4d6660e66e61a6",
+      "bytes": 187
+    },
+    {
+      "path": "outputs/p2c1/semantic_repair_01/tests.stderr.txt",
+      "sha256": "0429ab2e9c39f139d5c941ace58196ca794b979506ab11e4347deb87cbde16d7",
+      "bytes": 3512
+    },
+    {
+      "path": "outputs/p2c1/semantic_repair_01/tests.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ],
+  "compatibility": {
+    "status": "PASS",
+    "p2a_artifact_count": 33,
+    "v2_replays": [
+      {
+        "source": "k1",
+        "full_and_public_replay_equal": true,
+        "public_sha256": "2e1e66a218dc6e1e60bbd005b27167c546b1199d7b4e763b943eb7e7cf05b331"
+      },
+      {
+        "source": "k2",
+        "full_and_public_replay_equal": true,
+        "public_sha256": "b9e41070b79c4b102e960af6a1807781a6129dbc339f43241727f7269a504e36"
+      },
+      {
+        "source": "k3",
+        "full_and_public_replay_equal": true,
+        "public_sha256": "48e3bb615a55100f3190b7ca6b1256e9057c7086cc95ee24d4ced6cb123ea4b6"
+      }
+    ],
+    "push_frozen_files": 22,
+    "p1b_frozen_card_files": 3,
+    "scope": "v2 content SHA and actual full/public replay; NOT rerun of historical 247/309 fact gates"
+  },
+  "preserved_evidence": [
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2c1/FREEZE_ZH.md",
+      "sha256": "47474899c9c1641da2f4215819bb19f51e328ef887ba54c5886cc7c6efdf33a1",
+      "bytes": 5560
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2c1/verification.json",
+      "sha256": "f67fa903c9fc5c3436a54e8ca5bb3e76ef8830291e7b1331ba5d0abb49b1626d",
+      "bytes": 93082
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2c1/REAL_EXAMPLES.json",
+      "sha256": "88ba026f0972345dc86fd00c373f74395ff6c95f2c90d64f6414ff8fb3fd258b",
+      "bytes": 138543
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2a/source_lock.json",
+      "sha256": "18f585ac6c10e87a0cd8aa61299ab06adac636fc4494fd3e1fb2fdd651265dcf",
+      "bytes": 41190
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2b1/RULES_CODE_FREEZE.json",
+      "sha256": "ec8158315d79fba1ff2f9122016de5f1eb5af5f7a0de96cc6f09dc5cda8ff5e8",
+      "bytes": 5439
+    }
+  ],
+  "cost": {
+    "tracked_command_wall_seconds": 41.34382689988706,
+    "peak_working_set_bytes": 640716800,
+    "external_model_calls": 0,
+    "gpu_runs": 0,
+    "training_runs": 0,
+    "scope": "four final logged commands; not inclusive of exploratory reads/manual development tests"
+  },
+  "development_corrections": [
+    "Initial development test exposed chunk metadata nesting in the new source-reference validator; corrected before the final recorded run."
+  ],
+  "remaining": [
+    "parent independent re-review",
+    "P2c2 nominal USD limits after gate",
+    "P2c3 terrain reference-point height after gate",
+    "production delivery selection and model checks remain separate"
+  ]
+}

@@ -185,7 +185,8 @@ class PushPhasedEvaluationAdapter:
             or result.eval_protocol_hash != self.config.evaluation_protocol().protocol_hash
             or set(evidence) not in ({"schema_version", "phase", "seed_summaries"},
                                      {"schema_version", "phase", "seed_summaries", "behavior"},
-                                     {"schema_version", "phase", "seed_summaries", "behavior", "behavior_full"})
+                                     {"schema_version", "phase", "seed_summaries", "behavior", "behavior_full"},
+                                     {"schema_version", "phase", "seed_summaries", "behavior", "behavior_full", "trajectory_build"})
             or evidence["schema_version"] != PUSH_PHASE_EVIDENCE_SCHEMA
             or evidence["phase"] != result.phase.value
         ):
@@ -202,9 +203,13 @@ class PushPhasedEvaluationAdapter:
                     or not is_sha256_digest(full.get("sha256"))
                     or not isinstance(full.get("size_bytes"), int) or isinstance(full.get("size_bytes"), bool)
                     or full["size_bytes"] <= 0
-                    or public.get("schema_version") != "true_rl_agent.push_recovery.behavior.public.v3"
+                    or public.get("schema_version") not in {"true_rl_agent.push_recovery.behavior.public.v3",
+                                                           "true_rl_agent.push_recovery.behavior.public.v4"}
                     or public.get("full_derivation_sha256") != full.get("sha256")):
                 raise ValueError("Push process report differs from sealed full derivation")
+        trajectory = evidence.get("behavior", {}).get("schema_version") == "true_rl_agent.push_recovery.behavior.public.v4"
+        if trajectory != ("trajectory_build" in evidence) or (trajectory and "behavior_full" not in evidence):
+            raise ValueError("Push trajectory requires its full and CPU build receipts")
         summaries = evidence["seed_summaries"]
         if not isinstance(summaries, list) or len(summaries) != self.seed_count(result.phase):
             raise ValueError("Push phase evidence seed count mismatch")
@@ -218,7 +223,21 @@ class PushPhasedEvaluationAdapter:
         project_push_split(summaries, split_name=result.phase.value, errors=errors)
         if errors:
             raise ValueError("Push phase contains incomplete or invalid rollout summaries")
+        if trajectory:
+            from .trajectory_pipeline import validate_build_receipt
+            from .trajectory_report import require_phase_binding
+            require_phase_binding(evidence["behavior"], self._trajectory_phase_binding(result))
+            validate_build_receipt(evidence["trajectory_build"], evidence["behavior"])
         return summaries
+
+    @staticmethod
+    def _trajectory_phase_binding(result: EvaluationPhaseResult) -> dict:
+        from .trajectory_report import IDENTITY_FIELDS
+        return {**{k: getattr(result, k) for k in IDENTITY_FIELDS if k not in {"subject_kind", "subject_id"}},
+                "subject_kind": result.subject.kind, "subject_id": result.subject.subject_id,
+                "evaluation_binding_hash": result.evaluation_binding_hash,
+                "manifest_sha256": sorted(s["numeric_evidence_ref"]["manifest_sha256"]
+                                          for s in result.task_evidence["seed_summaries"])}
 
     def project_reference_public_dev_gate(self, *, phase_result):
         if self.config.push_protocol is None:
@@ -252,7 +271,8 @@ class PushPhasedEvaluationAdapter:
         if "behavior" in phase_result.task_evidence:
             from true_rl_agent.tasks.push_recovery.behavior import project_push_behavior
             behavior = project_push_behavior(phase_result.task_evidence["behavior"])
-            if behavior["binding"]["checkpoint_hash"] != phase_result.checkpoint_hash:
+            binding = behavior.get("domain", behavior.get("binding", {}))
+            if binding["checkpoint_hash"] != phase_result.checkpoint_hash:
                 raise ValueError("Push behavior checkpoint differs from its phase receipt")
             summary["behavior"] = behavior
         return summary
@@ -357,6 +377,8 @@ class PushPhasedEvaluationAdapter:
         public_metrics = dict(projected.metrics)
         if "behavior" in first.task_evidence:
             public_metrics["public_dev"] = self.project_public_phase_summary(phase_result=first)
+            if first.task_evidence["behavior"]["schema_version"] == "true_rl_agent.push_recovery.behavior.public.v4":
+                public_metrics["trajectory_phase_binding"] = self._trajectory_phase_binding(first)
         sealed = build_push_sealed_rollout_evidence(
             summaries=summaries[EvaluationPhase.SEALED_VALIDATION],
             evaluation_protocol=self.config.evaluation_protocol(),

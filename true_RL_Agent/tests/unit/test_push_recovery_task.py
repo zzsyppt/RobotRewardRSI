@@ -890,12 +890,14 @@ class PushRecoveryTaskTests(unittest.TestCase):
                 ],
             },
         )
+        # Existing repair frames retain measured feedback and its task guidance.
+        for retained_section in ("public_feedback_summary", "selection_guidance"):
+            self.assertIn(retained_section, payload)
+            self.assertIn(retained_section, payload["authoring_context_frame"]["frame_contract"]["required_sections"])
         for omitted_section in (
-            "public_feedback_summary",
             "runtime_feedback_summary",
             "public_history",
             "known_good_examples",
-            "selection_guidance",
         ):
             self.assertNotIn(omitted_section, payload)
         self.assertIn("exploration_directive", payload)

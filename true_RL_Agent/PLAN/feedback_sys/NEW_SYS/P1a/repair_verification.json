@@ -1,0 +1,464 @@
+{
+  "schema_version": "trajectory.p1a.repair_verification.v1",
+  "status": "repair_self_checks_pass_parent_independent_reacceptance_pending",
+  "generated_at_utc": "2026-10-02T22:55:51.539939+00:00",
+  "repair_base_commit": "0960aa5161bd06d3dd992ddf7f4984f5ab2e8c96",
+  "accepted_p0_commit": "2d888a846636ffb0e3a732d9d3423288ff3b2cac",
+  "branch": "codex/trajectory-translator-upgrade",
+  "scope": "T1 complete nearest-onset dependency references; T2 explicit channel/locator inventory and strict 247+309 gate. No P1b.",
+  "parent_findings": [
+    {
+      "path": "C:/Users/lover/AppData/Local/Temp/p1a_acceptance_0960aa_20261002/P1a_ACCEPTANCE_ROOT_ZH.txt",
+      "bytes": 25700,
+      "sha256": "0eba8ca8078858ee4af64318ca4a80d430f0217462d10a3173c78685224f00e2"
+    },
+    {
+      "path": "C:/Users/lover/AppData/Local/Temp/p1a_acceptance_0960aa_20261002/root_key_evidence_originals.json",
+      "bytes": 30061,
+      "sha256": "3a26c48968fbe5252eb96a43fb4cad345769424db5e2ee161641d14fa813a867"
+    },
+    {
+      "path": "C:/Users/lover/AppData/Local/Temp/p1a_acceptance_0960aa_20261002/ledger_gate_mutation.json",
+      "bytes": 4687,
+      "sha256": "633198c4bb2491367c1140b7cec44da60b60bd1ed2e00b2ee81f9667d4c4859c"
+    }
+  ],
+  "environment": {
+    "cwd": "D:\\humanoid_agent\\true_RL_Agent",
+    "python": ".venv/Scripts/python.exe",
+    "PYTHONPATH": "src",
+    "PYTHONIOENCODING": "utf-8",
+    "TRUE_RL_AGENT_ISAAC_DYNAMIC_TEST": "0 for full CPU discovery"
+  },
+  "tests": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest tests.unit.test_trajectory_temporal tests.unit.test_trajectory_measurement tests.unit.test_stair_trajectory_adapter tests.unit.test_stair_trajectory_evidence_build tests.unit.test_trajectory_evidence_verification tests.unit.test_project_boundaries -v",
+      "exit_code": 0,
+      "tests": 107,
+      "seconds": 4.83,
+      "raw_result": "Ran 107 tests in 4.830s\r\n\r\nOK",
+      "log": {
+        "path": "outputs/trajectory_p1a/repair_t1_t2/related_final2.log",
+        "bytes": 21282,
+        "sha256": "3a254247685b8679df082a008f61ddf6cab3e69917fa4dfae6eaa3f19eb622d9"
+      }
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest tests.unit.test_stair_trajectory_input_inspection tests.unit.test_numeric_evidence tests.unit.test_process_report tests.unit.test_stair_process_report tests.unit.test_push_process_report tests.unit.test_visual_observer tests.unit.test_visual_review tests.unit.test_native_snapshot_media tests.unit.test_stair_behavior tests.unit.test_push_behavior tests.unit.test_feedback_evidence_boundary tests.unit.test_task_visual_observation tests.unit.test_stair_numeric_capture tests.unit.test_push_numeric_capture tests.unit.test_p3r_stair_projection tests.unit.test_push_feedback_projection tests.unit.test_stair_trajectory_reference_facts -v",
+      "exit_code": 0,
+      "tests": 201,
+      "seconds": 49.238,
+      "raw_result": "Ran 201 tests in 49.238s\r\n\r\nOK",
+      "log": {
+        "path": "outputs/trajectory_p1a/repair_t1_t2/original_201_final2.log",
+        "bytes": 39646,
+        "sha256": "cbd28d1dcbad0aeb63fd210350e8af9a16533a8cd386fc7c70cdf973ac449005"
+      }
+    }
+  ],
+  "t1_red_green": {
+    "before": {
+      "log": {
+        "path": "outputs/trajectory_p1a/repair_t1_t2/t1_before.log",
+        "bytes": 10686,
+        "sha256": "125e2ba851dc4aadcbc9671f4185401ea589d8b72fbdf79a3093d697b9875bfa"
+      },
+      "expected_result": "32 tests; failures=4, errors=2 against old pair_onsets"
+    },
+    "after": {
+      "log": {
+        "path": "outputs/trajectory_p1a/repair_t1_t2/t1_final.log",
+        "bytes": 11318,
+        "sha256": "d60fe277a42b1287cfd7e68e877081b83c5dbddac20ea54df22ead1f8777eb76"
+      },
+      "result": "56 tests / 0.368s / OK"
+    }
+  },
+  "frozen_inputs_unchanged": {
+    "necessary_facts.json": "ce3a6115793eb4e182f3bb5641f163dc9d7858e3f4682b9ee99806ab637d7c74",
+    "source_lock.json": "c3f0f643eaead24df15da92c5247375c1a32c8d383639186587a02131d7fb412",
+    "e1_selection.json": "4f45e1f9138a322a4f369a6ea3a287dc50c7de74519b4af5dca8208edeb777fc",
+    "input_contract.json": "582e3932bb8db8d7f33d941251db69d9c22c1c692d655c753510b1909b161a25"
+  },
+  "full_reference_sha256": "661c6782dc198d8367dc20c6b42b4a2d4d30b9d6d333dcebbf72d4e60528f009",
+  "artifacts": [
+    {
+      "manifest": {
+        "path": "outputs/trajectory_p1a/repair_t1_t2/r4/manifest.json",
+        "bytes": 17298,
+        "sha256": "69e812534d6080e10ddf522f239e49f729bc5eb1d4eff5bab396bb35a6c84397"
+      },
+      "source_manifest_ref": {
+        "schema_version": "true_rl_agent.numeric_evidence.ref.v1",
+        "manifest_path": "outputs\\trajectory_p0\\raw\\numeric_evidence\\manifest.json",
+        "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83"
+      },
+      "scanned_episodes": 864,
+      "scanned_valid_rows": 298375,
+      "emitted_episodes": 864,
+      "emitted_valid_rows": 298375,
+      "record_counts": {
+        "episode": 864,
+        "measurement": 31104,
+        "state_interval": 250376,
+        "event": 232232,
+        "temporal_relation": 79417
+      },
+      "evidence": {
+        "path": "evidence.jsonl",
+        "sha256": "9286eb28af78ba85ffcfd031dce14770e398830306b207e3b569aab5f20adfe4",
+        "bytes": 1289750110
+      },
+      "code_sha256": {
+        "scripts/build_stair_trajectory_evidence.py": "15c8869f2388cf92f4ba69a08cc6b13205bb2b5dd5286800322260511935b7f3",
+        "src/true_rl_agent/evaluation/trajectory_translation/contracts.py": "672c9468761d1b30343c9f7562a7ba0c91559d60019c1250f9f1a626138a0c57",
+        "src/true_rl_agent/evaluation/trajectory_translation/measurement.py": "23a85e6e5a7665c152d6319c62eec60850c57743d488c2449548001278bc8c49",
+        "src/true_rl_agent/evaluation/trajectory_translation/temporal.py": "d628a872e4130563138e2fd74dbbfccd895e1da62f457b5a85b555a97ed9122b",
+        "src/true_rl_agent/evaluation/trajectory_translation/__init__.py": "a0f279c7f0a30427ed230c65c52f91de3727cad8e19ea1c10d5baf11b701c02f",
+        "src/true_rl_agent/tasks/stair_climbing/trajectory_adapter.py": "45f5c7315123d99b6a49231ee66e051834b3a5ebcc06ffe7adfee74f8a99a3ad"
+      }
+    },
+    {
+      "manifest": {
+        "path": "outputs/trajectory_p1a/repair_t1_t2/legacy_dev/manifest.json",
+        "bytes": 16979,
+        "sha256": "cc56d3ed2ddf25a74ba87bee8371af0670b17f87012ee82c7619297575b2b3ad"
+      },
+      "source_manifest_ref": {
+        "schema_version": "true_rl_agent.numeric_evidence.ref.v1",
+        "manifest_path": "PLAN\\feedback_sys\\P3R\\results\\stair_numeric_dev_r1\\numeric_evidence\\manifest.json",
+        "manifest_sha256": "22fb749620c4e614cbb4df4fbfdb82b70d76c8f1cd81a3eda50de465d9fb3e4a"
+      },
+      "scanned_episodes": 864,
+      "scanned_valid_rows": 300105,
+      "emitted_episodes": 2,
+      "emitted_valid_rows": 1113,
+      "record_counts": {
+        "episode": 2,
+        "measurement": 72,
+        "state_interval": 770,
+        "event": 728,
+        "temporal_relation": 283
+      },
+      "evidence": {
+        "path": "evidence.jsonl",
+        "sha256": "e53f38d1164e0d5e0c4c102d142e7440460d371e4282b12c14df3e9a4b98c7bd",
+        "bytes": 4147480
+      },
+      "code_sha256": {
+        "scripts/build_stair_trajectory_evidence.py": "15c8869f2388cf92f4ba69a08cc6b13205bb2b5dd5286800322260511935b7f3",
+        "src/true_rl_agent/evaluation/trajectory_translation/contracts.py": "672c9468761d1b30343c9f7562a7ba0c91559d60019c1250f9f1a626138a0c57",
+        "src/true_rl_agent/evaluation/trajectory_translation/measurement.py": "23a85e6e5a7665c152d6319c62eec60850c57743d488c2449548001278bc8c49",
+        "src/true_rl_agent/evaluation/trajectory_translation/temporal.py": "d628a872e4130563138e2fd74dbbfccd895e1da62f457b5a85b555a97ed9122b",
+        "src/true_rl_agent/evaluation/trajectory_translation/__init__.py": "a0f279c7f0a30427ed230c65c52f91de3727cad8e19ea1c10d5baf11b701c02f",
+        "src/true_rl_agent/tasks/stair_climbing/trajectory_adapter.py": "45f5c7315123d99b6a49231ee66e051834b3a5ebcc06ffe7adfee74f8a99a3ad"
+      }
+    }
+  ],
+  "build_commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\build_stair_trajectory_evidence.py --manifest outputs\\trajectory_p0\\raw\\numeric_evidence\\manifest.json --manifest-sha256 8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83 --source-id r4 --output outputs\\trajectory_p1a\\repair_t1_t2\\r4",
+      "exit_code": 0,
+      "log": {
+        "path": "outputs/trajectory_p1a/repair_t1_t2/r4_build.log",
+        "bytes": 438,
+        "sha256": "19b4d5f4e2d4c73d9bcf57a3ca7ad20a0727bcb78de8954aabe7015b8fcad2a6"
+      }
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\build_stair_trajectory_evidence.py --manifest PLAN\\feedback_sys\\P3R\\results\\stair_numeric_dev_r1\\numeric_evidence\\manifest.json --manifest-sha256 22fb749620c4e614cbb4df4fbfdb82b70d76c8f1cd81a3eda50de465d9fb3e4a --source-id legacy_dev --episode 1:54 --episode 1:60 --output outputs\\trajectory_p1a\\repair_t1_t2\\legacy_dev",
+      "exit_code": 0,
+      "log": {
+        "path": "outputs/trajectory_p1a/repair_t1_t2/legacy_dev_build.log",
+        "bytes": 418,
+        "sha256": "202c5da750f2b6265ddcb67649b80b3bd25069a8111c55e658a5ae50f6958b2b"
+      }
+    }
+  ],
+  "comparison": {
+    "command": ".\\.venv\\Scripts\\python.exe -B scripts\\verify_stair_trajectory_evidence.py --input outputs\\trajectory_p1a\\repair_t1_t2\\r4 --input outputs\\trajectory_p1a\\repair_t1_t2\\legacy_dev --output outputs\\trajectory_p1a\\repair_t1_t2\\frozen_comparison_final.json",
+    "exit_code": 0,
+    "report": {
+      "path": "outputs/trajectory_p1a/repair_t1_t2/frozen_comparison_final.json",
+      "bytes": 4703192,
+      "sha256": "9545fa72e6fc784b02f14fc5182e6f768f4d69abaa8c8bb3f547aa2d11551b1e"
+    },
+    "log": {
+      "path": "outputs/trajectory_p1a/repair_t1_t2/frozen_comparison_final.log",
+      "bytes": 276,
+      "sha256": "8c9e9d9c1a396aea44be3c7ae5c217ab3dd3485a664d8881dfc3beb59764ada5"
+    },
+    "summary": {
+      "necessary": {
+        "counts": {
+          "pass": 247
+        },
+        "fact_count": 247,
+        "compared_scalar_fields": 4168
+      },
+      "full": {
+        "counts": {
+          "pass": 309
+        },
+        "fact_count": 309,
+        "compared_scalar_fields": 45157
+      }
+    },
+    "difference_status_counts": {
+      "necessary": {
+        "extension": 72,
+        "accepted_roundoff": 1139
+      },
+      "full": {
+        "accepted_roundoff": 2380
+      }
+    },
+    "difference_reasons": "1139 necessary and 2380 full scalar differences are within frozen numeric tolerance. Necessary also has 72 archival-outcome extensions: 18 each of diagnostic_flags, evaluation_cell_id, max_progress_m, progress_fraction; these were outside its compact projection and are checked in the full ledger. No fail or unsupported differences. Full expected/actual values remain in the comparison report.",
+    "full_ledger_coverage_complete": true,
+    "passed": true,
+    "unsupported_allowlist": []
+  },
+  "independent_all_pair_audit": {
+    "report": {
+      "path": "outputs/trajectory_p1a/repair_t1_t2/all_pair_search_audit.json",
+      "bytes": 857,
+      "sha256": "692ace270b332a9ea99bbe73a721f00465e83327e42436fcf88d33f1cba5306d"
+    },
+    "results": {
+      "all_pass": true,
+      "sources": [
+        {
+          "source": "r4",
+          "original_chunks_verified": 30,
+          "episodes": 864,
+          "nearest_pairs_independently_checked": 75397,
+          "complete_search_refs": true,
+          "all_force_operands_finite": true,
+          "non_nearest_records_identical_to_0960aa_output": 517732,
+          "nearest_old_value_fields_unchanged": true,
+          "headers_only_add_input_inventory": true
+        },
+        {
+          "source": "legacy_dev",
+          "original_chunks_verified": 30,
+          "episodes": 2,
+          "nearest_pairs_independently_checked": 226,
+          "complete_search_refs": true,
+          "all_force_operands_finite": true,
+          "non_nearest_records_identical_to_0960aa_output": 1627,
+          "nearest_old_value_fields_unchanged": true,
+          "headers_only_add_input_inventory": true
+        }
+      ],
+      "production_or_oracle_imports": false
+    }
+  },
+  "t1_examples": {
+    "report": {
+      "path": "outputs/trajectory_p1a/repair_t1_t2/t1_examples.json",
+      "bytes": 40107,
+      "sha256": "2e47a697cba9d1faf9e0f649ff6ef80bce3a13f5be0c5f7385324cbff4dbeda7"
+    },
+    "synthetic_cases": 3,
+    "real_episode": "r4.r1.e0",
+    "old_ref": [
+      4,
+      9
+    ],
+    "new_ref": [
+      1,
+      311
+    ],
+    "candidate_count": 12
+  },
+  "real_verifier_mutations": {
+    "report": {
+      "path": "outputs/trajectory_p1a/repair_t1_t2/verifier_mutations.json",
+      "bytes": 11302,
+      "sha256": "7332d991597545e67b5f001add3917ed02abb55a982b400a61edb66e693288e6"
+    },
+    "scope": "complete verify() mapping/gate on real selected output after cached load_output integrity checks; mutations exist only in memory",
+    "results": [
+      {
+        "mutation": "delete_mean_body_xyz_m",
+        "passed": false,
+        "necessary_counts": {
+          "pass": 247
+        },
+        "full_counts": {
+          "pass": 308,
+          "unsupported": 1
+        }
+      },
+      {
+        "mutation": "delete_missing_nonfoot_force",
+        "passed": false,
+        "necessary_counts": {
+          "pass": 247
+        },
+        "full_counts": {
+          "pass": 308,
+          "fail": 1
+        }
+      },
+      {
+        "mutation": "wrong_row_indexing",
+        "passed": false,
+        "necessary_counts": {
+          "pass": 247
+        },
+        "full_counts": {
+          "pass": 308,
+          "fail": 1
+        }
+      },
+      {
+        "mutation": "invent_raw_step_index",
+        "passed": false,
+        "necessary_counts": {
+          "pass": 247
+        },
+        "full_counts": {
+          "pass": 308,
+          "fail": 1
+        }
+      },
+      {
+        "mutation": "delete_entire_inventory",
+        "passed": false,
+        "necessary_counts": {
+          "pass": 247
+        },
+        "full_counts": {
+          "pass": 308,
+          "unsupported": 1
+        }
+      }
+    ]
+  },
+  "audit_commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B outputs\\trajectory_p1a\\repair_t1_t2\\inspect_repair_evidence.py",
+      "exit_code": 0,
+      "script": {
+        "path": "outputs/trajectory_p1a/repair_t1_t2/inspect_repair_evidence.py",
+        "bytes": 5935,
+        "sha256": "cd34a2120aed85e6d44f10581225b643a2492d50dc71ad8f54b49741f30c80d5"
+      },
+      "log": {
+        "path": "outputs/trajectory_p1a/repair_t1_t2/t1_examples.log",
+        "bytes": 196,
+        "sha256": "1f743dcd37d9ea6fc86c3f6a6d29771acfaa5d2e53eb299aceef8bca5d50e7a7"
+      }
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B outputs\\trajectory_p1a\\repair_t1_t2\\audit_all_pair_search.py",
+      "exit_code": 0,
+      "script": {
+        "path": "outputs/trajectory_p1a/repair_t1_t2/audit_all_pair_search.py",
+        "bytes": 5832,
+        "sha256": "e825987505b4c0922f01f4ee410764d26d330bed8652948338f410791000b903"
+      },
+      "log": {
+        "path": "outputs/trajectory_p1a/repair_t1_t2/all_pair_search_audit.log",
+        "bytes": 885,
+        "sha256": "ae391ad624513c37aaefbc033cb660c528507dd13a0c1b9122043f5db7c6006e"
+      }
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B outputs\\trajectory_p1a\\repair_t1_t2\\verify_real_mutations.py",
+      "exit_code": 0,
+      "script": {
+        "path": "outputs/trajectory_p1a/repair_t1_t2/verify_real_mutations.py",
+        "bytes": 3667,
+        "sha256": "cf86e0c6e42a41819bf9c256be27de944406ef688df840ef7894f23e3bde8c2c"
+      },
+      "log": {
+        "path": "outputs/trajectory_p1a/repair_t1_t2/verifier_mutations_final.log",
+        "bytes": 1190,
+        "sha256": "1dd36677cc1bd18aab7a4d2a1ac50a47d6c70393f77a538864d1f9b859ecb525"
+      }
+    }
+  ],
+  "audit_environment_note": "inspect_repair_evidence.py uses PYTHONPATH=src;. to load synthetic fixtures; independent NPZ audit imports only stdlib+numpy. No audit script is imported by production.",
+  "final_code_sha256": {
+    "scripts/build_stair_trajectory_evidence.py": "15c8869f2388cf92f4ba69a08cc6b13205bb2b5dd5286800322260511935b7f3",
+    "src/true_rl_agent/evaluation/trajectory_translation/contracts.py": "672c9468761d1b30343c9f7562a7ba0c91559d60019c1250f9f1a626138a0c57",
+    "src/true_rl_agent/evaluation/trajectory_translation/measurement.py": "23a85e6e5a7665c152d6319c62eec60850c57743d488c2449548001278bc8c49",
+    "src/true_rl_agent/evaluation/trajectory_translation/temporal.py": "d628a872e4130563138e2fd74dbbfccd895e1da62f457b5a85b555a97ed9122b",
+    "src/true_rl_agent/evaluation/trajectory_translation/__init__.py": "a0f279c7f0a30427ed230c65c52f91de3727cad8e19ea1c10d5baf11b701c02f",
+    "src/true_rl_agent/tasks/stair_climbing/trajectory_adapter.py": "45f5c7315123d99b6a49231ee66e051834b3a5ebcc06ffe7adfee74f8a99a3ad",
+    "scripts/verify_stair_trajectory_evidence.py": "d5e8de55efe57c208d499521fad37f9eee7ea4123d4ce165a49dfbe7ce578264",
+    "tests/unit/test_trajectory_temporal.py": "e34c5031ee0285599b833b52256bd06ce5cfaa302af92d452a8697ce4297cc63",
+    "tests/unit/test_trajectory_evidence_verification.py": "1f18ff40fcc8e54d3e3b0d24e06a28d1cd6a9a978dc76124b429fcd09b4f2519",
+    "tests/unit/test_stair_trajectory_adapter.py": "93883ca2daa8bc5824dd70ecbf105f04d978a13d2087ef0aa433c5cf5971740e",
+    "tests/unit/test_stair_trajectory_evidence_build.py": "edc0b4b2afd12f61fd14725999b37d43c839a807ba08bdca5ef16cc467ae4aad"
+  },
+  "code_match": "Both new manifests match current producer file bytes, unchanged since rebuild. Verifier/test exact-index checks were finalized before final2 tests and final comparison. Staged/committed blob comparison is a required pre-push check.",
+  "reviewer_reported_t1": {
+    "reviewer": "clean Astra ultra acceptance_design",
+    "temporal_tests": "33 tests / 0.132s / OK",
+    "tri_state_gap": {
+      "trajectories": 240,
+      "relations": 192,
+      "outside_reference_mutations": 8334
+    },
+    "low_progress": {
+      "input_groups": 40,
+      "relations": 149,
+      "outside_reference_mutations": 7023
+    },
+    "result": "No uncovered dependency found. Reviewer-reported checks; root fixed regression logs and real audit are separate evidence."
+  },
+  "reviewer_reported_t2": {
+    "reviewer": "clean Astra ultra acceptance_design plus independent lock-source subreview",
+    "result": "No blocking findings after exact-integer ref fix; final verifier18 tests/0.058s OK; independent fresh verify247+309pass.",
+    "inventory_deletions": {
+      "real_legacy_cases": 51,
+      "unsupported": 17,
+      "fail": 34,
+      "all_rejected": true
+    },
+    "raw_inventory_check": {
+      "temporal_channels": 15,
+      "records": 6,
+      "chunk_spans": 26,
+      "source_locked_chunks": 60
+    },
+    "boundary": "Verifier binds file/hash/run/clock/row; trial/checkpoint are checked nonempty, not fully compared to frozen identities. Raw-to-value audit remains separate. These are reviewer-reported checks, not additional root test counts."
+  },
+  "broad_cpu_boundary": {
+    "rerun_in_this_repair": false,
+    "previous_result": "2125 tests: failures=1, errors=8, skipped=19; not a full-repository pass",
+    "basis": "Parent independently reproduced every failure/error/skip against actual exported accepted P0; 606 existing files had no substantive changes. Repair does not touch those paths.",
+    "parent_reports": [
+      {
+        "path": "C:/Users/lover/AppData/Local/Temp/p1a_acceptance_0960aa_20261002/tests_baseline_report.md",
+        "bytes": 18046,
+        "sha256": "9d2a00a78d8bbf649c2b3e4a3d55be374418fe68b257beec66b3bbaa26a14b56"
+      },
+      {
+        "path": "C:/Users/lover/AppData/Local/Temp/p1a_acceptance_0960aa_20261002/tests_rerun_results.json",
+        "bytes": 3062,
+        "sha256": "40e5f4ab64ed3aa391f65bd0678d38fb9e48603b99b70cf8eda926a8a3938453"
+      },
+      {
+        "path": "C:/Users/lover/AppData/Local/Temp/p1a_acceptance_0960aa_20261002/tests_baseline_results.json",
+        "bytes": 111177,
+        "sha256": "c401ac80c9b231a147c1daa3fbe76cbbb17948b9cac6f13ca52803b9339e7fe4"
+      }
+    ]
+  },
+  "not_verified": [
+    "target-server/GPU/Isaac dynamic rollout",
+    "new training",
+    "live author/card integration",
+    "periodic phase qualification",
+    "effective/nominal joint limits",
+    "per-geometry terrain qualification",
+    "historical link-position/COM-velocity reference mapping",
+    "new capture profile",
+    "prospective held-out generalization"
+  ],
+  "delivery_boundary": "Commit/push dedicated branch only; stop writing and await parent independent P1a reacceptance. Frozen inputs/oracles/old artifacts unchanged; outputs ignored and uncommitted."
+}

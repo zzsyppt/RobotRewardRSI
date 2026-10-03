@@ -1,0 +1,1587 @@
+[
+  {
+    "source": "k1",
+    "source_manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+    "checkpoint_hash": "sha256:fca6a59c8142d0120c5b534addab03885995dd64931fc3b974b9f94b997fe729",
+    "run": 2,
+    "env": 66,
+    "raw_anchors": [
+      {
+        "step": 228,
+        "chunk": "chunk_000012.npz",
+        "chunk_sha256": "663bade285d638cffa435ff02fef49da0ac90338d8e4ebb93f8d91e04e57f500",
+        "zero_based_row": 35,
+        "env_index": 66,
+        "raw_values": {
+          "base_quat_w": [
+            0.9879910349845886,
+            0.0005183307221159339,
+            -0.15430940687656403,
+            -0.007885183207690716
+          ],
+          "forbidden_contact_forces_w": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "forbidden_contact_forces_w_history": [
+            [
+              [
+                0.0,
+                0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                0.0,
+                0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                -79.38524627685547,
+                3.063039002881851e-06,
+                259.4056396484375
+              ]
+            ]
+          ],
+          "support_contact_forces_w": [
+            [
+              -4.873441525887756e-07,
+              8.396445991820656e-07,
+              62.682472229003906
+            ],
+            [
+              1.1247500424360624e-06,
+              1.1336784382365295e-06,
+              68.15870666503906
+            ],
+            [
+              5.12778001393599e-07,
+              -1.9375772808416514e-06,
+              68.26486206054688
+            ],
+            [
+              2.4442699668725254e-06,
+              1.7215114667123999e-07,
+              121.18004608154297
+            ]
+          ],
+          "support_lin_vel_w": [
+            [
+              0.10332226008176804,
+              0.02087593451142311,
+              0.023928996175527573
+            ],
+            [
+              0.05126716196537018,
+              -0.02805165946483612,
+              0.01514765340834856
+            ],
+            [
+              0.11739228665828705,
+              -0.041329141706228256,
+              -0.06522826850414276
+            ],
+            [
+              0.0012517651775851846,
+              0.008952898904681206,
+              0.09959825873374939
+            ]
+          ],
+          "done_mask": 1.0,
+          "wrapper_done_mask": 1.0,
+          "termination_0": 0.0,
+          "termination_1": 1.0
+        },
+        "missing_channels": [],
+        "independent_up_z": 0.9523766824249742,
+        "independent_FL_speed_xy_mps": 0.10541012318619945
+      }
+    ],
+    "independent_facts": {
+      "robot_0.body.base.current_marker": {
+        "true_count": 0,
+        "false_count": 228,
+        "unknown_count": 0,
+        "valid_count": 228,
+        "fraction": 0.0,
+        "numerator_cell_s": 0.0,
+        "denominator_cell_s": 4.5600000000000005,
+        "observed_onset_count": 0,
+        "observed_offset_count": 0,
+        "intervals": [
+          {
+            "steps_half_open": [
+              1,
+              229
+            ],
+            "sample_count": 228,
+            "sample_cell_duration_proxy_s": 4.5600000000000005,
+            "observed_span_s": 4.54,
+            "left_censored": true,
+            "right_censored": true,
+            "complete_run": false,
+            "state": "false"
+          }
+        ],
+        "force_norm_n": {
+          "valid_count": 228,
+          "unknown_count": 0,
+          "minimum": 0.0,
+          "maximum": 0.0,
+          "first": 0.0,
+          "last": 0.0,
+          "range": 0.0,
+          "minimum_step": 1,
+          "maximum_step": 1,
+          "first_valid_step": 1,
+          "last_valid_step": 228
+        }
+      },
+      "robot_0.body.base.history_diagnostic": {
+        "true_count": 1,
+        "false_count": 227,
+        "unknown_count": 0,
+        "valid_count": 228,
+        "fraction": 0.0043859649122807015,
+        "numerator_cell_s": 0.02,
+        "denominator_cell_s": 4.5600000000000005,
+        "observed_onset_count": 1,
+        "observed_offset_count": 0,
+        "intervals": [
+          {
+            "steps_half_open": [
+              1,
+              228
+            ],
+            "sample_count": 227,
+            "sample_cell_duration_proxy_s": 4.54,
+            "observed_span_s": 4.5200000000000005,
+            "left_censored": true,
+            "right_censored": false,
+            "complete_run": false,
+            "state": "false"
+          },
+          {
+            "steps_half_open": [
+              228,
+              229
+            ],
+            "sample_count": 1,
+            "sample_cell_duration_proxy_s": 0.02,
+            "observed_span_s": 0.0,
+            "left_censored": false,
+            "right_censored": true,
+            "complete_run": false,
+            "state": "true"
+          }
+        ],
+        "joint_valid_count": 228,
+        "history_any_on_current_off_count": 1,
+        "current_on_history_all_off_count": 0,
+        "missing_channels": []
+      }
+    },
+    "emitted_operands": {
+      "current": {
+        "true_count": 0,
+        "false_count": 228,
+        "unknown_count": 0,
+        "valid_count": 228,
+        "fraction": 0.0,
+        "numerator_cell_s": 0.0,
+        "denominator_cell_s": 4.5600000000000005,
+        "weighting": "sample_cell_duration_proxy",
+        "intervals": [
+          {
+            "index_half_open": [
+              0,
+              228
+            ],
+            "steps_half_open": [
+              1,
+              229
+            ],
+            "state": "false",
+            "sample_count": 228,
+            "sample_cell_duration_proxy_s": 4.5600000000000005,
+            "observed_span_s": 4.540000000000001,
+            "first_observed_s": 0.02,
+            "last_observed_s": 4.5600000000000005,
+            "confirmation_time_s": 0.02,
+            "onset_range_s": null,
+            "end_range_s": null,
+            "left_censored": true,
+            "right_censored": true,
+            "left_boundary": "observation_start",
+            "right_boundary": "observation_end",
+            "complete_run": false,
+            "physical_continuity": "unknown",
+            "boundary_clock": "recorder_readout"
+          }
+        ],
+        "observed_onset_count": 0,
+        "observed_offset_count": 0,
+        "force_norm_n": {
+          "valid_count": 228,
+          "unknown_count": 0,
+          "minimum": 0.0,
+          "maximum": 0.0,
+          "first": 0.0,
+          "last": 0.0,
+          "range": 0.0,
+          "first_valid_step": 1,
+          "last_valid_step": 228,
+          "minimum_step": 1,
+          "maximum_step": 1
+        },
+        "missing_channels": [],
+        "processing_completeness": "processed",
+        "validity_policy": "per_quantity_required_components; see valid/unknown counts"
+      },
+      "history": {
+        "true_count": 1,
+        "false_count": 227,
+        "unknown_count": 0,
+        "valid_count": 228,
+        "fraction": 0.0043859649122807015,
+        "numerator_cell_s": 0.02,
+        "denominator_cell_s": 4.5600000000000005,
+        "weighting": "sample_cell_duration_proxy",
+        "intervals": [
+          {
+            "index_half_open": [
+              0,
+              227
+            ],
+            "steps_half_open": [
+              1,
+              228
+            ],
+            "state": "false",
+            "sample_count": 227,
+            "sample_cell_duration_proxy_s": 4.54,
+            "observed_span_s": 4.5200000000000005,
+            "first_observed_s": 0.02,
+            "last_observed_s": 4.54,
+            "confirmation_time_s": 0.02,
+            "onset_range_s": null,
+            "end_range_s": [
+              4.54,
+              4.5600000000000005
+            ],
+            "left_censored": true,
+            "right_censored": false,
+            "left_boundary": "observation_start",
+            "right_boundary": "observed_transition",
+            "complete_run": false,
+            "physical_continuity": "unknown",
+            "boundary_clock": "recorder_readout"
+          },
+          {
+            "index_half_open": [
+              227,
+              228
+            ],
+            "steps_half_open": [
+              228,
+              229
+            ],
+            "state": "true",
+            "sample_count": 1,
+            "sample_cell_duration_proxy_s": 0.02,
+            "observed_span_s": 0.0,
+            "first_observed_s": 4.5600000000000005,
+            "last_observed_s": 4.5600000000000005,
+            "confirmation_time_s": 4.5600000000000005,
+            "onset_range_s": [
+              4.54,
+              4.5600000000000005
+            ],
+            "end_range_s": null,
+            "left_censored": false,
+            "right_censored": true,
+            "left_boundary": "observed_transition",
+            "right_boundary": "observation_end",
+            "complete_run": false,
+            "physical_continuity": "unknown",
+            "boundary_clock": "recorder_readout"
+          }
+        ],
+        "observed_onset_count": 1,
+        "observed_offset_count": 0,
+        "history_any_on_current_off_count": 1,
+        "current_on_history_all_off_count": 0,
+        "joint_valid_count": 228,
+        "slot_timestamps": "not_recorded",
+        "slot_validity": "not_recorded",
+        "full_physics_coverage": false,
+        "integrable_as_substeps": false,
+        "missing_channels": [],
+        "processing_completeness": "processed",
+        "validity_policy": "per_quantity_required_components; see valid/unknown counts"
+      }
+    },
+    "claim": {
+      "record_type": "claim",
+      "kind": "measured_relation",
+      "status": "supported_measurement",
+      "section": "展开例：s0389a10d7cb9.r2.e66",
+      "scope": "s0389a10d7cb9.r2.e66",
+      "template_id": "episode_base_runs",
+      "template_version": "trajectory.zh_templates.v1",
+      "scope_record_id": "summary:e89eac856f1670c9f6794f284f3f8bdadf53fdff450651db475236cb8d056d16",
+      "operands": {
+        "current": {
+          "record_id": "evidence:3fe73e0916b51b523e6e71893a6be75ef72a273b8862b2c26899fa3b3e97b9ce",
+          "path": [
+            "value"
+          ]
+        },
+        "history": {
+          "record_id": "evidence:af2a8bdaa4e6855a11e8122b8d7b3428dc4092d7aa8f72609ac8767e5be4e2a8",
+          "path": [
+            "value"
+          ]
+        }
+      },
+      "literals": {
+        "entity": "robot_0.body.base"
+      },
+      "text": "robot_0.body.base current越阈0条，区间：无已观察阳性；history ANY越阈1条，区间：步228–228，1条，格时长代理0.02s、观测跨度0s，左/右截尾=false/true；单条短事件保留。",
+      "applicability": "enabled catalog; stated sampled/readout scope only",
+      "review_state": "independent_acceptance_required",
+      "claim_id": "claim:df67717fda440e343ed6fa141401fdaab2441faa283316ebadb8e7275f6fa0fc"
+    },
+    "scope_note": "Public-selected delivery example, additional to predeclared necessary samples; not an independent random experiment."
+  },
+  {
+    "source": "k2",
+    "source_manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+    "checkpoint_hash": "sha256:bcd8de3a9d0e6e6a6c84b8c7833dc4a1b0ed697758ddee6f9c9eb31416a2f93c",
+    "run": 2,
+    "env": 198,
+    "raw_anchors": [
+      {
+        "step": 271,
+        "chunk": "chunk_000014.npz",
+        "chunk_sha256": "743f1d8e414716c6f332404333bd2ab1fac9abac23c9ac8cd06e2b179ceb6766",
+        "zero_based_row": 14,
+        "env_index": 198,
+        "raw_values": {
+          "base_quat_w": [
+            0.9809984564781189,
+            -0.11361635476350784,
+            -0.13823559880256653,
+            0.07499559223651886
+          ],
+          "forbidden_contact_forces_w": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "support_contact_forces_w": [
+            [
+              3.871989520121133e-06,
+              -2.3647371563129127e-06,
+              145.59811401367188
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              4.883367182628717e-06,
+              1.589905696164351e-05,
+              87.99649810791016
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "support_lin_vel_w": [
+            [
+              -0.13080953061580658,
+              -0.037104375660419464,
+              0.21031592786312103
+            ],
+            [
+              -2.451417922973633,
+              0.5587484836578369,
+              -0.9987335205078125
+            ],
+            [
+              -0.06028704717755318,
+              0.02130112424492836,
+              0.033376406878232956
+            ],
+            [
+              -1.2566478252410889,
+              -1.4773952960968018,
+              -2.1777210235595703
+            ]
+          ],
+          "done_mask": 1.0,
+          "wrapper_done_mask": 1.0,
+          "termination_0": 0.0,
+          "termination_1": 1.0
+        },
+        "missing_channels": [
+          "forbidden_contact_forces_w_history"
+        ],
+        "independent_up_z": 0.9359644906183456,
+        "independent_FL_speed_xy_mps": 0.1359700996288418
+      }
+    ],
+    "independent_facts": {
+      "task_endpoint": {
+        "outcome": {
+          "bin_id": "public_dev.joint_ood_level_2",
+          "episode_steps": 271,
+          "primary_reason": "forbidden_contact",
+          "success": false,
+          "diagnostic_flags": [
+            "slip_detected",
+            "goal_not_reached_detected"
+          ],
+          "max_progress_m": 3.07252397,
+          "progress_fraction": 0.77901084,
+          "evaluation_cell_id": "public_dev.joint_ood_level_2"
+        },
+        "terminal_step": 271,
+        "terminal_time_s": 5.42,
+        "terminal_flags": {
+          "done_mask": true,
+          "wrapper_done_mask": true,
+          "termination_0": false,
+          "termination_1": true
+        },
+        "tail_steps": [
+          267,
+          268,
+          269,
+          270,
+          271
+        ],
+        "tail_flags": {
+          "done_mask": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "wrapper_done_mask": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "termination_0": [
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "termination_1": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ]
+        },
+        "tail_forbidden_norms_n": [
+          [
+            0.0
+          ],
+          [
+            0.0
+          ],
+          [
+            0.0
+          ],
+          [
+            0.0
+          ],
+          [
+            0.0
+          ]
+        ],
+        "tail_support_norms_n": [
+          [
+            57.22317187474929,
+            0.0,
+            0.0,
+            19.609848022460945
+          ],
+          [
+            49.06101088539798,
+            0.0,
+            51.03799057006839,
+            43.024044036865256
+          ],
+          [
+            28.79009819030784,
+            0.0,
+            47.558628082275746,
+            68.93656158447268
+          ],
+          [
+            0.0,
+            0.0,
+            114.4945755004884,
+            61.4873098610489
+          ],
+          [
+            145.59811401367196,
+            0.0,
+            87.99649810791173,
+            0.0
+          ]
+        ],
+        "tail_forbidden_history_norms_n": null
+      },
+      "robot_0.body.base.history_diagnostic": {
+        "true_count": 0,
+        "false_count": 0,
+        "unknown_count": 271,
+        "valid_count": 0,
+        "fraction": null,
+        "numerator_cell_s": 0.0,
+        "denominator_cell_s": 0.0,
+        "observed_onset_count": 0,
+        "observed_offset_count": 0,
+        "intervals": [
+          {
+            "steps_half_open": [
+              1,
+              272
+            ],
+            "sample_count": 271,
+            "sample_cell_duration_proxy_s": 5.42,
+            "observed_span_s": 5.4,
+            "left_censored": true,
+            "right_censored": true,
+            "complete_run": false,
+            "state": "unknown"
+          }
+        ],
+        "joint_valid_count": 0,
+        "history_any_on_current_off_count": 0,
+        "current_on_history_all_off_count": 0,
+        "missing_channels": [
+          "forbidden_contact_forces_w_history"
+        ]
+      }
+    },
+    "emitted_operands": {
+      "value": {
+        "outcome": {
+          "bin_id": "public_dev.joint_ood_level_2",
+          "episode_steps": 271,
+          "primary_reason": "forbidden_contact",
+          "success": false,
+          "diagnostic_flags": [
+            "slip_detected",
+            "goal_not_reached_detected"
+          ],
+          "max_progress_m": 3.07252397,
+          "progress_fraction": 0.77901084,
+          "evaluation_cell_id": "public_dev.joint_ood_level_2"
+        },
+        "authority": "archived_task_evaluator",
+        "terminal_step": 271,
+        "terminal_time_s": 5.42,
+        "terminal_flags": {
+          "done_mask": true,
+          "wrapper_done_mask": true,
+          "termination_0": false,
+          "termination_1": true
+        },
+        "goal_margin_m": 0.8731264769583129,
+        "deadline_margin_s": 5.460000000000001,
+        "goal_progress_m": 3.94413504,
+        "deadline_s": 10.88,
+        "static_refs": {
+          "terrain_env_origins_w": {
+            "file": "chunk_000010.npz",
+            "sha256": "26fdd2f44a9a8cbdd090f33258123acf62038ef6dcd6914b7959df3da5b7b888",
+            "array": "terrain_env_origins_w",
+            "array_index": [
+              198
+            ]
+          }
+        },
+        "tail_steps": [
+          267,
+          268,
+          269,
+          270,
+          271
+        ],
+        "tail_flags": {
+          "done_mask": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "wrapper_done_mask": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "termination_0": [
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "termination_1": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ]
+        },
+        "tail_forbidden_norms_n": [
+          [
+            0.0
+          ],
+          [
+            0.0
+          ],
+          [
+            0.0
+          ],
+          [
+            0.0
+          ],
+          [
+            0.0
+          ]
+        ],
+        "tail_support_norms_n": [
+          [
+            57.22317187474929,
+            0.0,
+            0.0,
+            19.609848022460945
+          ],
+          [
+            49.06101088539798,
+            0.0,
+            51.03799057006839,
+            43.024044036865256
+          ],
+          [
+            28.79009819030784,
+            0.0,
+            47.558628082275746,
+            68.93656158447268
+          ],
+          [
+            0.0,
+            0.0,
+            114.4945755004884,
+            61.4873098610489
+          ],
+          [
+            145.59811401367196,
+            0.0,
+            87.99649810791173,
+            0.0
+          ]
+        ],
+        "tail_forbidden_history_norms_n": null,
+        "geometry_clearance": "deferred_pending_independent_geometry_validation",
+        "missing_channels": [
+          "forbidden_contact_forces_w_history"
+        ],
+        "processing_completeness": "processed",
+        "validity_policy": "per_quantity_required_components; see valid/unknown counts"
+      },
+      "term_order": [
+        "time_out",
+        "base_contact"
+      ]
+    },
+    "claim": {
+      "record_type": "claim",
+      "kind": "measured_relation",
+      "status": "supported_measurement",
+      "section": "展开例：sfe488cb848db.r2.e198",
+      "scope": "sfe488cb848db.r2.e198",
+      "template_id": "episode_terminal",
+      "template_version": "trajectory.zh_templates.v1",
+      "scope_record_id": "summary:cfd6f5663dce21784357a8ecbf5b04f065da4c088afaa591edcf53f6ad9562bc",
+      "operands": {
+        "value": {
+          "record_id": "evidence:f85ce55c1375ea55f82f591dd50d8ed966df7f5e1c6245cc6c5392206ba7b654",
+          "path": [
+            "value"
+          ]
+        },
+        "term_order": {
+          "record_id": "header:ee12087ea91eaa89699904490438866ee60110d4f4485c3bec453816dc7f2064",
+          "path": [
+            "task",
+            "termination_term_order"
+          ]
+        }
+      },
+      "literals": {},
+      "text": "终点步271、时刻5.42s，manager/wrapper标记={\"done_mask\":true,\"wrapper_done_mask\":true,\"termination_0\":false,\"termination_1\":true}；termination索引依次对应[time_out, base_contact]；base终点current力模=[0]N；history未采集、事件不可判定；manager终止信号独立保留，不将其推定为history或current力事件，任务结果保持存档评价器权威。",
+      "applicability": "enabled catalog; stated sampled/readout scope only",
+      "review_state": "independent_acceptance_required",
+      "claim_id": "claim:8fb33cd93263b6fdaf942db342a6dea0d24cfb5640dcb359bce238492e198898"
+    },
+    "scope_note": "Public-selected delivery example, additional to predeclared necessary samples; not an independent random experiment."
+  },
+  {
+    "source": "k3",
+    "source_manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+    "checkpoint_hash": "sha256:7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c",
+    "run": 3,
+    "env": 64,
+    "raw_anchors": [
+      {
+        "step": 154,
+        "chunk": "chunk_000022.npz",
+        "chunk_sha256": "15e3fb6a4f21659cabdeae01eab943756423de51123f36cae79265434480725f",
+        "zero_based_row": 25,
+        "env_index": 64,
+        "raw_values": {
+          "base_quat_w": [
+            0.6898971199989319,
+            0.6811111569404602,
+            -0.24510464072227478,
+            -0.0073063974268734455
+          ],
+          "forbidden_contact_forces_w": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "forbidden_contact_forces_w_history": [
+            [
+              [
+                0.0,
+                0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                0.0,
+                0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                0.0,
+                0.0,
+                0.0
+              ]
+            ]
+          ],
+          "support_contact_forces_w": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              1.0532141914154636e-06,
+              -8.123534485093842e-07,
+              20.62315559387207
+            ]
+          ],
+          "support_lin_vel_w": [
+            [
+              -2.3604252338409424,
+              -3.0614328384399414,
+              0.830038845539093
+            ],
+            [
+              -2.4602866172790527,
+              0.6344562768936157,
+              0.11149906367063522
+            ],
+            [
+              -1.5819183588027954,
+              -2.181972026824951,
+              -0.33836084604263306
+            ],
+            [
+              -1.5277867317199707,
+              1.235892653465271,
+              -0.010277639143168926
+            ]
+          ],
+          "done_mask": 0.0,
+          "wrapper_done_mask": 0.0,
+          "termination_0": 0.0,
+          "termination_1": 0.0
+        },
+        "missing_channels": [],
+        "independent_up_z": -0.047977267982098004,
+        "independent_FL_speed_xy_mps": 3.8657442115110907
+      },
+      {
+        "step": 508,
+        "chunk": "chunk_000027.npz",
+        "chunk_sha256": "25823bf5416a683fe54c117e2ed0c522fd63d349dfac65dae947dd58ee519c0e",
+        "zero_based_row": 59,
+        "env_index": 64,
+        "raw_values": {
+          "base_quat_w": [
+            0.1011524647474289,
+            0.9605149626731873,
+            -0.10653971880674362,
+            0.23628057539463043
+          ],
+          "forbidden_contact_forces_w": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "forbidden_contact_forces_w_history": [
+            [
+              [
+                0.0,
+                0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                0.0,
+                0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                0.0,
+                0.0,
+                0.0
+              ]
+            ]
+          ],
+          "support_contact_forces_w": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "support_lin_vel_w": [
+            [
+              0.006790934130549431,
+              -0.015433342196047306,
+              0.006760832387953997
+            ],
+            [
+              -0.008866121992468834,
+              -0.019562387838959694,
+              0.018190110102295876
+            ],
+            [
+              0.12852191925048828,
+              -0.12046027183532715,
+              -0.1210479885339737
+            ],
+            [
+              -0.008348051458597183,
+              0.062251459807157516,
+              -0.0642073005437851
+            ]
+          ],
+          "done_mask": 0.0,
+          "wrapper_done_mask": 0.0,
+          "termination_0": 0.0,
+          "termination_1": 0.0
+        },
+        "missing_channels": [],
+        "independent_up_z": -0.8678793419737503,
+        "independent_FL_speed_xy_mps": 0.01686134151560176
+      }
+    ],
+    "independent_facts": {
+      "body_up": {
+        "up_z": {
+          "valid_count": 637,
+          "unknown_count": 0,
+          "minimum": -0.8912862279185769,
+          "maximum": 0.9999947919534199,
+          "first": 0.999581524652562,
+          "last": -0.8693058467467194,
+          "range": 1.8912810198719967,
+          "minimum_step": 194,
+          "maximum_step": 24,
+          "first_valid_step": 1,
+          "last_valid_step": 637
+        },
+        "negative": {
+          "true_count": 484,
+          "false_count": 153,
+          "unknown_count": 0,
+          "valid_count": 637,
+          "fraction": 0.7598116169544741,
+          "numerator_cell_s": 9.68,
+          "denominator_cell_s": 12.74,
+          "observed_onset_count": 1,
+          "observed_offset_count": 0,
+          "intervals": [
+            {
+              "steps_half_open": [
+                1,
+                154
+              ],
+              "sample_count": 153,
+              "sample_cell_duration_proxy_s": 3.06,
+              "observed_span_s": 3.04,
+              "left_censored": true,
+              "right_censored": false,
+              "complete_run": false,
+              "state": "false"
+            },
+            {
+              "steps_half_open": [
+                154,
+                638
+              ],
+              "sample_count": 484,
+              "sample_cell_duration_proxy_s": 9.68,
+              "observed_span_s": 9.66,
+              "left_censored": false,
+              "right_censored": true,
+              "complete_run": false,
+              "state": "true"
+            }
+          ]
+        }
+      },
+      "robot_0.support.FL_foot.low_speed_off": {
+        "true_count": 397,
+        "false_count": 240,
+        "unknown_count": 0,
+        "valid_count": 637,
+        "fraction": 0.6232339089481946,
+        "numerator_cell_s": 7.94,
+        "denominator_cell_s": 12.74,
+        "observed_onset_count": 19,
+        "observed_offset_count": 18,
+        "intervals": [
+          {
+            "steps_half_open": [
+              1,
+              220
+            ],
+            "sample_count": 219,
+            "sample_cell_duration_proxy_s": 4.38,
+            "observed_span_s": 4.36,
+            "left_censored": true,
+            "right_censored": false,
+            "complete_run": false,
+            "state": "false"
+          },
+          {
+            "steps_half_open": [
+              220,
+              259
+            ],
+            "sample_count": 39,
+            "sample_cell_duration_proxy_s": 0.78,
+            "observed_span_s": 0.76,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "true"
+          },
+          {
+            "steps_half_open": [
+              259,
+              260
+            ],
+            "sample_count": 1,
+            "sample_cell_duration_proxy_s": 0.02,
+            "observed_span_s": 0.0,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "false"
+          },
+          {
+            "steps_half_open": [
+              260,
+              266
+            ],
+            "sample_count": 6,
+            "sample_cell_duration_proxy_s": 0.12,
+            "observed_span_s": 0.1,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "true"
+          },
+          {
+            "steps_half_open": [
+              266,
+              267
+            ],
+            "sample_count": 1,
+            "sample_cell_duration_proxy_s": 0.02,
+            "observed_span_s": 0.0,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "false"
+          },
+          {
+            "steps_half_open": [
+              267,
+              270
+            ],
+            "sample_count": 3,
+            "sample_cell_duration_proxy_s": 0.06,
+            "observed_span_s": 0.04,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "true"
+          },
+          {
+            "steps_half_open": [
+              270,
+              271
+            ],
+            "sample_count": 1,
+            "sample_cell_duration_proxy_s": 0.02,
+            "observed_span_s": 0.0,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "false"
+          },
+          {
+            "steps_half_open": [
+              271,
+              291
+            ],
+            "sample_count": 20,
+            "sample_cell_duration_proxy_s": 0.4,
+            "observed_span_s": 0.38,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "true"
+          },
+          {
+            "steps_half_open": [
+              291,
+              292
+            ],
+            "sample_count": 1,
+            "sample_cell_duration_proxy_s": 0.02,
+            "observed_span_s": 0.0,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "false"
+          },
+          {
+            "steps_half_open": [
+              292,
+              294
+            ],
+            "sample_count": 2,
+            "sample_cell_duration_proxy_s": 0.04,
+            "observed_span_s": 0.02,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "true"
+          },
+          {
+            "steps_half_open": [
+              294,
+              295
+            ],
+            "sample_count": 1,
+            "sample_cell_duration_proxy_s": 0.02,
+            "observed_span_s": 0.0,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "false"
+          },
+          {
+            "steps_half_open": [
+              295,
+              305
+            ],
+            "sample_count": 10,
+            "sample_cell_duration_proxy_s": 0.2,
+            "observed_span_s": 0.18,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "true"
+          },
+          {
+            "steps_half_open": [
+              305,
+              306
+            ],
+            "sample_count": 1,
+            "sample_cell_duration_proxy_s": 0.02,
+            "observed_span_s": 0.0,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "false"
+          },
+          {
+            "steps_half_open": [
+              306,
+              316
+            ],
+            "sample_count": 10,
+            "sample_cell_duration_proxy_s": 0.2,
+            "observed_span_s": 0.18,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "true"
+          },
+          {
+            "steps_half_open": [
+              316,
+              317
+            ],
+            "sample_count": 1,
+            "sample_cell_duration_proxy_s": 0.02,
+            "observed_span_s": 0.0,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "false"
+          },
+          {
+            "steps_half_open": [
+              317,
+              343
+            ],
+            "sample_count": 26,
+            "sample_cell_duration_proxy_s": 0.52,
+            "observed_span_s": 0.5,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "true"
+          },
+          {
+            "steps_half_open": [
+              343,
+              344
+            ],
+            "sample_count": 1,
+            "sample_cell_duration_proxy_s": 0.02,
+            "observed_span_s": 0.0,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "false"
+          },
+          {
+            "steps_half_open": [
+              344,
+              347
+            ],
+            "sample_count": 3,
+            "sample_cell_duration_proxy_s": 0.06,
+            "observed_span_s": 0.04,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "true"
+          },
+          {
+            "steps_half_open": [
+              347,
+              348
+            ],
+            "sample_count": 1,
+            "sample_cell_duration_proxy_s": 0.02,
+            "observed_span_s": 0.0,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "false"
+          },
+          {
+            "steps_half_open": [
+              348,
+              350
+            ],
+            "sample_count": 2,
+            "sample_cell_duration_proxy_s": 0.04,
+            "observed_span_s": 0.02,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "true"
+          },
+          {
+            "steps_half_open": [
+              350,
+              352
+            ],
+            "sample_count": 2,
+            "sample_cell_duration_proxy_s": 0.04,
+            "observed_span_s": 0.02,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "false"
+          },
+          {
+            "steps_half_open": [
+              352,
+              353
+            ],
+            "sample_count": 1,
+            "sample_cell_duration_proxy_s": 0.02,
+            "observed_span_s": 0.0,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "true"
+          },
+          {
+            "steps_half_open": [
+              353,
+              354
+            ],
+            "sample_count": 1,
+            "sample_cell_duration_proxy_s": 0.02,
+            "observed_span_s": 0.0,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "false"
+          },
+          {
+            "steps_half_open": [
+              354,
+              357
+            ],
+            "sample_count": 3,
+            "sample_cell_duration_proxy_s": 0.06,
+            "observed_span_s": 0.04,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "true"
+          },
+          {
+            "steps_half_open": [
+              357,
+              358
+            ],
+            "sample_count": 1,
+            "sample_cell_duration_proxy_s": 0.02,
+            "observed_span_s": 0.0,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "false"
+          },
+          {
+            "steps_half_open": [
+              358,
+              359
+            ],
+            "sample_count": 1,
+            "sample_cell_duration_proxy_s": 0.02,
+            "observed_span_s": 0.0,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "true"
+          },
+          {
+            "steps_half_open": [
+              359,
+              362
+            ],
+            "sample_count": 3,
+            "sample_cell_duration_proxy_s": 0.06,
+            "observed_span_s": 0.04,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "false"
+          },
+          {
+            "steps_half_open": [
+              362,
+              371
+            ],
+            "sample_count": 9,
+            "sample_cell_duration_proxy_s": 0.18,
+            "observed_span_s": 0.16,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "true"
+          },
+          {
+            "steps_half_open": [
+              371,
+              372
+            ],
+            "sample_count": 1,
+            "sample_cell_duration_proxy_s": 0.02,
+            "observed_span_s": 0.0,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "false"
+          },
+          {
+            "steps_half_open": [
+              372,
+              396
+            ],
+            "sample_count": 24,
+            "sample_cell_duration_proxy_s": 0.48,
+            "observed_span_s": 0.46,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "true"
+          },
+          {
+            "steps_half_open": [
+              396,
+              397
+            ],
+            "sample_count": 1,
+            "sample_cell_duration_proxy_s": 0.02,
+            "observed_span_s": 0.0,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "false"
+          },
+          {
+            "steps_half_open": [
+              397,
+              469
+            ],
+            "sample_count": 72,
+            "sample_cell_duration_proxy_s": 1.44,
+            "observed_span_s": 1.42,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "true"
+          },
+          {
+            "steps_half_open": [
+              469,
+              470
+            ],
+            "sample_count": 1,
+            "sample_cell_duration_proxy_s": 0.02,
+            "observed_span_s": 0.0,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "false"
+          },
+          {
+            "steps_half_open": [
+              470,
+              502
+            ],
+            "sample_count": 32,
+            "sample_cell_duration_proxy_s": 0.64,
+            "observed_span_s": 0.62,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "true"
+          },
+          {
+            "steps_half_open": [
+              502,
+              503
+            ],
+            "sample_count": 1,
+            "sample_cell_duration_proxy_s": 0.02,
+            "observed_span_s": 0.0,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "false"
+          },
+          {
+            "steps_half_open": [
+              503,
+              507
+            ],
+            "sample_count": 4,
+            "sample_cell_duration_proxy_s": 0.08,
+            "observed_span_s": 0.06,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "true"
+          },
+          {
+            "steps_half_open": [
+              507,
+              508
+            ],
+            "sample_count": 1,
+            "sample_cell_duration_proxy_s": 0.02,
+            "observed_span_s": 0.0,
+            "left_censored": false,
+            "right_censored": false,
+            "complete_run": true,
+            "state": "false"
+          },
+          {
+            "steps_half_open": [
+              508,
+              638
+            ],
+            "sample_count": 130,
+            "sample_cell_duration_proxy_s": 2.6,
+            "observed_span_s": 2.58,
+            "left_censored": false,
+            "right_censored": true,
+            "complete_run": false,
+            "state": "true"
+          }
+        ],
+        "longest": {
+          "interval": {
+            "steps_half_open": [
+              508,
+              638
+            ],
+            "sample_count": 130,
+            "sample_cell_duration_proxy_s": 2.6,
+            "observed_span_s": 2.58,
+            "left_censored": false,
+            "right_censored": true,
+            "complete_run": false,
+            "state": "true"
+          },
+          "max_speed_xy_mps": 0.041060365485747145,
+          "median_speed_xy_mps": 0.013934224167395422,
+          "max_speed_xyz_mps": 0.06543539407417788,
+          "median_speed_xyz_mps": 0.021312932947230866,
+          "max_force_norm_n": 0.0,
+          "minimum_up_z": -0.8694083679229179,
+          "maximum_up_z": -0.8678793419737503,
+          "orientation_valid_count": 130
+        }
+      }
+    },
+    "emitted_operands": {
+      "negative_step": 154,
+      "start_step": 508
+    },
+    "claim": {
+      "record_type": "claim",
+      "kind": "measured_relation",
+      "status": "supported_measurement",
+      "section": "展开例：s8c5f2d68db3d.r3.e64",
+      "scope": "s8c5f2d68db3d.r3.e64",
+      "template_id": "inverted_before",
+      "template_version": "trajectory.zh_templates.v1",
+      "scope_record_id": "summary:7684f2d4affbd3eea916965e52d0f89d49c3882cc2065cbf707ac7633c529bbe",
+      "operands": {
+        "negative_step": {
+          "record_id": "summary:7684f2d4affbd3eea916965e52d0f89d49c3882cc2065cbf707ac7633c529bbe",
+          "path": [
+            "highlights",
+            "first_negative"
+          ]
+        },
+        "start_step": {
+          "record_id": "evidence:25ebcb74529c267e66f63bc173f862f4132c5fdd5f52f89f65c270fefd7aa8a6",
+          "path": [
+            "value",
+            "longest",
+            "interval",
+            "steps_half_open",
+            0
+          ]
+        }
+      },
+      "literals": {
+        "entity": "robot_0.support.FL_foot"
+      },
+      "text": "身体上轴已在步154出现负值；robot_0.support.FL_foot所选低速off段首次记录在步508，前者早于后者；该顺序不解释机制，低速off本身不能证明直立举足。",
+      "applicability": "enabled catalog; stated sampled/readout scope only",
+      "review_state": "independent_acceptance_required",
+      "claim_id": "claim:7a47121341cbc81953522b04cb2f5582ce6dd44b48f700f1a96bcafadd947098"
+    },
+    "scope_note": "Public-selected delivery example, additional to predeclared necessary samples; not an independent random experiment."
+  }
+]

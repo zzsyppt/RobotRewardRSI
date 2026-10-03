@@ -527,6 +527,10 @@ def _representatives(episodes, *, enhanced=False):
 
 def project_stair_behavior(value: Mapping[str, Any]) -> dict:
     """Closed, bounded, portable public view; legacy absence is handled by callers."""
+    if value.get("schema_version") in {"true_rl_agent.stair.behavior.full.v4", "true_rl_agent.stair.behavior.public.v5",
+                "true_rl_agent.stair.behavior.full.v5", "true_rl_agent.stair.behavior.public.v6"}:
+        from .trajectory_report import project_stair_trajectory_report
+        return project_stair_trajectory_report(value)
     if value.get("schema_version") in {"true_rl_agent.stair.behavior.full.v3", "true_rl_agent.stair.behavior.public.v4"}:
         from .process_report import project_stair_process_report
         return project_stair_process_report(value)
@@ -802,6 +806,22 @@ def project_stair_behavior(value: Mapping[str, Any]) -> dict:
 
 
 def compare_stair_behavior(parent, candidate, *, expected_parent_checkpoint_hash: str | None) -> dict:
+    trajectory_versions = {"true_rl_agent.stair.behavior.full.v4", "true_rl_agent.stair.behavior.public.v5",
+                "true_rl_agent.stair.behavior.full.v5", "true_rl_agent.stair.behavior.public.v6"}
+    if any(isinstance(value, Mapping) and value.get("schema_version") in trajectory_versions for value in (parent, candidate)):
+        # P1b contains no explicitly bound parent card. Do not reinterpret its
+        # separate-source examples, or old four-term reports, as parent facts.
+        if not isinstance(parent, Mapping) or not expected_parent_checkpoint_hash:
+            return {"status": "not_available", "reason": "missing_bound_parent_or_behavior"}
+        if any(not isinstance(v, Mapping) or v.get("schema_version") not in trajectory_versions for v in (parent, candidate)):
+            return {"status": "not_comparable", "reason": "trajectory_report_version_mismatch"}
+        left, right = project_stair_behavior(parent), project_stair_behavior(candidate)
+        if left["domain"]["checkpoint_hash"] != expected_parent_checkpoint_hash:
+            return {"status": "not_comparable", "reason": "parent_checkpoint_mismatch"}
+        fields = ("task_id", "task_protocol_hash", "evaluation_binding_hash", "seed_namespace", "projection_hash", "catalog_version")
+        if any(left["domain"][k] != right["domain"][k] for k in fields):
+            return {"status": "not_comparable", "reason": "comparison_domain_mismatch"}
+        return {"status": "not_available", "reason": "trajectory_parent_comparison_not_implemented"}
     new_versions = {"true_rl_agent.stair.behavior.full.v3", "true_rl_agent.stair.behavior.public.v4"}
     if any(isinstance(value, Mapping) and value.get("schema_version") in new_versions for value in (parent, candidate)):
         from .process_report import compare_stair_process_reports

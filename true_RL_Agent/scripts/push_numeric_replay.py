@@ -29,7 +29,7 @@ from true_rl_agent.runner.gpu_lease import GpuLeaseManager, PreGenesisGpuLeaseHo
 from true_rl_agent.runner.job_attempts import PreGenesisExecutionScope
 from true_rl_agent.runner.native_video import add_native_video_arguments, native_video_argv_from_args
 from true_rl_agent.runner.resource_shadow import discover_nvidia_gpu_inventory
-from true_rl_agent.runner.specs import CheckpointRef, require_eval_phase_result_matches_spec
+from true_rl_agent.runner.specs import CheckpointRef, GpuProcessBinding, require_eval_phase_result_matches_spec
 from true_rl_agent.tasks.push_recovery.composition import PushRecoveryCompositionProvider
 from true_rl_agent.tasks.push_recovery.config import PushRecoveryTaskConfig
 from true_rl_agent.tasks.push_recovery.checkpoint_admission import validate_push_reference_evaluation_source
@@ -50,6 +50,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--eval-base-seed", type=int, default=1500000000)
     parser.add_argument("--timeout-s", type=int, default=1800)
     parser.add_argument("--numeric-evidence-max-bytes", type=int, default=2 * 1024**3)
+    from true_rl_agent.tasks.push_recovery.trajectory_pipeline import PROFILES, LEGACY_PROFILE
+    parser.add_argument("--behavior-feedback-profile", choices=PROFILES, default=LEGACY_PROFILE)
+    parser.add_argument("--trajectory-report-max-bytes", type=int, default=12288)
     add_native_video_arguments(parser)
     return parser
 
@@ -64,7 +67,11 @@ def prepare(args: argparse.Namespace, *, gpu_lease_manager: GpuLeaseManager | No
     values = {**provider.cli_defaults(), "cell_variant_id": args.cell,
         "execution_device": args.device, "isaac_python": args.isaac_python, "runner_timeout_s": args.timeout_s,
         "push_protocol": source_config.push_protocol.to_dict(), "reference_program_id": trained["subject_id"],
-        "eval_base_seed": args.eval_base_seed}
+        "eval_base_seed": args.eval_base_seed,
+        "behavior_feedback_profile": getattr(args, "behavior_feedback_profile", "legacy_process_v1"),
+        "trajectory_report_max_bytes": getattr(args, "trajectory_report_max_bytes", 12288)}
+    if values["behavior_feedback_profile"] == "trajectory_numeric_v1" and args.capture != "on":
+        raise ValueError("Push trajectory profile requires --capture on")
     if args.cell.endswith(".recovery_v2"):
         values["reference_admission_policy"] = None
     composition = provider.resolve(values=values,
@@ -87,12 +94,15 @@ def prepare(args: argparse.Namespace, *, gpu_lease_manager: GpuLeaseManager | No
     if args.mode == "run" and file_sha256(args.checkpoint) != checksum:
         raise ValueError("checkpoint bytes differ from the completed training receipt")
     environment_hash = None
+    gpu_process_binding = None
     attempt_scope = None
     probe_seconds = 0.0
     probe_receipt = None
     if args.mode == "run":
         if gpu_lease_manager is None:
             raise ValueError("Push replay run requires its GPU lease manager")
+        gpu_process_binding = GpuProcessBinding(host_execution_device=args.device, process_execution_device="cuda:0",
+            resource_binding_hash=gpu_lease_manager.identity_for(args.device).identity_hash)
         execution_identity = canonical_json_hash({"purpose": "Push numeric replay", "output": str(args.output),
             "source_train_summary_sha256": file_sha256(args.checkpoint_summary), "cell": args.cell,
             "capture": args.capture, "evaluation_binding": backend.evaluation_binding_for(composition.task_plugin.task_spec).to_public_dict()})
@@ -116,7 +126,7 @@ def prepare(args: argparse.Namespace, *, gpu_lease_manager: GpuLeaseManager | No
     jobs = backend.materialize_reference_jobs(session_id="push-numeric-replay", task_spec=composition.task_plugin.task_spec,
         reference=reference, artifact_root=args.output / "reference_source", policy_initialization=composition.policy_initialization,
         evaluation_binding=backend.evaluation_binding_for(composition.task_plugin.task_spec),
-        backend_execution_environment_manifest_hash=environment_hash)
+        backend_execution_environment_manifest_hash=environment_hash, gpu_process_binding=gpu_process_binding)
     plan = replace(jobs.eval_spec, training_binding_hash=source_binding_hash,
         program_source_checksum=trained["program_source_checksum"], subject_manifest_hash=trained["subject_manifest_hash"],
         checkpoint=CheckpointRef(uri="artifact://push-numeric-replay/best.pt", checksum=checksum,
@@ -193,7 +203,8 @@ def main(argv: list[str] | None = None) -> int:
             raise ValueError("checkpoint bytes changed during replay")
         if args.capture == "on":
             write("numeric_references.json", [seed["numeric_evidence_ref"] for seed in raw["task_evidence"]["seed_summaries"]])
-            report["numeric_recompute_status"] = "pending_separate_cpu_step"
+            report["numeric_recompute_status"] = ("completed_cpu_trajectory_finalizer"
+                if args.behavior_feedback_profile == "trajectory_numeric_v1" else "pending_separate_cpu_step")
         report.update(status="PASS", checkpoint_runner_admission="passed",
             public_dev=composition.task_plugin.phased_evaluation_adapter().project_public_phase_summary(phase_result=result),
             evaluation_execution_cost=dict(result.execution_cost))

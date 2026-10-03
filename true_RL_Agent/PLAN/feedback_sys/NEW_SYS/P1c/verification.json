@@ -1,0 +1,728 @@
+{
+  "schema_version": "trajectory.p1c.verification.v1",
+  "status": "DEVELOPMENT_PASS_AWAITING_PARENT_INDEPENDENT_ACCEPTANCE",
+  "generated_at_utc": "2026-10-03T02:28:46.597715+00:00",
+  "base_commit": "00e63feb76123292984071cd4a6bc5e9d362bd1a",
+  "branch": "codex/trajectory-translator-upgrade",
+  "single_writer": true,
+  "code": [
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/trajectory_report.py",
+      "bytes": 21430,
+      "sha256": "b4303d0784fc155234afbdd1be515713f54e33bb008a6ec1929edc2f2955b7b4",
+      "lf_normalized_sha256": "b4303d0784fc155234afbdd1be515713f54e33bb008a6ec1929edc2f2955b7b4"
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/behavior.py",
+      "bytes": 61452,
+      "sha256": "3956998c25d86329fe904aecaa4f7ca84899c2f7310fc74e130dae2031a96b03",
+      "lf_normalized_sha256": "a9372c9e6f7ce40e9a3535da08ae7a67aa35bb20a8541f57cb4d809b2747627b"
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/phased_evaluation.py",
+      "bytes": 41642,
+      "sha256": "8ffa49db2cda5c17b0c1d04741f005cad57b58bbe0c5fefaec49a6bf861ab0a4",
+      "lf_normalized_sha256": "617fdc791642901c3935e9b7d3d8e34642a59e83049359a2cd95a1176ee9c802"
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/prompt_adapter.py",
+      "bytes": 150911,
+      "sha256": "eb88f13911a27ec26a147d16b92cf836072d1c673b99c6c82675df559f0321c9",
+      "lf_normalized_sha256": "dd570156c29eb87e1b6ee7243f7ee784c94507b34e42335ad6ac4a4630d188b0"
+    },
+    {
+      "path": "tests/unit/test_stair_trajectory_report.py",
+      "bytes": 15087,
+      "sha256": "24978fd8a3000bd96b792a65fcf8c0fd2e8147d2c8cb6603e1289af29a56ef0f",
+      "lf_normalized_sha256": "24978fd8a3000bd96b792a65fcf8c0fd2e8147d2c8cb6603e1289af29a56ef0f"
+    },
+    {
+      "path": "PLAN/feedback_sys/P3R/confirmation_context.py",
+      "bytes": 15216,
+      "sha256": "b4e0501897c53f3d94bf785b4000e276e1e927b0e73a0c468d60da9f18985562",
+      "lf_normalized_sha256": "b4e0501897c53f3d94bf785b4000e276e1e927b0e73a0c468d60da9f18985562"
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P1c/capture_delivery.py",
+      "bytes": 12458,
+      "sha256": "895382ead74e4520758a20f38706b3c9666862de9636236a47612f4407c48bff",
+      "lf_normalized_sha256": "895382ead74e4520758a20f38706b3c9666862de9636236a47612f4407c48bff"
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P1c/audit_delivery.py",
+      "bytes": 9525,
+      "sha256": "abe53c1a8414d3a2816a98b79227fb99881fbe4483482bb69f1de7d24ef19dda",
+      "lf_normalized_sha256": "abe53c1a8414d3a2816a98b79227fb99881fbe4483482bb69f1de7d24ef19dda"
+    }
+  ],
+  "frozen_inputs": [
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P0/source_lock.json",
+      "bytes": 27337,
+      "sha256": "c3f0f643eaead24df15da92c5247375c1a32c8d383639186587a02131d7fb412"
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P0/necessary_facts.json",
+      "bytes": 115890,
+      "sha256": "ce3a6115793eb4e182f3bb5641f163dc9d7858e3f4682b9ee99806ab637d7c74"
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P0/e1_selection.json",
+      "bytes": 14600,
+      "sha256": "4f45e1f9138a322a4f369a6ea3a287dc50c7de74519b4af5dca8208edeb777fc"
+    }
+  ],
+  "executions": [
+    {
+      "name": "p1c_related",
+      "command": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.unit.test_stair_trajectory_report",
+        "tests.unit.test_stair_phased_evaluation",
+        "tests.unit.test_phase_postprocessing",
+        "tests.unit.test_task_prompt_adapter",
+        "tests.unit.test_prompt_capacity_projection",
+        "tests.unit.test_prompt_safety_boundaries",
+        "-v"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 17.318398299976252,
+      "log": "outputs\\trajectory_p1c\\final_checks\\p1c_related.log",
+      "bytes": 14917,
+      "sha256": "2a19d1afeae35dc1d8e264f519ffc9886cab29a2d4132ceeef8c83f17a7f428a",
+      "raw_tail": "k_semantics (tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_non_push_prompt_does_not_inherit_push_recovery_task_semantics) ... ok\r\ntest_public_history_preserves_nonsensitive_error_tokens (tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_public_history_preserves_nonsensitive_error_tokens) ... ok\r\ntest_public_history_redacts_forbidden_markers_embedded_in_text_values (tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_public_history_redacts_forbidden_markers_embedded_in_text_values) ... ok\r\ntest_public_key_policy_is_boundary_aware_and_task_neutral (tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_public_key_policy_is_boundary_aware_and_task_neutral) ... ok\r\ntest_public_prompt_rejects_and_scrubs_private_hidden_trusted_and_raw_seed_data (tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_public_prompt_rejects_and_scrubs_private_hidden_trusted_and_raw_seed_data) ... ok\r\ntest_public_prompt_rejects_forbidden_markers_embedded_in_text_values (tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_public_prompt_rejects_forbidden_markers_embedded_in_text_values) ... ok\r\ntest_runner_owned_surfaces_are_denied_not_candidate_writable (tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_runner_owned_surfaces_are_denied_not_candidate_writable) ... ok\r\ntest_shared_public_history_scrub_rules_are_task_agnostic (tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_shared_public_history_scrub_rules_are_task_agnostic) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 74 tests in 16.299s\r\n\r\nOK\r\n",
+      "test_count": 74,
+      "reported_seconds": 16.299
+    },
+    {
+      "name": "p1b_65",
+      "command": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.unit.test_trajectory_cohort",
+        "tests.unit.test_trajectory_card",
+        "tests.unit.test_trajectory_card_verification",
+        "tests.unit.test_project_boundaries",
+        "-v"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 16.77603559999261,
+      "log": "outputs\\trajectory_p1c\\final_checks\\p1b_65.log",
+      "bytes": 11463,
+      "sha256": "ec7c0c8565414a9e4aa70637c76bd948225f1f122240176e16ee6fefb79cd79c",
+      "raw_tail": "_progress_window_cannot_be_counted_as_negative (tests.unit.test_trajectory_card_verification.CardRawAuditTests.test_unknown_progress_window_cannot_be_counted_as_negative) ... ok\r\ntest_generic_packages_do_not_import_concrete_task_packages (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_import_concrete_task_packages) ... ok\r\ntest_generic_packages_do_not_own_push_audit_literals (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_own_push_audit_literals) ... ok\r\ntest_generic_packages_do_not_own_stair_semantics (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_own_stair_semantics) ... ok\r\ntest_orchestration_does_not_read_legacy_provider_context (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_orchestration_does_not_read_legacy_provider_context) ... ok\r\ntest_package_imports_from_local_src_without_parent_project_imports (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_package_imports_from_local_src_without_parent_project_imports) ... ok\r\ntest_project_metadata_declares_independent_package (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_project_metadata_declares_independent_package) ... ok\r\ntest_push_recovery_package_does_not_own_stair_semantics (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_push_recovery_package_does_not_own_stair_semantics) ... ok\r\ntest_runtime_tree_does_not_reference_parent_project (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_runtime_tree_does_not_reference_parent_project) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 65 tests in 16.260s\r\n\r\nOK\r\n",
+      "test_count": 65,
+      "reported_seconds": 16.26
+    },
+    {
+      "name": "p1a_107",
+      "command": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.unit.test_trajectory_temporal",
+        "tests.unit.test_trajectory_measurement",
+        "tests.unit.test_stair_trajectory_adapter",
+        "tests.unit.test_stair_trajectory_evidence_build",
+        "tests.unit.test_trajectory_evidence_verification",
+        "tests.unit.test_project_boundaries",
+        "-v"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 4.2781072000507265,
+      "log": "outputs\\trajectory_p1c\\final_checks\\p1a_107.log",
+      "bytes": 21282,
+      "sha256": "ca85f70ea815afefa8e1757ee5f7449b8d65d71445ab3ab4156279ce455f5d8d",
+      "raw_tail": "uccessful_stream_reader_preserves_selected_ids (tests.unit.test_trajectory_evidence_verification.InputIntegrityTests.test_successful_stream_reader_preserves_selected_ids) ... ok\r\ntest_generic_packages_do_not_import_concrete_task_packages (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_import_concrete_task_packages) ... ok\r\ntest_generic_packages_do_not_own_push_audit_literals (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_own_push_audit_literals) ... ok\r\ntest_generic_packages_do_not_own_stair_semantics (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_own_stair_semantics) ... ok\r\ntest_orchestration_does_not_read_legacy_provider_context (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_orchestration_does_not_read_legacy_provider_context) ... ok\r\ntest_package_imports_from_local_src_without_parent_project_imports (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_package_imports_from_local_src_without_parent_project_imports) ... ok\r\ntest_project_metadata_declares_independent_package (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_project_metadata_declares_independent_package) ... ok\r\ntest_push_recovery_package_does_not_own_stair_semantics (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_push_recovery_package_does_not_own_stair_semantics) ... ok\r\ntest_runtime_tree_does_not_reference_parent_project (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_runtime_tree_does_not_reference_parent_project) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 107 tests in 3.862s\r\n\r\nOK\r\n",
+      "test_count": 107,
+      "reported_seconds": 3.862
+    },
+    {
+      "name": "legacy_201",
+      "command": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.unit.test_stair_trajectory_input_inspection",
+        "tests.unit.test_numeric_evidence",
+        "tests.unit.test_process_report",
+        "tests.unit.test_stair_process_report",
+        "tests.unit.test_push_process_report",
+        "tests.unit.test_visual_observer",
+        "tests.unit.test_visual_review",
+        "tests.unit.test_native_snapshot_media",
+        "tests.unit.test_stair_behavior",
+        "tests.unit.test_push_behavior",
+        "tests.unit.test_feedback_evidence_boundary",
+        "tests.unit.test_task_visual_observation",
+        "tests.unit.test_stair_numeric_capture",
+        "tests.unit.test_push_numeric_capture",
+        "tests.unit.test_p3r_stair_projection",
+        "tests.unit.test_push_feedback_projection",
+        "tests.unit.test_stair_trajectory_reference_facts",
+        "-v"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 53.08998549997341,
+      "log": "outputs\\trajectory_p1c\\final_checks\\legacy_201.log",
+      "bytes": 39646,
+      "sha256": "3c0d9144f591c9c0f2634733704c87fc78fdf7409626bdbae7cc7ecd24c94a72",
+      "raw_tail": "iscriminate_xyz (tests.unit.test_stair_trajectory_reference_facts.LockedRawReferenceTests.test_real_r4_e60_fl_planar_run_and_step626_discriminate_xyz) ... ok\r\ntest_all_16_combinations_round_trip_with_low_role_index_bit (tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_all_16_combinations_round_trip_with_low_role_index_bit) ... ok\r\ntest_complete_left_and_right_censored_runs_keep_one_sample_event (tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_complete_left_and_right_censored_runs_keep_one_sample_event) ... ok\r\ntest_legacy_e54_specific_counterexample_uses_xy_too (tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_legacy_e54_specific_counterexample_uses_xy_too) ... ok\r\ntest_normalized_quaternion_controls_sign_and_body_frame_raw_is_diagnostic (tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_normalized_quaternion_controls_sign_and_body_frame_raw_is_diagnostic) ... ok\r\ntest_planar_speed_and_strict_force_and_speed_boundaries (tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_planar_speed_and_strict_force_and_speed_boundaries) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 201 tests in 50.885s\r\n\r\nOK\r\n{\"status\": \"pass\", \"output\": \"C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpbmsqb53c\\\\audit.json\", \"declaration\": \"every_control_step_of_each_scored_first_episode_including_pre_reset_terminal\", \"padding\": \"valid=false; zero-filled numeric values are not observations\", \"episode_count\": 288, \"valid_rows\": 861, \"padding_rows\": 3, \"post_outcome_observations\": \"not_collected\", \"reset_time_sample\": \"not_collected\"}\r\n",
+      "test_count": 201,
+      "reported_seconds": 50.885
+    },
+    {
+      "name": "frozen",
+      "command": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/verify_stair_trajectory_evidence.py",
+        "--input",
+        "outputs/trajectory_p1a/repair_t1_t2/r4",
+        "--input",
+        "outputs/trajectory_p1a/repair_t1_t2/legacy_dev",
+        "--output",
+        "outputs\\trajectory_p1c\\final_checks\\frozen_verification.json"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 13.054946599993855,
+      "log": "outputs\\trajectory_p1c\\final_checks\\frozen.log",
+      "bytes": 276,
+      "sha256": "8c9e9d9c1a396aea44be3c7ae5c217ab3dd3485a664d8881dfc3beb59764ada5",
+      "raw_tail": "{\r\n  \"passed\": true,\r\n  \"necessary\": {\r\n    \"counts\": {\r\n      \"pass\": 247\r\n    },\r\n    \"fact_count\": 247,\r\n    \"compared_scalar_fields\": 4168\r\n  },\r\n  \"full\": {\r\n    \"counts\": {\r\n      \"pass\": 309\r\n    },\r\n    \"fact_count\": 309,\r\n    \"compared_scalar_fields\": 45157\r\n  }\r\n}\r\n",
+      "test_count": null,
+      "reported_seconds": null
+    },
+    {
+      "name": "raw_audit",
+      "command": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/verify_policy_behavior_card.py",
+        "--input",
+        "outputs/trajectory_p1b/repair_b1/final_card",
+        "--output",
+        "outputs\\trajectory_p1c\\final_checks\\raw_audit.json"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 19.10907020000741,
+      "log": "outputs\\trajectory_p1c\\final_checks\\raw_audit.log",
+      "bytes": 237,
+      "sha256": "0b3936ead99c50049f1ea8fef1c1b9465677461902fa7ed2d6735180b81a0a96",
+      "raw_tail": "{\r\n  \"passed\": true,\r\n  \"raw_episodes\": 866,\r\n  \"metric_checks\": 69280,\r\n  \"aggregate_metric_checks\": 8400,\r\n  \"references_checked\": 32042,\r\n  \"claim_count\": 801,\r\n  \"necessary_fact_count\": 247,\r\n  \"wall_seconds\": 18.854411100037396\r\n}\r\n",
+      "test_count": null,
+      "reported_seconds": null
+    }
+  ],
+  "total_test_executions": 447,
+  "unique_test_ids": 439,
+  "capture_command": ".\\.venv\\Scripts\\python.exe -B PLAN/feedback_sys/NEW_SYS/P1c/capture_delivery.py --output outputs/trajectory_p1c/final_capture",
+  "capture_exit_code": 0,
+  "delivery_audit_command": ".\\.venv\\Scripts\\python.exe -B PLAN/feedback_sys/NEW_SYS/P1c/audit_delivery.py --capture outputs/trajectory_p1c/final_capture --raw-audit outputs/trajectory_p1c/final_checks/raw_audit.json --frozen outputs/trajectory_p1c/final_checks/frozen_verification.json",
+  "delivery_audit_exit_code": 0,
+  "capture_summary": {
+    "status": "PASS_LOCAL_PRODUCTION_SERIALIZATION_CAPTURE",
+    "card_id": "card:d83ddf0b8ee28e8d00705de81029930474b47ba230532596d50aabd2e9b0d9a2",
+    "schema_version": "true_rl_agent.stair.behavior.public.v5",
+    "domain": {
+      "evaluation_job_id": "stair-dev-replay-7b582643510cc9dd-diagnostic-eval-diagnostic-public-dev",
+      "evaluation_plan_hash": "c10b9bbcd5191909f9ec925e042bd7cb33e5516b0e1d5ff1cb415968f4e89f19",
+      "checkpoint_hash": "sha256:7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c",
+      "task_id": "unitree_stair_climbing",
+      "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+      "evaluation_binding_hash": "1db7a52e1cec0769caf34926267b41981c8aa066341ca26354962ee758b5905b",
+      "seed_namespace": "public_dev_diagnostic_n5_r4_20261001",
+      "archive_hash": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+      "projection_hash": "ea9d42a4012815a8f5ebf6b35b93303111477817feb5a1391fa807efc6167a14",
+      "catalog_version": "trajectory.p0.measurements.v2",
+      "acceptance_split": "public_dev"
+    },
+    "included_claim_count": 18,
+    "omitted_claim_count": 783,
+    "frames": [
+      {
+        "frame": "draft",
+        "http_body": {
+          "path": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1c\\final_capture\\draft\\request.http_body.json",
+          "sha256": "6363af2a473d023c8076043e87f096d18eb76db15567cea1fc5f47fd8c33e8b0",
+          "size_bytes": 71512
+        },
+        "user_payload": {
+          "path": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1c\\final_capture\\draft\\user_payload.json",
+          "sha256": "c052242823e226498527ef8ecab884f76d8a619f360c414d1c9c0cbb26efb5cb",
+          "size_bytes": 65792
+        },
+        "budget": {
+          "section_serialized_bytes": {
+            "schema_version": 33,
+            "task": 2984,
+            "loop_contract": 2030,
+            "candidate_capabilities": 790,
+            "reward_inputs_contract": 13114,
+            "public_eval_contract": 4595,
+            "control_effectiveness_contract": 228,
+            "known_good_examples": 2,
+            "selection_guidance": 2120,
+            "source_catalog": 3692,
+            "candidate_lineage": 2103,
+            "source_payloads": 3041,
+            "public_feedback_summary": 18585,
+            "runtime_feedback_summary": 132,
+            "public_history": 1591,
+            "exploration_directive": 423,
+            "required_candidate_package": 6520
+          },
+          "estimated_prompt_bytes": 61983,
+          "estimated_prompt_context_units": 15496,
+          "hard_limits": {
+            "max_prompt_payload_bytes": 262144,
+            "max_section_bytes": 98304,
+            "max_source_inline_payload_bytes": 24576,
+            "max_source_request_bytes_per_round": 49152
+          },
+          "legacy_alias_section_bytes": {},
+          "provider_task_sections": {
+            "schema_version": "true_rl_agent.prompt.provider_task_sections_receipt.v2",
+            "serializer": "canonical_prompt_json.compact.v1",
+            "section_keys": [
+              "task",
+              "reward_inputs_contract",
+              "public_eval_contract",
+              "public_feedback_summary",
+              "runtime_feedback_summary",
+              "known_good_examples",
+              "selection_guidance"
+            ],
+            "content_hash": "9540ef9f2faf3ce30a2caffc72f9fa29d608e6b579f6c00c4738409365f584db",
+            "serialized_bytes": 41691,
+            "max_serialized_bytes": 57344,
+            "headroom_bytes": 15653
+          },
+          "actual_prompt_payload_bytes": 65792,
+          "actual_prompt_payload_context_units": 16448
+        },
+        "report_bytes": 8094,
+        "report_limit_bytes": 8192
+      },
+      {
+        "frame": "source_followup",
+        "http_body": {
+          "path": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1c\\final_capture\\source_followup\\request.http_body.json",
+          "sha256": "81ab8af8b304f6c6c5b911a4e9451502137437f83a2f45bbe94f438ce92f9d31",
+          "size_bytes": 72873
+        },
+        "user_payload": {
+          "path": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1c\\final_capture\\source_followup\\user_payload.json",
+          "sha256": "9e708f6ddbae42628dae5d4f83c1bd4bb2d80ee62f3d8c532587b11be614092a",
+          "size_bytes": 67069
+        },
+        "budget": {
+          "section_serialized_bytes": {
+            "schema_version": 33,
+            "task": 2984,
+            "loop_contract": 2030,
+            "candidate_capabilities": 790,
+            "reward_inputs_contract": 13114,
+            "public_eval_contract": 4595,
+            "control_effectiveness_contract": 228,
+            "known_good_examples": 2,
+            "selection_guidance": 2120,
+            "source_catalog": 3692,
+            "candidate_lineage": 2103,
+            "source_payloads": 3041,
+            "public_feedback_summary": 18585,
+            "runtime_feedback_summary": 132,
+            "public_history": 1591,
+            "exploration_directive": 423,
+            "required_candidate_package": 6520,
+            "provider_or_runtime_repair_feedback": 1023
+          },
+          "estimated_prompt_bytes": 63006,
+          "estimated_prompt_context_units": 15752,
+          "hard_limits": {
+            "max_prompt_payload_bytes": 262144,
+            "max_section_bytes": 98304,
+            "max_source_inline_payload_bytes": 24576,
+            "max_source_request_bytes_per_round": 49152
+          },
+          "legacy_alias_section_bytes": {},
+          "provider_task_sections": {
+            "schema_version": "true_rl_agent.prompt.provider_task_sections_receipt.v2",
+            "serializer": "canonical_prompt_json.compact.v1",
+            "section_keys": [
+              "task",
+              "reward_inputs_contract",
+              "public_eval_contract",
+              "public_feedback_summary",
+              "runtime_feedback_summary",
+              "known_good_examples",
+              "selection_guidance"
+            ],
+            "content_hash": "9540ef9f2faf3ce30a2caffc72f9fa29d608e6b579f6c00c4738409365f584db",
+            "serialized_bytes": 41691,
+            "max_serialized_bytes": 57344,
+            "headroom_bytes": 15653
+          },
+          "actual_prompt_payload_bytes": 67069,
+          "actual_prompt_payload_context_units": 16768
+        },
+        "report_bytes": 8094,
+        "report_limit_bytes": 8192
+      },
+      {
+        "frame": "static_repair",
+        "http_body": {
+          "path": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1c\\final_capture\\static_repair\\request.http_body.json",
+          "sha256": "af63d5b6284f8de5d9bbb6a7257876ff945f3fe6372ec0b6ef5a8e91244049b2",
+          "size_bytes": 71911
+        },
+        "user_payload": {
+          "path": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1c\\final_capture\\static_repair\\user_payload.json",
+          "sha256": "b0827c96bd1eb8d1c2ec77163f8fb25bbcac57f7bc83b855c36f56d560b6353e",
+          "size_bytes": 66107
+        },
+        "budget": {
+          "section_serialized_bytes": {
+            "schema_version": 33,
+            "task": 2984,
+            "loop_contract": 2030,
+            "candidate_capabilities": 790,
+            "reward_inputs_contract": 13114,
+            "public_eval_contract": 4595,
+            "control_effectiveness_contract": 228,
+            "selection_guidance": 2120,
+            "source_catalog": 3948,
+            "candidate_lineage": 2093,
+            "source_payloads": 3197,
+            "public_feedback_summary": 18585,
+            "exploration_directive": 423,
+            "required_candidate_package": 6520,
+            "provider_or_runtime_repair_feedback": 947
+          },
+          "estimated_prompt_bytes": 61607,
+          "estimated_prompt_context_units": 15402,
+          "hard_limits": {
+            "max_prompt_payload_bytes": 262144,
+            "max_section_bytes": 98304,
+            "max_source_inline_payload_bytes": 24576,
+            "max_source_request_bytes_per_round": 49152
+          },
+          "legacy_alias_section_bytes": {},
+          "provider_task_sections": {
+            "schema_version": "true_rl_agent.prompt.provider_task_sections_receipt.v2",
+            "serializer": "canonical_prompt_json.compact.v1",
+            "section_keys": [
+              "task",
+              "reward_inputs_contract",
+              "public_eval_contract",
+              "public_feedback_summary",
+              "selection_guidance"
+            ],
+            "content_hash": "45046ec656fef58c794ab63b8f0cd3595a474767cdac3239fad88ec7580806b7",
+            "serialized_bytes": 41506,
+            "max_serialized_bytes": 57344,
+            "headroom_bytes": 15838
+          },
+          "actual_prompt_payload_bytes": 66107,
+          "actual_prompt_payload_context_units": 16527
+        },
+        "report_bytes": 8094,
+        "report_limit_bytes": 8192
+      },
+      {
+        "frame": "reasoning_exhaustion_repair",
+        "http_body": {
+          "path": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1c\\final_capture\\reasoning_exhaustion_repair\\request.http_body.json",
+          "sha256": "a31980c50b7882ebf8f48323758859b57a7402e54a152dfd371af24742bf6caa",
+          "size_bytes": 73132
+        },
+        "user_payload": {
+          "path": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1c\\final_capture\\reasoning_exhaustion_repair\\user_payload.json",
+          "sha256": "5c62b4e9010e519df2cda6dae443f6548ad1f34927c6fc23aacf1a66546ad384",
+          "size_bytes": 67338
+        },
+        "budget": {
+          "section_serialized_bytes": {
+            "schema_version": 33,
+            "task": 2984,
+            "loop_contract": 2030,
+            "candidate_capabilities": 790,
+            "reward_inputs_contract": 13114,
+            "public_eval_contract": 4595,
+            "control_effectiveness_contract": 228,
+            "known_good_examples": 2,
+            "selection_guidance": 2120,
+            "source_catalog": 3692,
+            "candidate_lineage": 2103,
+            "source_payloads": 3041,
+            "public_feedback_summary": 18585,
+            "runtime_feedback_summary": 132,
+            "public_history": 1591,
+            "exploration_directive": 423,
+            "required_candidate_package": 6520,
+            "provider_or_runtime_repair_feedback": 1217
+          },
+          "estimated_prompt_bytes": 63200,
+          "estimated_prompt_context_units": 15800,
+          "hard_limits": {
+            "max_prompt_payload_bytes": 262144,
+            "max_section_bytes": 98304,
+            "max_source_inline_payload_bytes": 24576,
+            "max_source_request_bytes_per_round": 49152
+          },
+          "legacy_alias_section_bytes": {},
+          "provider_task_sections": {
+            "schema_version": "true_rl_agent.prompt.provider_task_sections_receipt.v2",
+            "serializer": "canonical_prompt_json.compact.v1",
+            "section_keys": [
+              "task",
+              "reward_inputs_contract",
+              "public_eval_contract",
+              "public_feedback_summary",
+              "runtime_feedback_summary",
+              "known_good_examples",
+              "selection_guidance"
+            ],
+            "content_hash": "9540ef9f2faf3ce30a2caffc72f9fa29d608e6b579f6c00c4738409365f584db",
+            "serialized_bytes": 41691,
+            "max_serialized_bytes": 57344,
+            "headroom_bytes": 15653
+          },
+          "actual_prompt_payload_bytes": 67338,
+          "actual_prompt_payload_context_units": 16835
+        },
+        "report_bytes": 8094,
+        "report_limit_bytes": 8192
+      }
+    ],
+    "cpu_finalizer_cost": {
+      "splits": {
+        "public_dev": {
+          "postprocessing_wall_time_s": 8.504718799958937,
+          "postprocessing_cpu_time_s": 8.453125
+        }
+      }
+    },
+    "request_capture_boundary": "production UrllibJsonTransport creates Request.data; local opener raises before network",
+    "model_name_field": "offline-request-capture (request configuration only; no model executed)",
+    "network_calls": 0,
+    "model_calls": 0,
+    "training_runs": 0,
+    "provider_usage": null,
+    "author_understanding": "not_tested; subsequent P3 boundary",
+    "online_default": "legacy process report; trajectory card is explicit opt-in via existing finalizer injection",
+    "qualification_unchanged": true,
+    "original_phase_unchanged": true,
+    "limits": [
+      "CPU replay finalizer invocation, not a new runner/GPU execution",
+      "R4 diagnostic observation is not a generation lane",
+      "Source-followup is a local allowlisted source request; repair frames use explicitly synthetic errors and no model response",
+      "Author code/source-catalog relationship is not established by the trajectory card",
+      "No DeepSeek or other live model validation"
+    ]
+  },
+  "delivery_audit_result": {
+    "status": "PASS",
+    "frames": [
+      {
+        "frame": "draft",
+        "report_exact": true,
+        "bytes_and_hashes_exact": true
+      },
+      {
+        "frame": "source_followup",
+        "report_exact": true,
+        "bytes_and_hashes_exact": true
+      },
+      {
+        "frame": "static_repair",
+        "report_exact": true,
+        "bytes_and_hashes_exact": true
+      },
+      {
+        "frame": "reasoning_exhaustion_repair",
+        "report_exact": true,
+        "bytes_and_hashes_exact": true
+      }
+    ],
+    "included_claims": 18,
+    "omitted_claims": 783,
+    "report_bytes": 8094,
+    "e1_cases": 18,
+    "negative_cases_rejected": 15,
+    "author_has_all_309_facts": false,
+    "source_card_bytes": 1233288
+  },
+  "artifacts": [
+    {
+      "path": "outputs/trajectory_p1c/final_capture/behavior_full.json",
+      "bytes": 16828932,
+      "sha256": "aa76fd68010ca4edc99ed3e7433fb9f4829b8b44be07d666b16c8e55cb686be8"
+    },
+    {
+      "path": "outputs/trajectory_p1c/final_capture/capture_receipt.json",
+      "bytes": 18316,
+      "sha256": "77472e5b9a48cff962a019ebf42919f1a37d6e4e75b89c58fa4c63a0bf9d3137"
+    },
+    {
+      "path": "outputs/trajectory_p1c/final_capture/claim_to_evidence.json",
+      "bytes": 1836270,
+      "sha256": "18895a426790805fc46c6887078902cf7ee2494ae20988d75af2f91aaf6f2a02"
+    },
+    {
+      "path": "outputs/trajectory_p1c/final_capture/delivery_audit_result.json",
+      "bytes": 715,
+      "sha256": "71d665987ed7e2976d3bd0071cfd28f7207b7c95f55889256b0b54213e28c9fb"
+    },
+    {
+      "path": "outputs/trajectory_p1c/final_capture/draft/request.http_body.json",
+      "bytes": 71512,
+      "sha256": "6363af2a473d023c8076043e87f096d18eb76db15567cea1fc5f47fd8c33e8b0"
+    },
+    {
+      "path": "outputs/trajectory_p1c/final_capture/draft/user_payload.json",
+      "bytes": 65792,
+      "sha256": "c052242823e226498527ef8ecab884f76d8a619f360c414d1c9c0cbb26efb5cb"
+    },
+    {
+      "path": "outputs/trajectory_p1c/final_capture/e1_delivery_coverage.json",
+      "bytes": 691072,
+      "sha256": "c03cbe1f419e2a3ac66dc3eb168ef05363330cd8983a76bc2d7b5c6563558cb6"
+    },
+    {
+      "path": "outputs/trajectory_p1c/final_capture/negative_cases.json",
+      "bytes": 2203,
+      "sha256": "077c35a9fdddbcd519cd1640391a6fea62ce990db262bfdca6496f8d270815a6"
+    },
+    {
+      "path": "outputs/trajectory_p1c/final_capture/projection_audit.json",
+      "bytes": 17367883,
+      "sha256": "773bb305ebb3eb803858c7068a140a7d2a2c042e2f7bb7a010fb54159cc1c6ef"
+    },
+    {
+      "path": "outputs/trajectory_p1c/final_capture/public_dev_result.json",
+      "bytes": 408095,
+      "sha256": "e128c97eebd67d3ef5e81ad6b0827ec6503a9143afec022a7fadcbdbef60fe3e"
+    },
+    {
+      "path": "outputs/trajectory_p1c/final_capture/public_report.json",
+      "bytes": 9054,
+      "sha256": "121f42a61fa96c22a15e386965d40cc02bbd4232129ec8f7d6bb92b21e330dc6"
+    },
+    {
+      "path": "outputs/trajectory_p1c/final_capture/reasoning_exhaustion_repair/request.http_body.json",
+      "bytes": 73132,
+      "sha256": "a31980c50b7882ebf8f48323758859b57a7402e54a152dfd371af24742bf6caa"
+    },
+    {
+      "path": "outputs/trajectory_p1c/final_capture/reasoning_exhaustion_repair/user_payload.json",
+      "bytes": 67338,
+      "sha256": "5c62b4e9010e519df2cda6dae443f6548ad1f34927c6fc23aacf1a66546ad384"
+    },
+    {
+      "path": "outputs/trajectory_p1c/final_capture/sentence_delivery.json",
+      "bytes": 147623,
+      "sha256": "f03cb04158d7152bc5f80a088b66d9cbae7c4f7bc6f85da3cff3ed46318ebfe5"
+    },
+    {
+      "path": "outputs/trajectory_p1c/final_capture/source_followup/request.http_body.json",
+      "bytes": 72873,
+      "sha256": "81ab8af8b304f6c6c5b911a4e9451502137437f83a2f45bbe94f438ce92f9d31"
+    },
+    {
+      "path": "outputs/trajectory_p1c/final_capture/source_followup/user_payload.json",
+      "bytes": 67069,
+      "sha256": "9e708f6ddbae42628dae5d4f83c1bd4bb2d80ee62f3d8c532587b11be614092a"
+    },
+    {
+      "path": "outputs/trajectory_p1c/final_capture/static_repair/request.http_body.json",
+      "bytes": 71911,
+      "sha256": "af63d5b6284f8de5d9bbb6a7257876ff945f3fe6372ec0b6ef5a8e91244049b2"
+    },
+    {
+      "path": "outputs/trajectory_p1c/final_capture/static_repair/user_payload.json",
+      "bytes": 66107,
+      "sha256": "b0827c96bd1eb8d1c2ec77163f8fb25bbcac57f7bc83b855c36f56d560b6353e"
+    },
+    {
+      "path": "outputs/trajectory_p1c/final_capture.log",
+      "bytes": 582,
+      "sha256": "ed23f0a3917bb9a4086745d2953b0475e2de177400b9a802a732c0c55b3be700"
+    },
+    {
+      "path": "outputs/trajectory_p1c/final_delivery_audit.log",
+      "bytes": 715,
+      "sha256": "71d665987ed7e2976d3bd0071cfd28f7207b7c95f55889256b0b54213e28c9fb"
+    },
+    {
+      "path": "outputs/trajectory_p1c/final_checks/raw_audit.json",
+      "bytes": 1339049,
+      "sha256": "d179f5265aeabb58dab519448219851e6bc94c7257cf2fc509844aa99fed17f8"
+    },
+    {
+      "path": "outputs/trajectory_p1c/final_checks/frozen_verification.json",
+      "bytes": 4703192,
+      "sha256": "9545fa72e6fc784b02f14fc5182e6f768f4d69abaa8c8bb3f547aa2d11551b1e"
+    }
+  ],
+  "e1_layers": {
+    "case_count": 18,
+    "episode_necessary_facts": 246,
+    "episode_full_facts": 308,
+    "additional_cohort_facts": 1,
+    "necessary_gate_pass": 247,
+    "full_gate_pass": 309,
+    "case_direct_author_claims": 0,
+    "cohort_fact_author_related_claims": 3,
+    "author_contains_all_facts": false,
+    "complete_audit_claims": 801,
+    "automatic_author_retrieval": false
+  },
+  "independent_review": {
+    "agent": "p1c_readonly_chain",
+    "model": "gpt-6-astra",
+    "reasoning_effort": "ultra",
+    "access": "read-only, no delegated file writes",
+    "developer_findings_fixed": [
+      "reference result hash and explicit phase binding before scrub",
+      "full original operands/required selection/included-omitted rederivation",
+      "phase seed_namespace identity",
+      "nonnegative integer count and digest shape",
+      "full domain/card snapshot and original primary source binding"
+    ],
+    "reported_final_checks": "four HTTP frames and hashes/receipts; full canonical replay; real source-domain re-sign attacks; final test log bytes/hashes; E1 per-case versus cohort accounting",
+    "not_parent_acceptance": true
+  },
+  "development_failures_retained": [
+    "tests_development_1.log: sealed substring case and imported fixture test count",
+    "tests_development_3.log: full canonical ordering affected P1b operand text",
+    "capture_dev1.log: followup required feedback missing after successful draft",
+    "capture_dev2.log: blanket sealed substring rejected existing public seed-count contract"
+  ],
+  "source_hash_note": "sha256 is executed working-tree bytes; lf_normalized_sha256 permits git text normalization comparison, without changing code semantics",
+  "git_delivery": {
+    "destination": "origin/codex/trajectory-translator-upgrade",
+    "force": false,
+    "main_changed": false,
+    "raw_outputs_tracked": false,
+    "commit_and_remote_head": "reported by final git log/ls-remote after committing; not self-referential here"
+  },
+  "not_verified": [
+    "author model comprehension or new model output",
+    "DeepSeek feasibility",
+    "new runner/GPU evaluation",
+    "online default trajectory activation",
+    "Push new-card delivery",
+    "P2/P3 experiments",
+    "cross-policy generalization or reward benefit",
+    "cycle/limit/terrain qualification and historical link-COM mapping"
+  ],
+  "broad_suite": "Existing 1 failure / 8 errors / 19 skips not repaired or rerun, not an all-repository pass"
+}

@@ -156,7 +156,9 @@ def pair_onsets(episode: NumericEpisode, left: PredicateTrack,
     """Every left onset takes nearest right onset, ties earlier; never across gaps.
 
     The pairing is directional, permits reuse, and has no invented latency cutoff.
-    Unpaired reference events are retained explicitly.
+    Every search cites its complete joint-valid island, adjacent boundary rows,
+    and operand lookback. Unpaired references retain the same negative-search
+    evidence; absent joint coverage is established at the reference edge itself.
     """
     if (left.episode_id != episode.episode_id or right.episode_id != episode.episode_id
             or len(left.values) != len(right.values) or len(left.values) != len(episode.steps)):
@@ -165,6 +167,7 @@ def pair_onsets(episode: NumericEpisode, left: PredicateTrack,
         return np.flatnonzero((track.values[:-1] == 0) & (track.values[1:] == 1) & episode.adjacent) + 1
     lhs, rhs = onsets(left), onsets(right)
     islands = contiguous_slices(episode.steps, (left.values >= 0) & (right.values >= 0))
+    lookback = int(max(left.config.get("lookback_samples", 0), right.config.get("lookback_samples", 0)))
     pairs = []
     for i in lhs:
         island = next(((a, b) for a, b in islands if a < i < b), None)
@@ -172,16 +175,28 @@ def pair_onsets(episode: NumericEpisode, left: PredicateTrack,
         j = min(candidates, key=lambda j: (abs(int(episode.steps[j]) - int(episode.steps[i])), j)) if candidates else None
         lr = episode.times[i - 1:i + 1].tolist()
         rr = episode.times[j - 1:j + 1].tolist() if j is not None else None
+        if island is None:
+            # One of the two reference-edge rows lacks joint coverage. Those
+            # operands prove that no candidate search can be made for this edge.
+            start, stop = int(i) - 1, int(i) + 1
+            search_island = None
+        else:
+            a, b = island
+            start, stop = a - 1, min(len(episode.steps), b + 1)
+            search_island = {"index_half_open": [a, b],
+                             "steps_half_open": [int(episode.steps[a]), int(episode.steps[b - 1]) + 1]}
         pairs.append(episode.record(left.key + ".nearest_onset." + right.key, "temporal_relation",
             (*left.entity_ids, *right.entity_ids), tuple(dict.fromkeys((*left.channels, *right.channels))),
             {"relation": "nearest_readout_onset", "reference_step": int(episode.steps[i]),
              "target_step": int(episode.steps[j]) if j is not None else None,
              "status": "paired" if j is not None else "unpaired_no_target_in_joint_coverage",
+             "search_island": search_island, "candidate_count": len(candidates),
              "delta_confirmation_s": float(episode.times[j] - episode.times[i]) if j is not None else None,
              "delta_range_s": [rr[0] - lr[1], rr[1] - lr[0]] if rr is not None else None,
              "before": before_ranges(lr, rr), "physical_order": "unknown"},
             unit="s", frame="recorder_readout", config={"pairing": "nearest_target_tie_earlier_reuse_allowed",
+                "operator_version": "nearest_readout_onset.v2",
+                "search_coverage": "complete_joint_valid_island_plus_boundaries_and_operand_lookback",
                 "left": left.config, "right": right.config},
-            start=min(int(i), j if j is not None else int(i)) - 1,
-            stop=max(int(i), j if j is not None else int(i)) + 1))
+            start=max(0, start - lookback), stop=stop))
     return pairs

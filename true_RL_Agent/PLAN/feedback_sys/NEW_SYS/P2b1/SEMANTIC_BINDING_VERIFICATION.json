@@ -1,0 +1,1049 @@
+{
+  "schema_version": "push.p2b1.semantic_fix_verification.v1",
+  "status": "DEVELOPER_FIX_PASS_PENDING_PARENT_REACCEPTANCE",
+  "base_commit": "3801a20c1502af013b700e95b5862e3b657353d9",
+  "code_commit": "25d68a69d8e733a2549af7caeac5863c543d0b42",
+  "code_tree": "212b86c7650364519a99c0af85ca27ce1df334e4",
+  "freeze_sha256": "ec8158315d79fba1ff2f9122016de5f1eb5af5f7a0de96cc6f09dc5cda8ff5e8",
+  "superseded_freeze_sha256": "c9e8301c6e6e72575d42f9c0267aca9c4582ceaf12b8c0afed1ae42750c75e78",
+  "preimplementation_rule_sha256": "f65251e91b493dc13d3c00e9dad06813363ceeecf10dea78e6b669b88c92e9a5",
+  "parent_failure_evidence": [
+    {
+      "path": "C:\\Users\\lover\\AppData\\Local\\Temp\\p2b1_root_acceptance_20261003\\ROOT_ACCEPTANCE_ZH.txt",
+      "sha256": "332e4d7c54de67f17b8d45b104e9075e226b380b906c9184aec864afa7cb4e5c"
+    },
+    {
+      "path": "C:\\Users\\lover\\AppData\\Local\\Temp\\p2b1_root_acceptance_20261003\\semantic_swaps.py",
+      "sha256": "cb2e09f99c02a8df2e00d2c7996d645e6fcfc0ff6adceaafbe90ea11ee986c05"
+    },
+    {
+      "path": "C:\\Users\\lover\\AppData\\Local\\Temp\\p2b1_root_acceptance_20261003\\semantic_swaps.json",
+      "sha256": "74fba51f1132e0298f895796239620ba9bc54653686e659638013b31dee7c3b6"
+    }
+  ],
+  "semantic_counterexamples": [
+    {
+      "accepted": false,
+      "case": "swap_height_m_and_speed_mps_operands",
+      "error": "Push card cohorts semantic operands differ from raw episodes",
+      "exception_type": "ValueError",
+      "real_raw_context": true,
+      "rerendered_text": "全程根部平面速度模：先逐回合取有效记录均值，再回合等权平均为0.380818m/s；回合均值中位数0.38335m/s，有效192/192回合，未知0回合；有效/未知记录46942/0。",
+      "resigned": true
+    },
+    {
+      "accepted": false,
+      "case": "unit",
+      "error": "Push card examples semantic operands differ from raw episodes",
+      "exception_type": "ValueError",
+      "real_raw_context": true,
+      "rerendered_text": "r1.e46扰动0：记录世界向量[-1.97824,-0.102878]m/s，验证=True；pre[27,51]速度模均值0.0203893m/s（有效25/25格，未知0）；during=瞬时写入无持续控制格；post[52,132]速度模均值0.293431m/s（有效81/81格，未知0）；post根部速度在记录扰动世界XY方向的投影均值0.247262m/s（world_xy_projection，有效81、未知0格），不归因为足部补偿。",
+      "resigned": true
+    },
+    {
+      "accepted": false,
+      "case": "pre_post",
+      "error": "Push card examples semantic operands differ from raw episodes",
+      "exception_type": "ValueError",
+      "real_raw_context": true,
+      "rerendered_text": "r1.e46扰动0：记录世界向量[-1.97824,-0.102878]m/s，验证=True；pre[52,132]速度模均值0.293431m/s（有效81/81格，未知0）；during=瞬时写入无持续控制格；post[27,51]速度模均值0.0203893m/s（有效25/25格，未知0）；post根部速度在记录扰动世界XY方向的投影均值0.247262m/s（world_xy_projection，有效81、未知0格），不归因为足部补偿。",
+      "resigned": true
+    },
+    {
+      "accepted": false,
+      "case": "direction_source",
+      "error": "Push card examples semantic operands differ from raw episodes",
+      "exception_type": "ValueError",
+      "real_raw_context": true,
+      "rerendered_text": "r1.e46扰动0：记录世界向量[-1.97824,-0.102878]m/s，验证=True；pre[27,51]速度模均值0.0203893m/s（有效25/25格，未知0）；during=瞬时写入无持续控制格；post[52,132]速度模均值0.293431m/s（有效81/81格，未知0）；post根部速度在记录扰动世界XY方向的投影均值0.247262m/s（world_xy_projection，有效81、未知0格），不归因为足部补偿。",
+      "resigned": true
+    },
+    {
+      "accepted": false,
+      "case": "velocity_card_bound_to_force_protocol",
+      "error": "Push card domain semantic operands differ from raw episodes",
+      "exception_type": "ValueError",
+      "real_raw_context": true,
+      "rerendered_text": "本卡仅描述同一权重、world_planar_velocity_increment协议的192个公开历史回合，来自3份档案；任务成功191、失败1、结果未知0回合。",
+      "resigned": true
+    },
+    {
+      "accepted": false,
+      "case": "swap_record_measurements_reid_then_build_card",
+      "error": "Push measurement operands differ from raw episode episode:4e9455d127e9da8e91e6597ccad9c092d63c779a16798470045259a4c6cee929",
+      "exception_type": "ValueError",
+      "real_raw_context": true,
+      "resigned": true
+    }
+  ],
+  "originals": [
+    {
+      "accepted": true,
+      "card_id": "push-card:47e43d238963be7ccd51fa15adb621abc10c651ee78442bb31ba328a66ee13e5",
+      "claims": 37,
+      "episodes": 192,
+      "group": "k4_force_v1",
+      "public_bytes": 12265
+    },
+    {
+      "accepted": true,
+      "card_id": "push-card:3b4895ac26b529b0a0fae5f71e04c91f2d433643197e7df9e02925635e7a619a",
+      "claims": 32,
+      "episodes": 192,
+      "group": "k4_velocity_v2",
+      "public_bytes": 11447
+    }
+  ],
+  "raw_files_unchanged": [
+    {
+      "bytes": 90565,
+      "path": "outputs\\p2b\\raw\\k4_force_v1\\public_dev-01\\manifest.json",
+      "sha256": "df5c5df7c34b464d337d030ac3bdcc29652c5dbc3bc54e14d42b5cfb762a5acb"
+    },
+    {
+      "bytes": 191645,
+      "path": "outputs\\p2b\\raw\\k4_force_v1\\public_dev-01\\chunk_000000.npz",
+      "sha256": "317db43517a4d1f738d6898ea8d0712255b6d44efe01f36a7786b3deee5b27ce"
+    },
+    {
+      "bytes": 187642,
+      "path": "outputs\\p2b\\raw\\k4_force_v1\\public_dev-01\\chunk_000001.npz",
+      "sha256": "e393bd3217223bc191aed8a37b44992676f078079da6ec3ff6b899dd7ab73c12"
+    },
+    {
+      "bytes": 68031,
+      "path": "outputs\\p2b\\raw\\k4_force_v1\\public_dev-01\\chunk_000002.npz",
+      "sha256": "3aa98d2052bc20c9cad3278a3fbde641bd55687b70218d48792aad0806b8288d"
+    },
+    {
+      "bytes": 90218,
+      "path": "outputs\\p2b\\raw\\k4_force_v1\\public_dev-02\\manifest.json",
+      "sha256": "d046a312e7513c05cb10250b7ca7f3c7aa0f949c65b758c1f3d261ac3e6d738e"
+    },
+    {
+      "bytes": 191578,
+      "path": "outputs\\p2b\\raw\\k4_force_v1\\public_dev-02\\chunk_000000.npz",
+      "sha256": "25970c57ee4ff7ccb3a685e1d389b4dfc37a477a4fe58b9372c8ca308d6c8da4"
+    },
+    {
+      "bytes": 187278,
+      "path": "outputs\\p2b\\raw\\k4_force_v1\\public_dev-02\\chunk_000001.npz",
+      "sha256": "db138d62e9b7161c9d46de20e5fa99eeee02f4b311d01f7a78433b0041fb265f"
+    },
+    {
+      "bytes": 68003,
+      "path": "outputs\\p2b\\raw\\k4_force_v1\\public_dev-02\\chunk_000002.npz",
+      "sha256": "1ffb235619485fa2fe399616f0002074f88bd499b06a8229b7e86516a94e9869"
+    },
+    {
+      "bytes": 90933,
+      "path": "outputs\\p2b\\raw\\k4_force_v1\\public_dev-03\\manifest.json",
+      "sha256": "88cd2c660d822853f416b19f056a34f7bdd5af0b9f82443d77bd4d45ce31d9f7"
+    },
+    {
+      "bytes": 191947,
+      "path": "outputs\\p2b\\raw\\k4_force_v1\\public_dev-03\\chunk_000000.npz",
+      "sha256": "9932135d3fb08ef78e23903d64a327b01652f01e17838b85aa9fd79c4e2757a4"
+    },
+    {
+      "bytes": 188003,
+      "path": "outputs\\p2b\\raw\\k4_force_v1\\public_dev-03\\chunk_000001.npz",
+      "sha256": "2631d8cfb18a73ba0680f21b5798e137456a107b5dd57ef005be993c39cfadb1"
+    },
+    {
+      "bytes": 68521,
+      "path": "outputs\\p2b\\raw\\k4_force_v1\\public_dev-03\\chunk_000002.npz",
+      "sha256": "50fe270e75ec48b4861569e038c085047a960a37a133e994a378ea0363916aa3"
+    },
+    {
+      "bytes": 116730,
+      "path": "outputs\\p2b\\raw\\k4_velocity_v2\\public_dev-01\\manifest.json",
+      "sha256": "07b09b76ac2127d430a8458f0fda4ee3970ba23ea47cf8cb8aeba1817e1469f6"
+    },
+    {
+      "bytes": 305254,
+      "path": "outputs\\p2b\\raw\\k4_velocity_v2\\public_dev-01\\chunk_000000.npz",
+      "sha256": "4f1c00d982b5f35b259dcd4dfcedb3082c8b780afecb8a2042761bc2c35ead41"
+    },
+    {
+      "bytes": 300340,
+      "path": "outputs\\p2b\\raw\\k4_velocity_v2\\public_dev-01\\chunk_000001.npz",
+      "sha256": "cbe6cd3d3ae96c01547c9f09281b361aff1528fd7a8516afba96497f335eaac4"
+    },
+    {
+      "bytes": 106880,
+      "path": "outputs\\p2b\\raw\\k4_velocity_v2\\public_dev-01\\chunk_000002.npz",
+      "sha256": "069d8d72c702673006e98678d6594386fd728471c8f2a101791989344d842966"
+    },
+    {
+      "bytes": 116858,
+      "path": "outputs\\p2b\\raw\\k4_velocity_v2\\public_dev-02\\manifest.json",
+      "sha256": "6e37742005beb9af385d11ec54b7b67f349889144e2f0a8d714bd4f48bc901be"
+    },
+    {
+      "bytes": 305568,
+      "path": "outputs\\p2b\\raw\\k4_velocity_v2\\public_dev-02\\chunk_000000.npz",
+      "sha256": "9c02219b3c3b74cf21c1e8e02d85d394713cb5e4862cfa681c4200b6bde67c1a"
+    },
+    {
+      "bytes": 302575,
+      "path": "outputs\\p2b\\raw\\k4_velocity_v2\\public_dev-02\\chunk_000001.npz",
+      "sha256": "71cafb8080b7dbc67626de1619c4f5017019976905d8a011fdd9d81d7b1818f4"
+    },
+    {
+      "bytes": 106989,
+      "path": "outputs\\p2b\\raw\\k4_velocity_v2\\public_dev-02\\chunk_000002.npz",
+      "sha256": "09780a3b7a3a764136cbde8d225ac91137046bdad72248626619548bcf16d8fa"
+    },
+    {
+      "bytes": 116831,
+      "path": "outputs\\p2b\\raw\\k4_velocity_v2\\public_dev-03\\manifest.json",
+      "sha256": "1882c39533447701852e22645a3f8482f0183ab3efa2ce271749934f166f1188"
+    },
+    {
+      "bytes": 305584,
+      "path": "outputs\\p2b\\raw\\k4_velocity_v2\\public_dev-03\\chunk_000000.npz",
+      "sha256": "be6cbe79c3e92fb8c8a5fa749c2cbd5b3b5fe384654197152b5e91c53b9e45fd"
+    },
+    {
+      "bytes": 303189,
+      "path": "outputs\\p2b\\raw\\k4_velocity_v2\\public_dev-03\\chunk_000001.npz",
+      "sha256": "724df017eca17159c9d7203bbce8d298f4edf60dee7ae4b325079abd37431dce"
+    },
+    {
+      "bytes": 107911,
+      "path": "outputs\\p2b\\raw\\k4_velocity_v2\\public_dev-03\\chunk_000002.npz",
+      "sha256": "89d90a6f0db7c97d865b564b0c156c2e282d93add0feb19e82540ba49db6a11a"
+    }
+  ],
+  "content_compat": {
+    "status": "PASS",
+    "unchanged_content_files": [
+      {
+        "path": "outputs/p2b/k4_force_v1/evidence.jsonl",
+        "sha256": "dd31f7b69fee97e6f78aa5943cd77740c96322fb70b885889eb7f23814d538ea",
+        "bytes": 3781210,
+        "byte_identical": true
+      },
+      {
+        "path": "outputs/p2b/k4_force_v1/policy_card.json",
+        "sha256": "33f264e6d7603bdf6f2565e8e2b0bc748f9fb59983beb0300f751eeb03e1f958",
+        "bytes": 471268,
+        "byte_identical": true
+      },
+      {
+        "path": "outputs/p2b/k4_force_v1/policy_card_zh.md",
+        "sha256": "d5c1b59de4f899c24ed49359c5ee18e4102a2e69daf42fe10053eb1012ae295a",
+        "bytes": 12578,
+        "byte_identical": true
+      },
+      {
+        "path": "outputs/p2b/k4_force_v1/public.json",
+        "sha256": "8b96cf333284e6f11556d49a0d2668cd51fcba5b792470fdfab08a2a4ebdeb9e",
+        "bytes": 12266,
+        "byte_identical": true
+      },
+      {
+        "path": "outputs/p2b/k4_velocity_v2/evidence.jsonl",
+        "sha256": "d831718695bcb3a828ff23cea8bb9916cc378e2ed80aa2f0001c2a06562db773",
+        "bytes": 3817656,
+        "byte_identical": true
+      },
+      {
+        "path": "outputs/p2b/k4_velocity_v2/policy_card.json",
+        "sha256": "e1f371d8aa648b18fe3708572e3affa8f6634b91c55cf6ef7d346420a99132a2",
+        "bytes": 403673,
+        "byte_identical": true
+      },
+      {
+        "path": "outputs/p2b/k4_velocity_v2/policy_card_zh.md",
+        "sha256": "d6e25a8342afe7f34736245b81f42fdf4dd57f715b6a2bd2d919ee6cb641b297",
+        "bytes": 10222,
+        "byte_identical": true
+      },
+      {
+        "path": "outputs/p2b/k4_velocity_v2/public.json",
+        "sha256": "fd4c6ae67f0226ddf09278804ac0f1006e677cca039db16ba54fa6823bd96950",
+        "bytes": 11448,
+        "byte_identical": true
+      }
+    ],
+    "manifest_change_only": "production code SHA and wall_seconds; content hashes unchanged",
+    "stair_frozen_hashes": {
+      "evidence.jsonl": "58f1014f557847c5ee32a3c03e4bebf4becdc2bc35552c6ac948a5fcc576af6e",
+      "policy_card.json": "d83ddf0b8ee28e8d00705de81029930474b47ba230532596d50aabd2e9b0d9a2",
+      "policy_card_zh.md": "c5589b8b79efd605c5d5d305a84ba58f246de3fbba55a39d48cff0d7f90c90ac"
+    }
+  },
+  "manifest_changes": [
+    {
+      "group": "k4_force_v1",
+      "old_sha256": "046cf6e1538c34f12f80466a7ecc40f5b6aebc9285294f609e41aa2f29753b48",
+      "new_sha256": "8eb8c7e1ef85c23f37c55d7f5b2cb9eb676a7ec02230767bd6a02b030afdabce",
+      "changed_fields": [
+        "code_sha256",
+        "wall_seconds"
+      ],
+      "new_wall_seconds": 0.8307407000102103
+    },
+    {
+      "group": "k4_velocity_v2",
+      "old_sha256": "0b7107fba1a9a20e7151132b4a49fc9a707f91711918afc5ad0863161ea241c8",
+      "new_sha256": "cbf291471dca9b38e164c3d62a50c3cbd21fe318fa78f933602122d2974d15e2",
+      "changed_fields": [
+        "code_sha256",
+        "wall_seconds"
+      ],
+      "new_wall_seconds": 0.8919933000579476
+    }
+  ],
+  "test_executions": [
+    {
+      "name": "push_semantics",
+      "executed": 37,
+      "results": {
+        "ok": 37
+      },
+      "summary": "Ran 37 tests in 5.136s\n\nOK"
+    },
+    {
+      "name": "push_legacy",
+      "executed": 77,
+      "results": {
+        "ok": 76,
+        "ERROR": 1
+      },
+      "summary": "Ran 77 tests in 43.304s\n\nFAILED (errors=1)"
+    },
+    {
+      "name": "stair_shared",
+      "executed": 111,
+      "results": {
+        "ok": 111
+      },
+      "summary": "Ran 111 tests in 28.613s\n\nOK"
+    }
+  ],
+  "this_revision_unique": 225,
+  "this_revision_results": {
+    "ok": 224,
+    "ERROR": 1
+  },
+  "retained_historical_unique": 718,
+  "retained_historical_results": {
+    "ok": 709,
+    "skipped": 8,
+    "ERROR": 1
+  },
+  "test_scope": "225 test IDs rerun on fixed code; historical remainder retained, not full broad rerun",
+  "independent_raw_oracle": {
+    "status": "PASS",
+    "imports_project_code": false,
+    "groups": [
+      {
+        "source": "k4_force_v1",
+        "episodes": 192,
+        "full_claims": 37,
+        "public_claims": 34,
+        "public_bytes": 12265
+      },
+      {
+        "source": "k4_velocity_v2",
+        "episodes": 192,
+        "full_claims": 32,
+        "public_claims": 32,
+        "public_bytes": 11447
+      }
+    ],
+    "checks": {
+      "source": 126,
+      "clock": 1536,
+      "predicate": 384,
+      "task": 1152,
+      "scalar": 14208,
+      "coverage": 3456,
+      "stability": 1536,
+      "terminal": 2688,
+      "interval": 15514,
+      "signed": 5568,
+      "dwell": 239324,
+      "recovery": 7344,
+      "event": 2148,
+      "window": 51453,
+      "direction": 1428,
+      "reference": 14414,
+      "outcome": 1152,
+      "cohort": 1872,
+      "selection": 10,
+      "public": 2
+    },
+    "npz_files": 18,
+    "npz_bytes": 3486938,
+    "oracle_original_sha256": "bdee6137c401dcf1f4aad8d95fbe6e399e1ce8d03343c89b390e865ad51c5a91",
+    "oracle_copy_sha256": "bdee6137c401dcf1f4aad8d95fbe6e399e1ce8d03343c89b390e865ad51c5a91"
+  },
+  "stair_frozen_facts": {
+    "necessary": {
+      "counts": {
+        "pass": 247
+      },
+      "fact_count": 247,
+      "compared_scalar_fields": 4168
+    },
+    "full": {
+      "counts": {
+        "pass": 309
+      },
+      "fact_count": 309,
+      "compared_scalar_fields": 45157
+    }
+  },
+  "stair_frozen_raw_summary": {
+    "schema_version": "trajectory.p1b.independent_audit.v1",
+    "passed": true,
+    "scope": "frozen P0 raw arrays, all compact metrics/facets, all sentence operands and necessary-fact reading mapping; separate semantic review",
+    "producer_or_oracle_imports": false,
+    "source_manifest_and_chunk_hashes_verified": true,
+    "raw_episodes": 866,
+    "metric_checks": 69280,
+    "aggregate_metric_checks": 8400,
+    "references_checked": 32042,
+    "claim_count": 801,
+    "necessary_fact_count": 247,
+    "card_manifest_sha256": "19591365bc65d6a747670765fe09a48b01f6d5aab7e1eddf71b0b94cb5a46d5a",
+    "verifier_sha256": "9c16eac35bf1428bcbb8fb70b9ff0ce70d55ffc1e86046bf400114f394ec08cb",
+    "wall_seconds": 18.499851100030355
+  },
+  "stair_p2a_compat": "frozen card rebuilt; 247/309 checked; P2a production artifacts hash-identical, no new three-source rebuild",
+  "review": "Two read-only reviewers found no remaining blocker in the corrected offline semantic-binding scope; parent reacceptance pending",
+  "commands": [
+    {
+      "name": "push_semantics",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2b\\semantic_binding_fix\\push_semantics.memory.json",
+        "-m",
+        "unittest",
+        "tests.unit.test_push_trajectory",
+        "tests.unit.test_push_trajectory_semantics",
+        "-v"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.unit.test_push_trajectory",
+        "tests.unit.test_push_trajectory_semantics",
+        "-v"
+      ],
+      "wall_seconds": 5.810950799961574,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 223453184
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "30b3fe46fed31f67fa6efc197a3bec5849cc446ec71a9fd801cd5a2d34f307b0"
+    },
+    {
+      "name": "push_legacy",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2b\\semantic_binding_fix\\push_legacy.memory.json",
+        "-m",
+        "unittest",
+        "tests.unit.test_push_behavior",
+        "tests.unit.test_push_feedback_projection",
+        "tests.unit.test_push_numeric_capture",
+        "tests.unit.test_push_process_report",
+        "tests.unit.test_push_force_runtime",
+        "tests.unit.test_push_force_consumers",
+        "tests.unit.test_push_numeric_replay",
+        "tests.unit.test_push_physical_protocol",
+        "-v"
+      ],
+      "exit_code": 1,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.unit.test_push_behavior",
+        "tests.unit.test_push_feedback_projection",
+        "tests.unit.test_push_numeric_capture",
+        "tests.unit.test_push_process_report",
+        "tests.unit.test_push_force_runtime",
+        "tests.unit.test_push_force_consumers",
+        "tests.unit.test_push_numeric_replay",
+        "tests.unit.test_push_physical_protocol",
+        "-v"
+      ],
+      "wall_seconds": 45.23880139994435,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 241606656
+      },
+      "stdout_sha256": "50658ddf89194b2d57671fe2f7551a817123c8970e430f059ecfc727825f54b0",
+      "stderr_sha256": "b3a8f2a63e3f9c2fe9c31acc19e93eb6d796bdc0d647f43a4a7c62abf1252144"
+    },
+    {
+      "name": "stair_shared",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2b\\semantic_binding_fix\\stair_shared.memory.json",
+        "-m",
+        "unittest",
+        "tests.unit.test_stair_trajectory_adapter",
+        "tests.unit.test_stair_trajectory_v1",
+        "tests.unit.test_trajectory_card",
+        "tests.unit.test_trajectory_cohort",
+        "tests.unit.test_trajectory_temporal",
+        "-v"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.unit.test_stair_trajectory_adapter",
+        "tests.unit.test_stair_trajectory_v1",
+        "tests.unit.test_trajectory_card",
+        "tests.unit.test_trajectory_cohort",
+        "tests.unit.test_trajectory_temporal",
+        "-v"
+      ],
+      "wall_seconds": 29.144823999959044,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 386682880
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "b46b3bfbcb40e0f95ce84e002e8550608816ab4ed57ed78b874775540b941ce8"
+    },
+    {
+      "name": "build_k4_force_v1",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2b\\semantic_binding_fix\\build_k4_force_v1.memory.json",
+        "scripts/build_push_behavior_card.py",
+        "--source-lock",
+        "PLAN/feedback_sys/NEW_SYS/P2b1/source_lock.json",
+        "--group",
+        "k4_force_v1",
+        "--output",
+        "C:\\Users\\lover\\AppData\\Local\\Temp\\p2b1_semantic_fix_h3nc0vi2\\k4_force_v1"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/build_push_behavior_card.py",
+        "--source-lock",
+        "PLAN/feedback_sys/NEW_SYS/P2b1/source_lock.json",
+        "--group",
+        "k4_force_v1",
+        "--output",
+        "C:\\Users\\lover\\AppData\\Local\\Temp\\p2b1_semantic_fix_h3nc0vi2\\k4_force_v1"
+      ],
+      "wall_seconds": 1.1608032000949606,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 67534848
+      },
+      "stdout_sha256": "8ad4e02a340e90451cbf7024f99551c51f55ce280669ad1927bea4c5faf8ec45",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "build_k4_velocity_v2",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2b\\semantic_binding_fix\\build_k4_velocity_v2.memory.json",
+        "scripts/build_push_behavior_card.py",
+        "--source-lock",
+        "PLAN/feedback_sys/NEW_SYS/P2b1/source_lock.json",
+        "--group",
+        "k4_velocity_v2",
+        "--output",
+        "C:\\Users\\lover\\AppData\\Local\\Temp\\p2b1_semantic_fix_h3nc0vi2\\k4_velocity_v2"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/build_push_behavior_card.py",
+        "--source-lock",
+        "PLAN/feedback_sys/NEW_SYS/P2b1/source_lock.json",
+        "--group",
+        "k4_velocity_v2",
+        "--output",
+        "C:\\Users\\lover\\AppData\\Local\\Temp\\p2b1_semantic_fix_h3nc0vi2\\k4_velocity_v2"
+      ],
+      "wall_seconds": 1.2161470000864938,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 69390336
+      },
+      "stdout_sha256": "02b3521daa276c2e5f5192ab1acc50deef695d91bfc09db2908ff76c6c9152d6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "frozen_build",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2b\\semantic_binding_fix\\frozen_build.memory.json",
+        "scripts/build_policy_behavior_card.py",
+        "--input",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1a\\repair_t1_t2\\r4\\manifest.json",
+        "--input-sha256",
+        "69e812534d6080e10ddf522f239e49f729bc5eb1d4eff5bab396bb35a6c84397",
+        "--example-input",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1a\\repair_t1_t2\\legacy_dev\\manifest.json",
+        "cc56d3ed2ddf25a74ba87bee8371af0670b17f87012ee82c7619297575b2b3ad",
+        "--selection",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P0\\e1_selection.json",
+        "--selection-sha256",
+        "4f45e1f9138a322a4f369a6ea3a287dc50c7de74519b4af5dca8208edeb777fc",
+        "--output",
+        "C:\\Users\\lover\\AppData\\Local\\Temp\\p2b1_semantic_fix_h3nc0vi2\\stair_frozen_card"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/build_policy_behavior_card.py",
+        "--input",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1a\\repair_t1_t2\\r4\\manifest.json",
+        "--input-sha256",
+        "69e812534d6080e10ddf522f239e49f729bc5eb1d4eff5bab396bb35a6c84397",
+        "--example-input",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1a\\repair_t1_t2\\legacy_dev\\manifest.json",
+        "cc56d3ed2ddf25a74ba87bee8371af0670b17f87012ee82c7619297575b2b3ad",
+        "--selection",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P0\\e1_selection.json",
+        "--selection-sha256",
+        "4f45e1f9138a322a4f369a6ea3a287dc50c7de74519b4af5dca8208edeb777fc",
+        "--output",
+        "C:\\Users\\lover\\AppData\\Local\\Temp\\p2b1_semantic_fix_h3nc0vi2\\stair_frozen_card"
+      ],
+      "wall_seconds": 22.882311299908906,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 242282496
+      },
+      "stdout_sha256": "a9af223479a40f58ac923318917cc6b3a9562c33487e0da40a80d43fe5ee4090",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "frozen_facts",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2b\\semantic_binding_fix\\frozen_facts.memory.json",
+        "scripts/verify_stair_trajectory_evidence.py",
+        "--input",
+        "outputs/trajectory_p1a/repair_t1_t2/r4",
+        "--input",
+        "outputs/trajectory_p1a/repair_t1_t2/legacy_dev",
+        "--output",
+        "C:\\Users\\lover\\AppData\\Local\\Temp\\p2b1_semantic_fix_h3nc0vi2\\stair_frozen_verification.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/verify_stair_trajectory_evidence.py",
+        "--input",
+        "outputs/trajectory_p1a/repair_t1_t2/r4",
+        "--input",
+        "outputs/trajectory_p1a/repair_t1_t2/legacy_dev",
+        "--output",
+        "C:\\Users\\lover\\AppData\\Local\\Temp\\p2b1_semantic_fix_h3nc0vi2\\stair_frozen_verification.json"
+      ],
+      "wall_seconds": 13.03569469996728,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 156860416
+      },
+      "stdout_sha256": "8c9e9d9c1a396aea44be3c7ae5c217ab3dd3485a664d8881dfc3beb59764ada5",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "frozen_raw",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2b\\semantic_binding_fix\\frozen_raw.memory.json",
+        "scripts/verify_policy_behavior_card.py",
+        "--input",
+        "C:\\Users\\lover\\AppData\\Local\\Temp\\p2b1_semantic_fix_h3nc0vi2\\stair_frozen_card",
+        "--output",
+        "C:\\Users\\lover\\AppData\\Local\\Temp\\p2b1_semantic_fix_h3nc0vi2\\stair_frozen_raw_audit.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/verify_policy_behavior_card.py",
+        "--input",
+        "C:\\Users\\lover\\AppData\\Local\\Temp\\p2b1_semantic_fix_h3nc0vi2\\stair_frozen_card",
+        "--output",
+        "C:\\Users\\lover\\AppData\\Local\\Temp\\p2b1_semantic_fix_h3nc0vi2\\stair_frozen_raw_audit.json"
+      ],
+      "wall_seconds": 18.7623489999678,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 449916928
+      },
+      "stdout_sha256": "27f304487547520f844fcdcd64c43b934e4d426f3bb15b0ba0ce098875086189",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "semantic_swaps",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2b\\semantic_binding_fix\\semantic_swaps.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2b1/audit_semantic_binding.py",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2b\\semantic_binding_fix\\semantic_swaps.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2b1/audit_semantic_binding.py",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2b\\semantic_binding_fix\\semantic_swaps.json"
+      ],
+      "wall_seconds": 4.75467649998609,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 127074304
+      },
+      "stdout_sha256": "253d5908d560ca4522d6ad02eae2b3244cc1abf8897aa9ac9393131839618416",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "independent_raw_oracle",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2b\\semantic_binding_fix\\independent_raw_oracle.memory.json",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2b\\semantic_binding_fix\\root_raw_oracle.py"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2b\\semantic_binding_fix\\root_raw_oracle.py"
+      ],
+      "wall_seconds": 1.093959099962376,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 78671872
+      },
+      "stdout_sha256": "c7c8a6678a3a7e012232f49c2a25c325bb4ff25e6eb619b3ca76304c249294dc",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "p2a_hash_compat",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2b\\semantic_binding_fix\\p2a_hash_compat.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2b1/check_stair_compat.py"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2b1/check_stair_compat.py"
+      ],
+      "wall_seconds": 3.216204300057143,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 33615872
+      },
+      "stdout_sha256": "aa325df647747041b3ea26a218c5ca32a1162a74d8631b7d88ab0d64f05f436b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "K5_read_or_run": false,
+  "model_calls": 0,
+  "gpu_runs": 0,
+  "training_runs": 0,
+  "limitations": [
+    "normal runner/profile/payload/legacy integration remains P2b2",
+    "APIs require qualified raw episodes; CLI/loader obtain them via adapter and locked sources",
+    "existing omni missing environment error retained",
+    "K5 first confirmation not started"
+  ],
+  "development_audit_correction": "First new audit-script invocation omitted NumericEvidence reference schema and failed before swap tests; script corrected, final raw-context audit passes. Initial traceback remains in conversation tool output.",
+  "artifacts": [
+    {
+      "path": "outputs/p2b/semantic_binding_fix/all_claims_review.json",
+      "sha256": "495c8ae9d7775b65ab54d5f0044d1c7169b6f38b90a3b1613d9712db0173b50f",
+      "bytes": 437342
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/build_k4_force_v1.memory.json",
+      "sha256": "c428c5266992238ec6ed58ef31eb22002f2cc5d35e0943780a8d9e77efba1524",
+      "bytes": 96
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/build_k4_force_v1.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/build_k4_force_v1.stdout.txt",
+      "sha256": "8ad4e02a340e90451cbf7024f99551c51f55ce280669ad1927bea4c5faf8ec45",
+      "bytes": 134
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/build_k4_velocity_v2.memory.json",
+      "sha256": "f10ba3411c093046ab7e717f0bf64852b42e3aeb130e5e345bdccc8e6171523c",
+      "bytes": 96
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/build_k4_velocity_v2.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/build_k4_velocity_v2.stdout.txt",
+      "sha256": "02b3521daa276c2e5f5192ab1acc50deef695d91bfc09db2908ff76c6c9152d6",
+      "bytes": 137
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/command_receipts.json",
+      "sha256": "7bb09911a50c9dbd8ba3237ac3f699fb8d4221160fc13410ab5271fb5461015c",
+      "bytes": 15785
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/content_compat.json",
+      "sha256": "92232d74b83e24adba255fb03aaf70ae7c195323222ee640ba5cad6d49528fd2",
+      "bytes": 2169
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/final_test_statuses.json",
+      "sha256": "1a7e35b9fc67f4ba06a06b9a4efa26e7fa52abe950f4642723b01fb19816ee5b",
+      "bytes": 97506
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/frozen_build.memory.json",
+      "sha256": "bb51cdb63c88f6501d180e75582687c73bb67d0abd268739f96d82796d64e6fa",
+      "bytes": 97
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/frozen_build.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/frozen_build.stdout.txt",
+      "sha256": "a9af223479a40f58ac923318917cc6b3a9562c33487e0da40a80d43fe5ee4090",
+      "bytes": 778
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/frozen_facts.memory.json",
+      "sha256": "441893e89790cd2b882db630b1e33cf2d58e404227e51831811e7c2e989d013a",
+      "bytes": 97
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/frozen_facts.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/frozen_facts.stdout.txt",
+      "sha256": "8c9e9d9c1a396aea44be3c7ae5c217ab3dd3485a664d8881dfc3beb59764ada5",
+      "bytes": 276
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/frozen_raw.memory.json",
+      "sha256": "df85a9283f4575a6fd07bd65ff6e1137d51a4d8e4995c911e9b25ab3d86b4026",
+      "bytes": 97
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/frozen_raw.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/frozen_raw.stdout.txt",
+      "sha256": "27f304487547520f844fcdcd64c43b934e4d426f3bb15b0ba0ce098875086189",
+      "bytes": 237
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/independent_raw_oracle.memory.json",
+      "sha256": "c219ae84699340f1f9c37efe4f5801254ca13d972f7e8655dfeb0e76d7d39067",
+      "bytes": 96
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/independent_raw_oracle.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/independent_raw_oracle.stdout.txt",
+      "sha256": "c7c8a6678a3a7e012232f49c2a25c325bb4ff25e6eb619b3ca76304c249294dc",
+      "bytes": 1559
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/k4_force_v1.previous_manifest.json",
+      "sha256": "046cf6e1538c34f12f80466a7ecc40f5b6aebc9285294f609e41aa2f29753b48",
+      "bytes": 8072
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/k4_velocity_v2.previous_manifest.json",
+      "sha256": "0b7107fba1a9a20e7151132b4a49fc9a707f91711918afc5ad0863161ea241c8",
+      "bytes": 8096
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/key_diff.patch",
+      "sha256": "4317cf72e52da3552b9ba6d9e2934ce43c656c40277a747d2149ebb25f3161ef",
+      "bytes": 16597
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/p2a_hash_compat.memory.json",
+      "sha256": "41ddb171c4b499b84e97e9ac1b73a35eb98d82abbf2558ffa7bf4d70d27e7d48",
+      "bytes": 96
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/p2a_hash_compat.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/p2a_hash_compat.stdout.txt",
+      "sha256": "aa325df647747041b3ea26a218c5ca32a1162a74d8631b7d88ab0d64f05f436b",
+      "bytes": 358
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/push_legacy.memory.json",
+      "sha256": "d9b66be44ef26e8ae713b153ac96dfb3d96bcacde6d3e37d3849dfa14fb74609",
+      "bytes": 97
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/push_legacy.stderr.txt",
+      "sha256": "b3a8f2a63e3f9c2fe9c31acc19e93eb6d796bdc0d647f43a4a7c62abf1252144",
+      "bytes": 16913
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/push_legacy.stdout.txt",
+      "sha256": "50658ddf89194b2d57671fe2f7551a817123c8970e430f059ecfc727825f54b0",
+      "bytes": 90
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/push_semantics.memory.json",
+      "sha256": "d8b9395ea925d71791635eae118ba0676cb656889ed7e7fb94e81b28e2348cd6",
+      "bytes": 97
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/push_semantics.stderr.txt",
+      "sha256": "30b3fe46fed31f67fa6efc197a3bec5849cc446ec71a9fd801cd5a2d34f307b0",
+      "bytes": 6882
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/push_semantics.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/raw_case_traces.json",
+      "sha256": "fc8ae658e514a606335366ce21837f7aa6472ecbcdc26f0f6d6c49d5f3c87e78",
+      "bytes": 297982
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/raw_oracle_report.json",
+      "sha256": "805e303a54694e01aa26828aebeb81b776388444d1edec146f35043f35ac5428",
+      "bytes": 25982
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/root_raw_oracle.py",
+      "sha256": "bdee6137c401dcf1f4aad8d95fbe6e399e1ce8d03343c89b390e865ad51c5a91",
+      "bytes": 23694
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/run_checks.py",
+      "sha256": "54b84c5c64bcb5ed9b1719c431ea2aed6878664e8be73d24ac822de321e26901",
+      "bytes": 4715
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/semantic_swaps.json",
+      "sha256": "e24bd95a79cd274debcebcb51483d6eb1bc9eb3206117c5ce05f112eca2c1afe",
+      "bytes": 7418
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/semantic_swaps.memory.json",
+      "sha256": "e64dee309aaefcb1bdae815fb077734d38ae62c8329db79f4bcd9e3567c439da",
+      "bytes": 97
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/semantic_swaps.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/semantic_swaps.stdout.txt",
+      "sha256": "253d5908d560ca4522d6ad02eae2b3244cc1abf8897aa9ac9393131839618416",
+      "bytes": 468
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/stair_frozen_raw_audit.json",
+      "sha256": "68beb75d6948999df7c9d66b1282b583f93ca0a117ae400f94e370ea9d849ebe",
+      "bytes": 1374627
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/stair_frozen_verification.json",
+      "sha256": "7785d4a8c94c3ff4045a8f70ad393c9cac289941af8009e3023c59df3bfa3fc5",
+      "bytes": 4819031
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/stair_shared.memory.json",
+      "sha256": "8ac6f4dfb0ec1a51f005f0f3f89394b8721495fd7b5f8832f2488d2e7229544e",
+      "bytes": 97
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/stair_shared.stderr.txt",
+      "sha256": "b46b3bfbcb40e0f95ce84e002e8550608816ab4ed57ed78b874775540b941ce8",
+      "bytes": 20767
+    },
+    {
+      "path": "outputs/p2b/semantic_binding_fix/stair_shared.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ]
+}

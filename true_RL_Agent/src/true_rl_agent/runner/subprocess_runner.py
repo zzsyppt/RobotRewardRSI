@@ -768,6 +768,12 @@ class SubprocessRunner(Runner):
             ),
         )
         summary = completion.summary
+        if (not reuse_existing_summary and eval_spec.metadata.get("numeric_evidence_dir")
+                and self.eval_phase_summary_finalizer is not None and completion.status != "postprocessing"):
+            raise RunnerExecutionError(
+                f"{eval_spec.job_id}: requested numeric capture requires a CPU postprocessing handoff",
+                failure_kind=RunnerFailureKind.SUMMARY_INVALID,
+            )
         self._validate_backend_execution_environment_summary(summary, eval_spec)
         self._validate_execution_device_summary(summary, eval_spec)
         self._validate_eval_protocol_binding(summary, eval_spec)

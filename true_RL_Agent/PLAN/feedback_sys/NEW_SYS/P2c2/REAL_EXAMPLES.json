@@ -1,0 +1,2336 @@
+{
+  "k1": {
+    "raw_examples": {
+      "ordinary_inside": {
+        "key": [
+          1,
+          0,
+          1,
+          0
+        ],
+        "joint_name": "FL_hip_joint",
+        "manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+        "chunk": "chunk_000000.npz",
+        "chunk_sha256": "5518421701fb1c13944be8a6c9296d415a3493ca35394b8e0a6f502ae05fe4c0",
+        "row": 0,
+        "raw_q_rad_all_joint_columns": [
+          0.11349479109048843,
+          -0.1291016936302185,
+          -0.048133328557014465,
+          -0.013324137777090073,
+          0.7287801504135132,
+          0.6865921020507812,
+          1.080998182296753,
+          0.8907524943351746,
+          -1.2928203344345093,
+          -1.3386094570159912,
+          -1.8024903535842896,
+          -1.1858837604522705
+        ],
+        "nominal_bounds_rad": [
+          -1.0471998814625516,
+          1.0471998814625516
+        ],
+        "signed_margin_rad": 0.9337050903720632,
+        "position_fraction": 0.554189650466718,
+        "episode_measurement": {
+          "record_type": "measurement",
+          "episode_id": "episode:396bd661bf2fb82e43277025a5dc649485192da9c69b9e685736d4eb63198320",
+          "key": "nominal_joint_limits",
+          "entity_ids": [
+            "FL_hip_joint"
+          ],
+          "unit": "rad; fraction; sampled s",
+          "frame": "nominal_usd_joint_coordinate",
+          "extractor_version": "trajectory.nominal_joint_limits.v1",
+          "catalog_version": "trajectory.p0.measurements.v4",
+          "measurement_config": {
+            "version": "nominal_joint_limits.v1",
+            "inside_edge_band_fraction": 0.05,
+            "threshold_source": "predeclared_descriptive_band_not_safety_limit",
+            "effective_limits": "unknown_not_recorded"
+          },
+          "evidence_ref": {
+            "manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+            "run_index": 1,
+            "channels": [
+              "joint_pos"
+            ],
+            "steps_half_open": [
+              1,
+              298
+            ],
+            "chunks": [
+              {
+                "file": "chunk_000000.npz",
+                "sha256": "5518421701fb1c13944be8a6c9296d415a3493ca35394b8e0a6f502ae05fe4c0",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000001.npz",
+                "sha256": "f75b38b62d6f6bdd5fa545e34fff671b1a2ef52720caf33234d090f7a0f22bdd",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000002.npz",
+                "sha256": "9417882c249999f404116718da44293122f5b0de5b871e18327c3721bb048ccd",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000003.npz",
+                "sha256": "a0e509c79f8e7a2bf67d044f3adea1a9b7b6fd3ec5c1334856d8373b4845eeb0",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000004.npz",
+                "sha256": "aa929120e0475a4674716ac89689b7b7d31a216966f51721ae8b96fbf4875b42",
+                "rows_half_open": [
+                  0,
+                  41
+                ],
+                "env_index": 0
+              }
+            ]
+          },
+          "value": {
+            "status": "measured",
+            "unknown_reason": null,
+            "counts": {
+              "total_rows": 297,
+              "finite_rows": 297,
+              "unknown_rows": 0,
+              "inside_edge_band_rows": 0,
+              "outside_rows": 0
+            },
+            "missing_steps": 0,
+            "nominal_bounds_rad": [
+              -1.0471998814625516,
+              1.0471998814625516
+            ],
+            "q_range_rad": [
+              -0.01174836978316307,
+              0.9134595990180969
+            ],
+            "position_fraction_range": [
+              0.49439057910952255,
+              0.9361438609706159
+            ],
+            "range_occupancy_fraction": 0.44175328186109325,
+            "minimum_signed_margin_rad": 0.13374028244445468,
+            "inside_edge_band_fraction": 0.0,
+            "outside_fraction": 0.0,
+            "sample_cell_seconds": {
+              "finite": 5.94,
+              "inside_edge_band": 0.0,
+              "outside": 0.0
+            },
+            "witnesses": {
+              "q_min": {
+                "step": 297,
+                "q_rad": -0.01174836978316307,
+                "lower_distance_rad": 1.0354515116793885,
+                "upper_distance_rad": 1.0589482512457147,
+                "signed_margin_rad": 1.0354515116793885,
+                "position_fraction": 0.49439057910952255,
+                "joint_column": 0,
+                "source": {
+                  "manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    297,
+                    298
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000004.npz",
+                      "sha256": "aa929120e0475a4674716ac89689b7b7d31a216966f51721ae8b96fbf4875b42",
+                      "rows_half_open": [
+                        40,
+                        41
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              },
+              "q_max": {
+                "step": 210,
+                "q_rad": 0.9134595990180969,
+                "lower_distance_rad": 1.9606594804806485,
+                "upper_distance_rad": 0.13374028244445468,
+                "signed_margin_rad": 0.13374028244445468,
+                "position_fraction": 0.9361438609706159,
+                "joint_column": 0,
+                "source": {
+                  "manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    210,
+                    211
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000003.npz",
+                      "sha256": "a0e509c79f8e7a2bf67d044f3adea1a9b7b6fd3ec5c1334856d8373b4845eeb0",
+                      "rows_half_open": [
+                        17,
+                        18
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              },
+              "minimum_margin": {
+                "step": 210,
+                "q_rad": 0.9134595990180969,
+                "lower_distance_rad": 1.9606594804806485,
+                "upper_distance_rad": 0.13374028244445468,
+                "signed_margin_rad": 0.13374028244445468,
+                "position_fraction": 0.9361438609706159,
+                "joint_column": 0,
+                "source": {
+                  "manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    210,
+                    211
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000003.npz",
+                      "sha256": "a0e509c79f8e7a2bf67d044f3adea1a9b7b6fd3ec5c1334856d8373b4845eeb0",
+                      "rows_half_open": [
+                        17,
+                        18
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              }
+            },
+            "effective_limit_status": "unknown_not_recorded"
+          },
+          "base_catalog_version": "trajectory.p0.measurements.v2",
+          "asset_id": "b8a1ab9846cca1b282258cd9b8c871d5f6746bd9bbb85e3d38a34921d90614bb",
+          "record_id": "nominal-limit-evidence:82217519ef6dae50964a71168b5261f4ed079e5c7ca2550192ddb4ae589b4b94"
+        }
+      },
+      "inside_edge_band": {
+        "key": [
+          1,
+          0,
+          2,
+          11
+        ],
+        "joint_name": "RR_calf_joint",
+        "manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+        "chunk": "chunk_000000.npz",
+        "chunk_sha256": "5518421701fb1c13944be8a6c9296d415a3493ca35394b8e0a6f502ae05fe4c0",
+        "row": 1,
+        "raw_q_rad_all_joint_columns": [
+          0.08762040734291077,
+          -0.17807850241661072,
+          -0.2893769443035126,
+          0.11155523359775543,
+          0.6764660477638245,
+          0.5644620060920715,
+          1.1368741989135742,
+          0.7697418332099915,
+          -1.208101511001587,
+          -1.2892749309539795,
+          -2.1165003776550293,
+          -0.8714832067489624
+        ],
+        "nominal_bounds_rad": [
+          -2.7227000509895944,
+          -0.8377599051700412
+        ],
+        "signed_margin_rad": 0.03372330157892123,
+        "position_fraction": 0.9821090862467368,
+        "episode_measurement": {
+          "record_type": "measurement",
+          "episode_id": "episode:396bd661bf2fb82e43277025a5dc649485192da9c69b9e685736d4eb63198320",
+          "key": "nominal_joint_limits",
+          "entity_ids": [
+            "RR_calf_joint"
+          ],
+          "unit": "rad; fraction; sampled s",
+          "frame": "nominal_usd_joint_coordinate",
+          "extractor_version": "trajectory.nominal_joint_limits.v1",
+          "catalog_version": "trajectory.p0.measurements.v4",
+          "measurement_config": {
+            "version": "nominal_joint_limits.v1",
+            "inside_edge_band_fraction": 0.05,
+            "threshold_source": "predeclared_descriptive_band_not_safety_limit",
+            "effective_limits": "unknown_not_recorded"
+          },
+          "evidence_ref": {
+            "manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+            "run_index": 1,
+            "channels": [
+              "joint_pos"
+            ],
+            "steps_half_open": [
+              1,
+              298
+            ],
+            "chunks": [
+              {
+                "file": "chunk_000000.npz",
+                "sha256": "5518421701fb1c13944be8a6c9296d415a3493ca35394b8e0a6f502ae05fe4c0",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000001.npz",
+                "sha256": "f75b38b62d6f6bdd5fa545e34fff671b1a2ef52720caf33234d090f7a0f22bdd",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000002.npz",
+                "sha256": "9417882c249999f404116718da44293122f5b0de5b871e18327c3721bb048ccd",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000003.npz",
+                "sha256": "a0e509c79f8e7a2bf67d044f3adea1a9b7b6fd3ec5c1334856d8373b4845eeb0",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000004.npz",
+                "sha256": "aa929120e0475a4674716ac89689b7b7d31a216966f51721ae8b96fbf4875b42",
+                "rows_half_open": [
+                  0,
+                  41
+                ],
+                "env_index": 0
+              }
+            ]
+          },
+          "value": {
+            "status": "measured",
+            "unknown_reason": null,
+            "counts": {
+              "total_rows": 297,
+              "finite_rows": 297,
+              "unknown_rows": 0,
+              "inside_edge_band_rows": 22,
+              "outside_rows": 8
+            },
+            "missing_steps": 0,
+            "nominal_bounds_rad": [
+              -2.722700050989595,
+              -0.8377599051700413
+            ],
+            "q_range_rad": [
+              -2.286607265472412,
+              -0.8374091386795044
+            ],
+            "position_fraction_range": [
+              0.23135630406321145,
+              1.000186088927712
+            ],
+            "range_occupancy_fraction": 0.7688297848645006,
+            "minimum_signed_margin_rad": -0.00035076649053689124,
+            "inside_edge_band_fraction": 0.07407407407407407,
+            "outside_fraction": 0.026936026936026935,
+            "sample_cell_seconds": {
+              "finite": 5.94,
+              "inside_edge_band": 0.44,
+              "outside": 0.16
+            },
+            "witnesses": {
+              "q_min": {
+                "step": 237,
+                "q_rad": -2.286607265472412,
+                "lower_distance_rad": 0.4360927855171828,
+                "upper_distance_rad": 1.4488473603023708,
+                "signed_margin_rad": 0.4360927855171828,
+                "position_fraction": 0.23135630406321145,
+                "joint_column": 11,
+                "source": {
+                  "manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    237,
+                    238
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000003.npz",
+                      "sha256": "a0e509c79f8e7a2bf67d044f3adea1a9b7b6fd3ec5c1334856d8373b4845eeb0",
+                      "rows_half_open": [
+                        44,
+                        45
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              },
+              "q_max": {
+                "step": 231,
+                "q_rad": -0.8374091386795044,
+                "lower_distance_rad": 1.8852909123100905,
+                "upper_distance_rad": -0.00035076649053689124,
+                "signed_margin_rad": -0.00035076649053689124,
+                "position_fraction": 1.000186088927712,
+                "joint_column": 11,
+                "source": {
+                  "manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    231,
+                    232
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000003.npz",
+                      "sha256": "a0e509c79f8e7a2bf67d044f3adea1a9b7b6fd3ec5c1334856d8373b4845eeb0",
+                      "rows_half_open": [
+                        38,
+                        39
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              },
+              "minimum_margin": {
+                "step": 231,
+                "q_rad": -0.8374091386795044,
+                "lower_distance_rad": 1.8852909123100905,
+                "upper_distance_rad": -0.00035076649053689124,
+                "signed_margin_rad": -0.00035076649053689124,
+                "position_fraction": 1.000186088927712,
+                "joint_column": 11,
+                "source": {
+                  "manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    231,
+                    232
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000003.npz",
+                      "sha256": "a0e509c79f8e7a2bf67d044f3adea1a9b7b6fd3ec5c1334856d8373b4845eeb0",
+                      "rows_half_open": [
+                        38,
+                        39
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              }
+            },
+            "effective_limit_status": "unknown_not_recorded"
+          },
+          "base_catalog_version": "trajectory.p0.measurements.v2",
+          "asset_id": "b8a1ab9846cca1b282258cd9b8c871d5f6746bd9bbb85e3d38a34921d90614bb",
+          "record_id": "nominal-limit-evidence:82bb05d2c403347048ce5a5a1a3c8ea79704854f63cc702ca11d6e8df83838d4"
+        }
+      },
+      "outside": {
+        "key": [
+          1,
+          0,
+          50,
+          10
+        ],
+        "joint_name": "RL_calf_joint",
+        "manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+        "chunk": "chunk_000000.npz",
+        "chunk_sha256": "5518421701fb1c13944be8a6c9296d415a3493ca35394b8e0a6f502ae05fe4c0",
+        "row": 49,
+        "raw_q_rad_all_joint_columns": [
+          0.16132812201976776,
+          -0.26734840869903564,
+          -0.24062073230743408,
+          0.5770343542098999,
+          0.7254468202590942,
+          0.5551296472549438,
+          1.0375690460205078,
+          1.0459225177764893,
+          -2.077059507369995,
+          -2.011172294616699,
+          -2.722701072692871,
+          -1.8218680620193481
+        ],
+        "nominal_bounds_rad": [
+          -2.7227000509895944,
+          -0.8377599051700412
+        ],
+        "signed_margin_rad": -1.0217032766490775e-06,
+        "position_fraction": -5.420348645632198e-07,
+        "episode_measurement": {
+          "record_type": "measurement",
+          "episode_id": "episode:396bd661bf2fb82e43277025a5dc649485192da9c69b9e685736d4eb63198320",
+          "key": "nominal_joint_limits",
+          "entity_ids": [
+            "RL_calf_joint"
+          ],
+          "unit": "rad; fraction; sampled s",
+          "frame": "nominal_usd_joint_coordinate",
+          "extractor_version": "trajectory.nominal_joint_limits.v1",
+          "catalog_version": "trajectory.p0.measurements.v4",
+          "measurement_config": {
+            "version": "nominal_joint_limits.v1",
+            "inside_edge_band_fraction": 0.05,
+            "threshold_source": "predeclared_descriptive_band_not_safety_limit",
+            "effective_limits": "unknown_not_recorded"
+          },
+          "evidence_ref": {
+            "manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+            "run_index": 1,
+            "channels": [
+              "joint_pos"
+            ],
+            "steps_half_open": [
+              1,
+              298
+            ],
+            "chunks": [
+              {
+                "file": "chunk_000000.npz",
+                "sha256": "5518421701fb1c13944be8a6c9296d415a3493ca35394b8e0a6f502ae05fe4c0",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000001.npz",
+                "sha256": "f75b38b62d6f6bdd5fa545e34fff671b1a2ef52720caf33234d090f7a0f22bdd",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000002.npz",
+                "sha256": "9417882c249999f404116718da44293122f5b0de5b871e18327c3721bb048ccd",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000003.npz",
+                "sha256": "a0e509c79f8e7a2bf67d044f3adea1a9b7b6fd3ec5c1334856d8373b4845eeb0",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000004.npz",
+                "sha256": "aa929120e0475a4674716ac89689b7b7d31a216966f51721ae8b96fbf4875b42",
+                "rows_half_open": [
+                  0,
+                  41
+                ],
+                "env_index": 0
+              }
+            ]
+          },
+          "value": {
+            "status": "measured",
+            "unknown_reason": null,
+            "counts": {
+              "total_rows": 297,
+              "finite_rows": 297,
+              "unknown_rows": 0,
+              "inside_edge_band_rows": 161,
+              "outside_rows": 14
+            },
+            "missing_steps": 0,
+            "nominal_bounds_rad": [
+              -2.722700050989595,
+              -0.8377599051700413
+            ],
+            "q_range_rad": [
+              -2.7227015495300293,
+              -1.3788433074951172
+            ],
+            "position_fraction_range": [
+              -7.950069065755733e-07,
+              0.7129439873594404
+            ],
+            "range_occupancy_fraction": 0.7129447823663471,
+            "minimum_signed_margin_rad": -1.4985404344081132e-06,
+            "inside_edge_band_fraction": 0.5420875420875421,
+            "outside_fraction": 0.04713804713804714,
+            "sample_cell_seconds": {
+              "finite": 5.94,
+              "inside_edge_band": 3.22,
+              "outside": 0.28
+            },
+            "witnesses": {
+              "q_min": {
+                "step": 242,
+                "q_rad": -2.7227015495300293,
+                "lower_distance_rad": -1.4985404344081132e-06,
+                "upper_distance_rad": 1.884941644359988,
+                "signed_margin_rad": -1.4985404344081132e-06,
+                "position_fraction": -7.950069065755733e-07,
+                "joint_column": 10,
+                "source": {
+                  "manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    242,
+                    243
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000003.npz",
+                      "sha256": "a0e509c79f8e7a2bf67d044f3adea1a9b7b6fd3ec5c1334856d8373b4845eeb0",
+                      "rows_half_open": [
+                        49,
+                        50
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              },
+              "q_max": {
+                "step": 42,
+                "q_rad": -1.3788433074951172,
+                "lower_distance_rad": 1.3438567434944777,
+                "upper_distance_rad": 0.5410834023250759,
+                "signed_margin_rad": 0.5410834023250759,
+                "position_fraction": 0.7129439873594404,
+                "joint_column": 10,
+                "source": {
+                  "manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    42,
+                    43
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000000.npz",
+                      "sha256": "5518421701fb1c13944be8a6c9296d415a3493ca35394b8e0a6f502ae05fe4c0",
+                      "rows_half_open": [
+                        41,
+                        42
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              },
+              "minimum_margin": {
+                "step": 242,
+                "q_rad": -2.7227015495300293,
+                "lower_distance_rad": -1.4985404344081132e-06,
+                "upper_distance_rad": 1.884941644359988,
+                "signed_margin_rad": -1.4985404344081132e-06,
+                "position_fraction": -7.950069065755733e-07,
+                "joint_column": 10,
+                "source": {
+                  "manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    242,
+                    243
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000003.npz",
+                      "sha256": "a0e509c79f8e7a2bf67d044f3adea1a9b7b6fd3ec5c1334856d8373b4845eeb0",
+                      "rows_half_open": [
+                        49,
+                        50
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              }
+            },
+            "effective_limit_status": "unknown_not_recorded"
+          },
+          "base_catalog_version": "trajectory.p0.measurements.v2",
+          "asset_id": "b8a1ab9846cca1b282258cd9b8c871d5f6746bd9bbb85e3d38a34921d90614bb",
+          "record_id": "nominal-limit-evidence:b4c3632b5a6b4c29f58f8dde60b773d4a2eeddc08f0b588c1a99813ab7cef67d"
+        }
+      }
+    },
+    "absent_example_categories": [],
+    "all_statements": [
+      {
+        "id": "nominal-limit-claim:e84d39a61d228753901250a46a629c4c250b435885649101813f5d0052891d67",
+        "text": "FL_hip_joint: 5925/276259 finite recorded q samples lie inside the nominal USD 5% edge band; 2376/276259 lie outside nominal bounds. Episode-equal median minimum signed margin -1.86797e-05rad; median range occupancy 0.515127. Unknown samples 0/276259. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:2dac1025937748d9027e663f2396eff17c7b2e990f97eae01f599fcf66133370",
+        "text": "FR_hip_joint: 8979/276259 finite recorded q samples lie inside the nominal USD 5% edge band; 1398/276259 lie outside nominal bounds. Episode-equal median minimum signed margin -8.30608e-08rad; median range occupancy 0.505663. Unknown samples 0/276259. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:f6a899f9606bef104fb20a2266f11c8dbafd426157c7b4f33688d99690a991f2",
+        "text": "RL_hip_joint: 226/276259 finite recorded q samples lie inside the nominal USD 5% edge band; 26/276259 lie outside nominal bounds. Episode-equal median minimum signed margin 0.486297rad; median range occupancy 0.250809. Unknown samples 0/276259. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:5b722335f356535a7405223aaaf472a4b96a95d4291e5a6127d72f1ef8c25994",
+        "text": "RR_hip_joint: 1115/276259 finite recorded q samples lie inside the nominal USD 5% edge band; 141/276259 lie outside nominal bounds. Episode-equal median minimum signed margin 0.188587rad; median range occupancy 0.414343. Unknown samples 0/276259. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:fbd898c92623e0565e7428433d6598ac02e32c4c940c4dc4181ca4c74bd82080",
+        "text": "FL_thigh_joint: 0/276259 finite recorded q samples lie inside the nominal USD 5% edge band; 0/276259 lie outside nominal bounds. Episode-equal median minimum signed margin 1.79149rad; median range occupancy 0.257365. Unknown samples 0/276259. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:77e86544baad74d53d773d2874a4ecc2975ffd61dc8c87588e0201f4edbf0e81",
+        "text": "FR_thigh_joint: 0/276259 finite recorded q samples lie inside the nominal USD 5% edge band; 0/276259 lie outside nominal bounds. Episode-equal median minimum signed margin 1.76989rad; median range occupancy 0.267288. Unknown samples 0/276259. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:fa22a637e66d275bef2731e191196ee8ee0be7905efaff760440a8344d8158c0",
+        "text": "RL_thigh_joint: 10/276259 finite recorded q samples lie inside the nominal USD 5% edge band; 0/276259 lie outside nominal bounds. Episode-equal median minimum signed margin 0.674341rad; median range occupancy 0.278093. Unknown samples 0/276259. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:1a3f76010b05112bd9fd229b5a3f9d364fb6b5dd0fd120956a32bbb11af30ca8",
+        "text": "RR_thigh_joint: 0/276259 finite recorded q samples lie inside the nominal USD 5% edge band; 0/276259 lie outside nominal bounds. Episode-equal median minimum signed margin 1.14922rad; median range occupancy 0.224768. Unknown samples 0/276259. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:26415fd63c89b915bf74baecdad68957599672aad6b1c51149fcd04b445c95de",
+        "text": "FL_calf_joint: 9721/276259 finite recorded q samples lie inside the nominal USD 5% edge band; 3101/276259 lie outside nominal bounds. Episode-equal median minimum signed margin -0.000578575rad; median range occupancy 0.890675. Unknown samples 0/276259. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:e3773c17b122c190d6c20dd247a3c5da0fdbcc978c7ca1973c0696569179c8d3",
+        "text": "FR_calf_joint: 9791/276259 finite recorded q samples lie inside the nominal USD 5% edge band; 2158/276259 lie outside nominal bounds. Episode-equal median minimum signed margin -9.80726e-05rad; median range occupancy 0.771814. Unknown samples 0/276259. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:5562b25cc7745ba2fca2f9960416a3c5f86ea4ed940881dd257a0c947dbd6f40",
+        "text": "RL_calf_joint: 125342/276259 finite recorded q samples lie inside the nominal USD 5% edge band; 14143/276259 lie outside nominal bounds. Episode-equal median minimum signed margin -4.59798e-06rad; median range occupancy 0.716861. Unknown samples 0/276259. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:fbbda4f821363b1e17a6bc2ef4e10ddfd9fb2b4d6dd1267fe76f48d6443225fa",
+        "text": "RR_calf_joint: 25548/276259 finite recorded q samples lie inside the nominal USD 5% edge band; 11335/276259 lie outside nominal bounds. Episode-equal median minimum signed margin -0.00101691rad; median range occupancy 0.83349. Unknown samples 0/276259. Effective runtime limits unknown; no saturation or cause claim."
+      }
+    ]
+  },
+  "k2": {
+    "raw_examples": {
+      "ordinary_inside": {
+        "key": [
+          1,
+          0,
+          1,
+          0
+        ],
+        "joint_name": "FL_hip_joint",
+        "manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+        "chunk": "chunk_000000.npz",
+        "chunk_sha256": "5b0ffc4ec830801d64ed76b8eb733303b777d8fa7a7d90ff23b639cd48e4f02d",
+        "row": 0,
+        "raw_q_rad_all_joint_columns": [
+          0.11627141386270523,
+          -0.10114216804504395,
+          0.016125354915857315,
+          0.0060500153340399265,
+          0.7119237780570984,
+          0.6831586956977844,
+          0.8686327934265137,
+          0.874555766582489,
+          -1.5630111694335938,
+          -1.3700413703918457,
+          -1.1859900951385498,
+          -1.2008309364318848
+        ],
+        "nominal_bounds_rad": [
+          -1.0471998814625516,
+          1.0471998814625516
+        ],
+        "signed_margin_rad": 0.9309284675998464,
+        "position_fraction": 0.5555153872345349,
+        "episode_measurement": {
+          "record_type": "measurement",
+          "episode_id": "episode:1fae9ede54f4cd16570bd340d36e3d5b7a795ffa90aa72c30b3951ef017db17b",
+          "key": "nominal_joint_limits",
+          "entity_ids": [
+            "FL_hip_joint"
+          ],
+          "unit": "rad; fraction; sampled s",
+          "frame": "nominal_usd_joint_coordinate",
+          "extractor_version": "trajectory.nominal_joint_limits.v1",
+          "catalog_version": "trajectory.p0.measurements.v4",
+          "measurement_config": {
+            "version": "nominal_joint_limits.v1",
+            "inside_edge_band_fraction": 0.05,
+            "threshold_source": "predeclared_descriptive_band_not_safety_limit",
+            "effective_limits": "unknown_not_recorded"
+          },
+          "evidence_ref": {
+            "manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+            "run_index": 1,
+            "channels": [
+              "joint_pos"
+            ],
+            "steps_half_open": [
+              1,
+              296
+            ],
+            "chunks": [
+              {
+                "file": "chunk_000000.npz",
+                "sha256": "5b0ffc4ec830801d64ed76b8eb733303b777d8fa7a7d90ff23b639cd48e4f02d",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000001.npz",
+                "sha256": "67ba06681669be186f333675a7e2dd2242f96f29ba082a066074478066d87344",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000002.npz",
+                "sha256": "4b858a25c3b887c46037f6b7539b66dcc031031fa9517d8834ac87cc35693edd",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000003.npz",
+                "sha256": "af5557fb909a130701ea1ad9ef47390d3865bbc37700ad1e59e8a41f0fbdaccc",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000004.npz",
+                "sha256": "344e3447aef8ec53d3e9b4c9791420bc0f900c721be4b43c813f764277001b6e",
+                "rows_half_open": [
+                  0,
+                  39
+                ],
+                "env_index": 0
+              }
+            ]
+          },
+          "value": {
+            "status": "measured",
+            "unknown_reason": null,
+            "counts": {
+              "total_rows": 295,
+              "finite_rows": 295,
+              "unknown_rows": 0,
+              "inside_edge_band_rows": 0,
+              "outside_rows": 0
+            },
+            "missing_steps": 0,
+            "nominal_bounds_rad": [
+              -1.0471998814625516,
+              1.0471998814625516
+            ],
+            "q_range_rad": [
+              -0.06416139751672745,
+              0.7852487564086914
+            ],
+            "position_fraction_range": [
+              0.469365257458243,
+              0.8749278291131912
+            ],
+            "range_occupancy_fraction": 0.4055625716549483,
+            "minimum_signed_margin_rad": 0.2619511250538602,
+            "inside_edge_band_fraction": 0.0,
+            "outside_fraction": 0.0,
+            "sample_cell_seconds": {
+              "finite": 5.9,
+              "inside_edge_band": 0.0,
+              "outside": 0.0
+            },
+            "witnesses": {
+              "q_min": {
+                "step": 281,
+                "q_rad": -0.06416139751672745,
+                "lower_distance_rad": 0.9830384839458242,
+                "upper_distance_rad": 1.111361278979279,
+                "signed_margin_rad": 0.9830384839458242,
+                "position_fraction": 0.469365257458243,
+                "joint_column": 0,
+                "source": {
+                  "manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    281,
+                    282
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000004.npz",
+                      "sha256": "344e3447aef8ec53d3e9b4c9791420bc0f900c721be4b43c813f764277001b6e",
+                      "rows_half_open": [
+                        24,
+                        25
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              },
+              "q_max": {
+                "step": 179,
+                "q_rad": 0.7852487564086914,
+                "lower_distance_rad": 1.832448637871243,
+                "upper_distance_rad": 0.2619511250538602,
+                "signed_margin_rad": 0.2619511250538602,
+                "position_fraction": 0.8749278291131912,
+                "joint_column": 0,
+                "source": {
+                  "manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    179,
+                    180
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000002.npz",
+                      "sha256": "4b858a25c3b887c46037f6b7539b66dcc031031fa9517d8834ac87cc35693edd",
+                      "rows_half_open": [
+                        50,
+                        51
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              },
+              "minimum_margin": {
+                "step": 179,
+                "q_rad": 0.7852487564086914,
+                "lower_distance_rad": 1.832448637871243,
+                "upper_distance_rad": 0.2619511250538602,
+                "signed_margin_rad": 0.2619511250538602,
+                "position_fraction": 0.8749278291131912,
+                "joint_column": 0,
+                "source": {
+                  "manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    179,
+                    180
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000002.npz",
+                      "sha256": "4b858a25c3b887c46037f6b7539b66dcc031031fa9517d8834ac87cc35693edd",
+                      "rows_half_open": [
+                        50,
+                        51
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              }
+            },
+            "effective_limit_status": "unknown_not_recorded"
+          },
+          "base_catalog_version": "trajectory.p0.measurements.v2",
+          "asset_id": "b8a1ab9846cca1b282258cd9b8c871d5f6746bd9bbb85e3d38a34921d90614bb",
+          "record_id": "nominal-limit-evidence:57b075ccb76e4aac5cf251624849c9c76f417e6fc7e46411948c31847c2825c6"
+        }
+      },
+      "inside_edge_band": {
+        "key": [
+          1,
+          0,
+          2,
+          10
+        ],
+        "joint_name": "RL_calf_joint",
+        "manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+        "chunk": "chunk_000000.npz",
+        "chunk_sha256": "5b0ffc4ec830801d64ed76b8eb733303b777d8fa7a7d90ff23b639cd48e4f02d",
+        "row": 1,
+        "raw_q_rad_all_joint_columns": [
+          0.11548921465873718,
+          -0.09258788824081421,
+          -0.12733584642410278,
+          0.16933071613311768,
+          0.5357782244682312,
+          0.5312582850456238,
+          0.7019732594490051,
+          0.7630729675292969,
+          -1.6032462120056152,
+          -1.2873828411102295,
+          -0.871974527835846,
+          -1.0082809925079346
+        ],
+        "nominal_bounds_rad": [
+          -2.7227000509895944,
+          -0.8377599051700412
+        ],
+        "signed_margin_rad": 0.03421462266580477,
+        "position_fraction": 0.9818484301787055,
+        "episode_measurement": {
+          "record_type": "measurement",
+          "episode_id": "episode:1fae9ede54f4cd16570bd340d36e3d5b7a795ffa90aa72c30b3951ef017db17b",
+          "key": "nominal_joint_limits",
+          "entity_ids": [
+            "RL_calf_joint"
+          ],
+          "unit": "rad; fraction; sampled s",
+          "frame": "nominal_usd_joint_coordinate",
+          "extractor_version": "trajectory.nominal_joint_limits.v1",
+          "catalog_version": "trajectory.p0.measurements.v4",
+          "measurement_config": {
+            "version": "nominal_joint_limits.v1",
+            "inside_edge_band_fraction": 0.05,
+            "threshold_source": "predeclared_descriptive_band_not_safety_limit",
+            "effective_limits": "unknown_not_recorded"
+          },
+          "evidence_ref": {
+            "manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+            "run_index": 1,
+            "channels": [
+              "joint_pos"
+            ],
+            "steps_half_open": [
+              1,
+              296
+            ],
+            "chunks": [
+              {
+                "file": "chunk_000000.npz",
+                "sha256": "5b0ffc4ec830801d64ed76b8eb733303b777d8fa7a7d90ff23b639cd48e4f02d",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000001.npz",
+                "sha256": "67ba06681669be186f333675a7e2dd2242f96f29ba082a066074478066d87344",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000002.npz",
+                "sha256": "4b858a25c3b887c46037f6b7539b66dcc031031fa9517d8834ac87cc35693edd",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000003.npz",
+                "sha256": "af5557fb909a130701ea1ad9ef47390d3865bbc37700ad1e59e8a41f0fbdaccc",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000004.npz",
+                "sha256": "344e3447aef8ec53d3e9b4c9791420bc0f900c721be4b43c813f764277001b6e",
+                "rows_half_open": [
+                  0,
+                  39
+                ],
+                "env_index": 0
+              }
+            ]
+          },
+          "value": {
+            "status": "measured",
+            "unknown_reason": null,
+            "counts": {
+              "total_rows": 295,
+              "finite_rows": 295,
+              "unknown_rows": 0,
+              "inside_edge_band_rows": 13,
+              "outside_rows": 1
+            },
+            "missing_steps": 0,
+            "nominal_bounds_rad": [
+              -2.722700050989595,
+              -0.8377599051700413
+            ],
+            "q_range_rad": [
+              -2.3587629795074463,
+              -0.8377530574798584
+            ],
+            "position_fraction_range": [
+              0.193076195172188,
+              1.0000036328422406
+            ],
+            "range_occupancy_fraction": 0.8069274376700527,
+            "minimum_signed_margin_rad": -6.847690182887334e-06,
+            "inside_edge_band_fraction": 0.04406779661016949,
+            "outside_fraction": 0.003389830508474576,
+            "sample_cell_seconds": {
+              "finite": 5.9,
+              "inside_edge_band": 0.26,
+              "outside": 0.02
+            },
+            "witnesses": {
+              "q_min": {
+                "step": 233,
+                "q_rad": -2.3587629795074463,
+                "lower_distance_rad": 0.3639370714821486,
+                "upper_distance_rad": 1.521003074337405,
+                "signed_margin_rad": 0.3639370714821486,
+                "position_fraction": 0.193076195172188,
+                "joint_column": 10,
+                "source": {
+                  "manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    233,
+                    234
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000003.npz",
+                      "sha256": "af5557fb909a130701ea1ad9ef47390d3865bbc37700ad1e59e8a41f0fbdaccc",
+                      "rows_half_open": [
+                        40,
+                        41
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              },
+              "q_max": {
+                "step": 3,
+                "q_rad": -0.8377530574798584,
+                "lower_distance_rad": 1.8849469935097365,
+                "upper_distance_rad": -6.847690182887334e-06,
+                "signed_margin_rad": -6.847690182887334e-06,
+                "position_fraction": 1.0000036328422406,
+                "joint_column": 10,
+                "source": {
+                  "manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    3,
+                    4
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000000.npz",
+                      "sha256": "5b0ffc4ec830801d64ed76b8eb733303b777d8fa7a7d90ff23b639cd48e4f02d",
+                      "rows_half_open": [
+                        2,
+                        3
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              },
+              "minimum_margin": {
+                "step": 3,
+                "q_rad": -0.8377530574798584,
+                "lower_distance_rad": 1.8849469935097365,
+                "upper_distance_rad": -6.847690182887334e-06,
+                "signed_margin_rad": -6.847690182887334e-06,
+                "position_fraction": 1.0000036328422406,
+                "joint_column": 10,
+                "source": {
+                  "manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    3,
+                    4
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000000.npz",
+                      "sha256": "5b0ffc4ec830801d64ed76b8eb733303b777d8fa7a7d90ff23b639cd48e4f02d",
+                      "rows_half_open": [
+                        2,
+                        3
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              }
+            },
+            "effective_limit_status": "unknown_not_recorded"
+          },
+          "base_catalog_version": "trajectory.p0.measurements.v2",
+          "asset_id": "b8a1ab9846cca1b282258cd9b8c871d5f6746bd9bbb85e3d38a34921d90614bb",
+          "record_id": "nominal-limit-evidence:5ff1af0adb926702a2649d9c982bc5eefabc33ffdb645b56ce9bccebf1cb0816"
+        }
+      },
+      "outside": {
+        "key": [
+          1,
+          0,
+          3,
+          10
+        ],
+        "joint_name": "RL_calf_joint",
+        "manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+        "chunk": "chunk_000000.npz",
+        "chunk_sha256": "5b0ffc4ec830801d64ed76b8eb733303b777d8fa7a7d90ff23b639cd48e4f02d",
+        "row": 2,
+        "raw_q_rad_all_joint_columns": [
+          0.08121290057897568,
+          -0.06737365573644638,
+          -0.23600611090660095,
+          0.29352113604545593,
+          0.3919330835342407,
+          0.44080647826194763,
+          0.6463111042976379,
+          0.690998375415802,
+          -1.5918257236480713,
+          -1.301863670349121,
+          -0.8377530574798584,
+          -0.8934869170188904
+        ],
+        "nominal_bounds_rad": [
+          -2.7227000509895944,
+          -0.8377599051700412
+        ],
+        "signed_margin_rad": -6.8476901827763115e-06,
+        "position_fraction": 1.0000036328422406,
+        "episode_measurement": {
+          "record_type": "measurement",
+          "episode_id": "episode:1fae9ede54f4cd16570bd340d36e3d5b7a795ffa90aa72c30b3951ef017db17b",
+          "key": "nominal_joint_limits",
+          "entity_ids": [
+            "RL_calf_joint"
+          ],
+          "unit": "rad; fraction; sampled s",
+          "frame": "nominal_usd_joint_coordinate",
+          "extractor_version": "trajectory.nominal_joint_limits.v1",
+          "catalog_version": "trajectory.p0.measurements.v4",
+          "measurement_config": {
+            "version": "nominal_joint_limits.v1",
+            "inside_edge_band_fraction": 0.05,
+            "threshold_source": "predeclared_descriptive_band_not_safety_limit",
+            "effective_limits": "unknown_not_recorded"
+          },
+          "evidence_ref": {
+            "manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+            "run_index": 1,
+            "channels": [
+              "joint_pos"
+            ],
+            "steps_half_open": [
+              1,
+              296
+            ],
+            "chunks": [
+              {
+                "file": "chunk_000000.npz",
+                "sha256": "5b0ffc4ec830801d64ed76b8eb733303b777d8fa7a7d90ff23b639cd48e4f02d",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000001.npz",
+                "sha256": "67ba06681669be186f333675a7e2dd2242f96f29ba082a066074478066d87344",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000002.npz",
+                "sha256": "4b858a25c3b887c46037f6b7539b66dcc031031fa9517d8834ac87cc35693edd",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000003.npz",
+                "sha256": "af5557fb909a130701ea1ad9ef47390d3865bbc37700ad1e59e8a41f0fbdaccc",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000004.npz",
+                "sha256": "344e3447aef8ec53d3e9b4c9791420bc0f900c721be4b43c813f764277001b6e",
+                "rows_half_open": [
+                  0,
+                  39
+                ],
+                "env_index": 0
+              }
+            ]
+          },
+          "value": {
+            "status": "measured",
+            "unknown_reason": null,
+            "counts": {
+              "total_rows": 295,
+              "finite_rows": 295,
+              "unknown_rows": 0,
+              "inside_edge_band_rows": 13,
+              "outside_rows": 1
+            },
+            "missing_steps": 0,
+            "nominal_bounds_rad": [
+              -2.722700050989595,
+              -0.8377599051700413
+            ],
+            "q_range_rad": [
+              -2.3587629795074463,
+              -0.8377530574798584
+            ],
+            "position_fraction_range": [
+              0.193076195172188,
+              1.0000036328422406
+            ],
+            "range_occupancy_fraction": 0.8069274376700527,
+            "minimum_signed_margin_rad": -6.847690182887334e-06,
+            "inside_edge_band_fraction": 0.04406779661016949,
+            "outside_fraction": 0.003389830508474576,
+            "sample_cell_seconds": {
+              "finite": 5.9,
+              "inside_edge_band": 0.26,
+              "outside": 0.02
+            },
+            "witnesses": {
+              "q_min": {
+                "step": 233,
+                "q_rad": -2.3587629795074463,
+                "lower_distance_rad": 0.3639370714821486,
+                "upper_distance_rad": 1.521003074337405,
+                "signed_margin_rad": 0.3639370714821486,
+                "position_fraction": 0.193076195172188,
+                "joint_column": 10,
+                "source": {
+                  "manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    233,
+                    234
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000003.npz",
+                      "sha256": "af5557fb909a130701ea1ad9ef47390d3865bbc37700ad1e59e8a41f0fbdaccc",
+                      "rows_half_open": [
+                        40,
+                        41
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              },
+              "q_max": {
+                "step": 3,
+                "q_rad": -0.8377530574798584,
+                "lower_distance_rad": 1.8849469935097365,
+                "upper_distance_rad": -6.847690182887334e-06,
+                "signed_margin_rad": -6.847690182887334e-06,
+                "position_fraction": 1.0000036328422406,
+                "joint_column": 10,
+                "source": {
+                  "manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    3,
+                    4
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000000.npz",
+                      "sha256": "5b0ffc4ec830801d64ed76b8eb733303b777d8fa7a7d90ff23b639cd48e4f02d",
+                      "rows_half_open": [
+                        2,
+                        3
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              },
+              "minimum_margin": {
+                "step": 3,
+                "q_rad": -0.8377530574798584,
+                "lower_distance_rad": 1.8849469935097365,
+                "upper_distance_rad": -6.847690182887334e-06,
+                "signed_margin_rad": -6.847690182887334e-06,
+                "position_fraction": 1.0000036328422406,
+                "joint_column": 10,
+                "source": {
+                  "manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    3,
+                    4
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000000.npz",
+                      "sha256": "5b0ffc4ec830801d64ed76b8eb733303b777d8fa7a7d90ff23b639cd48e4f02d",
+                      "rows_half_open": [
+                        2,
+                        3
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              }
+            },
+            "effective_limit_status": "unknown_not_recorded"
+          },
+          "base_catalog_version": "trajectory.p0.measurements.v2",
+          "asset_id": "b8a1ab9846cca1b282258cd9b8c871d5f6746bd9bbb85e3d38a34921d90614bb",
+          "record_id": "nominal-limit-evidence:5ff1af0adb926702a2649d9c982bc5eefabc33ffdb645b56ce9bccebf1cb0816"
+        }
+      }
+    },
+    "absent_example_categories": [],
+    "all_statements": [
+      {
+        "id": "nominal-limit-claim:9efbe7d67ae32b5a10148bfdbe15e3e4d26e100ddd9bd68a193b011309d4cae2",
+        "text": "FL_hip_joint: 4890/276949 finite recorded q samples lie inside the nominal USD 5% edge band; 809/276949 lie outside nominal bounds. Episode-equal median minimum signed margin 0.0269207rad; median range occupancy 0.521323. Unknown samples 0/276949. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:f46a5bbbccad42c6462753d50fe579e97c9718221e179e53758f6cfdec15cf33",
+        "text": "FR_hip_joint: 2985/276949 finite recorded q samples lie inside the nominal USD 5% edge band; 285/276949 lie outside nominal bounds. Episode-equal median minimum signed margin 0.0967397rad; median range occupancy 0.471946. Unknown samples 0/276949. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:27816a6540a0b2f6e7bbe80068093e2303bd004b73be7cc997ff283e0712afdb",
+        "text": "RL_hip_joint: 58/276949 finite recorded q samples lie inside the nominal USD 5% edge band; 3/276949 lie outside nominal bounds. Episode-equal median minimum signed margin 0.441975rad; median range occupancy 0.29719. Unknown samples 0/276949. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:6d94cf13d004416c2d25fc9931498497d2aef0e2b1769381981d49b20be8c2f2",
+        "text": "RR_hip_joint: 1412/276949 finite recorded q samples lie inside the nominal USD 5% edge band; 111/276949 lie outside nominal bounds. Episode-equal median minimum signed margin 0.343897rad; median range occupancy 0.336486. Unknown samples 0/276949. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:24952ca8b8b928f9b9dd79a37647b586ca3a219278bfb155dc416fc0fa6bb370",
+        "text": "FL_thigh_joint: 6/276949 finite recorded q samples lie inside the nominal USD 5% edge band; 7/276949 lie outside nominal bounds. Episode-equal median minimum signed margin 1.79213rad; median range occupancy 0.26899. Unknown samples 0/276949. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:55b5e4519faef71efc16069aaa7578cfedffada7a6187485f3d2f1593851cc8a",
+        "text": "FR_thigh_joint: 3/276949 finite recorded q samples lie inside the nominal USD 5% edge band; 0/276949 lie outside nominal bounds. Episode-equal median minimum signed margin 1.95409rad; median range occupancy 0.213774. Unknown samples 0/276949. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:e9550f4dbb2d7d36f81c2f39b86d4ed609728475b61efb75c8dc8de4d812f4f5",
+        "text": "RL_thigh_joint: 5/276949 finite recorded q samples lie inside the nominal USD 5% edge band; 2/276949 lie outside nominal bounds. Episode-equal median minimum signed margin 0.92883rad; median range occupancy 0.196619. Unknown samples 0/276949. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:32a6005a92f8cac0c075edf22174de390f353990c1e6064c4debd51e30e147ee",
+        "text": "RR_thigh_joint: 0/276949 finite recorded q samples lie inside the nominal USD 5% edge band; 0/276949 lie outside nominal bounds. Episode-equal median minimum signed margin 0.705491rad; median range occupancy 0.357169. Unknown samples 0/276949. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:1f5f977a67fd6bbc094d0b3d22c11cab3ea21ad9ef899e6ee6c6f77a3ecd3ef5",
+        "text": "FL_calf_joint: 8244/276949 finite recorded q samples lie inside the nominal USD 5% edge band; 2092/276949 lie outside nominal bounds. Episode-equal median minimum signed margin 6.84397e-09rad; median range occupancy 0.924136. Unknown samples 0/276949. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:bbd701c544bbb41d6894e6d4fcaa66afb2766e422361601f0b7cb699f8ce5434",
+        "text": "FR_calf_joint: 4926/276949 finite recorded q samples lie inside the nominal USD 5% edge band; 1168/276949 lie outside nominal bounds. Episode-equal median minimum signed margin 5.8481e-06rad; median range occupancy 0.872514. Unknown samples 0/276949. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:763b38a36840b42772e88f14205c6a6daabefe0a644fb4a5e14b4a25617043d7",
+        "text": "RL_calf_joint: 12798/276949 finite recorded q samples lie inside the nominal USD 5% edge band; 3434/276949 lie outside nominal bounds. Episode-equal median minimum signed margin -2.94359e-06rad; median range occupancy 0.87465. Unknown samples 0/276949. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:b4e1224e31283f9eaaae788fef8e7fce6644284c67e068ce74eb46e491ad0bc2",
+        "text": "RR_calf_joint: 3408/276949 finite recorded q samples lie inside the nominal USD 5% edge band; 449/276949 lie outside nominal bounds. Episode-equal median minimum signed margin 0.000758655rad; median range occupancy 0.852236. Unknown samples 0/276949. Effective runtime limits unknown; no saturation or cause claim."
+      }
+    ]
+  },
+  "k3": {
+    "raw_examples": {
+      "ordinary_inside": {
+        "key": [
+          1,
+          0,
+          1,
+          0
+        ],
+        "joint_name": "FL_hip_joint",
+        "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+        "chunk": "chunk_000000.npz",
+        "chunk_sha256": "5f5e89aef9bf56a51d638be61c33783abe8473e79337bc2743599fd96b5e0e6b",
+        "row": 0,
+        "raw_q_rad_all_joint_columns": [
+          0.09907517582178116,
+          -0.08166740089654922,
+          -0.02068549208343029,
+          0.06349965929985046,
+          0.7395912408828735,
+          0.6864085793495178,
+          0.8849985003471375,
+          0.9519519805908203,
+          -1.622140884399414,
+          -1.4141947031021118,
+          -1.1859835386276245,
+          -1.6151559352874756
+        ],
+        "nominal_bounds_rad": [
+          -1.0471998814625516,
+          1.0471998814625516
+        ],
+        "signed_margin_rad": 0.9481247056407704,
+        "position_fraction": 0.547304806644654,
+        "episode_measurement": {
+          "record_type": "measurement",
+          "episode_id": "episode:ebf2d000b6407a81e9d6ec77d5ae91da44c6f67647d94f89a2607dfa6fab0b9c",
+          "key": "nominal_joint_limits",
+          "entity_ids": [
+            "FL_hip_joint"
+          ],
+          "unit": "rad; fraction; sampled s",
+          "frame": "nominal_usd_joint_coordinate",
+          "extractor_version": "trajectory.nominal_joint_limits.v1",
+          "catalog_version": "trajectory.p0.measurements.v4",
+          "measurement_config": {
+            "version": "nominal_joint_limits.v1",
+            "inside_edge_band_fraction": 0.05,
+            "threshold_source": "predeclared_descriptive_band_not_safety_limit",
+            "effective_limits": "unknown_not_recorded"
+          },
+          "evidence_ref": {
+            "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+            "run_index": 1,
+            "channels": [
+              "joint_pos"
+            ],
+            "steps_half_open": [
+              1,
+              311
+            ],
+            "chunks": [
+              {
+                "file": "chunk_000000.npz",
+                "sha256": "5f5e89aef9bf56a51d638be61c33783abe8473e79337bc2743599fd96b5e0e6b",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000001.npz",
+                "sha256": "c60f501d8570e604f6191aae1c43d96ba4dc190c7c72eeea9a573d62ff7850ec",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000002.npz",
+                "sha256": "c3af7b8c4d0bafd9e2b681d4397a860aab190a5f760fcd33ab065f3276f182a2",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000003.npz",
+                "sha256": "b9158bfb8f21b261f21191186a3653501fdf12ef87dee3d9a960919ab86a43cc",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000004.npz",
+                "sha256": "e24c1e6f1211b9a214195ff27a6d57d59cc46ce88e34c031be4e612522444586",
+                "rows_half_open": [
+                  0,
+                  54
+                ],
+                "env_index": 0
+              }
+            ]
+          },
+          "value": {
+            "status": "measured",
+            "unknown_reason": null,
+            "counts": {
+              "total_rows": 310,
+              "finite_rows": 310,
+              "unknown_rows": 0,
+              "inside_edge_band_rows": 0,
+              "outside_rows": 0
+            },
+            "missing_steps": 0,
+            "nominal_bounds_rad": [
+              -1.0471998814625516,
+              1.0471998814625516
+            ],
+            "q_range_rad": [
+              -0.27495789527893066,
+              0.8593429923057556
+            ],
+            "position_fraction_range": [
+              0.3687175676075727,
+              0.910305142083081
+            ],
+            "range_occupancy_fraction": 0.5415875744755083,
+            "minimum_signed_margin_rad": 0.187856889156796,
+            "inside_edge_band_fraction": 0.0,
+            "outside_fraction": 0.0,
+            "sample_cell_seconds": {
+              "finite": 6.2,
+              "inside_edge_band": 0.0,
+              "outside": 0.0
+            },
+            "witnesses": {
+              "q_min": {
+                "step": 309,
+                "q_rad": -0.27495789527893066,
+                "lower_distance_rad": 0.7722419861836209,
+                "upper_distance_rad": 1.3221577767414823,
+                "signed_margin_rad": 0.7722419861836209,
+                "position_fraction": 0.3687175676075727,
+                "joint_column": 0,
+                "source": {
+                  "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    309,
+                    310
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000004.npz",
+                      "sha256": "e24c1e6f1211b9a214195ff27a6d57d59cc46ce88e34c031be4e612522444586",
+                      "rows_half_open": [
+                        52,
+                        53
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              },
+              "q_max": {
+                "step": 130,
+                "q_rad": 0.8593429923057556,
+                "lower_distance_rad": 1.9065428737683072,
+                "upper_distance_rad": 0.187856889156796,
+                "signed_margin_rad": 0.187856889156796,
+                "position_fraction": 0.910305142083081,
+                "joint_column": 0,
+                "source": {
+                  "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    130,
+                    131
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000002.npz",
+                      "sha256": "c3af7b8c4d0bafd9e2b681d4397a860aab190a5f760fcd33ab065f3276f182a2",
+                      "rows_half_open": [
+                        1,
+                        2
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              },
+              "minimum_margin": {
+                "step": 130,
+                "q_rad": 0.8593429923057556,
+                "lower_distance_rad": 1.9065428737683072,
+                "upper_distance_rad": 0.187856889156796,
+                "signed_margin_rad": 0.187856889156796,
+                "position_fraction": 0.910305142083081,
+                "joint_column": 0,
+                "source": {
+                  "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    130,
+                    131
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000002.npz",
+                      "sha256": "c3af7b8c4d0bafd9e2b681d4397a860aab190a5f760fcd33ab065f3276f182a2",
+                      "rows_half_open": [
+                        1,
+                        2
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              }
+            },
+            "effective_limit_status": "unknown_not_recorded"
+          },
+          "base_catalog_version": "trajectory.p0.measurements.v2",
+          "asset_id": "b8a1ab9846cca1b282258cd9b8c871d5f6746bd9bbb85e3d38a34921d90614bb",
+          "record_id": "nominal-limit-evidence:c3e777c0771d6345863f5cbcfe0335ff84a60fc697ba0ba4053505bf35e7217e"
+        }
+      },
+      "inside_edge_band": {
+        "key": [
+          1,
+          0,
+          2,
+          10
+        ],
+        "joint_name": "RL_calf_joint",
+        "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+        "chunk": "chunk_000000.npz",
+        "chunk_sha256": "5f5e89aef9bf56a51d638be61c33783abe8473e79337bc2743599fd96b5e0e6b",
+        "row": 1,
+        "raw_q_rad_all_joint_columns": [
+          0.0648086816072464,
+          -0.045309022068977356,
+          -0.19223536550998688,
+          0.24853281676769257,
+          0.5764354467391968,
+          0.49893924593925476,
+          0.749011754989624,
+          0.7874536514282227,
+          -1.6963310241699219,
+          -1.3210734128952026,
+          -0.8719635009765625,
+          -1.6397839784622192
+        ],
+        "nominal_bounds_rad": [
+          -2.7227000509895944,
+          -0.8377599051700412
+        ],
+        "signed_margin_rad": 0.034203595806521325,
+        "position_fraction": 0.9818542801571825,
+        "episode_measurement": {
+          "record_type": "measurement",
+          "episode_id": "episode:ebf2d000b6407a81e9d6ec77d5ae91da44c6f67647d94f89a2607dfa6fab0b9c",
+          "key": "nominal_joint_limits",
+          "entity_ids": [
+            "RL_calf_joint"
+          ],
+          "unit": "rad; fraction; sampled s",
+          "frame": "nominal_usd_joint_coordinate",
+          "extractor_version": "trajectory.nominal_joint_limits.v1",
+          "catalog_version": "trajectory.p0.measurements.v4",
+          "measurement_config": {
+            "version": "nominal_joint_limits.v1",
+            "inside_edge_band_fraction": 0.05,
+            "threshold_source": "predeclared_descriptive_band_not_safety_limit",
+            "effective_limits": "unknown_not_recorded"
+          },
+          "evidence_ref": {
+            "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+            "run_index": 1,
+            "channels": [
+              "joint_pos"
+            ],
+            "steps_half_open": [
+              1,
+              311
+            ],
+            "chunks": [
+              {
+                "file": "chunk_000000.npz",
+                "sha256": "5f5e89aef9bf56a51d638be61c33783abe8473e79337bc2743599fd96b5e0e6b",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000001.npz",
+                "sha256": "c60f501d8570e604f6191aae1c43d96ba4dc190c7c72eeea9a573d62ff7850ec",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000002.npz",
+                "sha256": "c3af7b8c4d0bafd9e2b681d4397a860aab190a5f760fcd33ab065f3276f182a2",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000003.npz",
+                "sha256": "b9158bfb8f21b261f21191186a3653501fdf12ef87dee3d9a960919ab86a43cc",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000004.npz",
+                "sha256": "e24c1e6f1211b9a214195ff27a6d57d59cc46ce88e34c031be4e612522444586",
+                "rows_half_open": [
+                  0,
+                  54
+                ],
+                "env_index": 0
+              }
+            ]
+          },
+          "value": {
+            "status": "measured",
+            "unknown_reason": null,
+            "counts": {
+              "total_rows": 310,
+              "finite_rows": 310,
+              "unknown_rows": 0,
+              "inside_edge_band_rows": 212,
+              "outside_rows": 47
+            },
+            "missing_steps": 0,
+            "nominal_bounds_rad": [
+              -2.722700050989595,
+              -0.8377599051700413
+            ],
+            "q_range_rad": [
+              -1.5548744201660156,
+              -0.8346846699714661
+            ],
+            "position_fraction_range": [
+              0.6195558163550176,
+              1.001631476312601
+            ],
+            "range_occupancy_fraction": 0.38207565995758347,
+            "minimum_signed_margin_rad": -0.0030752351985752213,
+            "inside_edge_band_fraction": 0.6838709677419355,
+            "outside_fraction": 0.15161290322580645,
+            "sample_cell_seconds": {
+              "finite": 6.2,
+              "inside_edge_band": 4.24,
+              "outside": 0.9400000000000001
+            },
+            "witnesses": {
+              "q_min": {
+                "step": 298,
+                "q_rad": -1.5548744201660156,
+                "lower_distance_rad": 1.1678256308235793,
+                "upper_distance_rad": 0.7171145149959743,
+                "signed_margin_rad": 0.7171145149959743,
+                "position_fraction": 0.6195558163550176,
+                "joint_column": 10,
+                "source": {
+                  "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    298,
+                    299
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000004.npz",
+                      "sha256": "e24c1e6f1211b9a214195ff27a6d57d59cc46ce88e34c031be4e612522444586",
+                      "rows_half_open": [
+                        41,
+                        42
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              },
+              "q_max": {
+                "step": 222,
+                "q_rad": -0.8346846699714661,
+                "lower_distance_rad": 1.8880153810181288,
+                "upper_distance_rad": -0.0030752351985752213,
+                "signed_margin_rad": -0.0030752351985752213,
+                "position_fraction": 1.001631476312601,
+                "joint_column": 10,
+                "source": {
+                  "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    222,
+                    223
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000003.npz",
+                      "sha256": "b9158bfb8f21b261f21191186a3653501fdf12ef87dee3d9a960919ab86a43cc",
+                      "rows_half_open": [
+                        29,
+                        30
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              },
+              "minimum_margin": {
+                "step": 222,
+                "q_rad": -0.8346846699714661,
+                "lower_distance_rad": 1.8880153810181288,
+                "upper_distance_rad": -0.0030752351985752213,
+                "signed_margin_rad": -0.0030752351985752213,
+                "position_fraction": 1.001631476312601,
+                "joint_column": 10,
+                "source": {
+                  "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    222,
+                    223
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000003.npz",
+                      "sha256": "b9158bfb8f21b261f21191186a3653501fdf12ef87dee3d9a960919ab86a43cc",
+                      "rows_half_open": [
+                        29,
+                        30
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              }
+            },
+            "effective_limit_status": "unknown_not_recorded"
+          },
+          "base_catalog_version": "trajectory.p0.measurements.v2",
+          "asset_id": "b8a1ab9846cca1b282258cd9b8c871d5f6746bd9bbb85e3d38a34921d90614bb",
+          "record_id": "nominal-limit-evidence:2beefd621f4a5c126ce4aadd57533b88f76d0523a1f6dd7daa1244315c1bac2a"
+        }
+      },
+      "outside": {
+        "key": [
+          1,
+          0,
+          38,
+          10
+        ],
+        "joint_name": "RL_calf_joint",
+        "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+        "chunk": "chunk_000000.npz",
+        "chunk_sha256": "5f5e89aef9bf56a51d638be61c33783abe8473e79337bc2743599fd96b5e0e6b",
+        "row": 37,
+        "raw_q_rad_all_joint_columns": [
+          -0.050999101251363754,
+          -0.1010342463850975,
+          -0.3118126094341278,
+          0.7146232724189758,
+          1.2125993967056274,
+          1.0547137260437012,
+          1.5653181076049805,
+          1.378269910812378,
+          -1.688889503479004,
+          -1.6460657119750977,
+          -0.8377596139907837,
+          -1.9348933696746826
+        ],
+        "nominal_bounds_rad": [
+          -2.7227000509895944,
+          -0.8377599051700412
+        ],
+        "signed_margin_rad": -2.911792574833427e-07,
+        "position_fraction": 1.0000001544766597,
+        "episode_measurement": {
+          "record_type": "measurement",
+          "episode_id": "episode:ebf2d000b6407a81e9d6ec77d5ae91da44c6f67647d94f89a2607dfa6fab0b9c",
+          "key": "nominal_joint_limits",
+          "entity_ids": [
+            "RL_calf_joint"
+          ],
+          "unit": "rad; fraction; sampled s",
+          "frame": "nominal_usd_joint_coordinate",
+          "extractor_version": "trajectory.nominal_joint_limits.v1",
+          "catalog_version": "trajectory.p0.measurements.v4",
+          "measurement_config": {
+            "version": "nominal_joint_limits.v1",
+            "inside_edge_band_fraction": 0.05,
+            "threshold_source": "predeclared_descriptive_band_not_safety_limit",
+            "effective_limits": "unknown_not_recorded"
+          },
+          "evidence_ref": {
+            "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+            "run_index": 1,
+            "channels": [
+              "joint_pos"
+            ],
+            "steps_half_open": [
+              1,
+              311
+            ],
+            "chunks": [
+              {
+                "file": "chunk_000000.npz",
+                "sha256": "5f5e89aef9bf56a51d638be61c33783abe8473e79337bc2743599fd96b5e0e6b",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000001.npz",
+                "sha256": "c60f501d8570e604f6191aae1c43d96ba4dc190c7c72eeea9a573d62ff7850ec",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000002.npz",
+                "sha256": "c3af7b8c4d0bafd9e2b681d4397a860aab190a5f760fcd33ab065f3276f182a2",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000003.npz",
+                "sha256": "b9158bfb8f21b261f21191186a3653501fdf12ef87dee3d9a960919ab86a43cc",
+                "rows_half_open": [
+                  0,
+                  64
+                ],
+                "env_index": 0
+              },
+              {
+                "file": "chunk_000004.npz",
+                "sha256": "e24c1e6f1211b9a214195ff27a6d57d59cc46ce88e34c031be4e612522444586",
+                "rows_half_open": [
+                  0,
+                  54
+                ],
+                "env_index": 0
+              }
+            ]
+          },
+          "value": {
+            "status": "measured",
+            "unknown_reason": null,
+            "counts": {
+              "total_rows": 310,
+              "finite_rows": 310,
+              "unknown_rows": 0,
+              "inside_edge_band_rows": 212,
+              "outside_rows": 47
+            },
+            "missing_steps": 0,
+            "nominal_bounds_rad": [
+              -2.722700050989595,
+              -0.8377599051700413
+            ],
+            "q_range_rad": [
+              -1.5548744201660156,
+              -0.8346846699714661
+            ],
+            "position_fraction_range": [
+              0.6195558163550176,
+              1.001631476312601
+            ],
+            "range_occupancy_fraction": 0.38207565995758347,
+            "minimum_signed_margin_rad": -0.0030752351985752213,
+            "inside_edge_band_fraction": 0.6838709677419355,
+            "outside_fraction": 0.15161290322580645,
+            "sample_cell_seconds": {
+              "finite": 6.2,
+              "inside_edge_band": 4.24,
+              "outside": 0.9400000000000001
+            },
+            "witnesses": {
+              "q_min": {
+                "step": 298,
+                "q_rad": -1.5548744201660156,
+                "lower_distance_rad": 1.1678256308235793,
+                "upper_distance_rad": 0.7171145149959743,
+                "signed_margin_rad": 0.7171145149959743,
+                "position_fraction": 0.6195558163550176,
+                "joint_column": 10,
+                "source": {
+                  "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    298,
+                    299
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000004.npz",
+                      "sha256": "e24c1e6f1211b9a214195ff27a6d57d59cc46ce88e34c031be4e612522444586",
+                      "rows_half_open": [
+                        41,
+                        42
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              },
+              "q_max": {
+                "step": 222,
+                "q_rad": -0.8346846699714661,
+                "lower_distance_rad": 1.8880153810181288,
+                "upper_distance_rad": -0.0030752351985752213,
+                "signed_margin_rad": -0.0030752351985752213,
+                "position_fraction": 1.001631476312601,
+                "joint_column": 10,
+                "source": {
+                  "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    222,
+                    223
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000003.npz",
+                      "sha256": "b9158bfb8f21b261f21191186a3653501fdf12ef87dee3d9a960919ab86a43cc",
+                      "rows_half_open": [
+                        29,
+                        30
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              },
+              "minimum_margin": {
+                "step": 222,
+                "q_rad": -0.8346846699714661,
+                "lower_distance_rad": 1.8880153810181288,
+                "upper_distance_rad": -0.0030752351985752213,
+                "signed_margin_rad": -0.0030752351985752213,
+                "position_fraction": 1.001631476312601,
+                "joint_column": 10,
+                "source": {
+                  "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+                  "run_index": 1,
+                  "channels": [
+                    "joint_pos"
+                  ],
+                  "steps_half_open": [
+                    222,
+                    223
+                  ],
+                  "chunks": [
+                    {
+                      "file": "chunk_000003.npz",
+                      "sha256": "b9158bfb8f21b261f21191186a3653501fdf12ef87dee3d9a960919ab86a43cc",
+                      "rows_half_open": [
+                        29,
+                        30
+                      ],
+                      "env_index": 0
+                    }
+                  ]
+                }
+              }
+            },
+            "effective_limit_status": "unknown_not_recorded"
+          },
+          "base_catalog_version": "trajectory.p0.measurements.v2",
+          "asset_id": "b8a1ab9846cca1b282258cd9b8c871d5f6746bd9bbb85e3d38a34921d90614bb",
+          "record_id": "nominal-limit-evidence:2beefd621f4a5c126ce4aadd57533b88f76d0523a1f6dd7daa1244315c1bac2a"
+        }
+      }
+    },
+    "absent_example_categories": [],
+    "all_statements": [
+      {
+        "id": "nominal-limit-claim:d0753dbf0c50a5a98f3fb8cce9e37109b4936d7ecd6e9101c96a8d8251ce54c4",
+        "text": "FL_hip_joint: 11170/298375 finite recorded q samples lie inside the nominal USD 5% edge band; 4073/298375 lie outside nominal bounds. Episode-equal median minimum signed margin -2.52685e-06rad; median range occupancy 0.583645. Unknown samples 0/298375. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:218e1530eb1c51ceb9e1c2e0eb0b61768a39a7e3efa3bb7c96255b49a2108408",
+        "text": "FR_hip_joint: 8829/298375 finite recorded q samples lie inside the nominal USD 5% edge band; 1188/298375 lie outside nominal bounds. Episode-equal median minimum signed margin -8.30608e-08rad; median range occupancy 0.517647. Unknown samples 0/298375. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:821b6c67ce8849ff601032117df77f9d1da48a7dd95050e23d524c2387a85efd",
+        "text": "RL_hip_joint: 3891/298375 finite recorded q samples lie inside the nominal USD 5% edge band; 297/298375 lie outside nominal bounds. Episode-equal median minimum signed margin 0.576163rad; median range occupancy 0.221038. Unknown samples 0/298375. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:81cc144bebbd245ace216e39b1a7ae025c68b6a2d8efcee9d2f0f746a896b7a4",
+        "text": "RR_hip_joint: 2406/298375 finite recorded q samples lie inside the nominal USD 5% edge band; 192/298375 lie outside nominal bounds. Episode-equal median minimum signed margin 0.143374rad; median range occupancy 0.413009. Unknown samples 0/298375. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:32bef120477e97dfdecafc55ea0f771b697e33d57ed643dbaf8c931759ead952",
+        "text": "FL_thigh_joint: 43/298375 finite recorded q samples lie inside the nominal USD 5% edge band; 65/298375 lie outside nominal bounds. Episode-equal median minimum signed margin 1.66165rad; median range occupancy 0.330142. Unknown samples 0/298375. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:a9126645f5bae037827b8b042edbd803fdf748b127ee9d2956d5abeb33f3ffdd",
+        "text": "FR_thigh_joint: 6/298375 finite recorded q samples lie inside the nominal USD 5% edge band; 0/298375 lie outside nominal bounds. Episode-equal median minimum signed margin 1.67977rad; median range occupancy 0.288035. Unknown samples 0/298375. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:4c540d2b58d3cd162a2d18b4fbf661d16aa12590bd7d84a96c010c562611e716",
+        "text": "RL_thigh_joint: 3/298375 finite recorded q samples lie inside the nominal USD 5% edge band; 0/298375 lie outside nominal bounds. Episode-equal median minimum signed margin 1.17549rad; median range occupancy 0.22138. Unknown samples 0/298375. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:e8e6548df39220448d899e28dae0c52d824a247bbda55d1b4efdfd12087983f3",
+        "text": "RR_thigh_joint: 0/298375 finite recorded q samples lie inside the nominal USD 5% edge band; 0/298375 lie outside nominal bounds. Episode-equal median minimum signed margin 0.995824rad; median range occupancy 0.252987. Unknown samples 0/298375. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:2e6d7b8a4ec3e08f31625f637ddf7a5a6ebffb9a6d530ed93ecd72fa8713bfa3",
+        "text": "FL_calf_joint: 11702/298375 finite recorded q samples lie inside the nominal USD 5% edge band; 1250/298375 lie outside nominal bounds. Episode-equal median minimum signed margin 0.0201372rad; median range occupancy 0.917276. Unknown samples 0/298375. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:17f75c0d5b827e1dbac30ebf941e0f444b1be49c02476f44ca950eea9414de36",
+        "text": "FR_calf_joint: 20138/298375 finite recorded q samples lie inside the nominal USD 5% edge band; 2045/298375 lie outside nominal bounds. Episode-equal median minimum signed margin 0.00845621rad; median range occupancy 0.777492. Unknown samples 0/298375. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:157a27ed929481db68efb8cb7aa3c62f016b06709aacde148b730a9bd372eaa7",
+        "text": "RL_calf_joint: 175661/298375 finite recorded q samples lie inside the nominal USD 5% edge band; 54635/298375 lie outside nominal bounds. Episode-equal median minimum signed margin -0.0052905rad; median range occupancy 0.406794. Unknown samples 0/298375. Effective runtime limits unknown; no saturation or cause claim."
+      },
+      {
+        "id": "nominal-limit-claim:dd69c8cd845e84b547940f52da694011eba95f071f07bdc535ea898ea328aba3",
+        "text": "RR_calf_joint: 30618/298375 finite recorded q samples lie inside the nominal USD 5% edge band; 10822/298375 lie outside nominal bounds. Episode-equal median minimum signed margin -4.94352e-05rad; median range occupancy 1. Unknown samples 0/298375. Effective runtime limits unknown; no saturation or cause claim."
+      }
+    ]
+  }
+}

@@ -1,0 +1,3646 @@
+{
+  "status": "development_and_internal_readonly_review_PASS_pending_parent_independent_gate",
+  "baseline_commit": "68a60710a9d13534460a7f53755106189ad20bd3",
+  "prefreeze_commit": "574b841c",
+  "qualification": "nominal configuration/reference-point heights only; not actual runtime surface or production delivery",
+  "selected_final_commands": [
+    {
+      "name": "independent_spotcheck",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\final_audit_01\\independent_spotcheck.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/independent_spotcheck.py"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/independent_spotcheck.py"
+      ],
+      "wall_seconds": 9.057743099983782,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 110825472
+      },
+      "stdout_sha256": "1b5ad1dc4ff8cc5f1ec5221bf3c7b5177a53ac1f79b3fe124ff123c9bb647739",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/final_audit_01/command_receipts.json",
+        "bytes": 6407,
+        "sha256": "3b802c5a95cc44e441c52e6de8a9eb0e3b5ee664c9b1798477820b5e046c7658"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/final_audit_01/independent_spotcheck.stdout.txt",
+          "bytes": 1668,
+          "sha256": "1b5ad1dc4ff8cc5f1ec5221bf3c7b5177a53ac1f79b3fe124ff123c9bb647739"
+        },
+        {
+          "path": "outputs/p2c3/final_audit_01/independent_spotcheck.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/final_audit_01/independent_spotcheck.memory.json",
+          "bytes": 97,
+          "sha256": "39d85ba870b7640d532d3da890f8728574d8467824c15f668fa1b58d9f9b0896"
+        }
+      ]
+    },
+    {
+      "name": "oracle_k1",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_03\\oracle_k1.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k1",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k1",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_03\\k1_audit.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k1",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k1",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_03\\k1_audit.json"
+      ],
+      "wall_seconds": 11.540350000024773,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 205701120
+      },
+      "stdout_sha256": "d9f4c20b9ef532203d9f398079d31b5ac049bfad32cfb876548d39c284baaeba",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/raw_audit_03/command_receipts.json",
+        "bytes": 4287,
+        "sha256": "e6d2066c85a6e11c56d40e40c2a22e449db0ec584d1dee955e44036f4f6d7e3b"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/raw_audit_03/oracle_k1.stdout.txt",
+          "bytes": 380,
+          "sha256": "d9f4c20b9ef532203d9f398079d31b5ac049bfad32cfb876548d39c284baaeba"
+        },
+        {
+          "path": "outputs/p2c3/raw_audit_03/oracle_k1.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/raw_audit_03/oracle_k1.memory.json",
+          "bytes": 97,
+          "sha256": "f97551cce0e3eb347e0382cde799ea5f234777cd36c9a34072d40d1ec1f9e49a"
+        }
+      ]
+    },
+    {
+      "name": "oracle_k2",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_03\\oracle_k2.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k2",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k2",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_03\\k2_audit.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k2",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k2",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_03\\k2_audit.json"
+      ],
+      "wall_seconds": 11.40159079991281,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 206000128
+      },
+      "stdout_sha256": "5c5bcc057db242280c2c1e43f7984624cac12e0ed7d36cb73264a6e6e28589cd",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/raw_audit_03/command_receipts.json",
+        "bytes": 4287,
+        "sha256": "e6d2066c85a6e11c56d40e40c2a22e449db0ec584d1dee955e44036f4f6d7e3b"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/raw_audit_03/oracle_k2.stdout.txt",
+          "bytes": 381,
+          "sha256": "5c5bcc057db242280c2c1e43f7984624cac12e0ed7d36cb73264a6e6e28589cd"
+        },
+        {
+          "path": "outputs/p2c3/raw_audit_03/oracle_k2.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/raw_audit_03/oracle_k2.memory.json",
+          "bytes": 97,
+          "sha256": "38fdf4a099368a38fa335b1f5e933e9a37a04f098b36c1451c6ac5a44670fb5d"
+        }
+      ]
+    },
+    {
+      "name": "oracle_k3",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_03\\oracle_k3.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k3",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k3",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_03\\k3_audit.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k3",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k3",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_03\\k3_audit.json"
+      ],
+      "wall_seconds": 11.99964519997593,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 211320832
+      },
+      "stdout_sha256": "62564cc584c8c13da19aede50a8cb98e498c1151f1dc04a26662b5667b95335a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/raw_audit_03/command_receipts.json",
+        "bytes": 4287,
+        "sha256": "e6d2066c85a6e11c56d40e40c2a22e449db0ec584d1dee955e44036f4f6d7e3b"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/raw_audit_03/oracle_k3.stdout.txt",
+          "bytes": 381,
+          "sha256": "62564cc584c8c13da19aede50a8cb98e498c1151f1dc04a26662b5667b95335a"
+        },
+        {
+          "path": "outputs/p2c3/raw_audit_03/oracle_k3.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/raw_audit_03/oracle_k3.memory.json",
+          "bytes": 97,
+          "sha256": "7dd3cb1a7721ab5e8a3832855f48926df95758e73c74628e6ce3ed6a54468f5e"
+        }
+      ]
+    },
+    {
+      "name": "build_k1",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\build_k1.memory.json",
+        "scripts/build_stair_terrain_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1d\\raw\\k1_numeric_evidence\\manifest.json",
+        "--manifest-sha256",
+        "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+        "--source-id",
+        "k1",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k1",
+        "--qualification",
+        "outputs/p2c3/historical_02/stdout.json",
+        "--qualification-sha256",
+        "84aecf9e412be7578ee567ca65cc1c6ff48351f8f45c1fb789a1a61913e8a48f",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k1\\public.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/build_stair_terrain_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1d\\raw\\k1_numeric_evidence\\manifest.json",
+        "--manifest-sha256",
+        "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+        "--source-id",
+        "k1",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k1",
+        "--qualification",
+        "outputs/p2c3/historical_02/stdout.json",
+        "--qualification-sha256",
+        "84aecf9e412be7578ee567ca65cc1c6ff48351f8f45c1fb789a1a61913e8a48f",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k1\\public.json"
+      ],
+      "wall_seconds": 8.652436599950306,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 246108160
+      },
+      "stdout_sha256": "452a892976b20a80e297c25cbd2b118305a223ccfc949d0154d9c5ed1541ac5a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/real_03/command_receipts.json",
+        "bytes": 10197,
+        "sha256": "bdee4b2893ad3599aeec264bc5322f060e591741964ed96794165176aca361ed"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/real_03/build_k1.stdout.txt",
+          "bytes": 10890,
+          "sha256": "452a892976b20a80e297c25cbd2b118305a223ccfc949d0154d9c5ed1541ac5a"
+        },
+        {
+          "path": "outputs/p2c3/real_03/build_k1.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/real_03/build_k1.memory.json",
+          "bytes": 97,
+          "sha256": "94f369f8b430fd9cf3cb53143b33439fb326f2ca65f0535b8cd0153738d481f4"
+        }
+      ]
+    },
+    {
+      "name": "build_k2",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\build_k2.memory.json",
+        "scripts/build_stair_terrain_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\raw\\k2\\manifest.json",
+        "--manifest-sha256",
+        "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+        "--source-id",
+        "k2",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k2",
+        "--qualification",
+        "outputs/p2c3/historical_02/stdout.json",
+        "--qualification-sha256",
+        "84aecf9e412be7578ee567ca65cc1c6ff48351f8f45c1fb789a1a61913e8a48f",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k2\\public.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/build_stair_terrain_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\raw\\k2\\manifest.json",
+        "--manifest-sha256",
+        "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+        "--source-id",
+        "k2",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k2",
+        "--qualification",
+        "outputs/p2c3/historical_02/stdout.json",
+        "--qualification-sha256",
+        "84aecf9e412be7578ee567ca65cc1c6ff48351f8f45c1fb789a1a61913e8a48f",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k2\\public.json"
+      ],
+      "wall_seconds": 7.714013300021179,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 246784000
+      },
+      "stdout_sha256": "e361707500447d252de480b5dc6cd04e203a67ebcf548cd709a90dfe6dfb34bd",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/real_03/command_receipts.json",
+        "bytes": 10197,
+        "sha256": "bdee4b2893ad3599aeec264bc5322f060e591741964ed96794165176aca361ed"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/real_03/build_k2.stdout.txt",
+          "bytes": 10870,
+          "sha256": "e361707500447d252de480b5dc6cd04e203a67ebcf548cd709a90dfe6dfb34bd"
+        },
+        {
+          "path": "outputs/p2c3/real_03/build_k2.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/real_03/build_k2.memory.json",
+          "bytes": 97,
+          "sha256": "340a305210cd250807f4f19b123c098ea165de3bd13bb17a07b0773f3e87a1ff"
+        }
+      ]
+    },
+    {
+      "name": "build_k3",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\build_k3.memory.json",
+        "scripts/build_stair_terrain_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p0\\raw\\numeric_evidence\\manifest.json",
+        "--manifest-sha256",
+        "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+        "--source-id",
+        "k3",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k3",
+        "--qualification",
+        "outputs/p2c3/historical_02/stdout.json",
+        "--qualification-sha256",
+        "84aecf9e412be7578ee567ca65cc1c6ff48351f8f45c1fb789a1a61913e8a48f",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k3\\public.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/build_stair_terrain_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p0\\raw\\numeric_evidence\\manifest.json",
+        "--manifest-sha256",
+        "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+        "--source-id",
+        "k3",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k3",
+        "--qualification",
+        "outputs/p2c3/historical_02/stdout.json",
+        "--qualification-sha256",
+        "84aecf9e412be7578ee567ca65cc1c6ff48351f8f45c1fb789a1a61913e8a48f",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k3\\public.json"
+      ],
+      "wall_seconds": 8.684207800077274,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 255324160
+      },
+      "stdout_sha256": "7b62ca54815e0ee812de081200336c6ed80344b1067f4d1e2e2b82fb1cbbd4e0",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/real_03/command_receipts.json",
+        "bytes": 10197,
+        "sha256": "bdee4b2893ad3599aeec264bc5322f060e591741964ed96794165176aca361ed"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/real_03/build_k3.stdout.txt",
+          "bytes": 10916,
+          "sha256": "7b62ca54815e0ee812de081200336c6ed80344b1067f4d1e2e2b82fb1cbbd4e0"
+        },
+        {
+          "path": "outputs/p2c3/real_03/build_k3.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/real_03/build_k3.memory.json",
+          "bytes": 97,
+          "sha256": "bf4ed7978fd0d846776defec24bd02727225d75d328d05844bfac98aba30d516"
+        }
+      ]
+    },
+    {
+      "name": "compatibility",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\tests_03\\compatibility.memory.json",
+        "-m",
+        "unittest",
+        "tests.unit.test_joint_limits",
+        "tests.unit.test_trajectory_cycles",
+        "tests.unit.test_stair_cycle_supplement",
+        "tests.unit.test_stair_trajectory_report",
+        "tests.unit.test_stair_trajectory_pipeline",
+        "tests.unit.test_trajectory_card",
+        "tests.unit.test_trajectory_measurement",
+        "tests.unit.test_trajectory_cohort",
+        "tests.unit.test_push_trajectory_pipeline",
+        "tests.unit.test_push_trajectory",
+        "-v"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.unit.test_joint_limits",
+        "tests.unit.test_trajectory_cycles",
+        "tests.unit.test_stair_cycle_supplement",
+        "tests.unit.test_stair_trajectory_report",
+        "tests.unit.test_stair_trajectory_pipeline",
+        "tests.unit.test_trajectory_card",
+        "tests.unit.test_trajectory_measurement",
+        "tests.unit.test_trajectory_cohort",
+        "tests.unit.test_push_trajectory_pipeline",
+        "tests.unit.test_push_trajectory",
+        "-v"
+      ],
+      "wall_seconds": 73.56704260001425,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 460607488
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "1f89c0d1cef803461ac96a9d593043616ca1b1e2516ff3691fbec265f85d4aa7",
+      "receipt_file": {
+        "path": "outputs/p2c3/tests_03/command_receipts.json",
+        "bytes": 3941,
+        "sha256": "da3ed36729a7c56813b7bbdf9340950710f2df1f96e308798e81151be2adc174"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/tests_03/compatibility.stdout.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/tests_03/compatibility.stderr.txt",
+          "bytes": 31478,
+          "sha256": "1f89c0d1cef803461ac96a9d593043616ca1b1e2516ff3691fbec265f85d4aa7"
+        },
+        {
+          "path": "outputs/p2c3/tests_03/compatibility.memory.json",
+          "bytes": 97,
+          "sha256": "8e5237967ab5958745d7e8b5e8664009eaafe64ed0cc7bc080d0b45e7cf5355f"
+        }
+      ]
+    },
+    {
+      "name": "frozen_artifacts",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\tests_03\\frozen_artifacts.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c1/verify_compatibility.py"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c1/verify_compatibility.py"
+      ],
+      "wall_seconds": 3.3558268999913707,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 114204672
+      },
+      "stdout_sha256": "12e18180e93c76e068ad611c3bb8ee8ce3c419bea252dba5eb5688c960c79aaa",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/tests_03/command_receipts.json",
+        "bytes": 3941,
+        "sha256": "da3ed36729a7c56813b7bbdf9340950710f2df1f96e308798e81151be2adc174"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/tests_03/frozen_artifacts.stdout.txt",
+          "bytes": 8115,
+          "sha256": "12e18180e93c76e068ad611c3bb8ee8ce3c419bea252dba5eb5688c960c79aaa"
+        },
+        {
+          "path": "outputs/p2c3/tests_03/frozen_artifacts.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/tests_03/frozen_artifacts.memory.json",
+          "bytes": 97,
+          "sha256": "e61ba9b349698a7223865ee77f46eda1d0c5c5213176b6696f978acaa97814f9"
+        }
+      ]
+    },
+    {
+      "name": "terrain",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\tests_04\\terrain.memory.json",
+        "-m",
+        "unittest",
+        "tests.unit.test_terrain_reference",
+        "tests.unit.test_terrain_offline",
+        "-v"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.unit.test_terrain_reference",
+        "tests.unit.test_terrain_offline",
+        "-v"
+      ],
+      "wall_seconds": 11.437908799969591,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 144773120
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "916b08550a1c8c48ada29a4d2dfcf63443ddd2eab23e470f62c09316ee666fe8",
+      "receipt_file": {
+        "path": "outputs/p2c3/tests_04/command_receipts.json",
+        "bytes": 1101,
+        "sha256": "27e328be0881eb9a401d73e6eced608d92aa91537a129287e315dcf0c978139d"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/tests_04/terrain.stdout.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/tests_04/terrain.stderr.txt",
+          "bytes": 3031,
+          "sha256": "916b08550a1c8c48ada29a4d2dfcf63443ddd2eab23e470f62c09316ee666fe8"
+        },
+        {
+          "path": "outputs/p2c3/tests_04/terrain.memory.json",
+          "bytes": 97,
+          "sha256": "95376dfccc4ae5a78a5da2f43ed889b9f1b853cbc048730a45772350dce034e8"
+        }
+      ]
+    }
+  ],
+  "all_preserved_local_commands": [
+    {
+      "name": "terrain",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\final_audit_01\\terrain.memory.json",
+        "-m",
+        "unittest",
+        "tests.unit.test_terrain_reference",
+        "tests.unit.test_terrain_offline",
+        "-v"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.unit.test_terrain_reference",
+        "tests.unit.test_terrain_offline",
+        "-v"
+      ],
+      "wall_seconds": 11.32639649999328,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 144748544
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "201880152d46bd0fc921466cadde8138bd619bccfe5792609202bd1d889a7e79",
+      "receipt_file": {
+        "path": "outputs/p2c3/final_audit_01/command_receipts.json",
+        "bytes": 6407,
+        "sha256": "3b802c5a95cc44e441c52e6de8a9eb0e3b5ee664c9b1798477820b5e046c7658"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/final_audit_01/terrain.stdout.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/final_audit_01/terrain.stderr.txt",
+          "bytes": 3031,
+          "sha256": "201880152d46bd0fc921466cadde8138bd619bccfe5792609202bd1d889a7e79"
+        },
+        {
+          "path": "outputs/p2c3/final_audit_01/terrain.memory.json",
+          "bytes": 97,
+          "sha256": "889451c49f82c3aaaccd40567fdcab5e80854258895fdd818626e1385e0cb427"
+        }
+      ]
+    },
+    {
+      "name": "independent_spotcheck",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\final_audit_01\\independent_spotcheck.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/independent_spotcheck.py"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/independent_spotcheck.py"
+      ],
+      "wall_seconds": 9.057743099983782,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 110825472
+      },
+      "stdout_sha256": "1b5ad1dc4ff8cc5f1ec5221bf3c7b5177a53ac1f79b3fe124ff123c9bb647739",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/final_audit_01/command_receipts.json",
+        "bytes": 6407,
+        "sha256": "3b802c5a95cc44e441c52e6de8a9eb0e3b5ee664c9b1798477820b5e046c7658"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/final_audit_01/independent_spotcheck.stdout.txt",
+          "bytes": 1668,
+          "sha256": "1b5ad1dc4ff8cc5f1ec5221bf3c7b5177a53ac1f79b3fe124ff123c9bb647739"
+        },
+        {
+          "path": "outputs/p2c3/final_audit_01/independent_spotcheck.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/final_audit_01/independent_spotcheck.memory.json",
+          "bytes": 97,
+          "sha256": "39d85ba870b7640d532d3da890f8728574d8467824c15f668fa1b58d9f9b0896"
+        }
+      ]
+    },
+    {
+      "name": "oracle_k1",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\final_audit_01\\oracle_k1.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k1",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k1",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\final_audit_01\\k1_audit.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k1",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k1",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\final_audit_01\\k1_audit.json"
+      ],
+      "wall_seconds": 11.711134199984372,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 204877824
+      },
+      "stdout_sha256": "f79d4f3ba1aa53efdff03b7ae53d6350ee22604c36d49d4bb35f2786a60884e5",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/final_audit_01/command_receipts.json",
+        "bytes": 6407,
+        "sha256": "3b802c5a95cc44e441c52e6de8a9eb0e3b5ee664c9b1798477820b5e046c7658"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/final_audit_01/oracle_k1.stdout.txt",
+          "bytes": 330,
+          "sha256": "f79d4f3ba1aa53efdff03b7ae53d6350ee22604c36d49d4bb35f2786a60884e5"
+        },
+        {
+          "path": "outputs/p2c3/final_audit_01/oracle_k1.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/final_audit_01/oracle_k1.memory.json",
+          "bytes": 97,
+          "sha256": "8799bdcc8c8bda6a08ce00150a6294e90a548afc33f86440808272afeb24eaeb"
+        }
+      ]
+    },
+    {
+      "name": "oracle_k2",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\final_audit_01\\oracle_k2.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k2",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k2",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\final_audit_01\\k2_audit.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k2",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k2",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\final_audit_01\\k2_audit.json"
+      ],
+      "wall_seconds": 11.181423499947414,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 204947456
+      },
+      "stdout_sha256": "a9536f6a31c9e2b972f19ba4ff79b59253573152df33dac38a79df9ff253231c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/final_audit_01/command_receipts.json",
+        "bytes": 6407,
+        "sha256": "3b802c5a95cc44e441c52e6de8a9eb0e3b5ee664c9b1798477820b5e046c7658"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/final_audit_01/oracle_k2.stdout.txt",
+          "bytes": 330,
+          "sha256": "a9536f6a31c9e2b972f19ba4ff79b59253573152df33dac38a79df9ff253231c"
+        },
+        {
+          "path": "outputs/p2c3/final_audit_01/oracle_k2.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/final_audit_01/oracle_k2.memory.json",
+          "bytes": 97,
+          "sha256": "660ec72b7b12db86162ae1f807f2c3a181676b798ec249e2a862529594b5cb33"
+        }
+      ]
+    },
+    {
+      "name": "oracle_k3",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\final_audit_01\\oracle_k3.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k3",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k3",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\final_audit_01\\k3_audit.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k3",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k3",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\final_audit_01\\k3_audit.json"
+      ],
+      "wall_seconds": 12.008590099983849,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 212893696
+      },
+      "stdout_sha256": "9cd3599564b67db15f8d7a2a85b92cd3fe1a09f028ef1efbb957debd4a53205a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/final_audit_01/command_receipts.json",
+        "bytes": 6407,
+        "sha256": "3b802c5a95cc44e441c52e6de8a9eb0e3b5ee664c9b1798477820b5e046c7658"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/final_audit_01/oracle_k3.stdout.txt",
+          "bytes": 329,
+          "sha256": "9cd3599564b67db15f8d7a2a85b92cd3fe1a09f028ef1efbb957debd4a53205a"
+        },
+        {
+          "path": "outputs/p2c3/final_audit_01/oracle_k3.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/final_audit_01/oracle_k3.memory.json",
+          "bytes": 97,
+          "sha256": "e2635a3341bc89c0e0409834bce6c2434978846e447c1eafc1e38c9ec0fc49be"
+        }
+      ]
+    },
+    {
+      "name": "oracle_k1",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_02\\oracle_k1.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k1",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k1",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_02\\k1_audit.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k1",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k1",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_02\\k1_audit.json"
+      ],
+      "wall_seconds": 11.883393700001761,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 204640256
+      },
+      "stdout_sha256": "14fdf03a7de65604cbc91593e06d5d3fa8e043fd67d1ce66f58f86a37399a3ca",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/raw_audit_02/command_receipts.json",
+        "bytes": 4289,
+        "sha256": "f7a536ad0c7414d4b8378f07ce78aebbe21e4291df52c0d02e12a19e5b593d34"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/raw_audit_02/oracle_k1.stdout.txt",
+          "bytes": 381,
+          "sha256": "14fdf03a7de65604cbc91593e06d5d3fa8e043fd67d1ce66f58f86a37399a3ca"
+        },
+        {
+          "path": "outputs/p2c3/raw_audit_02/oracle_k1.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/raw_audit_02/oracle_k1.memory.json",
+          "bytes": 97,
+          "sha256": "e2afa74b03dc06fabe7efa8550ff7e2f0b696114d79bc19562717b49b4828bcd"
+        }
+      ]
+    },
+    {
+      "name": "oracle_k2",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_02\\oracle_k2.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k2",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k2",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_02\\k2_audit.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k2",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k2",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_02\\k2_audit.json"
+      ],
+      "wall_seconds": 11.552378299995326,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 205946880
+      },
+      "stdout_sha256": "1f2bad3901d42596f7e61a93136b6c22319083820f7291323826bccb4e58f735",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/raw_audit_02/command_receipts.json",
+        "bytes": 4289,
+        "sha256": "f7a536ad0c7414d4b8378f07ce78aebbe21e4291df52c0d02e12a19e5b593d34"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/raw_audit_02/oracle_k2.stdout.txt",
+          "bytes": 381,
+          "sha256": "1f2bad3901d42596f7e61a93136b6c22319083820f7291323826bccb4e58f735"
+        },
+        {
+          "path": "outputs/p2c3/raw_audit_02/oracle_k2.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/raw_audit_02/oracle_k2.memory.json",
+          "bytes": 97,
+          "sha256": "751156da21d79277df1bafc9c6a31f8faee1a8371a6069f42f6e99c56c079e96"
+        }
+      ]
+    },
+    {
+      "name": "oracle_k3",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_02\\oracle_k3.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k3",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k3",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_02\\k3_audit.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k3",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k3",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_02\\k3_audit.json"
+      ],
+      "wall_seconds": 11.929439400089905,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 213630976
+      },
+      "stdout_sha256": "ec53341299d14c940f9884c9492706e36bf2bec535c0a7f102cc95ffd9b8eece",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/raw_audit_02/command_receipts.json",
+        "bytes": 4289,
+        "sha256": "f7a536ad0c7414d4b8378f07ce78aebbe21e4291df52c0d02e12a19e5b593d34"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/raw_audit_02/oracle_k3.stdout.txt",
+          "bytes": 381,
+          "sha256": "ec53341299d14c940f9884c9492706e36bf2bec535c0a7f102cc95ffd9b8eece"
+        },
+        {
+          "path": "outputs/p2c3/raw_audit_02/oracle_k3.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/raw_audit_02/oracle_k3.memory.json",
+          "bytes": 97,
+          "sha256": "b7f4a076d6ec22f4a9cb2ab0c0a0f3e4a7aa4ae94f497de5766b052a5d118e1b"
+        }
+      ]
+    },
+    {
+      "name": "oracle_k1",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_03\\oracle_k1.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k1",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k1",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_03\\k1_audit.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k1",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k1",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_03\\k1_audit.json"
+      ],
+      "wall_seconds": 11.540350000024773,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 205701120
+      },
+      "stdout_sha256": "d9f4c20b9ef532203d9f398079d31b5ac049bfad32cfb876548d39c284baaeba",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/raw_audit_03/command_receipts.json",
+        "bytes": 4287,
+        "sha256": "e6d2066c85a6e11c56d40e40c2a22e449db0ec584d1dee955e44036f4f6d7e3b"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/raw_audit_03/oracle_k1.stdout.txt",
+          "bytes": 380,
+          "sha256": "d9f4c20b9ef532203d9f398079d31b5ac049bfad32cfb876548d39c284baaeba"
+        },
+        {
+          "path": "outputs/p2c3/raw_audit_03/oracle_k1.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/raw_audit_03/oracle_k1.memory.json",
+          "bytes": 97,
+          "sha256": "f97551cce0e3eb347e0382cde799ea5f234777cd36c9a34072d40d1ec1f9e49a"
+        }
+      ]
+    },
+    {
+      "name": "oracle_k2",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_03\\oracle_k2.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k2",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k2",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_03\\k2_audit.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k2",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k2",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_03\\k2_audit.json"
+      ],
+      "wall_seconds": 11.40159079991281,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 206000128
+      },
+      "stdout_sha256": "5c5bcc057db242280c2c1e43f7984624cac12e0ed7d36cb73264a6e6e28589cd",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/raw_audit_03/command_receipts.json",
+        "bytes": 4287,
+        "sha256": "e6d2066c85a6e11c56d40e40c2a22e449db0ec584d1dee955e44036f4f6d7e3b"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/raw_audit_03/oracle_k2.stdout.txt",
+          "bytes": 381,
+          "sha256": "5c5bcc057db242280c2c1e43f7984624cac12e0ed7d36cb73264a6e6e28589cd"
+        },
+        {
+          "path": "outputs/p2c3/raw_audit_03/oracle_k2.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/raw_audit_03/oracle_k2.memory.json",
+          "bytes": 97,
+          "sha256": "38fdf4a099368a38fa335b1f5e933e9a37a04f098b36c1451c6ac5a44670fb5d"
+        }
+      ]
+    },
+    {
+      "name": "oracle_k3",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_03\\oracle_k3.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k3",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k3",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_03\\k3_audit.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k3",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k3",
+        "--audit-output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\raw_audit_03\\k3_audit.json"
+      ],
+      "wall_seconds": 11.99964519997593,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 211320832
+      },
+      "stdout_sha256": "62564cc584c8c13da19aede50a8cb98e498c1151f1dc04a26662b5667b95335a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/raw_audit_03/command_receipts.json",
+        "bytes": 4287,
+        "sha256": "e6d2066c85a6e11c56d40e40c2a22e449db0ec584d1dee955e44036f4f6d7e3b"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/raw_audit_03/oracle_k3.stdout.txt",
+          "bytes": 381,
+          "sha256": "62564cc584c8c13da19aede50a8cb98e498c1151f1dc04a26662b5667b95335a"
+        },
+        {
+          "path": "outputs/p2c3/raw_audit_03/oracle_k3.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/raw_audit_03/oracle_k3.memory.json",
+          "bytes": 97,
+          "sha256": "7dd3cb1a7721ab5e8a3832855f48926df95758e73c74628e6ce3ed6a54468f5e"
+        }
+      ]
+    },
+    {
+      "name": "build_k1",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_01\\build_k1.memory.json",
+        "scripts/build_stair_terrain_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1d\\raw\\k1_numeric_evidence\\manifest.json",
+        "--manifest-sha256",
+        "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+        "--source-id",
+        "k1",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_01\\k1",
+        "--qualification",
+        "outputs/p2c3/historical_01/stdout.json",
+        "--qualification-sha256",
+        "28a443364f4230f63b402674cabf47ee569b39bffc988f5e18b04865feb55454",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k1\\public.json"
+      ],
+      "exit_code": 1,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/build_stair_terrain_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1d\\raw\\k1_numeric_evidence\\manifest.json",
+        "--manifest-sha256",
+        "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+        "--source-id",
+        "k1",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_01\\k1",
+        "--qualification",
+        "outputs/p2c3/historical_01/stdout.json",
+        "--qualification-sha256",
+        "28a443364f4230f63b402674cabf47ee569b39bffc988f5e18b04865feb55454",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k1\\public.json"
+      ],
+      "wall_seconds": 0.5835117000387982,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 119504896
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "a77e76410cdf474a92aa0c5a2963bf24a45e0ee5634c26c1d677d7ea607a32bb",
+      "receipt_file": {
+        "path": "outputs/p2c3/real_01/command_receipts.json",
+        "bytes": 2228,
+        "sha256": "1422a796c04204333a92d731d7068a141b16e59a467531209f5895d9b8b4fd85"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/real_01/build_k1.stdout.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/real_01/build_k1.stderr.txt",
+          "bytes": 766,
+          "sha256": "a77e76410cdf474a92aa0c5a2963bf24a45e0ee5634c26c1d677d7ea607a32bb"
+        },
+        {
+          "path": "outputs/p2c3/real_01/build_k1.memory.json",
+          "bytes": 97,
+          "sha256": "09601daada072d0094a57e34dab59911f14ed6ffd35ae4becf74ac0552513e73"
+        }
+      ]
+    },
+    {
+      "name": "build_k1",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_02\\build_k1.memory.json",
+        "scripts/build_stair_terrain_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1d\\raw\\k1_numeric_evidence\\manifest.json",
+        "--manifest-sha256",
+        "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+        "--source-id",
+        "k1",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_02\\k1",
+        "--qualification",
+        "outputs/p2c3/historical_02/stdout.json",
+        "--qualification-sha256",
+        "84aecf9e412be7578ee567ca65cc1c6ff48351f8f45c1fb789a1a61913e8a48f",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k1\\public.json"
+      ],
+      "exit_code": 1,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/build_stair_terrain_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1d\\raw\\k1_numeric_evidence\\manifest.json",
+        "--manifest-sha256",
+        "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+        "--source-id",
+        "k1",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_02\\k1",
+        "--qualification",
+        "outputs/p2c3/historical_02/stdout.json",
+        "--qualification-sha256",
+        "84aecf9e412be7578ee567ca65cc1c6ff48351f8f45c1fb789a1a61913e8a48f",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k1\\public.json"
+      ],
+      "wall_seconds": 8.344777699909173,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 245932032
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "184f1992adc34be29e1155a81b469dd8590cff18975e504992496bf7bab31c32",
+      "receipt_file": {
+        "path": "outputs/p2c3/real_02/command_receipts.json",
+        "bytes": 2227,
+        "sha256": "12cc54c0e9283aa09d38c4cc695f7ea90d7e93822385b0a1f688192b5213bfe6"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/real_02/build_k1.stdout.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/real_02/build_k1.stderr.txt",
+          "bytes": 1117,
+          "sha256": "184f1992adc34be29e1155a81b469dd8590cff18975e504992496bf7bab31c32"
+        },
+        {
+          "path": "outputs/p2c3/real_02/build_k1.memory.json",
+          "bytes": 97,
+          "sha256": "f3fd5084316e2c438a44ba1fe70b4a2574b8ee1af2b79ca13624e0acee6c6f28"
+        }
+      ]
+    },
+    {
+      "name": "build_k1",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\build_k1.memory.json",
+        "scripts/build_stair_terrain_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1d\\raw\\k1_numeric_evidence\\manifest.json",
+        "--manifest-sha256",
+        "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+        "--source-id",
+        "k1",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k1",
+        "--qualification",
+        "outputs/p2c3/historical_02/stdout.json",
+        "--qualification-sha256",
+        "84aecf9e412be7578ee567ca65cc1c6ff48351f8f45c1fb789a1a61913e8a48f",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k1\\public.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/build_stair_terrain_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1d\\raw\\k1_numeric_evidence\\manifest.json",
+        "--manifest-sha256",
+        "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+        "--source-id",
+        "k1",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k1",
+        "--qualification",
+        "outputs/p2c3/historical_02/stdout.json",
+        "--qualification-sha256",
+        "84aecf9e412be7578ee567ca65cc1c6ff48351f8f45c1fb789a1a61913e8a48f",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k1\\public.json"
+      ],
+      "wall_seconds": 8.652436599950306,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 246108160
+      },
+      "stdout_sha256": "452a892976b20a80e297c25cbd2b118305a223ccfc949d0154d9c5ed1541ac5a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/real_03/command_receipts.json",
+        "bytes": 10197,
+        "sha256": "bdee4b2893ad3599aeec264bc5322f060e591741964ed96794165176aca361ed"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/real_03/build_k1.stdout.txt",
+          "bytes": 10890,
+          "sha256": "452a892976b20a80e297c25cbd2b118305a223ccfc949d0154d9c5ed1541ac5a"
+        },
+        {
+          "path": "outputs/p2c3/real_03/build_k1.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/real_03/build_k1.memory.json",
+          "bytes": 97,
+          "sha256": "94f369f8b430fd9cf3cb53143b33439fb326f2ca65f0535b8cd0153738d481f4"
+        }
+      ]
+    },
+    {
+      "name": "oracle_k1",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\oracle_k1.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k1",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k1"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k1",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k1"
+      ],
+      "wall_seconds": 12.850497600040399,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 206450688
+      },
+      "stdout_sha256": "8d22d1104c2ed0691bb6d8f874954268faf079f68b4889ca3a2bf8733bb04caf",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/real_03/command_receipts.json",
+        "bytes": 10197,
+        "sha256": "bdee4b2893ad3599aeec264bc5322f060e591741964ed96794165176aca361ed"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/real_03/oracle_k1.stdout.txt",
+          "bytes": 329,
+          "sha256": "8d22d1104c2ed0691bb6d8f874954268faf079f68b4889ca3a2bf8733bb04caf"
+        },
+        {
+          "path": "outputs/p2c3/real_03/oracle_k1.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/real_03/oracle_k1.memory.json",
+          "bytes": 97,
+          "sha256": "79bea8b0d227c27cbaea33b147c028068a47c9c9ac3ebcc1f7d8a387f2a2ec85"
+        }
+      ]
+    },
+    {
+      "name": "build_k2",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\build_k2.memory.json",
+        "scripts/build_stair_terrain_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\raw\\k2\\manifest.json",
+        "--manifest-sha256",
+        "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+        "--source-id",
+        "k2",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k2",
+        "--qualification",
+        "outputs/p2c3/historical_02/stdout.json",
+        "--qualification-sha256",
+        "84aecf9e412be7578ee567ca65cc1c6ff48351f8f45c1fb789a1a61913e8a48f",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k2\\public.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/build_stair_terrain_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\raw\\k2\\manifest.json",
+        "--manifest-sha256",
+        "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+        "--source-id",
+        "k2",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k2",
+        "--qualification",
+        "outputs/p2c3/historical_02/stdout.json",
+        "--qualification-sha256",
+        "84aecf9e412be7578ee567ca65cc1c6ff48351f8f45c1fb789a1a61913e8a48f",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k2\\public.json"
+      ],
+      "wall_seconds": 7.714013300021179,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 246784000
+      },
+      "stdout_sha256": "e361707500447d252de480b5dc6cd04e203a67ebcf548cd709a90dfe6dfb34bd",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/real_03/command_receipts.json",
+        "bytes": 10197,
+        "sha256": "bdee4b2893ad3599aeec264bc5322f060e591741964ed96794165176aca361ed"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/real_03/build_k2.stdout.txt",
+          "bytes": 10870,
+          "sha256": "e361707500447d252de480b5dc6cd04e203a67ebcf548cd709a90dfe6dfb34bd"
+        },
+        {
+          "path": "outputs/p2c3/real_03/build_k2.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/real_03/build_k2.memory.json",
+          "bytes": 97,
+          "sha256": "340a305210cd250807f4f19b123c098ea165de3bd13bb17a07b0773f3e87a1ff"
+        }
+      ]
+    },
+    {
+      "name": "oracle_k2",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\oracle_k2.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k2",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k2"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k2",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k2"
+      ],
+      "wall_seconds": 12.493813899927773,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 204677120
+      },
+      "stdout_sha256": "82acdd0a154196c00cad0ce4157c18140c0decb44f57f322a253c8b9d9091e67",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/real_03/command_receipts.json",
+        "bytes": 10197,
+        "sha256": "bdee4b2893ad3599aeec264bc5322f060e591741964ed96794165176aca361ed"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/real_03/oracle_k2.stdout.txt",
+          "bytes": 329,
+          "sha256": "82acdd0a154196c00cad0ce4157c18140c0decb44f57f322a253c8b9d9091e67"
+        },
+        {
+          "path": "outputs/p2c3/real_03/oracle_k2.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/real_03/oracle_k2.memory.json",
+          "bytes": 97,
+          "sha256": "a8a62cc20dccf0f2bb8aeeeb66a0c35fb9e5578a1d3f7a499fc5d4147f6268af"
+        }
+      ]
+    },
+    {
+      "name": "build_k3",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\build_k3.memory.json",
+        "scripts/build_stair_terrain_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p0\\raw\\numeric_evidence\\manifest.json",
+        "--manifest-sha256",
+        "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+        "--source-id",
+        "k3",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k3",
+        "--qualification",
+        "outputs/p2c3/historical_02/stdout.json",
+        "--qualification-sha256",
+        "84aecf9e412be7578ee567ca65cc1c6ff48351f8f45c1fb789a1a61913e8a48f",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k3\\public.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/build_stair_terrain_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p0\\raw\\numeric_evidence\\manifest.json",
+        "--manifest-sha256",
+        "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+        "--source-id",
+        "k3",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k3",
+        "--qualification",
+        "outputs/p2c3/historical_02/stdout.json",
+        "--qualification-sha256",
+        "84aecf9e412be7578ee567ca65cc1c6ff48351f8f45c1fb789a1a61913e8a48f",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k3\\public.json"
+      ],
+      "wall_seconds": 8.684207800077274,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 255324160
+      },
+      "stdout_sha256": "7b62ca54815e0ee812de081200336c6ed80344b1067f4d1e2e2b82fb1cbbd4e0",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/real_03/command_receipts.json",
+        "bytes": 10197,
+        "sha256": "bdee4b2893ad3599aeec264bc5322f060e591741964ed96794165176aca361ed"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/real_03/build_k3.stdout.txt",
+          "bytes": 10916,
+          "sha256": "7b62ca54815e0ee812de081200336c6ed80344b1067f4d1e2e2b82fb1cbbd4e0"
+        },
+        {
+          "path": "outputs/p2c3/real_03/build_k3.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/real_03/build_k3.memory.json",
+          "bytes": 97,
+          "sha256": "bf4ed7978fd0d846776defec24bd02727225d75d328d05844bfac98aba30d516"
+        }
+      ]
+    },
+    {
+      "name": "oracle_k3",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\oracle_k3.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k3",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k3"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+        "--source",
+        "k3",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\real_03\\k3"
+      ],
+      "wall_seconds": 13.32270810008049,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 212660224
+      },
+      "stdout_sha256": "0ca873c4fa2e8068b5d3d81f615e9fd465165f1101ccaa73391cd121ee5991b2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/real_03/command_receipts.json",
+        "bytes": 10197,
+        "sha256": "bdee4b2893ad3599aeec264bc5322f060e591741964ed96794165176aca361ed"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/real_03/oracle_k3.stdout.txt",
+          "bytes": 329,
+          "sha256": "0ca873c4fa2e8068b5d3d81f615e9fd465165f1101ccaa73391cd121ee5991b2"
+        },
+        {
+          "path": "outputs/p2c3/real_03/oracle_k3.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/real_03/oracle_k3.memory.json",
+          "bytes": 97,
+          "sha256": "aa0e920fc57846aa01f0ebd6edc2367081a7b983bc5ce79d557e9310974e7958"
+        }
+      ]
+    },
+    {
+      "name": "terrain",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\tests_01\\terrain.memory.json",
+        "-m",
+        "unittest",
+        "tests.unit.test_terrain_reference",
+        "tests.unit.test_terrain_offline",
+        "-v"
+      ],
+      "exit_code": 1,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.unit.test_terrain_reference",
+        "tests.unit.test_terrain_offline",
+        "-v"
+      ],
+      "wall_seconds": 11.171569500002079,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 144568320
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "c8bb1fdcbdacca0850e86a9a5aaa2993f8dc6514ce249ea3a522836c47aec398",
+      "receipt_file": {
+        "path": "outputs/p2c3/tests_01/command_receipts.json",
+        "bytes": 1101,
+        "sha256": "5f17cba3ff73852ba04383923043b3c4fb8e46899fe24e5b01b02c03d310c7a6"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/tests_01/terrain.stdout.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/tests_01/terrain.stderr.txt",
+          "bytes": 4519,
+          "sha256": "c8bb1fdcbdacca0850e86a9a5aaa2993f8dc6514ce249ea3a522836c47aec398"
+        },
+        {
+          "path": "outputs/p2c3/tests_01/terrain.memory.json",
+          "bytes": 97,
+          "sha256": "171f2a2654c2cb2e5c7ee9f5f8a049c957db25118b67b987647353af2093fc8a"
+        }
+      ]
+    },
+    {
+      "name": "terrain",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\tests_02\\terrain.memory.json",
+        "-m",
+        "unittest",
+        "tests.unit.test_terrain_reference",
+        "tests.unit.test_terrain_offline",
+        "-v"
+      ],
+      "exit_code": 1,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.unit.test_terrain_reference",
+        "tests.unit.test_terrain_offline",
+        "-v"
+      ],
+      "wall_seconds": 18.936603700043634,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 261033984
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "a017fd608291e57a290641eedee14a3af7022789258cc9fad9d2ebb7f3017dec",
+      "receipt_file": {
+        "path": "outputs/p2c3/tests_02/command_receipts.json",
+        "bytes": 1101,
+        "sha256": "0bf2fad7e0e9f30923d5bedc32c8f351de1078a1f61668d51ba551bf8caf6e06"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/tests_02/terrain.stdout.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/tests_02/terrain.stderr.txt",
+          "bytes": 3617,
+          "sha256": "a017fd608291e57a290641eedee14a3af7022789258cc9fad9d2ebb7f3017dec"
+        },
+        {
+          "path": "outputs/p2c3/tests_02/terrain.memory.json",
+          "bytes": 97,
+          "sha256": "f762298096cc7b30782bb147dcfab00e472a13126f5a59d807897d91f7fa8d61"
+        }
+      ]
+    },
+    {
+      "name": "terrain",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\tests_03\\terrain.memory.json",
+        "-m",
+        "unittest",
+        "tests.unit.test_terrain_reference",
+        "tests.unit.test_terrain_offline",
+        "-v"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.unit.test_terrain_reference",
+        "tests.unit.test_terrain_offline",
+        "-v"
+      ],
+      "wall_seconds": 12.96560880006291,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 144875520
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "71c1f8d412b6082b79ce032df114371ce5c8b22d8c380c1099bb5f7e77cbcfec",
+      "receipt_file": {
+        "path": "outputs/p2c3/tests_03/command_receipts.json",
+        "bytes": 3941,
+        "sha256": "da3ed36729a7c56813b7bbdf9340950710f2df1f96e308798e81151be2adc174"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/tests_03/terrain.stdout.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/tests_03/terrain.stderr.txt",
+          "bytes": 2853,
+          "sha256": "71c1f8d412b6082b79ce032df114371ce5c8b22d8c380c1099bb5f7e77cbcfec"
+        },
+        {
+          "path": "outputs/p2c3/tests_03/terrain.memory.json",
+          "bytes": 97,
+          "sha256": "3974d92ddb8969ade6889fa94da34b93428fda63ebb8562167b4813a51299999"
+        }
+      ]
+    },
+    {
+      "name": "compatibility",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\tests_03\\compatibility.memory.json",
+        "-m",
+        "unittest",
+        "tests.unit.test_joint_limits",
+        "tests.unit.test_trajectory_cycles",
+        "tests.unit.test_stair_cycle_supplement",
+        "tests.unit.test_stair_trajectory_report",
+        "tests.unit.test_stair_trajectory_pipeline",
+        "tests.unit.test_trajectory_card",
+        "tests.unit.test_trajectory_measurement",
+        "tests.unit.test_trajectory_cohort",
+        "tests.unit.test_push_trajectory_pipeline",
+        "tests.unit.test_push_trajectory",
+        "-v"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.unit.test_joint_limits",
+        "tests.unit.test_trajectory_cycles",
+        "tests.unit.test_stair_cycle_supplement",
+        "tests.unit.test_stair_trajectory_report",
+        "tests.unit.test_stair_trajectory_pipeline",
+        "tests.unit.test_trajectory_card",
+        "tests.unit.test_trajectory_measurement",
+        "tests.unit.test_trajectory_cohort",
+        "tests.unit.test_push_trajectory_pipeline",
+        "tests.unit.test_push_trajectory",
+        "-v"
+      ],
+      "wall_seconds": 73.56704260001425,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 460607488
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "1f89c0d1cef803461ac96a9d593043616ca1b1e2516ff3691fbec265f85d4aa7",
+      "receipt_file": {
+        "path": "outputs/p2c3/tests_03/command_receipts.json",
+        "bytes": 3941,
+        "sha256": "da3ed36729a7c56813b7bbdf9340950710f2df1f96e308798e81151be2adc174"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/tests_03/compatibility.stdout.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/tests_03/compatibility.stderr.txt",
+          "bytes": 31478,
+          "sha256": "1f89c0d1cef803461ac96a9d593043616ca1b1e2516ff3691fbec265f85d4aa7"
+        },
+        {
+          "path": "outputs/p2c3/tests_03/compatibility.memory.json",
+          "bytes": 97,
+          "sha256": "8e5237967ab5958745d7e8b5e8664009eaafe64ed0cc7bc080d0b45e7cf5355f"
+        }
+      ]
+    },
+    {
+      "name": "frozen_artifacts",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\tests_03\\frozen_artifacts.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c1/verify_compatibility.py"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c1/verify_compatibility.py"
+      ],
+      "wall_seconds": 3.3558268999913707,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 114204672
+      },
+      "stdout_sha256": "12e18180e93c76e068ad611c3bb8ee8ce3c419bea252dba5eb5688c960c79aaa",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_file": {
+        "path": "outputs/p2c3/tests_03/command_receipts.json",
+        "bytes": 3941,
+        "sha256": "da3ed36729a7c56813b7bbdf9340950710f2df1f96e308798e81151be2adc174"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/tests_03/frozen_artifacts.stdout.txt",
+          "bytes": 8115,
+          "sha256": "12e18180e93c76e068ad611c3bb8ee8ce3c419bea252dba5eb5688c960c79aaa"
+        },
+        {
+          "path": "outputs/p2c3/tests_03/frozen_artifacts.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/tests_03/frozen_artifacts.memory.json",
+          "bytes": 97,
+          "sha256": "e61ba9b349698a7223865ee77f46eda1d0c5c5213176b6696f978acaa97814f9"
+        }
+      ]
+    },
+    {
+      "name": "terrain",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c3\\tests_04\\terrain.memory.json",
+        "-m",
+        "unittest",
+        "tests.unit.test_terrain_reference",
+        "tests.unit.test_terrain_offline",
+        "-v"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.unit.test_terrain_reference",
+        "tests.unit.test_terrain_offline",
+        "-v"
+      ],
+      "wall_seconds": 11.437908799969591,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 144773120
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "916b08550a1c8c48ada29a4d2dfcf63443ddd2eab23e470f62c09316ee666fe8",
+      "receipt_file": {
+        "path": "outputs/p2c3/tests_04/command_receipts.json",
+        "bytes": 1101,
+        "sha256": "27e328be0881eb9a401d73e6eced608d92aa91537a129287e315dcf0c978139d"
+      },
+      "logs": [
+        {
+          "path": "outputs/p2c3/tests_04/terrain.stdout.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "outputs/p2c3/tests_04/terrain.stderr.txt",
+          "bytes": 3031,
+          "sha256": "916b08550a1c8c48ada29a4d2dfcf63443ddd2eab23e470f62c09316ee666fe8"
+        },
+        {
+          "path": "outputs/p2c3/tests_04/terrain.memory.json",
+          "bytes": 97,
+          "sha256": "95376dfccc4ae5a78a5da2f43ed889b9f1b853cbc048730a45772350dce034e8"
+        }
+      ]
+    }
+  ],
+  "remote_readonly_commands": [
+    {
+      "argv": [
+        "ssh",
+        "-o",
+        "BatchMode=yes",
+        "humanoid-server",
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python -B -"
+      ],
+      "stdin_script": "PLAN\\feedback_sys\\NEW_SYS\\P2c3\\read_historical_terrain.py",
+      "stdin_sha256": "0e78b50b5deaf4a5f592a92ff1187dbc8f386cf2b541ef573e4937a1672e2d02",
+      "exit_code": 0,
+      "wall_seconds": 26.642807500087656,
+      "files": {
+        "stdout.json": {
+          "bytes": 9950363,
+          "sha256": "28a443364f4230f63b402674cabf47ee569b39bffc988f5e18b04865feb55454"
+        },
+        "stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "receipt_file": {
+        "path": "outputs/p2c3/historical_01/receipt.json",
+        "bytes": 677,
+        "sha256": "657a23399e0b8dfe5dbd647302a07be53c9ef0c4fcdee7551ebd77ae376d4005"
+      },
+      "original_stdout": {
+        "path": "outputs/p2c3/historical_01/stdout.json",
+        "bytes": 9950363,
+        "sha256": "28a443364f4230f63b402674cabf47ee569b39bffc988f5e18b04865feb55454"
+      },
+      "original_stderr": {
+        "path": "outputs/p2c3/historical_01/stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "argv": [
+        "ssh",
+        "-o",
+        "BatchMode=yes",
+        "humanoid-server",
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python -B -"
+      ],
+      "stdin_script": "PLAN\\feedback_sys\\NEW_SYS\\P2c3\\read_historical_terrain.py",
+      "stdin_sha256": "a222590138c444082102b799d7b4c0f5d203ba974a47f7c26809d3c3966d14b8",
+      "exit_code": 0,
+      "wall_seconds": 30.744630200089887,
+      "files": {
+        "stdout.json": {
+          "bytes": 9961316,
+          "sha256": "84aecf9e412be7578ee567ca65cc1c6ff48351f8f45c1fb789a1a61913e8a48f"
+        },
+        "stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "receipt_file": {
+        "path": "outputs/p2c3/historical_02/receipt.json",
+        "bytes": 677,
+        "sha256": "5df4ea4bd217a116ce4ec38bfe22cedb9b84d85c1a68c1545380b834423e3c12"
+      },
+      "original_stdout": {
+        "path": "outputs/p2c3/historical_02/stdout.json",
+        "bytes": 9961316,
+        "sha256": "84aecf9e412be7578ee567ca65cc1c6ff48351f8f45c1fb789a1a61913e8a48f"
+      },
+      "original_stderr": {
+        "path": "outputs/p2c3/historical_02/stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "argv": [
+        "ssh",
+        "-o",
+        "BatchMode=yes",
+        "humanoid-server",
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python -B -"
+      ],
+      "stdin_script": "PLAN\\feedback_sys\\NEW_SYS\\P2c3\\read_vendor.py",
+      "stdin_sha256": "fbf3151c98ef66ef9a2967612b849622333d903cec08fe8a4f2e926ecd2b1116",
+      "exit_code": 0,
+      "wall_seconds": 9.905027800006792,
+      "files": {
+        "stdout.json": {
+          "bytes": 165617,
+          "sha256": "79045921310d8a49a5813ba68ac9751ec3ecbb7b9d13d8ae28427005fa9f29cb"
+        },
+        "stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "receipt_file": {
+        "path": "outputs/p2c3/vendor_01/receipt.json",
+        "bytes": 663,
+        "sha256": "d0c5064114d4b190239e9abc7aac0691351a1ba4a14dbd95b710fdc77749356d"
+      },
+      "original_stdout": {
+        "path": "outputs/p2c3/vendor_01/stdout.json",
+        "bytes": 165617,
+        "sha256": "79045921310d8a49a5813ba68ac9751ec3ecbb7b9d13d8ae28427005fa9f29cb"
+      },
+      "original_stderr": {
+        "path": "outputs/p2c3/vendor_01/stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "sources": [
+    {
+      "source_id": "k1",
+      "build_manifest": {
+        "api_calls": 0,
+        "artifacts": {
+          "preview.json": {
+            "bytes": 8087,
+            "sha256": "9fa762fa10cf574aa1b54c09603ef5a4a7ecfbb4c9377b857d5ff2d21d58becd"
+          },
+          "preview_receipt.json": {
+            "bytes": 6881,
+            "sha256": "f32f1fb316d4fd866e97b632bb2042cf8141af3913ea00ff5ea52dcc567dc889"
+          },
+          "report.json": {
+            "bytes": 30014,
+            "sha256": "b0d000dd0e95018be50ce81582d4fa2001ca94da7937a80d3802efafb165cb64"
+          },
+          "terrain.jsonl": {
+            "bytes": 25490166,
+            "sha256": "33f476a6e508939b8d605ea89a63f7b41a0969c284466b529686bff647a7db1f"
+          },
+          "traces.npz": {
+            "bytes": 7433049,
+            "sha256": "143d31d2b71ed92bcbf93c6094dfb97ca184140f48233df696e59dbd4a8dd37a"
+          }
+        },
+        "binding": {
+          "base_file_sha256": "2e1e66a218dc6e1e60bbd005b27167c546b1199d7b4e763b943eb7e7cf05b331",
+          "identity": {
+            "backend_execution_environment_verification": {
+              "actual_manifest_hash": "c472e507378f1256f95a7ffd69a3408cadd69fdcfdc6282a842e54562916fac0",
+              "backend_id": "isaac_lab_rsl_rl",
+              "expected_manifest_hash": "c472e507378f1256f95a7ffd69a3408cadd69fdcfdc6282a842e54562916fac0",
+              "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+              "status": "pass"
+            },
+            "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+            "checkpoint_hash": "sha256:fca6a59c8142d0120c5b534addab03885995dd64931fc3b974b9f94b997fe729",
+            "environment_source_preflight": {
+              "schema_version": "true_rl_agent.task.stair_climbing.execution_source_preflight.v1",
+              "source_manifest_hash": "ef434773192061f3e8d32c369a64c8178da802727440ebcf35aee855e77e9991",
+              "status": "pass",
+              "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9"
+            },
+            "evaluation_binding": {
+              "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+              "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+              "evaluation_binding_hash": "ff0b754f727af4df616e77d10f8f67019cea485ed76b1b9c6b00cf902c451178",
+              "schema_version": "true_rl_agent.evaluation.binding.v1",
+              "seed_cohort_hash": "a7830816449821400a6ae51fabbb046f8d98ab3084bfcaeb56b240249ea790ea",
+              "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9"
+            },
+            "evaluation_plan_hash": "febc1c36a47b3681812197eef04c19d2e1b9de258d8332b73be571e84f6b76ea",
+            "job_id": "stair-dev-replay-fca6a59c8142d012-eval-public-dev",
+            "program_source_checksum": "sha256:10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+            "resolved_cell_manifest_hash": "7e8fa0c45109bbfc0162a90cf68d4186a0a3f96a0df9cce1e9b1b09f50aa6de9",
+            "seed_namespace": "formal_reference_candidate_eval",
+            "splits": [
+              "public_dev"
+            ],
+            "subject_id": "go2-stair-official-flat-derived-v1",
+            "subject_kind": "reference",
+            "subject_manifest_hash": "ece5ad653267f11e5b791403208472f42622e44661fdbc7162776799a370dbd4",
+            "task_id": "unitree_stair_climbing",
+            "training_binding_hash": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98"
+          },
+          "manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+          "placement": "nominal_expected_layout_with_recorded_origins; historical_importer_bytes_unverified",
+          "projection": {
+            "action_joint_names": [
+              "FL_hip_joint",
+              "FR_hip_joint",
+              "RL_hip_joint",
+              "RR_hip_joint",
+              "FL_thigh_joint",
+              "FR_thigh_joint",
+              "RL_thigh_joint",
+              "RR_thigh_joint",
+              "FL_calf_joint",
+              "FR_calf_joint",
+              "RL_calf_joint",
+              "RR_calf_joint"
+            ],
+            "binding_facts_hash": "1160a2a4544eb3cb8d55aa436988a73eca46019296d2b559eab246749798a53f",
+            "cell_variant_id": "stair.go2_12dof.unified_v3",
+            "contact_history_length": 3,
+            "contact_sensor_name": "contact_forces",
+            "height_scan_ray_count": 187,
+            "height_sensor_name": "height_scanner",
+            "joint_groups": {},
+            "joint_names": [
+              "FL_hip_joint",
+              "FR_hip_joint",
+              "RL_hip_joint",
+              "RR_hip_joint",
+              "FL_thigh_joint",
+              "FR_thigh_joint",
+              "RL_thigh_joint",
+              "RR_thigh_joint",
+              "FL_calf_joint",
+              "FR_calf_joint",
+              "RL_calf_joint",
+              "RR_calf_joint"
+            ],
+            "kinematic_base_source": "articulation_root",
+            "legacy_reward_adapter_id": null,
+            "policy_io_schema_hash": "5fdd774448ee18f6d37040380efabe6c9fbcb4229cfb5675818ea388e447dca1",
+            "projection_hash": "ea9d42a4012815a8f5ebf6b35b93303111477817feb5a1391fa807efc6167a14",
+            "resolved_cell_manifest_hash": "7e8fa0c45109bbfc0162a90cf68d4186a0a3f96a0df9cce1e9b1b09f50aa6de9",
+            "resolved_roles": {
+              "base": [
+                "base"
+              ],
+              "forbidden_contact": [
+                "base"
+              ],
+              "support_effector": [
+                "FL_foot",
+                "FR_foot",
+                "RL_foot",
+                "RR_foot"
+              ]
+            },
+            "reward_capability_hash_vnext": "658069454a3972110a78c6c6ee217ec2ee14cd3a9fbcf07c37017fceeecb0c7d",
+            "reward_input_schema_hash_vnext": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+            "robot_profile_hash": "3e9c110449be639fceb48d6792fc8f683f43bd34978286325bba99547d20f1c0",
+            "robot_profile_id": "unitree_go2_12dof_isaaclab_v1",
+            "robot_task_binding_hash": "e021614f64e7a23520ed779eecc6697f80d0d5548074f843bafae6f14150e7dc",
+            "runtime_adapter_hash": "14f03caebe810885d5681d73812987b2d31706cf432c4de5597b14a9dbfcd3f0",
+            "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1",
+            "schema_version": "true_rl_agent.task.stair_climbing.runtime_projection.vnext.v1",
+            "sensor_schema_hash": "47c42e91348ce1d49e0988040d0941317afe1b16cb90692d73e02ba7d065896d",
+            "support_transition_inputs": true,
+            "task_scales": {
+              "horizontal": 1.0,
+              "vertical": 0.589087
+            }
+          },
+          "qualification_sha256": "84aecf9e412be7578ee567ca65cc1c6ff48351f8f45c1fb789a1a61913e8a48f",
+          "runtime_surface": "unknown_not_recorded",
+          "source_id": "k1"
+        },
+        "code_sha256": {
+          "scripts/build_stair_terrain_supplement.py": "03431cb3759a6048fd02410629721d6472b51f5f1e90c6ef57490683b5290e91",
+          "src/true_rl_agent/composition/cell_manifest.py": "75b1c89df96a940fcc889807faeffa9f98443bb66d2b2cc9d1d0ebcc5b0d8954",
+          "src/true_rl_agent/evaluation/binding.py": "a59c8dfe51a9ff4197a23f76e3a895f8bd5e3de638f8cf2876266e5733912e3a",
+          "src/true_rl_agent/evaluation/process_report.py": "a45b4f2cfd295f69166c4c2495d325df6238c86b7ff0fd29ef4ef911de22cc64",
+          "src/true_rl_agent/evaluation/trajectory_translation/__init__.py": "a0f279c7f0a30427ed230c65c52f91de3727cad8e19ea1c10d5baf11b701c02f",
+          "src/true_rl_agent/evaluation/trajectory_translation/cohort.py": "2e5e5a80f86e1dbe46bc3383cb1d058e574d526488a9da222093e92556faac20",
+          "src/true_rl_agent/evaluation/trajectory_translation/contracts.py": "e2fff04aff2fdb1db15116ffdd018f8b4bf773979e53e90cabe9a04007448500",
+          "src/true_rl_agent/evaluation/trajectory_translation/cycles.py": "d9c31e2ce0e65b02aa2e5cb6954741403c190664ba53d1ef10457fb891c3a522",
+          "src/true_rl_agent/evaluation/trajectory_translation/joint_limits.py": "44c2367db2ae43e1f2463b6bb74deea15482a28ed680cc52987b0076158d6d57",
+          "src/true_rl_agent/evaluation/trajectory_translation/measurement.py": "dd1d5f278fdd102d7fac39b83cd525e7a34a11e56a09cd972c58d9233c6708d5",
+          "src/true_rl_agent/evaluation/trajectory_translation/report.py": "466b1c5ecf1c275571ea64cd08bd20cd48aa7e646be1bb5e9acff375a5067a36",
+          "src/true_rl_agent/evaluation/trajectory_translation/temporal.py": "d628a872e4130563138e2fd74dbbfccd895e1da62f457b5a85b555a97ed9122b",
+          "src/true_rl_agent/runner/numeric_evidence.py": "2283e8e9f770135a610506173e91948fdfc7dcf79b9b227f5f0932a44da30579",
+          "src/true_rl_agent/tasks/stair_climbing/evaluation_semantics.py": "05dbc0772fa4ad5cb7df10bc9fd457250a565290a25d70589cd497374a213b00",
+          "src/true_rl_agent/tasks/stair_climbing/isaaclab_evaluation_terrain.py": "1afc763c0770d312c7b4e7968c53fc90fdad6f335dba024f1142568d6092015b",
+          "src/true_rl_agent/tasks/stair_climbing/isaaclab_irregular_terrain.py": "47fd5068b94d50711d11c1df33d5b16ccd39d6f8d56a1867a8306eba0a4a3caa",
+          "src/true_rl_agent/tasks/stair_climbing/isaaclab_rough_terrain.py": "27b12a7f21fdf6f77ee4964eb098ab2379f1511c1ca725e05fb72bca18cc0315",
+          "src/true_rl_agent/tasks/stair_climbing/ordered_evaluation.py": "2b40c4d6e1b4ba0cc5b98995b66d91849f0a51c95b01877f7d56a2b731823379",
+          "src/true_rl_agent/tasks/stair_climbing/rough_surface.py": "ca38378f67aa5ebeeee4496c7da17236f967b4c7b1293ad34cd0d61bb607dfc8",
+          "src/true_rl_agent/tasks/stair_climbing/runtime_projection.py": "33377cbcfcde69f56d230d63e6639a1d09cc47ffdb5825cd213880d42531e6af",
+          "src/true_rl_agent/tasks/stair_climbing/trajectory_adapter.py": "8c6d27387e57fc4247ecb780024b7c0eb15e80154d1b7afc093469ccec3a2e2c",
+          "src/true_rl_agent/tasks/stair_climbing/trajectory_artifacts.py": "9bc0402515109d20b52ba5a803a60ed9f284285f297695a59b9edea16a9edb0e",
+          "src/true_rl_agent/tasks/stair_climbing/trajectory_cycles.py": "66339a5d686e52afcc32e373c2fe70fda8c20d8b5519e5ff34538ce075f675b7",
+          "src/true_rl_agent/tasks/stair_climbing/trajectory_joint_limits.py": "4273e9a0bc8090b474a33f64407541092017242902edf150f8ea9c17bea5ff87",
+          "src/true_rl_agent/tasks/stair_climbing/trajectory_pipeline.py": "cae9de87db396d0353f2c305730765c6b8c66e66e8627f66b2406c8190acda75",
+          "src/true_rl_agent/tasks/stair_climbing/trajectory_report.py": "04c95e060df49550e75b9896aa98730b6fb838c6871dc8714e82360a4b61f7ba",
+          "src/true_rl_agent/tasks/stair_climbing/trajectory_terrain.py": "ea5c3a69c44f86ef8c3b740af7fb9b2687ddd1b671b7d0cee532702978f62936",
+          "src/true_rl_agent/tasks/stair_climbing/unified_evaluation.py": "cd3d9aef61a8a69d8fda4467a0644ad71ad20619711a0d527ad070e1cf4be593",
+          "src/true_rl_agent/tasks/stair_climbing/unified_training.py": "3e80c0f0eeb81d768a81e151e544ff8afc0a923a85f79f3ff073c4e514dd88c7"
+        },
+        "complete": true,
+        "cpu_seconds": 8.125,
+        "episode_count": 864,
+        "gpu_runs": 0,
+        "peak_working_set_bytes": 246108160,
+        "source_manifest_ref": {
+          "manifest_path": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1d\\raw\\k1_numeric_evidence\\manifest.json",
+          "manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+          "schema_version": "true_rl_agent.numeric_evidence.ref.v1"
+        },
+        "trace_rows": 276259,
+        "training_runs": 0,
+        "wall_seconds": 8.213895000051707
+      },
+      "audit_summary": {
+        "status": "PASS",
+        "source": "k1",
+        "episodes": 864,
+        "records_checked": 4320,
+        "valid_rows": 276259,
+        "reference_point_samples": 1381295,
+        "maximum_triangle_formula_error_m": 1.5543122344752192e-15,
+        "independent_extreme_first_index_differences": [],
+        "preview_receipt": {
+          "binding": {
+            "base_file_sha256": "2e1e66a218dc6e1e60bbd005b27167c546b1199d7b4e763b943eb7e7cf05b331",
+            "identity": {
+              "backend_execution_environment_verification": {
+                "actual_manifest_hash": "c472e507378f1256f95a7ffd69a3408cadd69fdcfdc6282a842e54562916fac0",
+                "backend_id": "isaac_lab_rsl_rl",
+                "expected_manifest_hash": "c472e507378f1256f95a7ffd69a3408cadd69fdcfdc6282a842e54562916fac0",
+                "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+                "status": "pass"
+              },
+              "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+              "checkpoint_hash": "sha256:fca6a59c8142d0120c5b534addab03885995dd64931fc3b974b9f94b997fe729",
+              "environment_source_preflight": {
+                "schema_version": "true_rl_agent.task.stair_climbing.execution_source_preflight.v1",
+                "source_manifest_hash": "ef434773192061f3e8d32c369a64c8178da802727440ebcf35aee855e77e9991",
+                "status": "pass",
+                "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9"
+              },
+              "evaluation_binding": {
+                "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+                "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+                "evaluation_binding_hash": "ff0b754f727af4df616e77d10f8f67019cea485ed76b1b9c6b00cf902c451178",
+                "schema_version": "true_rl_agent.evaluation.binding.v1",
+                "seed_cohort_hash": "a7830816449821400a6ae51fabbb046f8d98ab3084bfcaeb56b240249ea790ea",
+                "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9"
+              },
+              "evaluation_plan_hash": "febc1c36a47b3681812197eef04c19d2e1b9de258d8332b73be571e84f6b76ea",
+              "job_id": "stair-dev-replay-fca6a59c8142d012-eval-public-dev",
+              "program_source_checksum": "sha256:10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+              "resolved_cell_manifest_hash": "7e8fa0c45109bbfc0162a90cf68d4186a0a3f96a0df9cce1e9b1b09f50aa6de9",
+              "seed_namespace": "formal_reference_candidate_eval",
+              "splits": [
+                "public_dev"
+              ],
+              "subject_id": "go2-stair-official-flat-derived-v1",
+              "subject_kind": "reference",
+              "subject_manifest_hash": "ece5ad653267f11e5b791403208472f42622e44661fdbc7162776799a370dbd4",
+              "task_id": "unitree_stair_climbing",
+              "training_binding_hash": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98"
+            },
+            "manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+            "placement": "nominal_expected_layout_with_recorded_origins; historical_importer_bytes_unverified",
+            "projection": {
+              "action_joint_names": [
+                "FL_hip_joint",
+                "FR_hip_joint",
+                "RL_hip_joint",
+                "RR_hip_joint",
+                "FL_thigh_joint",
+                "FR_thigh_joint",
+                "RL_thigh_joint",
+                "RR_thigh_joint",
+                "FL_calf_joint",
+                "FR_calf_joint",
+                "RL_calf_joint",
+                "RR_calf_joint"
+              ],
+              "binding_facts_hash": "1160a2a4544eb3cb8d55aa436988a73eca46019296d2b559eab246749798a53f",
+              "cell_variant_id": "stair.go2_12dof.unified_v3",
+              "contact_history_length": 3,
+              "contact_sensor_name": "contact_forces",
+              "height_scan_ray_count": 187,
+              "height_sensor_name": "height_scanner",
+              "joint_groups": {},
+              "joint_names": [
+                "FL_hip_joint",
+                "FR_hip_joint",
+                "RL_hip_joint",
+                "RR_hip_joint",
+                "FL_thigh_joint",
+                "FR_thigh_joint",
+                "RL_thigh_joint",
+                "RR_thigh_joint",
+                "FL_calf_joint",
+                "FR_calf_joint",
+                "RL_calf_joint",
+                "RR_calf_joint"
+              ],
+              "kinematic_base_source": "articulation_root",
+              "legacy_reward_adapter_id": null,
+              "policy_io_schema_hash": "5fdd774448ee18f6d37040380efabe6c9fbcb4229cfb5675818ea388e447dca1",
+              "projection_hash": "ea9d42a4012815a8f5ebf6b35b93303111477817feb5a1391fa807efc6167a14",
+              "resolved_cell_manifest_hash": "7e8fa0c45109bbfc0162a90cf68d4186a0a3f96a0df9cce1e9b1b09f50aa6de9",
+              "resolved_roles": {
+                "base": [
+                  "base"
+                ],
+                "forbidden_contact": [
+                  "base"
+                ],
+                "support_effector": [
+                  "FL_foot",
+                  "FR_foot",
+                  "RL_foot",
+                  "RR_foot"
+                ]
+              },
+              "reward_capability_hash_vnext": "658069454a3972110a78c6c6ee217ec2ee14cd3a9fbcf07c37017fceeecb0c7d",
+              "reward_input_schema_hash_vnext": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+              "robot_profile_hash": "3e9c110449be639fceb48d6792fc8f683f43bd34978286325bba99547d20f1c0",
+              "robot_profile_id": "unitree_go2_12dof_isaaclab_v1",
+              "robot_task_binding_hash": "e021614f64e7a23520ed779eecc6697f80d0d5548074f843bafae6f14150e7dc",
+              "runtime_adapter_hash": "14f03caebe810885d5681d73812987b2d31706cf432c4de5597b14a9dbfcd3f0",
+              "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1",
+              "schema_version": "true_rl_agent.task.stair_climbing.runtime_projection.vnext.v1",
+              "sensor_schema_hash": "47c42e91348ce1d49e0988040d0941317afe1b16cb90692d73e02ba7d065896d",
+              "support_transition_inputs": true,
+              "task_scales": {
+                "horizontal": 1.0,
+                "vertical": 0.589087
+              }
+            },
+            "qualification_sha256": "84aecf9e412be7578ee567ca65cc1c6ff48351f8f45c1fb789a1a61913e8a48f",
+            "runtime_surface": "unknown_not_recorded",
+            "source_id": "k1"
+          },
+          "combined_bytes": 8086,
+          "included_ids": [],
+          "max_bytes": 8192,
+          "omitted": [
+            {
+              "id": "nominal-terrain-claim:e1be02a59e6409724fcac21d7177c77085e39313564c14fab74dc20f00a1dbb7",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:f1677db59a48bb56c4262022ba7b1b0c244bc528ac86119b45a419eb6cf51029",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:ebb58737afac5a111bb5e5525790e923e921d5fe3c33aeeac922e0b52e6105b6",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:c19c10abbb435e955f40e8eaf0c1dc0dced7df94df046abe4b1650d0d2661cfe",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:a6457e6a9499c342ec06684aea304e566591c5538f5323b51651813febf547a9",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:aca353b1341ac36464f69e7a68becbba61fefd56dc6a89f39f07201c36053509",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:20cde12153225784009371b7dd8dd4770e2112fb29fbd5e5706c747a98106b8c",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:23d9ef72b68b86e9d4bc28986e50066794e13f4b4f03e245c282b8fa5ae580c2",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:3db16302f4a9d5e3904e1d53c027943bfda21b9149b1277232069e4267b3496d",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:4b57011e8bad80db890e83b74d4a6b726f009cef63655d7fa541bf338ae7275d",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:b65beeb2960e7c9c6f7b704bc500bdda372ecec8f8420a4238231c1b0a62f77d",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:30d44eef26e4a056c3e739143dc1454b05afaa4b1c5fd8d161f8ee4f35d5ae40",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:1326f230b7f8b8b5485102181c6a329b544fe14f5b85254acb17fdd86b08d10f",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:315b79a25cbf9eb63b01be36567620c55c4d409de7a2053c0b3c63b133675df5",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:3b758849973fbdc7d028f7efae0616eec93e3a5fd8217f1da9cadbde45509c94",
+              "reason": "optional_whole_sentence_combined_budget"
+            }
+          ],
+          "status": "offline_not_production_delivery"
+        },
+        "absent_categories": [
+          "c0_regular/negative_difference",
+          "c1_irregular_flat/negative_difference"
+        ],
+        "wall_seconds": 11.12558870005887
+      },
+      "files": [
+        {
+          "path": "outputs/p2c3/real_03/k1/audit.json",
+          "bytes": 62781,
+          "sha256": "39e27059bfed968d4d081e2afafbc3c7274f77128011aae11a37bf5b3727da9f"
+        },
+        {
+          "path": "outputs/p2c3/real_03/k1/manifest.json",
+          "bytes": 9345,
+          "sha256": "3f7f3ed047a39c90198044ef7e4d1fdce8166d21c20d720d765d43c8dbcf8d0d"
+        },
+        {
+          "path": "outputs/p2c3/real_03/k1/preview.json",
+          "bytes": 8087,
+          "sha256": "9fa762fa10cf574aa1b54c09603ef5a4a7ecfbb4c9377b857d5ff2d21d58becd"
+        },
+        {
+          "path": "outputs/p2c3/real_03/k1/preview_receipt.json",
+          "bytes": 6881,
+          "sha256": "f32f1fb316d4fd866e97b632bb2042cf8141af3913ea00ff5ea52dcc567dc889"
+        },
+        {
+          "path": "outputs/p2c3/real_03/k1/report.json",
+          "bytes": 30014,
+          "sha256": "b0d000dd0e95018be50ce81582d4fa2001ca94da7937a80d3802efafb165cb64"
+        },
+        {
+          "path": "outputs/p2c3/real_03/k1/terrain.jsonl",
+          "bytes": 25490166,
+          "sha256": "33f476a6e508939b8d605ea89a63f7b41a0969c284466b529686bff647a7db1f"
+        },
+        {
+          "path": "outputs/p2c3/real_03/k1/traces.npz",
+          "bytes": 7433049,
+          "sha256": "143d31d2b71ed92bcbf93c6094dfb97ca184140f48233df696e59dbd4a8dd37a"
+        }
+      ],
+      "final_oracle": {
+        "path": "outputs/p2c3/raw_audit_03/k1_audit.json",
+        "bytes": 62834,
+        "sha256": "e89527acc10e75e9eb877bb42571dfb6444e84e1130e65995650f6a0612254a8"
+      }
+    },
+    {
+      "source_id": "k2",
+      "build_manifest": {
+        "api_calls": 0,
+        "artifacts": {
+          "preview.json": {
+            "bytes": 8033,
+            "sha256": "7d90c3b2ea82d7933e8d434d1af853494be8f390b4a80c88fd46126ed4df028c"
+          },
+          "preview_receipt.json": {
+            "bytes": 6886,
+            "sha256": "44e61d1530493593efe19b584c88e3bfd66917916f8432adfc0cb229f065afca"
+          },
+          "report.json": {
+            "bytes": 30010,
+            "sha256": "b4e3e383e9e8a87a25f4be8c75c744746b1eb6b7bdc8b88841b798b5639ab4cc"
+          },
+          "terrain.jsonl": {
+            "bytes": 25464760,
+            "sha256": "71765047901b192ab2e4ccc3a2cf8b84f2f3d086b56aadf3f6b466068d1ff1ef"
+          },
+          "traces.npz": {
+            "bytes": 7387489,
+            "sha256": "b64e43a67c5fda81b7f050e6931266fe7e0655f29356c7771ea551a0183dc4b1"
+          }
+        },
+        "binding": {
+          "base_file_sha256": "b9e41070b79c4b102e960af6a1807781a6129dbc339f43241727f7269a504e36",
+          "identity": {
+            "backend_execution_environment_verification": {
+              "actual_manifest_hash": "5a5358ba6672f5d3ec6d69e01e1adbcffe13c56e7212130d6ef79b62470b7949",
+              "backend_id": "isaac_lab_rsl_rl",
+              "expected_manifest_hash": "5a5358ba6672f5d3ec6d69e01e1adbcffe13c56e7212130d6ef79b62470b7949",
+              "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+              "status": "pass"
+            },
+            "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+            "checkpoint_hash": "sha256:bcd8de3a9d0e6e6a6c84b8c7833dc4a1b0ed697758ddee6f9c9eb31416a2f93c",
+            "environment_source_preflight": {
+              "schema_version": "true_rl_agent.task.stair_climbing.execution_source_preflight.v1",
+              "source_manifest_hash": "dc4f199cf0c1fcca156291aa32f0747f99134c216572ed3c7d28399abf7a6520",
+              "status": "pass",
+              "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9"
+            },
+            "evaluation_binding": {
+              "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+              "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+              "evaluation_binding_hash": "ff0b754f727af4df616e77d10f8f67019cea485ed76b1b9c6b00cf902c451178",
+              "schema_version": "true_rl_agent.evaluation.binding.v1",
+              "seed_cohort_hash": "a7830816449821400a6ae51fabbb046f8d98ab3084bfcaeb56b240249ea790ea",
+              "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9"
+            },
+            "evaluation_plan_hash": "d9b080b250ea4bb53b12e003818e9de7387e61ebbb4781d2958ad96ab07b0e6e",
+            "job_id": "stair-dev-replay-bcd8de3a9d0e6e6a-eval-public-dev",
+            "program_source_checksum": "sha256:29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45",
+            "resolved_cell_manifest_hash": "7e8fa0c45109bbfc0162a90cf68d4186a0a3f96a0df9cce1e9b1b09f50aa6de9",
+            "seed_namespace": "formal_reference_candidate_eval",
+            "splits": [
+              "public_dev"
+            ],
+            "subject_id": "stair_swing_foot_level_sweep_penalty_v1",
+            "subject_kind": "candidate",
+            "subject_manifest_hash": "e9f40a3c33000bb34ec29f81035cb7c8b15043b0e52b8de8dfff8894533cde69",
+            "task_id": "unitree_stair_climbing",
+            "training_binding_hash": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98"
+          },
+          "manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+          "placement": "nominal_expected_layout_with_recorded_origins; historical_importer_bytes_unverified",
+          "projection": {
+            "action_joint_names": [
+              "FL_hip_joint",
+              "FR_hip_joint",
+              "RL_hip_joint",
+              "RR_hip_joint",
+              "FL_thigh_joint",
+              "FR_thigh_joint",
+              "RL_thigh_joint",
+              "RR_thigh_joint",
+              "FL_calf_joint",
+              "FR_calf_joint",
+              "RL_calf_joint",
+              "RR_calf_joint"
+            ],
+            "binding_facts_hash": "1160a2a4544eb3cb8d55aa436988a73eca46019296d2b559eab246749798a53f",
+            "cell_variant_id": "stair.go2_12dof.unified_v3",
+            "contact_history_length": 3,
+            "contact_sensor_name": "contact_forces",
+            "height_scan_ray_count": 187,
+            "height_sensor_name": "height_scanner",
+            "joint_groups": {},
+            "joint_names": [
+              "FL_hip_joint",
+              "FR_hip_joint",
+              "RL_hip_joint",
+              "RR_hip_joint",
+              "FL_thigh_joint",
+              "FR_thigh_joint",
+              "RL_thigh_joint",
+              "RR_thigh_joint",
+              "FL_calf_joint",
+              "FR_calf_joint",
+              "RL_calf_joint",
+              "RR_calf_joint"
+            ],
+            "kinematic_base_source": "articulation_root",
+            "legacy_reward_adapter_id": null,
+            "policy_io_schema_hash": "5fdd774448ee18f6d37040380efabe6c9fbcb4229cfb5675818ea388e447dca1",
+            "projection_hash": "ea9d42a4012815a8f5ebf6b35b93303111477817feb5a1391fa807efc6167a14",
+            "resolved_cell_manifest_hash": "7e8fa0c45109bbfc0162a90cf68d4186a0a3f96a0df9cce1e9b1b09f50aa6de9",
+            "resolved_roles": {
+              "base": [
+                "base"
+              ],
+              "forbidden_contact": [
+                "base"
+              ],
+              "support_effector": [
+                "FL_foot",
+                "FR_foot",
+                "RL_foot",
+                "RR_foot"
+              ]
+            },
+            "reward_capability_hash_vnext": "658069454a3972110a78c6c6ee217ec2ee14cd3a9fbcf07c37017fceeecb0c7d",
+            "reward_input_schema_hash_vnext": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+            "robot_profile_hash": "3e9c110449be639fceb48d6792fc8f683f43bd34978286325bba99547d20f1c0",
+            "robot_profile_id": "unitree_go2_12dof_isaaclab_v1",
+            "robot_task_binding_hash": "e021614f64e7a23520ed779eecc6697f80d0d5548074f843bafae6f14150e7dc",
+            "runtime_adapter_hash": "14f03caebe810885d5681d73812987b2d31706cf432c4de5597b14a9dbfcd3f0",
+            "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1",
+            "schema_version": "true_rl_agent.task.stair_climbing.runtime_projection.vnext.v1",
+            "sensor_schema_hash": "47c42e91348ce1d49e0988040d0941317afe1b16cb90692d73e02ba7d065896d",
+            "support_transition_inputs": true,
+            "task_scales": {
+              "horizontal": 1.0,
+              "vertical": 0.589087
+            }
+          },
+          "qualification_sha256": "84aecf9e412be7578ee567ca65cc1c6ff48351f8f45c1fb789a1a61913e8a48f",
+          "runtime_surface": "unknown_not_recorded",
+          "source_id": "k2"
+        },
+        "code_sha256": {
+          "scripts/build_stair_terrain_supplement.py": "03431cb3759a6048fd02410629721d6472b51f5f1e90c6ef57490683b5290e91",
+          "src/true_rl_agent/composition/cell_manifest.py": "75b1c89df96a940fcc889807faeffa9f98443bb66d2b2cc9d1d0ebcc5b0d8954",
+          "src/true_rl_agent/evaluation/binding.py": "a59c8dfe51a9ff4197a23f76e3a895f8bd5e3de638f8cf2876266e5733912e3a",
+          "src/true_rl_agent/evaluation/process_report.py": "a45b4f2cfd295f69166c4c2495d325df6238c86b7ff0fd29ef4ef911de22cc64",
+          "src/true_rl_agent/evaluation/trajectory_translation/__init__.py": "a0f279c7f0a30427ed230c65c52f91de3727cad8e19ea1c10d5baf11b701c02f",
+          "src/true_rl_agent/evaluation/trajectory_translation/cohort.py": "2e5e5a80f86e1dbe46bc3383cb1d058e574d526488a9da222093e92556faac20",
+          "src/true_rl_agent/evaluation/trajectory_translation/contracts.py": "e2fff04aff2fdb1db15116ffdd018f8b4bf773979e53e90cabe9a04007448500",
+          "src/true_rl_agent/evaluation/trajectory_translation/cycles.py": "d9c31e2ce0e65b02aa2e5cb6954741403c190664ba53d1ef10457fb891c3a522",
+          "src/true_rl_agent/evaluation/trajectory_translation/joint_limits.py": "44c2367db2ae43e1f2463b6bb74deea15482a28ed680cc52987b0076158d6d57",
+          "src/true_rl_agent/evaluation/trajectory_translation/measurement.py": "dd1d5f278fdd102d7fac39b83cd525e7a34a11e56a09cd972c58d9233c6708d5",
+          "src/true_rl_agent/evaluation/trajectory_translation/report.py": "466b1c5ecf1c275571ea64cd08bd20cd48aa7e646be1bb5e9acff375a5067a36",
+          "src/true_rl_agent/evaluation/trajectory_translation/temporal.py": "d628a872e4130563138e2fd74dbbfccd895e1da62f457b5a85b555a97ed9122b",
+          "src/true_rl_agent/runner/numeric_evidence.py": "2283e8e9f770135a610506173e91948fdfc7dcf79b9b227f5f0932a44da30579",
+          "src/true_rl_agent/tasks/stair_climbing/evaluation_semantics.py": "05dbc0772fa4ad5cb7df10bc9fd457250a565290a25d70589cd497374a213b00",
+          "src/true_rl_agent/tasks/stair_climbing/isaaclab_evaluation_terrain.py": "1afc763c0770d312c7b4e7968c53fc90fdad6f335dba024f1142568d6092015b",
+          "src/true_rl_agent/tasks/stair_climbing/isaaclab_irregular_terrain.py": "47fd5068b94d50711d11c1df33d5b16ccd39d6f8d56a1867a8306eba0a4a3caa",
+          "src/true_rl_agent/tasks/stair_climbing/isaaclab_rough_terrain.py": "27b12a7f21fdf6f77ee4964eb098ab2379f1511c1ca725e05fb72bca18cc0315",
+          "src/true_rl_agent/tasks/stair_climbing/ordered_evaluation.py": "2b40c4d6e1b4ba0cc5b98995b66d91849f0a51c95b01877f7d56a2b731823379",
+          "src/true_rl_agent/tasks/stair_climbing/rough_surface.py": "ca38378f67aa5ebeeee4496c7da17236f967b4c7b1293ad34cd0d61bb607dfc8",
+          "src/true_rl_agent/tasks/stair_climbing/runtime_projection.py": "33377cbcfcde69f56d230d63e6639a1d09cc47ffdb5825cd213880d42531e6af",
+          "src/true_rl_agent/tasks/stair_climbing/trajectory_adapter.py": "8c6d27387e57fc4247ecb780024b7c0eb15e80154d1b7afc093469ccec3a2e2c",
+          "src/true_rl_agent/tasks/stair_climbing/trajectory_artifacts.py": "9bc0402515109d20b52ba5a803a60ed9f284285f297695a59b9edea16a9edb0e",
+          "src/true_rl_agent/tasks/stair_climbing/trajectory_cycles.py": "66339a5d686e52afcc32e373c2fe70fda8c20d8b5519e5ff34538ce075f675b7",
+          "src/true_rl_agent/tasks/stair_climbing/trajectory_joint_limits.py": "4273e9a0bc8090b474a33f64407541092017242902edf150f8ea9c17bea5ff87",
+          "src/true_rl_agent/tasks/stair_climbing/trajectory_pipeline.py": "cae9de87db396d0353f2c305730765c6b8c66e66e8627f66b2406c8190acda75",
+          "src/true_rl_agent/tasks/stair_climbing/trajectory_report.py": "04c95e060df49550e75b9896aa98730b6fb838c6871dc8714e82360a4b61f7ba",
+          "src/true_rl_agent/tasks/stair_climbing/trajectory_terrain.py": "ea5c3a69c44f86ef8c3b740af7fb9b2687ddd1b671b7d0cee532702978f62936",
+          "src/true_rl_agent/tasks/stair_climbing/unified_evaluation.py": "cd3d9aef61a8a69d8fda4467a0644ad71ad20619711a0d527ad070e1cf4be593",
+          "src/true_rl_agent/tasks/stair_climbing/unified_training.py": "3e80c0f0eeb81d768a81e151e544ff8afc0a923a85f79f3ff073c4e514dd88c7"
+        },
+        "complete": true,
+        "cpu_seconds": 7.203125,
+        "episode_count": 864,
+        "gpu_runs": 0,
+        "peak_working_set_bytes": 246784000,
+        "source_manifest_ref": {
+          "manifest_path": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\raw\\k2\\manifest.json",
+          "manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+          "schema_version": "true_rl_agent.numeric_evidence.ref.v1"
+        },
+        "trace_rows": 276949,
+        "training_runs": 0,
+        "wall_seconds": 7.289605499943718
+      },
+      "audit_summary": {
+        "status": "PASS",
+        "source": "k2",
+        "episodes": 864,
+        "records_checked": 4320,
+        "valid_rows": 276949,
+        "reference_point_samples": 1384745,
+        "maximum_triangle_formula_error_m": 1.5543122344752192e-15,
+        "independent_extreme_first_index_differences": [],
+        "preview_receipt": {
+          "binding": {
+            "base_file_sha256": "b9e41070b79c4b102e960af6a1807781a6129dbc339f43241727f7269a504e36",
+            "identity": {
+              "backend_execution_environment_verification": {
+                "actual_manifest_hash": "5a5358ba6672f5d3ec6d69e01e1adbcffe13c56e7212130d6ef79b62470b7949",
+                "backend_id": "isaac_lab_rsl_rl",
+                "expected_manifest_hash": "5a5358ba6672f5d3ec6d69e01e1adbcffe13c56e7212130d6ef79b62470b7949",
+                "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+                "status": "pass"
+              },
+              "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+              "checkpoint_hash": "sha256:bcd8de3a9d0e6e6a6c84b8c7833dc4a1b0ed697758ddee6f9c9eb31416a2f93c",
+              "environment_source_preflight": {
+                "schema_version": "true_rl_agent.task.stair_climbing.execution_source_preflight.v1",
+                "source_manifest_hash": "dc4f199cf0c1fcca156291aa32f0747f99134c216572ed3c7d28399abf7a6520",
+                "status": "pass",
+                "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9"
+              },
+              "evaluation_binding": {
+                "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+                "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+                "evaluation_binding_hash": "ff0b754f727af4df616e77d10f8f67019cea485ed76b1b9c6b00cf902c451178",
+                "schema_version": "true_rl_agent.evaluation.binding.v1",
+                "seed_cohort_hash": "a7830816449821400a6ae51fabbb046f8d98ab3084bfcaeb56b240249ea790ea",
+                "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9"
+              },
+              "evaluation_plan_hash": "d9b080b250ea4bb53b12e003818e9de7387e61ebbb4781d2958ad96ab07b0e6e",
+              "job_id": "stair-dev-replay-bcd8de3a9d0e6e6a-eval-public-dev",
+              "program_source_checksum": "sha256:29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45",
+              "resolved_cell_manifest_hash": "7e8fa0c45109bbfc0162a90cf68d4186a0a3f96a0df9cce1e9b1b09f50aa6de9",
+              "seed_namespace": "formal_reference_candidate_eval",
+              "splits": [
+                "public_dev"
+              ],
+              "subject_id": "stair_swing_foot_level_sweep_penalty_v1",
+              "subject_kind": "candidate",
+              "subject_manifest_hash": "e9f40a3c33000bb34ec29f81035cb7c8b15043b0e52b8de8dfff8894533cde69",
+              "task_id": "unitree_stair_climbing",
+              "training_binding_hash": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98"
+            },
+            "manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+            "placement": "nominal_expected_layout_with_recorded_origins; historical_importer_bytes_unverified",
+            "projection": {
+              "action_joint_names": [
+                "FL_hip_joint",
+                "FR_hip_joint",
+                "RL_hip_joint",
+                "RR_hip_joint",
+                "FL_thigh_joint",
+                "FR_thigh_joint",
+                "RL_thigh_joint",
+                "RR_thigh_joint",
+                "FL_calf_joint",
+                "FR_calf_joint",
+                "RL_calf_joint",
+                "RR_calf_joint"
+              ],
+              "binding_facts_hash": "1160a2a4544eb3cb8d55aa436988a73eca46019296d2b559eab246749798a53f",
+              "cell_variant_id": "stair.go2_12dof.unified_v3",
+              "contact_history_length": 3,
+              "contact_sensor_name": "contact_forces",
+              "height_scan_ray_count": 187,
+              "height_sensor_name": "height_scanner",
+              "joint_groups": {},
+              "joint_names": [
+                "FL_hip_joint",
+                "FR_hip_joint",
+                "RL_hip_joint",
+                "RR_hip_joint",
+                "FL_thigh_joint",
+                "FR_thigh_joint",
+                "RL_thigh_joint",
+                "RR_thigh_joint",
+                "FL_calf_joint",
+                "FR_calf_joint",
+                "RL_calf_joint",
+                "RR_calf_joint"
+              ],
+              "kinematic_base_source": "articulation_root",
+              "legacy_reward_adapter_id": null,
+              "policy_io_schema_hash": "5fdd774448ee18f6d37040380efabe6c9fbcb4229cfb5675818ea388e447dca1",
+              "projection_hash": "ea9d42a4012815a8f5ebf6b35b93303111477817feb5a1391fa807efc6167a14",
+              "resolved_cell_manifest_hash": "7e8fa0c45109bbfc0162a90cf68d4186a0a3f96a0df9cce1e9b1b09f50aa6de9",
+              "resolved_roles": {
+                "base": [
+                  "base"
+                ],
+                "forbidden_contact": [
+                  "base"
+                ],
+                "support_effector": [
+                  "FL_foot",
+                  "FR_foot",
+                  "RL_foot",
+                  "RR_foot"
+                ]
+              },
+              "reward_capability_hash_vnext": "658069454a3972110a78c6c6ee217ec2ee14cd3a9fbcf07c37017fceeecb0c7d",
+              "reward_input_schema_hash_vnext": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+              "robot_profile_hash": "3e9c110449be639fceb48d6792fc8f683f43bd34978286325bba99547d20f1c0",
+              "robot_profile_id": "unitree_go2_12dof_isaaclab_v1",
+              "robot_task_binding_hash": "e021614f64e7a23520ed779eecc6697f80d0d5548074f843bafae6f14150e7dc",
+              "runtime_adapter_hash": "14f03caebe810885d5681d73812987b2d31706cf432c4de5597b14a9dbfcd3f0",
+              "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1",
+              "schema_version": "true_rl_agent.task.stair_climbing.runtime_projection.vnext.v1",
+              "sensor_schema_hash": "47c42e91348ce1d49e0988040d0941317afe1b16cb90692d73e02ba7d065896d",
+              "support_transition_inputs": true,
+              "task_scales": {
+                "horizontal": 1.0,
+                "vertical": 0.589087
+              }
+            },
+            "qualification_sha256": "84aecf9e412be7578ee567ca65cc1c6ff48351f8f45c1fb789a1a61913e8a48f",
+            "runtime_surface": "unknown_not_recorded",
+            "source_id": "k2"
+          },
+          "combined_bytes": 8032,
+          "included_ids": [],
+          "max_bytes": 8192,
+          "omitted": [
+            {
+              "id": "nominal-terrain-claim:10374dcc53bb7a68fd7d6b048cb098f89c0f7346b351e2268eaee1c276f5f1bb",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:f186912bcaf8e2aec09971ee93763b2eb71c10a375ef3e18e4d97296420e4810",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:a055dc2a49d6b3ef8432a7eb3829c845c86d3656b4ac394d4c5492e3207d254b",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:8d122f7e946e531507ec75bf82802520b97d90bc0d858a3889fb1f9c423f4018",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:d37d095fe72901e1fcf904f2611041e8698673d5a7442c771472f505542ff611",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:0f3a28fe263955f921ecb225228d3b593b027288330286537dab11fb9796eb65",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:c65cbfb35fc4671f601307ad3ae261b33092a2d06e5ac719cca8926eb5ef3362",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:cb0155148dc4c4c2e8a1baf7cb86362442e841e40bcd5c9627a415a9ee9e8c60",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:2c3fc7b020d24e66e84e4422b5857a5cc545ba3977637d30170f70391c525a16",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:cd4cc88829befe302b8b827fc253ccf7df0750bf6191ac008bd51257ba42a321",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:b21f2a8320bd60c5d048359186e218b71cd1e17693c1f4f9716c5261791cf07a",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:271f8db54de778ff57e03c96a82a0ae41483ea6b58840872c5f678f1875c68f8",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:848602610fff187f16dc3742e4acd03db71be3224cad878ff4f1d81c424fc35b",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:b3df455216c06759f46e249fd2b4cea08a19795352497dae4c22e19b20f48fc7",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:8008c59e8a909eb675ed30014f9d6dd2b0ee80eb272bb95954afa203b398ff83",
+              "reason": "optional_whole_sentence_combined_budget"
+            }
+          ],
+          "status": "offline_not_production_delivery"
+        },
+        "absent_categories": [
+          "c0_regular/negative_difference",
+          "c1_irregular_flat/negative_difference"
+        ],
+        "wall_seconds": 10.975244499975815
+      },
+      "files": [
+        {
+          "path": "outputs/p2c3/real_03/k2/audit.json",
+          "bytes": 62748,
+          "sha256": "873c2a9d506a8a3c0e18b6fe45978fc06f8cb27b7dd6ad797c443fb81625d218"
+        },
+        {
+          "path": "outputs/p2c3/real_03/k2/manifest.json",
+          "bytes": 9325,
+          "sha256": "1b963183747c24e83e7e73f0882ab0dfc646b0046f67d5eb72aa7480a841663a"
+        },
+        {
+          "path": "outputs/p2c3/real_03/k2/preview.json",
+          "bytes": 8033,
+          "sha256": "7d90c3b2ea82d7933e8d434d1af853494be8f390b4a80c88fd46126ed4df028c"
+        },
+        {
+          "path": "outputs/p2c3/real_03/k2/preview_receipt.json",
+          "bytes": 6886,
+          "sha256": "44e61d1530493593efe19b584c88e3bfd66917916f8432adfc0cb229f065afca"
+        },
+        {
+          "path": "outputs/p2c3/real_03/k2/report.json",
+          "bytes": 30010,
+          "sha256": "b4e3e383e9e8a87a25f4be8c75c744746b1eb6b7bdc8b88841b798b5639ab4cc"
+        },
+        {
+          "path": "outputs/p2c3/real_03/k2/terrain.jsonl",
+          "bytes": 25464760,
+          "sha256": "71765047901b192ab2e4ccc3a2cf8b84f2f3d086b56aadf3f6b466068d1ff1ef"
+        },
+        {
+          "path": "outputs/p2c3/real_03/k2/traces.npz",
+          "bytes": 7387489,
+          "sha256": "b64e43a67c5fda81b7f050e6931266fe7e0655f29356c7771ea551a0183dc4b1"
+        }
+      ],
+      "final_oracle": {
+        "path": "outputs/p2c3/raw_audit_03/k2_audit.json",
+        "bytes": 62802,
+        "sha256": "fe740105163a43c50f12a4b182e9ef9d82d45f6da9e3a2172765379e2245eb20"
+      }
+    },
+    {
+      "source_id": "k3",
+      "build_manifest": {
+        "api_calls": 0,
+        "artifacts": {
+          "preview.json": {
+            "bytes": 8128,
+            "sha256": "e2c8016e397cd185aa64d6312edc01ed1b28fe2c80bd79fe428f0cea2f8dbde3"
+          },
+          "preview_receipt.json": {
+            "bytes": 6908,
+            "sha256": "deba329b31120aa2e35325a56dfdad15fb8e406ab1b9b5284ff91f329ef41c64"
+          },
+          "report.json": {
+            "bytes": 30075,
+            "sha256": "7bbfc1cbabcc80b04c05f7a88cb1302a3a1a7c3d6fec3c3baf81baea6862053a"
+          },
+          "terrain.jsonl": {
+            "bytes": 25726405,
+            "sha256": "438f952ad9a0965737c9ca2f8af7c6ecc73695553fba33b0d7f53f7922843402"
+          },
+          "traces.npz": {
+            "bytes": 7889395,
+            "sha256": "1fc500496e3272e2988b8359f143b1a8ec727b7680c249974125286cefbfe690"
+          }
+        },
+        "binding": {
+          "base_file_sha256": "48e3bb615a55100f3190b7ca6b1256e9057c7086cc95ee24d4ced6cb123ea4b6",
+          "identity": {
+            "backend_execution_environment_verification": {
+              "actual_manifest_hash": "df178ed6908d8118b1cf48b74f9b8946889d9334242af196f7f8451ab779ac59",
+              "backend_id": "isaac_lab_rsl_rl",
+              "expected_manifest_hash": "df178ed6908d8118b1cf48b74f9b8946889d9334242af196f7f8451ab779ac59",
+              "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+              "status": "pass"
+            },
+            "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+            "checkpoint_hash": "sha256:7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c",
+            "environment_source_preflight": {
+              "schema_version": "true_rl_agent.task.stair_climbing.execution_source_preflight.v1",
+              "source_manifest_hash": "27cbf13780dbc2e0087019aefdacfe9cf4e7930d0c845a56f6c28f3382018d9a",
+              "status": "pass",
+              "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9"
+            },
+            "evaluation_binding": {
+              "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+              "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+              "evaluation_binding_hash": "1db7a52e1cec0769caf34926267b41981c8aa066341ca26354962ee758b5905b",
+              "schema_version": "true_rl_agent.evaluation.binding.v1",
+              "seed_cohort_hash": "d41ac09594b4a4b4b48c2df075088328301a68d293bf9310882030574115ac32",
+              "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9"
+            },
+            "evaluation_plan_hash": "c10b9bbcd5191909f9ec925e042bd7cb33e5516b0e1d5ff1cb415968f4e89f19",
+            "job_id": "stair-dev-replay-7b582643510cc9dd-diagnostic-eval-diagnostic-public-dev",
+            "program_source_checksum": "sha256:10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+            "resolved_cell_manifest_hash": "7e8fa0c45109bbfc0162a90cf68d4186a0a3f96a0df9cce1e9b1b09f50aa6de9",
+            "seed_namespace": "public_dev_diagnostic_n5_r4_20261001",
+            "splits": [
+              "public_dev"
+            ],
+            "subject_id": "go2-stair-official-flat-derived-v1",
+            "subject_kind": "reference",
+            "subject_manifest_hash": "ece5ad653267f11e5b791403208472f42622e44661fdbc7162776799a370dbd4",
+            "task_id": "unitree_stair_climbing",
+            "training_binding_hash": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98"
+          },
+          "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+          "placement": "nominal_expected_layout_with_recorded_origins; historical_importer_bytes_unverified",
+          "projection": {
+            "action_joint_names": [
+              "FL_hip_joint",
+              "FR_hip_joint",
+              "RL_hip_joint",
+              "RR_hip_joint",
+              "FL_thigh_joint",
+              "FR_thigh_joint",
+              "RL_thigh_joint",
+              "RR_thigh_joint",
+              "FL_calf_joint",
+              "FR_calf_joint",
+              "RL_calf_joint",
+              "RR_calf_joint"
+            ],
+            "binding_facts_hash": "1160a2a4544eb3cb8d55aa436988a73eca46019296d2b559eab246749798a53f",
+            "cell_variant_id": "stair.go2_12dof.unified_v3",
+            "contact_history_length": 3,
+            "contact_sensor_name": "contact_forces",
+            "height_scan_ray_count": 187,
+            "height_sensor_name": "height_scanner",
+            "joint_groups": {},
+            "joint_names": [
+              "FL_hip_joint",
+              "FR_hip_joint",
+              "RL_hip_joint",
+              "RR_hip_joint",
+              "FL_thigh_joint",
+              "FR_thigh_joint",
+              "RL_thigh_joint",
+              "RR_thigh_joint",
+              "FL_calf_joint",
+              "FR_calf_joint",
+              "RL_calf_joint",
+              "RR_calf_joint"
+            ],
+            "kinematic_base_source": "articulation_root",
+            "legacy_reward_adapter_id": null,
+            "policy_io_schema_hash": "5fdd774448ee18f6d37040380efabe6c9fbcb4229cfb5675818ea388e447dca1",
+            "projection_hash": "ea9d42a4012815a8f5ebf6b35b93303111477817feb5a1391fa807efc6167a14",
+            "resolved_cell_manifest_hash": "7e8fa0c45109bbfc0162a90cf68d4186a0a3f96a0df9cce1e9b1b09f50aa6de9",
+            "resolved_roles": {
+              "base": [
+                "base"
+              ],
+              "forbidden_contact": [
+                "base"
+              ],
+              "support_effector": [
+                "FL_foot",
+                "FR_foot",
+                "RL_foot",
+                "RR_foot"
+              ]
+            },
+            "reward_capability_hash_vnext": "658069454a3972110a78c6c6ee217ec2ee14cd3a9fbcf07c37017fceeecb0c7d",
+            "reward_input_schema_hash_vnext": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+            "robot_profile_hash": "3e9c110449be639fceb48d6792fc8f683f43bd34978286325bba99547d20f1c0",
+            "robot_profile_id": "unitree_go2_12dof_isaaclab_v1",
+            "robot_task_binding_hash": "e021614f64e7a23520ed779eecc6697f80d0d5548074f843bafae6f14150e7dc",
+            "runtime_adapter_hash": "14f03caebe810885d5681d73812987b2d31706cf432c4de5597b14a9dbfcd3f0",
+            "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1",
+            "schema_version": "true_rl_agent.task.stair_climbing.runtime_projection.vnext.v1",
+            "sensor_schema_hash": "47c42e91348ce1d49e0988040d0941317afe1b16cb90692d73e02ba7d065896d",
+            "support_transition_inputs": true,
+            "task_scales": {
+              "horizontal": 1.0,
+              "vertical": 0.589087
+            }
+          },
+          "qualification_sha256": "84aecf9e412be7578ee567ca65cc1c6ff48351f8f45c1fb789a1a61913e8a48f",
+          "runtime_surface": "unknown_not_recorded",
+          "source_id": "k3"
+        },
+        "code_sha256": {
+          "scripts/build_stair_terrain_supplement.py": "03431cb3759a6048fd02410629721d6472b51f5f1e90c6ef57490683b5290e91",
+          "src/true_rl_agent/composition/cell_manifest.py": "75b1c89df96a940fcc889807faeffa9f98443bb66d2b2cc9d1d0ebcc5b0d8954",
+          "src/true_rl_agent/evaluation/binding.py": "a59c8dfe51a9ff4197a23f76e3a895f8bd5e3de638f8cf2876266e5733912e3a",
+          "src/true_rl_agent/evaluation/process_report.py": "a45b4f2cfd295f69166c4c2495d325df6238c86b7ff0fd29ef4ef911de22cc64",
+          "src/true_rl_agent/evaluation/trajectory_translation/__init__.py": "a0f279c7f0a30427ed230c65c52f91de3727cad8e19ea1c10d5baf11b701c02f",
+          "src/true_rl_agent/evaluation/trajectory_translation/cohort.py": "2e5e5a80f86e1dbe46bc3383cb1d058e574d526488a9da222093e92556faac20",
+          "src/true_rl_agent/evaluation/trajectory_translation/contracts.py": "e2fff04aff2fdb1db15116ffdd018f8b4bf773979e53e90cabe9a04007448500",
+          "src/true_rl_agent/evaluation/trajectory_translation/cycles.py": "d9c31e2ce0e65b02aa2e5cb6954741403c190664ba53d1ef10457fb891c3a522",
+          "src/true_rl_agent/evaluation/trajectory_translation/joint_limits.py": "44c2367db2ae43e1f2463b6bb74deea15482a28ed680cc52987b0076158d6d57",
+          "src/true_rl_agent/evaluation/trajectory_translation/measurement.py": "dd1d5f278fdd102d7fac39b83cd525e7a34a11e56a09cd972c58d9233c6708d5",
+          "src/true_rl_agent/evaluation/trajectory_translation/report.py": "466b1c5ecf1c275571ea64cd08bd20cd48aa7e646be1bb5e9acff375a5067a36",
+          "src/true_rl_agent/evaluation/trajectory_translation/temporal.py": "d628a872e4130563138e2fd74dbbfccd895e1da62f457b5a85b555a97ed9122b",
+          "src/true_rl_agent/runner/numeric_evidence.py": "2283e8e9f770135a610506173e91948fdfc7dcf79b9b227f5f0932a44da30579",
+          "src/true_rl_agent/tasks/stair_climbing/evaluation_semantics.py": "05dbc0772fa4ad5cb7df10bc9fd457250a565290a25d70589cd497374a213b00",
+          "src/true_rl_agent/tasks/stair_climbing/isaaclab_evaluation_terrain.py": "1afc763c0770d312c7b4e7968c53fc90fdad6f335dba024f1142568d6092015b",
+          "src/true_rl_agent/tasks/stair_climbing/isaaclab_irregular_terrain.py": "47fd5068b94d50711d11c1df33d5b16ccd39d6f8d56a1867a8306eba0a4a3caa",
+          "src/true_rl_agent/tasks/stair_climbing/isaaclab_rough_terrain.py": "27b12a7f21fdf6f77ee4964eb098ab2379f1511c1ca725e05fb72bca18cc0315",
+          "src/true_rl_agent/tasks/stair_climbing/ordered_evaluation.py": "2b40c4d6e1b4ba0cc5b98995b66d91849f0a51c95b01877f7d56a2b731823379",
+          "src/true_rl_agent/tasks/stair_climbing/rough_surface.py": "ca38378f67aa5ebeeee4496c7da17236f967b4c7b1293ad34cd0d61bb607dfc8",
+          "src/true_rl_agent/tasks/stair_climbing/runtime_projection.py": "33377cbcfcde69f56d230d63e6639a1d09cc47ffdb5825cd213880d42531e6af",
+          "src/true_rl_agent/tasks/stair_climbing/trajectory_adapter.py": "8c6d27387e57fc4247ecb780024b7c0eb15e80154d1b7afc093469ccec3a2e2c",
+          "src/true_rl_agent/tasks/stair_climbing/trajectory_artifacts.py": "9bc0402515109d20b52ba5a803a60ed9f284285f297695a59b9edea16a9edb0e",
+          "src/true_rl_agent/tasks/stair_climbing/trajectory_cycles.py": "66339a5d686e52afcc32e373c2fe70fda8c20d8b5519e5ff34538ce075f675b7",
+          "src/true_rl_agent/tasks/stair_climbing/trajectory_joint_limits.py": "4273e9a0bc8090b474a33f64407541092017242902edf150f8ea9c17bea5ff87",
+          "src/true_rl_agent/tasks/stair_climbing/trajectory_pipeline.py": "cae9de87db396d0353f2c305730765c6b8c66e66e8627f66b2406c8190acda75",
+          "src/true_rl_agent/tasks/stair_climbing/trajectory_report.py": "04c95e060df49550e75b9896aa98730b6fb838c6871dc8714e82360a4b61f7ba",
+          "src/true_rl_agent/tasks/stair_climbing/trajectory_terrain.py": "ea5c3a69c44f86ef8c3b740af7fb9b2687ddd1b671b7d0cee532702978f62936",
+          "src/true_rl_agent/tasks/stair_climbing/unified_evaluation.py": "cd3d9aef61a8a69d8fda4467a0644ad71ad20619711a0d527ad070e1cf4be593",
+          "src/true_rl_agent/tasks/stair_climbing/unified_training.py": "3e80c0f0eeb81d768a81e151e544ff8afc0a923a85f79f3ff073c4e514dd88c7"
+        },
+        "complete": true,
+        "cpu_seconds": 8.140625,
+        "episode_count": 864,
+        "gpu_runs": 0,
+        "peak_working_set_bytes": 255324160,
+        "source_manifest_ref": {
+          "manifest_path": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p0\\raw\\numeric_evidence\\manifest.json",
+          "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+          "schema_version": "true_rl_agent.numeric_evidence.ref.v1"
+        },
+        "trace_rows": 298375,
+        "training_runs": 0,
+        "wall_seconds": 8.243180199991912
+      },
+      "audit_summary": {
+        "status": "PASS",
+        "source": "k3",
+        "episodes": 864,
+        "records_checked": 4320,
+        "valid_rows": 298375,
+        "reference_point_samples": 1491875,
+        "maximum_triangle_formula_error_m": 1.5543122344752192e-15,
+        "independent_extreme_first_index_differences": [],
+        "preview_receipt": {
+          "binding": {
+            "base_file_sha256": "48e3bb615a55100f3190b7ca6b1256e9057c7086cc95ee24d4ced6cb123ea4b6",
+            "identity": {
+              "backend_execution_environment_verification": {
+                "actual_manifest_hash": "df178ed6908d8118b1cf48b74f9b8946889d9334242af196f7f8451ab779ac59",
+                "backend_id": "isaac_lab_rsl_rl",
+                "expected_manifest_hash": "df178ed6908d8118b1cf48b74f9b8946889d9334242af196f7f8451ab779ac59",
+                "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+                "status": "pass"
+              },
+              "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+              "checkpoint_hash": "sha256:7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c",
+              "environment_source_preflight": {
+                "schema_version": "true_rl_agent.task.stair_climbing.execution_source_preflight.v1",
+                "source_manifest_hash": "27cbf13780dbc2e0087019aefdacfe9cf4e7930d0c845a56f6c28f3382018d9a",
+                "status": "pass",
+                "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9"
+              },
+              "evaluation_binding": {
+                "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+                "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+                "evaluation_binding_hash": "1db7a52e1cec0769caf34926267b41981c8aa066341ca26354962ee758b5905b",
+                "schema_version": "true_rl_agent.evaluation.binding.v1",
+                "seed_cohort_hash": "d41ac09594b4a4b4b48c2df075088328301a68d293bf9310882030574115ac32",
+                "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9"
+              },
+              "evaluation_plan_hash": "c10b9bbcd5191909f9ec925e042bd7cb33e5516b0e1d5ff1cb415968f4e89f19",
+              "job_id": "stair-dev-replay-7b582643510cc9dd-diagnostic-eval-diagnostic-public-dev",
+              "program_source_checksum": "sha256:10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+              "resolved_cell_manifest_hash": "7e8fa0c45109bbfc0162a90cf68d4186a0a3f96a0df9cce1e9b1b09f50aa6de9",
+              "seed_namespace": "public_dev_diagnostic_n5_r4_20261001",
+              "splits": [
+                "public_dev"
+              ],
+              "subject_id": "go2-stair-official-flat-derived-v1",
+              "subject_kind": "reference",
+              "subject_manifest_hash": "ece5ad653267f11e5b791403208472f42622e44661fdbc7162776799a370dbd4",
+              "task_id": "unitree_stair_climbing",
+              "training_binding_hash": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98"
+            },
+            "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+            "placement": "nominal_expected_layout_with_recorded_origins; historical_importer_bytes_unverified",
+            "projection": {
+              "action_joint_names": [
+                "FL_hip_joint",
+                "FR_hip_joint",
+                "RL_hip_joint",
+                "RR_hip_joint",
+                "FL_thigh_joint",
+                "FR_thigh_joint",
+                "RL_thigh_joint",
+                "RR_thigh_joint",
+                "FL_calf_joint",
+                "FR_calf_joint",
+                "RL_calf_joint",
+                "RR_calf_joint"
+              ],
+              "binding_facts_hash": "1160a2a4544eb3cb8d55aa436988a73eca46019296d2b559eab246749798a53f",
+              "cell_variant_id": "stair.go2_12dof.unified_v3",
+              "contact_history_length": 3,
+              "contact_sensor_name": "contact_forces",
+              "height_scan_ray_count": 187,
+              "height_sensor_name": "height_scanner",
+              "joint_groups": {},
+              "joint_names": [
+                "FL_hip_joint",
+                "FR_hip_joint",
+                "RL_hip_joint",
+                "RR_hip_joint",
+                "FL_thigh_joint",
+                "FR_thigh_joint",
+                "RL_thigh_joint",
+                "RR_thigh_joint",
+                "FL_calf_joint",
+                "FR_calf_joint",
+                "RL_calf_joint",
+                "RR_calf_joint"
+              ],
+              "kinematic_base_source": "articulation_root",
+              "legacy_reward_adapter_id": null,
+              "policy_io_schema_hash": "5fdd774448ee18f6d37040380efabe6c9fbcb4229cfb5675818ea388e447dca1",
+              "projection_hash": "ea9d42a4012815a8f5ebf6b35b93303111477817feb5a1391fa807efc6167a14",
+              "resolved_cell_manifest_hash": "7e8fa0c45109bbfc0162a90cf68d4186a0a3f96a0df9cce1e9b1b09f50aa6de9",
+              "resolved_roles": {
+                "base": [
+                  "base"
+                ],
+                "forbidden_contact": [
+                  "base"
+                ],
+                "support_effector": [
+                  "FL_foot",
+                  "FR_foot",
+                  "RL_foot",
+                  "RR_foot"
+                ]
+              },
+              "reward_capability_hash_vnext": "658069454a3972110a78c6c6ee217ec2ee14cd3a9fbcf07c37017fceeecb0c7d",
+              "reward_input_schema_hash_vnext": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+              "robot_profile_hash": "3e9c110449be639fceb48d6792fc8f683f43bd34978286325bba99547d20f1c0",
+              "robot_profile_id": "unitree_go2_12dof_isaaclab_v1",
+              "robot_task_binding_hash": "e021614f64e7a23520ed779eecc6697f80d0d5548074f843bafae6f14150e7dc",
+              "runtime_adapter_hash": "14f03caebe810885d5681d73812987b2d31706cf432c4de5597b14a9dbfcd3f0",
+              "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1",
+              "schema_version": "true_rl_agent.task.stair_climbing.runtime_projection.vnext.v1",
+              "sensor_schema_hash": "47c42e91348ce1d49e0988040d0941317afe1b16cb90692d73e02ba7d065896d",
+              "support_transition_inputs": true,
+              "task_scales": {
+                "horizontal": 1.0,
+                "vertical": 0.589087
+              }
+            },
+            "qualification_sha256": "84aecf9e412be7578ee567ca65cc1c6ff48351f8f45c1fb789a1a61913e8a48f",
+            "runtime_surface": "unknown_not_recorded",
+            "source_id": "k3"
+          },
+          "combined_bytes": 8127,
+          "included_ids": [],
+          "max_bytes": 8192,
+          "omitted": [
+            {
+              "id": "nominal-terrain-claim:e2e14698f808355c3fc61626c2891058f654e26bc8e5b33844e0609e3397bbcf",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:ff21af07ac1e6168f8e41789140b5f815e21945b2b2b4a4e89f8ce154e22a7a8",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:b72ad15a7b4691579b2ec3509f4d319ca1186db3013094a3530bb2d5d7b7d50d",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:266e35793ac87a68bcf17a53437955780e2d103bd8a419e79f2e3182da6cdd70",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:74d0bf6baa587268f2cd24fe54825c9c2396bf1e238d1a3c7ef9a701113c0fa3",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:3a5e9a7e5b14eb006a45bff80339a85b2c47f20a064a364799c049024e92bcb6",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:2f9c6f44a08f473a6cd6b9811788266c460a4db6e03061969c9f74d79b9c7d69",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:98c4af65d5477ac1fbe6befeaaea888bfd20dfd7c9d6f175e116f3764f3018bc",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:d70d712d452d576d9c304ce936465a1451573d86b1db437deeb03a36ef5824ac",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:8f2412a8730ad7645ea8247022b50f5e24618c998fabf5314f1a413477f4f6c6",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:6b3806f3be5c03635430825b0edf3713328857053b0a5438d774d68e0474116d",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:11c6c472039ed5e844807b6f0a6baef96fc171caf8ec31a558384ddf064f9fd1",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:9cab1941cbc7b6a077ffd1f5851676dfb5db576decc677b4229b33316e11b42f",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:a76ff5105fc6c8f6511ccde94f2eaeb5a43f79214b75f556a0f6f0e27b96b11b",
+              "reason": "optional_whole_sentence_combined_budget"
+            },
+            {
+              "id": "nominal-terrain-claim:b573beb33d4c74894bfa18a434c60b777ada870f7642c469b237e6f1b79c5c2f",
+              "reason": "optional_whole_sentence_combined_budget"
+            }
+          ],
+          "status": "offline_not_production_delivery"
+        },
+        "absent_categories": [
+          "c0_regular/negative_difference",
+          "c1_irregular_flat/negative_difference"
+        ],
+        "wall_seconds": 11.585717999958433
+      },
+      "files": [
+        {
+          "path": "outputs/p2c3/real_03/k3/audit.json",
+          "bytes": 62850,
+          "sha256": "1636ad9020109578bb50c50892344e3a51609de83ab7b715b5cb6218a693955b"
+        },
+        {
+          "path": "outputs/p2c3/real_03/k3/manifest.json",
+          "bytes": 9371,
+          "sha256": "1e9108842b1b666e64533f26ff87d0f1cb68cbb6d6786e99a09a7389fec4f040"
+        },
+        {
+          "path": "outputs/p2c3/real_03/k3/preview.json",
+          "bytes": 8128,
+          "sha256": "e2c8016e397cd185aa64d6312edc01ed1b28fe2c80bd79fe428f0cea2f8dbde3"
+        },
+        {
+          "path": "outputs/p2c3/real_03/k3/preview_receipt.json",
+          "bytes": 6908,
+          "sha256": "deba329b31120aa2e35325a56dfdad15fb8e406ab1b9b5284ff91f329ef41c64"
+        },
+        {
+          "path": "outputs/p2c3/real_03/k3/report.json",
+          "bytes": 30075,
+          "sha256": "7bbfc1cbabcc80b04c05f7a88cb1302a3a1a7c3d6fec3c3baf81baea6862053a"
+        },
+        {
+          "path": "outputs/p2c3/real_03/k3/terrain.jsonl",
+          "bytes": 25726405,
+          "sha256": "438f952ad9a0965737c9ca2f8af7c6ecc73695553fba33b0d7f53f7922843402"
+        },
+        {
+          "path": "outputs/p2c3/real_03/k3/traces.npz",
+          "bytes": 7889395,
+          "sha256": "1fc500496e3272e2988b8359f143b1a8ec727b7680c249974125286cefbfe690"
+        }
+      ],
+      "final_oracle": {
+        "path": "outputs/p2c3/raw_audit_03/k3_audit.json",
+        "bytes": 62904,
+        "sha256": "3196aa76c1eb904ddd621c8bcb89307d255be2d98560b6da2ae9f8a32ef39432"
+      }
+    }
+  ],
+  "checks": {
+    "new_tests": 18,
+    "compatibility_tests": 171,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "episodes": 2592,
+    "valid_rows": 851583,
+    "point_samples": 4257915,
+    "records": 12960,
+    "independent_first_extrema": 51840,
+    "known_nominal_points": 4253328,
+    "unknown_nominal_points": 4587,
+    "maximum_triangle_formula_error_m": 1.5543122344752192e-15,
+    "new_real_preview_sentences": 0,
+    "new_candidate_sentences": 45,
+    "p2a_frozen_files": 33,
+    "p1b_frozen_card_files": 3,
+    "push_frozen_files": 22,
+    "old_v2_actual_replays": 3
+  },
+  "cost": {
+    "selected_final_local_wall_seconds": 157.41076509992126,
+    "all_preserved_local_wall_seconds": 329.6726118000224,
+    "peak_working_set_bytes": 460607488,
+    "final_build_artifact_bytes": 99526286,
+    "remote_wall_seconds": 67.29246550018433,
+    "api_calls": 0,
+    "functional_llm_calls": 0,
+    "training_runs": 0,
+    "gpu_runs": 0,
+    "server_writes": 0,
+    "new_collection_runs": 0,
+    "scope": "measured subprocess receipts; interactive source reads and reviewer exploration excluded"
+  },
+  "development_corrections": [
+    "unknown witness position/origin nonfinite components now null",
+    "offline qualification and historical public content locked externally; no caller-resigned text admission",
+    "first historical read_text normalized mixed newlines; historical_02 preserves original decoded bytes",
+    "runpy relative __file__ resolved before manifest relative path calculation",
+    "test hash-mutation patched actual file_sha256 path instead of unused read_bytes",
+    "final raw oracle uses independent mesh first indices; trace sorting remains an extra check"
+  ],
+  "remaining": [
+    "parent independent stage gate",
+    "historical importer revision/bytes not verified",
+    "runtime cooked geometry and actual offsets absent",
+    "normal production collection qualification replaces historical fixture locks later",
+    "production sentence budgeting/delivery separate stage",
+    "K5/LLM results untouched"
+  ],
+  "files": [
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2c3/assemble_verification.py",
+      "bytes": 8510,
+      "sha256": "fb8a6bfb19fd64f4143de730500bb74558c49718d4be10864845b072714ee9dc"
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2c3/audit_raw.py",
+      "bytes": 17428,
+      "sha256": "4ae83fbd43bb54a93b9cd69e5b871d2b4285199154bcf81ccb45afc9d9157121"
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2c3/capture_remote.py",
+      "bytes": 1157,
+      "sha256": "dfbbc0bfee632c8a160071d86b1c4789b50b80f420d7791ad683a8f9a34c96d9"
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2c3/independent_spotcheck.py",
+      "bytes": 3537,
+      "sha256": "686d3f3a09b6472ff29a0bc2f2b3cb7a3c8e4de384a8dc1a1c32ac77e0f7ec0f"
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2c3/read_historical_terrain.py",
+      "bytes": 5550,
+      "sha256": "a222590138c444082102b799d7b4c0f5d203ba974a47f7c26809d3c3966d14b8"
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2c3/read_vendor.py",
+      "bytes": 962,
+      "sha256": "fbf3151c98ef66ef9a2967612b849622333d903cec08fe8a4f2e926ecd2b1116"
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2c3/run_validation.py",
+      "bytes": 3971,
+      "sha256": "7a0ecb7bf186e6b850b197ad73b9c24d999252bee230d7a50e1facd0685c13c0"
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2c3/FREEZE_ZH.md",
+      "bytes": 4839,
+      "sha256": "d58d897522976c06e9d21f717518b806d28d5d91e00b0034951257ab9c35d97e"
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2c3/DEVELOPMENT_ZH.md",
+      "bytes": 13277,
+      "sha256": "2038f3cc0b1cb710ef0775ff3b46c46536ccfb5bc0b8841ad1f8ad742d0f7ff6"
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2c3/TERRAIN_SOURCE_EVIDENCE.json",
+      "bytes": 232448,
+      "sha256": "e7874d23d12009330e72eba0bbed1fd95361071e083dcc70471af02c28a38b2f"
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2c3/REAL_EXAMPLES.json",
+      "bytes": 77336,
+      "sha256": "8be7c960546e95d4312856ee3fb359e8198ee5424fad761ee44f5e0cfeb92020"
+    },
+    {
+      "path": "scripts/build_stair_terrain_supplement.py",
+      "bytes": 9524,
+      "sha256": "03431cb3759a6048fd02410629721d6472b51f5f1e90c6ef57490683b5290e91"
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/trajectory_terrain.py",
+      "bytes": 11895,
+      "sha256": "ea5c3a69c44f86ef8c3b740af7fb9b2687ddd1b671b7d0cee532702978f62936"
+    },
+    {
+      "path": "tests/unit/terrain_mesh_oracle.py",
+      "bytes": 4807,
+      "sha256": "d46a9299ed5ee02bb216d7ca0cd8a40a3f6c5c1cc6de43162dde4505ccb0f219"
+    },
+    {
+      "path": "tests/unit/test_terrain_reference.py",
+      "bytes": 9556,
+      "sha256": "1ad27fcc4d9095e02b208f589968ba2bb1a74215fe0810e808fc37d873bb82c7"
+    },
+    {
+      "path": "tests/unit/test_terrain_offline.py",
+      "bytes": 4509,
+      "sha256": "9eb87a8b441be01465c5a98313c47863da0380fd5e05459ed89353b3a73025f0"
+    }
+  ]
+}

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, fields, replace
+from functools import partial
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -89,8 +90,12 @@ class PushRecoveryCompositionConfig:
     push_protocol: PushRecoveryProtocol | None = None
     push_evaluation_protocol: ForceEvaluationProtocol | None = None
     reference_admission_policy: str | None = OBSERVED_REFERENCE_ADMISSION
+    behavior_feedback_profile: str = "legacy_process_v1"
+    trajectory_report_max_bytes: int = 12288
 
     def __post_init__(self) -> None:
+        from .trajectory_pipeline import validate_feedback_profile
+        validate_feedback_profile(self.behavior_feedback_profile, self.trajectory_report_max_bytes, self.cell_variant_id)
         for field_name in (
             "isaac_python",
             "train_entrypoint",
@@ -153,7 +158,7 @@ class PushRecoveryCompositionConfig:
         missing = [name for name in field_names if name not in values
                    and name not in {"reference_program_genesis", "cell_variant_id",
                                     "eval_base_seed", "reference_program_id", "push_protocol", "push_evaluation_protocol",
-                                    "reference_admission_policy"}]
+                                    "reference_admission_policy", "behavior_feedback_profile", "trajectory_report_max_bytes"}]
         if missing:
             raise ValueError(
                 "push composition values missing: " + ", ".join(missing)
@@ -205,6 +210,9 @@ class PushRecoveryCompositionConfig:
             result.pop("push_evaluation_protocol")
         if self.reference_admission_policy is None:
             result.pop("reference_admission_policy")
+        if self.behavior_feedback_profile == "legacy_process_v1":
+            result.pop("behavior_feedback_profile")
+            result.pop("trajectory_report_max_bytes")
         return result
 
 
@@ -224,7 +232,11 @@ class PushRecoveryCompositionProvider(TaskCompositionProvider):
 
     def add_cli_arguments(self, parser: Any) -> None:
         from true_rl_agent.tasks.push_recovery.reference_program import PUSH_REFERENCE_IDS
+        from .trajectory_pipeline import PROFILES, LEGACY_PROFILE
 
+        parser.add_argument("--behavior-feedback-profile", choices=PROFILES, default=LEGACY_PROFILE,
+                            help="Automatic CPU root cards for physical Push public-dev numeric archives.")
+        parser.add_argument("--trajectory-report-max-bytes", type=int, default=12288)
         parser.add_argument("--eval-base-seed", type=int, default=None)
         parser.add_argument("--reference-program-id", choices=PUSH_REFERENCE_IDS, default=None)
         parser.add_argument("--push-protocol-path", type=Path, default=None,
@@ -312,7 +324,11 @@ class PushRecoveryCompositionProvider(TaskCompositionProvider):
                 timeout_s=composition_config.runner_timeout_s,
                 cwd=context.project_root,
                 eval_checkpoint_admission_hook=admit_push_evaluation_checkpoint if task_config.push_protocol is not None else None,
-                eval_phase_summary_finalizer=finalize_push_eval_phase_summary if task_config.push_protocol is not None else None,
+                eval_phase_summary_finalizer=(partial(finalize_push_eval_phase_summary,
+                    behavior_feedback_profile=composition_config.behavior_feedback_profile,
+                    trajectory_report_max_bytes=composition_config.trajectory_report_max_bytes,
+                    expected_seed_count=task_config.public_seed_count)
+                    if task_config.push_protocol is not None else None),
             ),
             candidate_admission_policy=candidate_admission_policy,
             policy_initialization=PolicyInitialization.random(),
@@ -324,6 +340,9 @@ class PushRecoveryCompositionProvider(TaskCompositionProvider):
             },
             scientific_parameters={
                 "training_agent_configuration_hash": backend_config.training_agent_configuration.agent_configuration_hash,
+                **({"behavior_feedback_profile": composition_config.behavior_feedback_profile,
+                    "trajectory_report_max_bytes": composition_config.trajectory_report_max_bytes}
+                   if composition_config.behavior_feedback_profile != "legacy_process_v1" else {}),
             },
             execution_placement={
                 "project_root": str(context.project_root.resolve()),

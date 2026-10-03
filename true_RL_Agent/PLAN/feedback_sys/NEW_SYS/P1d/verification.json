@@ -1,0 +1,3548 @@
+{
+  "schema_version": "trajectory.p1d.verification.v1",
+  "status": "PASS_CPU_COMPOSITION_ARCHIVE_GENERATION_HTTP_PENDING_PARENT_ACCEPTANCE",
+  "generated_at_utc": "2026-10-03T03:54:16.551339+00:00",
+  "base_commit": "41f5a44bf6dc63e1fd8aa8efed291d13f44f7511",
+  "branch": "codex/trajectory-translator-upgrade",
+  "single_writer": true,
+  "source_hash_note": "sha256 is executed working-tree bytes; lf_normalized_sha256 permits Git text normalization comparison without changing code semantics",
+  "final_artifact_review": {
+    "read_only": true,
+    "parent_stage_acceptance": false,
+    "file_references_verified": 81,
+    "copied_npz_chunks_verified": 84,
+    "phase_full_receipt_http_source_checks": "PASS",
+    "evidence_file_count_including_index": 82,
+    "file_count_scope": "81 unique referenced evidence files plus this verification index; original logs unchanged"
+  },
+  "code": [
+    {
+      "path": "scripts/build_policy_behavior_card.py",
+      "sha256": "736691edbd6d4816d9caed1590f48404d34f6ea5cc0fb7ed276d61a67cf74c69",
+      "bytes": 1336,
+      "lf_normalized_sha256": "736691edbd6d4816d9caed1590f48404d34f6ea5cc0fb7ed276d61a67cf74c69"
+    },
+    {
+      "path": "scripts/build_stair_trajectory_evidence.py",
+      "sha256": "3a01b121dd43ca09de67b9e1ee6dcf50143cd4a4d1705bd316c9dfaf9e776e0c",
+      "bytes": 1590,
+      "lf_normalized_sha256": "3a01b121dd43ca09de67b9e1ee6dcf50143cd4a4d1705bd316c9dfaf9e776e0c"
+    },
+    {
+      "path": "src/true_rl_agent/evaluation/trajectory_translation/report.py",
+      "sha256": "e859d95a41935ba40f80305a93b2a7436948a72ddeff5d33ef88beb521bc9112",
+      "bytes": 49973,
+      "lf_normalized_sha256": "e859d95a41935ba40f80305a93b2a7436948a72ddeff5d33ef88beb521bc9112"
+    },
+    {
+      "path": "src/true_rl_agent/runner/subprocess_runner.py",
+      "sha256": "c7aff3e99ba7b4e212c3b784a8d78fab828ff3870cc4f6c2e15107c0add3cec6",
+      "bytes": 103451,
+      "lf_normalized_sha256": "c7aff3e99ba7b4e212c3b784a8d78fab828ff3870cc4f6c2e15107c0add3cec6"
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/composition.py",
+      "sha256": "e74997660e5ebca5f7b4dc6d359fb1b6391aafc7964e69cb8a2a1a235d992dcc",
+      "bytes": 31644,
+      "lf_normalized_sha256": "e74997660e5ebca5f7b4dc6d359fb1b6391aafc7964e69cb8a2a1a235d992dcc"
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/phased_evaluation.py",
+      "sha256": "ab8161541234df022cb4da13dea0a0e579c98a6d7051dd86a2a953a5870a737f",
+      "bytes": 43675,
+      "lf_normalized_sha256": "ab8161541234df022cb4da13dea0a0e579c98a6d7051dd86a2a953a5870a737f"
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/prompt_adapter.py",
+      "sha256": "5dcdb4ae681054d3c06a9bfa6f25d8e150b113222ae4082478f8be891087b796",
+      "bytes": 147572,
+      "lf_normalized_sha256": "5dcdb4ae681054d3c06a9bfa6f25d8e150b113222ae4082478f8be891087b796"
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/public_projection.py",
+      "sha256": "db814bc68d2c1c8fd812f8eb71ee0d02f7bf154bfc541723b1b9995f9126ad37",
+      "bytes": 49543,
+      "lf_normalized_sha256": "db814bc68d2c1c8fd812f8eb71ee0d02f7bf154bfc541723b1b9995f9126ad37"
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/selection.py",
+      "sha256": "21ad4f215cccc2fbb5058efa328b7fb66534b7f76f762148fe5ceb1e7a2db051",
+      "bytes": 45933,
+      "lf_normalized_sha256": "21ad4f215cccc2fbb5058efa328b7fb66534b7f76f762148fe5ceb1e7a2db051"
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/trajectory_artifacts.py",
+      "sha256": "3b4d086a30226f19836d2cc99c7989da8d45435b28ef035281db4ea0f71f78c4",
+      "bytes": 16622,
+      "lf_normalized_sha256": "3b4d086a30226f19836d2cc99c7989da8d45435b28ef035281db4ea0f71f78c4"
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/trajectory_pipeline.py",
+      "sha256": "6f67fead1e65d8cdcf220a05dd1b343b7846fa643b83a377e00a3f2f69024b7c",
+      "bytes": 8651,
+      "lf_normalized_sha256": "6f67fead1e65d8cdcf220a05dd1b343b7846fa643b83a377e00a3f2f69024b7c"
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/trajectory_report.py",
+      "sha256": "04c95e060df49550e75b9896aa98730b6fb838c6871dc8714e82360a4b61f7ba",
+      "bytes": 21943,
+      "lf_normalized_sha256": "04c95e060df49550e75b9896aa98730b6fb838c6871dc8714e82360a4b61f7ba"
+    },
+    {
+      "path": "tests/unit/test_phase_postprocessing.py",
+      "sha256": "cd1d8d8136c659f9da0a4827b6b3cb3f60afd0ce1477756a3e91ed3c79f6ae71",
+      "bytes": 9249,
+      "lf_normalized_sha256": "cd1d8d8136c659f9da0a4827b6b3cb3f60afd0ce1477756a3e91ed3c79f6ae71"
+    },
+    {
+      "path": "tests/unit/test_stair_trajectory_pipeline.py",
+      "sha256": "4ce71ca1f7c5ec26e8c11f2f0641c7cd380e7f108b7caf8ee65e45350e67c1a0",
+      "bytes": 11562,
+      "lf_normalized_sha256": "4ce71ca1f7c5ec26e8c11f2f0641c7cd380e7f108b7caf8ee65e45350e67c1a0"
+    }
+  ],
+  "capture_command": [
+    ".venv/Scripts/python.exe",
+    "-u",
+    "PLAN/feedback_sys/NEW_SYS/P1d/capture_lifecycle.py",
+    "--output",
+    "outputs/p1d_final",
+    "--r4",
+    "outputs/trajectory_p0/raw/numeric_evidence/manifest.json",
+    "--k1",
+    "outputs/trajectory_p1d/raw/k1_numeric_evidence/manifest.json"
+  ],
+  "capture_harness": {
+    "path": "PLAN/feedback_sys/NEW_SYS/P1d/capture_lifecycle.py",
+    "sha256": "f4fed8f657c38a986bc62ad3401517d0c36cd027be14038fcbf551b568ee3999",
+    "bytes": 15847,
+    "lf_normalized_sha256": "4aa86faf17a5433253e16d0c92652825e8748c44bb9f8cdebbded11c2347da76"
+  },
+  "capture_log": {
+    "path": "outputs/trajectory_p1d/final_checks/lifecycle.log",
+    "sha256": "ab212bee2f903a5f84f2e74bf2cabecb1cefdd68f02e47495fc30bae8fbc7043",
+    "bytes": 862
+  },
+  "capture_exit_code": 0,
+  "run_summary": {
+    "status": "PASS_CPU_COMPOSITION_ARCHIVE_GENERATION_HTTP",
+    "runner_completed_replays": [
+      "p6d-production-shaped-fixture-eval-public-dev",
+      "p6d-production-shaped-fixture-generation-001-lane-a-eval-public-dev",
+      "p6d-production-shaped-fixture-generation-001-lane-b-eval-public-dev"
+    ],
+    "changed_configuration_resume_rejections": [
+      "session Genesis identity drift",
+      "session Genesis identity drift"
+    ],
+    "wall_seconds": 439.8269322999986,
+    "boundary": "normal composition runner; archived phase injection replaces process/GPU boundary; fixture training/nonpublic outcomes/provider drafts",
+    "new_policy_evidence": false,
+    "gpu_runs": 0,
+    "external_model_calls": 0,
+    "http_network_calls": 0,
+    "not_verified": [
+      "actual checkpoint loading",
+      "Isaac rollout",
+      "GPU qualification",
+      "model comprehension",
+      "P2/E2 transfer"
+    ]
+  },
+  "accepted_vs_last_measured": {
+    "generation_outcome": "accepted",
+    "accepted": true,
+    "selected_lane_id": "lane-a",
+    "next_request_source_lane_id": "lane-b",
+    "next_request_relationship": "not_established_for_selected_trial",
+    "next_request_card_id": "card:7123f9f7a8ef213cd977bac70e696fd4674521d3be2a56609a1bc4133eb340d6"
+  },
+  "mapping": [
+    {
+      "role": "parent",
+      "source_archive": "k1",
+      "original_manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+      "fixture_manifest_sha256": "43c01e90fef089f964eecf06c4e910af2e757b60361458e5ab4a78ea686bce7d",
+      "changed_identity_fields": [
+        "backend_execution_environment_verification",
+        "checkpoint_hash",
+        "evaluation_plan_hash",
+        "job_id"
+      ],
+      "job_id": "p6d-production-shaped-fixture-eval-public-dev",
+      "checkpoint_hash": "sha256:2c2e9d8fd4e55880f256c7f2b21e0fffebd83199747fc9a063ef35023b058ad9",
+      "evaluation_plan_hash": "ed5d06a686a87f7e204efb4b2f42915ebdb6dc571661dc68d5721a9baab594a3",
+      "source_id": "s43c01e90fef0",
+      "card_id": "card:fb62b90af7053f17a6cc4c3882315626bb5d7711a36c80cd97cd9d34ed8a86dc",
+      "report_bytes": 8056,
+      "required_report_bytes": 7756,
+      "required_claim_count": 18,
+      "claim_count": 250,
+      "selected_example_count": 5,
+      "selected_examples": [
+        {
+          "episode_id": "episode:053a940efeafdcccd7bfc48e2bf6201beff738f05733788c5066672bb862a5f7",
+          "reasons": [
+            "outcome_median_net_progress_example:timeout"
+          ]
+        },
+        {
+          "episode_id": "episode:365f14bf12700116e198b8ad180979a4c795aab20ed8b7b9e90698e5733d8799",
+          "reasons": [
+            "outcome_median_net_progress_example:off_course"
+          ]
+        },
+        {
+          "episode_id": "episode:42f9cdf42393cd6c9410a58445f6c36ede3bd6185fe8b9e0c3602d5c7eb044cf",
+          "reasons": [
+            "outcome_median_net_progress_example:forbidden_contact"
+          ]
+        },
+        {
+          "episode_id": "episode:9d738af7322a123665d212b92ee931437155262e6456ac428109c2f4da6eb79e",
+          "reasons": [
+            "outcome_median_net_progress_example:success"
+          ]
+        },
+        {
+          "episode_id": "episode:b3fad178e9fc59de721ea725d3470a429215b32ad74444a15f4b692d0c9d5fb7",
+          "reasons": [
+            "largest_observed_successful_retreat_with_return_not_typical"
+          ]
+        }
+      ],
+      "unavailable_claim_texts": [
+        "成功回合长低速off见证：本次卡片未选出符合目录条件的证据；该槽不可提供事实，不代表物理上未发生。",
+        "该成功模式的失败对照：本次卡片未选出符合目录条件的证据；该槽不可提供事实，不代表物理上未发生。",
+        "先翻转后低速off反例：本次卡片未选出符合目录条件的证据；该槽不可提供事实，不代表物理上未发生。"
+      ],
+      "phase": {
+        "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture/eval/public_dev/summary.json",
+        "sha256": "cdc4939c385c3f7010ca5dea8f7b0dd409e621e31c9dd769b6254557eaf2f490",
+        "bytes": 216327
+      },
+      "full": {
+        "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture/eval/public_dev/behavior_full.json",
+        "sha256": "6cfd3eb355b61e3812479f44058fbbdd6783b1b98f66582a7c586fbc1636bb8e",
+        "bytes": 5665095
+      },
+      "card_manifest": {
+        "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture/eval/public_dev/trajectory/6b440e50fd43a5e02ba2b25d88ee961f8525aef49f122f43eee7851a006ee421/card/manifest.json",
+        "sha256": "1b4f5aa5761f8c7b1d57754149a6db053679fc285f346991b8d22edea7eeea57",
+        "bytes": 6255
+      },
+      "numeric_manifest": {
+        "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture/eval/public_dev/trajectory/6b440e50fd43a5e02ba2b25d88ee961f8525aef49f122f43eee7851a006ee421/numeric/manifest.json",
+        "sha256": "986e2d5d75be48f717e96fe36b155e3f240456e33c392fde1c9011d00a56f8d4",
+        "bytes": 17546
+      },
+      "build_wall_seconds": 107.79364509996958,
+      "peak_process_memory_bytes": 452067328,
+      "raw_archive_bytes": 75293456,
+      "numeric_bytes": 1124523071,
+      "card_bytes": 56302430,
+      "full_bytes": 5665095,
+      "cpu_postprocessing": {
+        "postprocessing_cpu_time_s": 110.078125,
+        "postprocessing_wall_time_s": 111.28675630001817
+      }
+    },
+    {
+      "role": "lane-a",
+      "source_archive": "k1",
+      "original_manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+      "fixture_manifest_sha256": "20afce8efb955e6de6688dae76db41460131ab13252d15e4474cb91b0993ab2c",
+      "changed_identity_fields": [
+        "backend_execution_environment_verification",
+        "checkpoint_hash",
+        "evaluation_plan_hash",
+        "job_id",
+        "subject_id",
+        "subject_kind",
+        "subject_manifest_hash"
+      ],
+      "job_id": "p6d-production-shaped-fixture-generation-001-lane-a-eval-public-dev",
+      "checkpoint_hash": "sha256:d887e990ff5c350267eedb8e4daa4ec9d6c9f0361069db323ea43758980b0143",
+      "evaluation_plan_hash": "af1889f533384ffaa7148c15faee83fd2733219cf4f863f7db5eddc9f64437ed",
+      "source_id": "s20afce8efb95",
+      "card_id": "card:7c176b3629b1194c12fe5846d37aa947c937f20efc82ad250fd35564327b2345",
+      "report_bytes": 8078,
+      "required_report_bytes": 7778,
+      "required_claim_count": 18,
+      "claim_count": 250,
+      "selected_example_count": 5,
+      "selected_examples": [
+        {
+          "episode_id": "episode:07cf1d99d0e2735bf2d7068a9b4239b177d0d95e85f8fb1f3e05788d6d62ba13",
+          "reasons": [
+            "outcome_median_net_progress_example:forbidden_contact"
+          ]
+        },
+        {
+          "episode_id": "episode:6eed5ae23ae03e8fddbde661994a72877588b5feab0bd2d203daed1d63b18889",
+          "reasons": [
+            "outcome_median_net_progress_example:success"
+          ]
+        },
+        {
+          "episode_id": "episode:abc6e10d7acf0443a1ff7aae561d39756b9348388cc9a123a37f212090e9bb13",
+          "reasons": [
+            "outcome_median_net_progress_example:off_course"
+          ]
+        },
+        {
+          "episode_id": "episode:c389dc36680d6d16514f1cee0440a6c687ad01e9da9217a8f253c7d26cc51938",
+          "reasons": [
+            "outcome_median_net_progress_example:timeout"
+          ]
+        },
+        {
+          "episode_id": "episode:d3ea1b42dcf77f5e060a5f1c9c2053443e58da02d1b6d61f30f220c1424645a2",
+          "reasons": [
+            "largest_observed_successful_retreat_with_return_not_typical"
+          ]
+        }
+      ],
+      "unavailable_claim_texts": [
+        "成功回合长低速off见证：本次卡片未选出符合目录条件的证据；该槽不可提供事实，不代表物理上未发生。",
+        "该成功模式的失败对照：本次卡片未选出符合目录条件的证据；该槽不可提供事实，不代表物理上未发生。",
+        "先翻转后低速off反例：本次卡片未选出符合目录条件的证据；该槽不可提供事实，不代表物理上未发生。"
+      ],
+      "phase": {
+        "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture-generation-001-lane-a/eval/public_dev/summary.json",
+        "sha256": "d64f76ea74d20a4e7b374cd0b1805b0f862146cfc84e10f89daf2d0134313db8",
+        "bytes": 216401
+      },
+      "full": {
+        "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture-generation-001-lane-a/eval/public_dev/behavior_full.json",
+        "sha256": "ad1259dbd83e04994debe9b55eacd6862e483d69556f81f631a6c439750642ae",
+        "bytes": 5570739
+      },
+      "card_manifest": {
+        "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture-generation-001-lane-a/eval/public_dev/trajectory/ed2a81cd9db90d6ef6fef866025a23ce260f1f2f374fa402ecee7c945b4f47b5/card/manifest.json",
+        "sha256": "94ac2dbf563365885fc40376e272bb2eb141ba3f9786b7edf26d581ed40465a3",
+        "bytes": 6320
+      },
+      "numeric_manifest": {
+        "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture-generation-001-lane-a/eval/public_dev/trajectory/ed2a81cd9db90d6ef6fef866025a23ce260f1f2f374fa402ecee7c945b4f47b5/numeric/manifest.json",
+        "sha256": "245d1882d67bafe99532e224ed42dd2a74fbdb93a05529fd14565595dd627fa0",
+        "bytes": 17568
+      },
+      "build_wall_seconds": 226.0293492000783,
+      "peak_process_memory_bytes": 979865600,
+      "raw_archive_bytes": 75293461,
+      "numeric_bytes": 1124546421,
+      "card_bytes": 56304012,
+      "full_bytes": 5570739,
+      "cpu_postprocessing": {
+        "postprocessing_cpu_time_s": 249.296875,
+        "postprocessing_wall_time_s": 233.2733943000203
+      }
+    },
+    {
+      "role": "lane-b",
+      "source_archive": "r4",
+      "original_manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+      "fixture_manifest_sha256": "ef4c0ea08fa15e98b18a6c39173c71bb0ccddcc62606cbeba066251ba209b3aa",
+      "changed_identity_fields": [
+        "backend_execution_environment_verification",
+        "checkpoint_hash",
+        "environment_source_preflight",
+        "evaluation_binding",
+        "evaluation_plan_hash",
+        "job_id",
+        "seed_namespace",
+        "subject_id",
+        "subject_kind",
+        "subject_manifest_hash"
+      ],
+      "job_id": "p6d-production-shaped-fixture-generation-001-lane-b-eval-public-dev",
+      "checkpoint_hash": "sha256:65777455bc338ee9e4b172a37c62640c22d11cfe9562417634750df7e4282168",
+      "evaluation_plan_hash": "ccc896297fbf01e677cd2377131d900a25dcc5ee9afc5eea7c5ac4f9f1b5c02e",
+      "source_id": "sef4c0ea08fa1",
+      "card_id": "card:7123f9f7a8ef213cd977bac70e696fd4674521d3be2a56609a1bc4133eb340d6",
+      "report_bytes": 8118,
+      "required_report_bytes": 8118,
+      "required_claim_count": 18,
+      "claim_count": 400,
+      "selected_example_count": 11,
+      "selected_examples": [
+        {
+          "episode_id": "episode:13e33615f4ddec2491ae933216d2dbe1b6ba6cbf7b7acf9fab2646ae8b1402d8",
+          "reasons": [
+            "outcome_median_net_progress_example:off_course"
+          ]
+        },
+        {
+          "episode_id": "episode:25776e10d1adb0123469fab0f2a7bd20a25d6734b19e6a5420fbfdf1a51ef852",
+          "reasons": [
+            "same_cell_failure_witness_of_mode:robot_0.support.RR_foot.low_speed_off.long_observed"
+          ]
+        },
+        {
+          "episode_id": "episode:29ac5c4535199a4dc309de1cd66c8f90ad4168b72e3f9e33dc08d7e2baffc537",
+          "reasons": [
+            "outcome_median_net_progress_example:forbidden_contact"
+          ]
+        },
+        {
+          "episode_id": "episode:43a367a4023d50a37f2c969fcea9f2571ade9b8539d90fecd848e0548e58c0d1",
+          "reasons": [
+            "outcome_median_net_progress_example:base_orientation_instability"
+          ]
+        },
+        {
+          "episode_id": "episode:49a1152362b8b7e79d92ac735a902914ed2042a22b8fd51656206e5b9b244bcf",
+          "reasons": [
+            "outcome_median_net_progress_example:slip"
+          ]
+        },
+        {
+          "episode_id": "episode:6ad7f42f59cd3efce3dbcad5f9148b2fe78f8d54cc1ceef038e55f673c408c0c",
+          "reasons": [
+            "same_cell_failure_witness_of_mode:robot_0.support.RL_foot.low_speed_off.long_observed"
+          ]
+        },
+        {
+          "episode_id": "episode:77801f5986c0fd5208b36b5b05963a704d7a4d3baec1b7a9871eac7d713a63e7",
+          "reasons": [
+            "successful_witness_of_mode:robot_0.support.RL_foot.low_speed_off.long_observed"
+          ]
+        },
+        {
+          "episode_id": "episode:78cf0b0cbf066d2f4652df77d37ba664cab24551076bd78f2d1160dd30e86bab",
+          "reasons": [
+            "outcome_median_net_progress_example:success"
+          ]
+        },
+        {
+          "episode_id": "episode:95f856cb6ee777a9f37248f829447a1b653dae6ead011a42ccc8bccec98ae407",
+          "reasons": [
+            "outcome_median_net_progress_example:timeout"
+          ]
+        },
+        {
+          "episode_id": "episode:a5d8da37a4ed16404733ce7243c5510cf10a958accf808584b7a8b9721e0354d",
+          "reasons": [
+            "largest_observed_successful_retreat_with_return_not_typical"
+          ]
+        },
+        {
+          "episode_id": "episode:cfaa9e0496714663dc2435973286f5920dfe3c928b480e62be08abd886f6b903",
+          "reasons": [
+            "successful_witness_of_mode:robot_0.support.RR_foot.low_speed_off.long_observed"
+          ]
+        }
+      ],
+      "unavailable_claim_texts": [],
+      "phase": {
+        "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture-generation-001-lane-b/eval/public_dev/summary.json",
+        "sha256": "10f408614baed3e3e2c934774c58d0fcd7363fa3c1a8f1efd3565268f30b4dec",
+        "bytes": 218798
+      },
+      "full": {
+        "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture-generation-001-lane-b/eval/public_dev/behavior_full.json",
+        "sha256": "9e3ff05d1e14bea43754e46a14dfacc5f610f519ec53aea005e76764f295231d",
+        "bytes": 9811341
+      },
+      "card_manifest": {
+        "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture-generation-001-lane-b/eval/public_dev/trajectory/573a85300b5b9928d200ccccfdc755da097fd4d9680c0e4cb4b217aa15306fe1/card/manifest.json",
+        "sha256": "6bfd5d960374490c13b731de9889bcb7e61741c9d1f8d89c7459e320e8e40025",
+        "bytes": 6322
+      },
+      "numeric_manifest": {
+        "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture-generation-001-lane-b/eval/public_dev/trajectory/573a85300b5b9928d200ccccfdc755da097fd4d9680c0e4cb4b217aa15306fe1/numeric/manifest.json",
+        "sha256": "9e4150ca2d521fd670a68d187720bd4e891df8e30b0fa7f3a608b166d0f11125",
+        "bytes": 17717
+      },
+      "build_wall_seconds": 239.88823249994311,
+      "peak_process_memory_bytes": 979865600,
+      "raw_archive_bytes": 83649384,
+      "numeric_bytes": 1289862867,
+      "card_bytes": 61535569,
+      "full_bytes": 9811341,
+      "cpu_postprocessing": {
+        "postprocessing_cpu_time_s": 260.03125,
+        "postprocessing_wall_time_s": 244.1157089000335
+      }
+    }
+  ],
+  "requests": [
+    {
+      "http_bytes": 76615,
+      "http_sha256": "b8f21d3385a951ca48325a0407b0c3fd8bb8a14dcc79f169d7fd44487a2e2e79",
+      "name": "g1-lane-a",
+      "user_bytes": 70415,
+      "user_sha256": "5a4b5ab8f3d19bc6c7b2e8ed5e1e2dfffd84cd1898e357019ed6a9c89d4e3db5",
+      "profile": {
+        "card_id": "card:fb62b90af7053f17a6cc4c3882315626bb5d7711a36c80cd97cd9d34ed8a86dc",
+        "derivation_version": "stair.trajectory_report.v1",
+        "domain": {
+          "acceptance_split": "public_dev",
+          "archive_hash": "43c01e90fef089f964eecf06c4e910af2e757b60361458e5ab4a78ea686bce7d",
+          "catalog_version": "trajectory.p0.measurements.v2",
+          "checkpoint_hash": "sha256:2c2e9d8fd4e55880f256c7f2b21e0fffebd83199747fc9a063ef35023b058ad9",
+          "evaluation_binding_hash": "ff0b754f727af4df616e77d10f8f67019cea485ed76b1b9c6b00cf902c451178",
+          "evaluation_job_id": "p6d-production-shaped-fixture-eval-public-dev",
+          "evaluation_plan_hash": "ed5d06a686a87f7e204efb4b2f42915ebdb6dc571661dc68d5721a9baab594a3",
+          "projection_hash": "ea9d42a4012815a8f5ebf6b35b93303111477817feb5a1391fa807efc6167a14",
+          "seed_namespace": "formal_reference_candidate_eval",
+          "task_id": "unitree_stair_climbing",
+          "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9"
+        },
+        "lexicon_version": "stair.trajectory_terms.v1",
+        "report": {
+          "actionability": {
+            "authority": "No new inputs, controller state, outcome rules or training authority. Observations are not causes.",
+            "available": [
+              "existing task-approved reward inputs and components only"
+            ],
+            "diagnostic_only": [
+              "trajectory windows, readout history and cohort statistics do not extend reward ABI"
+            ]
+          },
+          "counterexample": [
+            {
+              "id": "claim:432d6ff62b7cb21ab7ac90f338ee2a0298b42f8964f0799471e8e121e86d3291",
+              "text": "s43c01e90fef0.r2.e203 | public_dev.joint_ood_level_2 | success: 该成功回合仍有已观察回撤0.251379m（峰步286、谷步327、返回步372）；回撤过程与成功可同时存在，返回进度不等于已证明恢复平衡。"
+            }
+          ],
+          "gaps": [
+            {
+              "id": "claim:fb4cbc4d8f5b8a03c052b1e80943e157526feb14a04dcab04d5af0f9732fbf2a",
+              "text": "本卡范围: 成功回合长低速off见证：本次卡片未选出符合目录条件的证据；该槽不可提供事实，不代表物理上未发生。"
+            },
+            {
+              "id": "claim:2201f396a95fb62d821101521397daf4ee15156a21cb539ce22bec47dfe20dbd",
+              "text": "本卡范围: 该成功模式的失败对照：本次卡片未选出符合目录条件的证据；该槽不可提供事实，不代表物理上未发生。"
+            },
+            {
+              "id": "claim:51fa986b613854d275f1f975610daa325f916a3b21c200a425fc52fa8b09c610",
+              "text": "本卡范围: 先翻转后低速off反例：本次卡片未选出符合目录条件的证据；该槽不可提供事实，不代表物理上未发生。"
+            },
+            {
+              "id": "claim:f36ad57987d04443df650227a7e0e99604cf4e48f8e7d5896559adaec9a51a12",
+              "text": "本卡范围: 低进度确认使用完整至少0.5s窗口内最大新增进度<0.02m；初始不足窗为unknown。足速度组合沿用XY阈值0.05m/s，描述同条读取记录中的合取，不命名迈步、拒绝落脚或整体静止。"
+            },
+            {
+              "id": "claim:596aefbb61faa0171497ae859e3f030380a19c372e4f48b69c5e2b297f8a75e4",
+              "text": "本卡范围: contact marker表示所记录世界系净法向接触力模严格大于1N；记录间物理接触连续性未知，未触发不等于完全未接触，力模份额不等于重量或承载份额。"
+            },
+            {
+              "id": "claim:49d2fe3dbab8cb9d467372474986aeacb6e7afd43cb8dbf27367d8559425d4e4",
+              "text": "本卡范围: 缺少实际动作、力矩/饱和、逐步奖励及门控/air-time、实际质量/全身动量、切向力和接触对象、全部非足端接触力；精确奖励响应和物理对账不可用。已记录非足端力范围仅为绑定的base。"
+            },
+            {
+              "id": "claim:03f1fbb28853f6a7a155faacdfec40226468f51d7483f4a4425e49d4dac8af25",
+              "text": "本卡范围: 周期资格、有效/名义限位绑定、逐类地形几何资格、历史link位置与COM速度参考点映射尚未启用，保留后续验证义务；默认站姿和高位异常阈值未冻结，不生成举腿或拖地标签。"
+            },
+            {
+              "id": "claim:3c8a0beae74e410f19a98b533702334fcc29ba05d94853138a36269cde6b4333",
+              "text": "本卡范围: 控制时刻标记采集读取；current传感更新延迟和history逐槽时间/valid均未记录，history ANY与current分列，不补成物理子步或真实冲量。"
+            },
+            {
+              "id": "claim:348b71cbe0b686ecc4217b2978065862622c6ca29a826648e9dad3773991b601",
+              "text": "本卡范围: 默认回合等权，池化数值另用采样格时长代理加权；各量独立分母。格时长N×dt与观测跨度(N−1)×dt分列，左右截尾不进入完整区间时长分布；unknown和缺步不是阴性。"
+            },
+            {
+              "id": "claim:7be6b1ecca444d1b02a7d87cac902347d0f2dbdde901f8e21614d644b1269c83",
+              "text": "本卡范围: 先描述全队列，再展示结果、stratum和精确cell分面；不同终点时长/成功组成会影响整回合量。同cell比较只表示同公开条件格，未逐实例匹配实际随机化和命令；不是显著性、改善或因果结论。"
+            },
+            {
+              "id": "trajectory.omissions",
+              "text": "Author view includes 19/250 claims; 231 omitted by whole-claim priority/budget or stale offline delivery status. Full claims, omitted IDs/reasons and raw locators remain in the internal audit. IDs are traceable, not automatic author retrieval."
+            }
+          ],
+          "parent_diff": [
+            {
+              "id": "claim:50f69fba0da9b4e7d981f5cbf0d62cea1d844228ce4235c3ef84a67ed23e987a",
+              "text": "本卡范围: 父代比较不可用：没有显式绑定的父代档案。另源开发反例不充当父代，也不进入主队列分母。"
+            }
+          ],
+          "process": [
+            {
+              "id": "claim:480306abcd59a4e61f19f8d72ae1377c698375cd356bd8b7238a24c98383e05d",
+              "text": "all: 首末记录任务净进度：回合等权中位数4.286706m，四分位[4.027608,4.381979]；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=276259/0，缺步=0。"
+            },
+            {
+              "id": "claim:4a135985e34438342fd64bd83680134a767d4acff96ad9dd023ece0eaeea2ab7",
+              "text": "all: 全回合可判定记录中的“低进度确认且至少一足XY速度≥0.05”合取占比：回合等权均值0.011563，池化比值0.011411（分子58.12/分母5093.2 sample_cell_s）；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=254660/21599，缺步=0。"
+            },
+            {
+              "id": "claim:b091987e380f5eaca815780c6a85339883df84aaf1d8b7fbbbcef854c8053d6f",
+              "text": "all: 全回合可判定记录中的“低进度确认且全部足XY速度<0.05”合取占比：回合等权均值0.000003，池化比值0.000004（分子0.02/分母5525.16 sample_cell_s）；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=276258/1，缺步=0。"
+            },
+            {
+              "id": "claim:17851fa8e5bb6c1c982771b98bc1691b9c7ce86e169f738246ddbae51bcf2701",
+              "text": "all: robot_0.support.RL_foot低XY速度off已观察连续记录格时长≥0.5s：已观察阳性1/可判定864回合，未知0、未处理0、总数864；仅限现有记录，未知不作阴性，多个模式可重叠。"
+            },
+            {
+              "id": "claim:803f7a99f297a7bdb3eb48469633303dd6f8949425dd25b6ca129fe28effecd2",
+              "text": "s43c01e90fef0.r2.e204 | public_dev.joint_ood_level_3 | forbidden_contact: robot_0.body.base current越阈0条，区间：无已观察阳性；history ANY越阈1条，区间：步312–312，1条，格时长代理0.02s、观测跨度0s，左/右截尾=false/true；单条短事件保留。"
+            },
+            {
+              "id": "claim:07f7387e9f62ab784625df8a93bee125b3e0341a4707ebe7c579ae606a863d0e",
+              "text": "s43c01e90fef0.r2.e205 | public_dev.joint_ood_level_3 | timeout: robot_0.body.base current越阈0条，区间：无已观察阳性；history ANY越阈0条，区间：无已观察阳性；单条短事件保留。"
+            }
+          ],
+          "results": [
+            {
+              "id": "claim:bbe908a8996db35866424cea84510e0e13936a8a236345421672c61665417e26",
+              "text": "all: 本队列共864回合、276259条有效记录；存档任务结果：{\"forbidden_contact\":72,\"off_course\":1,\"success\":785,\"timeout\":6}。"
+            }
+          ],
+          "visual": [
+            {
+              "id": "trajectory.visual",
+              "text": "Numeric-only observation; media not inspected. No visual or author-model understanding claim."
+            }
+          ]
+        },
+        "report_projection": {
+          "claim_count": 250,
+          "content_hash": "63725ea20c36fbd1cf0c9fadcbd97f266b51ddf2b37a6ff531ac483b118aab04",
+          "included_claim_count": 19,
+          "omitted_claim_count": 231,
+          "omitted_claim_ids_hash": "d0062b0ed6e8190ed7129d05c6c69f2a846c67bae03082af9139e34eb4f747d0",
+          "required_claim_ids_hash": "848c4aa349561eca74a2c32bec107877bc41c0975de7ff700be41f83d06c0ba1",
+          "selection_version": "stair.trajectory_report.v1"
+        },
+        "schema_version": "true_rl_agent.stair.behavior.public.v5"
+      },
+      "source_trial_id": null
+    },
+    {
+      "http_bytes": 77321,
+      "http_sha256": "1bb90fa729f8c3cbeab6976c2afffc226b1ae70c1e0b7787a6446b1d7851509d",
+      "name": "g1-lane-b",
+      "user_bytes": 71087,
+      "user_sha256": "883181724b15e6214373eca0e650d6abe32312fd0151a3857515d764907dd6c0",
+      "profile": {
+        "card_id": "card:fb62b90af7053f17a6cc4c3882315626bb5d7711a36c80cd97cd9d34ed8a86dc",
+        "derivation_version": "stair.trajectory_report.v1",
+        "domain": {
+          "acceptance_split": "public_dev",
+          "archive_hash": "43c01e90fef089f964eecf06c4e910af2e757b60361458e5ab4a78ea686bce7d",
+          "catalog_version": "trajectory.p0.measurements.v2",
+          "checkpoint_hash": "sha256:2c2e9d8fd4e55880f256c7f2b21e0fffebd83199747fc9a063ef35023b058ad9",
+          "evaluation_binding_hash": "ff0b754f727af4df616e77d10f8f67019cea485ed76b1b9c6b00cf902c451178",
+          "evaluation_job_id": "p6d-production-shaped-fixture-eval-public-dev",
+          "evaluation_plan_hash": "ed5d06a686a87f7e204efb4b2f42915ebdb6dc571661dc68d5721a9baab594a3",
+          "projection_hash": "ea9d42a4012815a8f5ebf6b35b93303111477817feb5a1391fa807efc6167a14",
+          "seed_namespace": "formal_reference_candidate_eval",
+          "task_id": "unitree_stair_climbing",
+          "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9"
+        },
+        "lexicon_version": "stair.trajectory_terms.v1",
+        "report": {
+          "actionability": {
+            "authority": "No new inputs, controller state, outcome rules or training authority. Observations are not causes.",
+            "available": [
+              "existing task-approved reward inputs and components only"
+            ],
+            "diagnostic_only": [
+              "trajectory windows, readout history and cohort statistics do not extend reward ABI"
+            ]
+          },
+          "counterexample": [
+            {
+              "id": "claim:432d6ff62b7cb21ab7ac90f338ee2a0298b42f8964f0799471e8e121e86d3291",
+              "text": "s43c01e90fef0.r2.e203 | public_dev.joint_ood_level_2 | success: 该成功回合仍有已观察回撤0.251379m（峰步286、谷步327、返回步372）；回撤过程与成功可同时存在，返回进度不等于已证明恢复平衡。"
+            }
+          ],
+          "gaps": [
+            {
+              "id": "claim:fb4cbc4d8f5b8a03c052b1e80943e157526feb14a04dcab04d5af0f9732fbf2a",
+              "text": "本卡范围: 成功回合长低速off见证：本次卡片未选出符合目录条件的证据；该槽不可提供事实，不代表物理上未发生。"
+            },
+            {
+              "id": "claim:2201f396a95fb62d821101521397daf4ee15156a21cb539ce22bec47dfe20dbd",
+              "text": "本卡范围: 该成功模式的失败对照：本次卡片未选出符合目录条件的证据；该槽不可提供事实，不代表物理上未发生。"
+            },
+            {
+              "id": "claim:51fa986b613854d275f1f975610daa325f916a3b21c200a425fc52fa8b09c610",
+              "text": "本卡范围: 先翻转后低速off反例：本次卡片未选出符合目录条件的证据；该槽不可提供事实，不代表物理上未发生。"
+            },
+            {
+              "id": "claim:f36ad57987d04443df650227a7e0e99604cf4e48f8e7d5896559adaec9a51a12",
+              "text": "本卡范围: 低进度确认使用完整至少0.5s窗口内最大新增进度<0.02m；初始不足窗为unknown。足速度组合沿用XY阈值0.05m/s，描述同条读取记录中的合取，不命名迈步、拒绝落脚或整体静止。"
+            },
+            {
+              "id": "claim:596aefbb61faa0171497ae859e3f030380a19c372e4f48b69c5e2b297f8a75e4",
+              "text": "本卡范围: contact marker表示所记录世界系净法向接触力模严格大于1N；记录间物理接触连续性未知，未触发不等于完全未接触，力模份额不等于重量或承载份额。"
+            },
+            {
+              "id": "claim:49d2fe3dbab8cb9d467372474986aeacb6e7afd43cb8dbf27367d8559425d4e4",
+              "text": "本卡范围: 缺少实际动作、力矩/饱和、逐步奖励及门控/air-time、实际质量/全身动量、切向力和接触对象、全部非足端接触力；精确奖励响应和物理对账不可用。已记录非足端力范围仅为绑定的base。"
+            },
+            {
+              "id": "claim:03f1fbb28853f6a7a155faacdfec40226468f51d7483f4a4425e49d4dac8af25",
+              "text": "本卡范围: 周期资格、有效/名义限位绑定、逐类地形几何资格、历史link位置与COM速度参考点映射尚未启用，保留后续验证义务；默认站姿和高位异常阈值未冻结，不生成举腿或拖地标签。"
+            },
+            {
+              "id": "claim:3c8a0beae74e410f19a98b533702334fcc29ba05d94853138a36269cde6b4333",
+              "text": "本卡范围: 控制时刻标记采集读取；current传感更新延迟和history逐槽时间/valid均未记录，history ANY与current分列，不补成物理子步或真实冲量。"
+            },
+            {
+              "id": "claim:348b71cbe0b686ecc4217b2978065862622c6ca29a826648e9dad3773991b601",
+              "text": "本卡范围: 默认回合等权，池化数值另用采样格时长代理加权；各量独立分母。格时长N×dt与观测跨度(N−1)×dt分列，左右截尾不进入完整区间时长分布；unknown和缺步不是阴性。"
+            },
+            {
+              "id": "claim:7be6b1ecca444d1b02a7d87cac902347d0f2dbdde901f8e21614d644b1269c83",
+              "text": "本卡范围: 先描述全队列，再展示结果、stratum和精确cell分面；不同终点时长/成功组成会影响整回合量。同cell比较只表示同公开条件格，未逐实例匹配实际随机化和命令；不是显著性、改善或因果结论。"
+            },
+            {
+              "id": "trajectory.omissions",
+              "text": "Author view includes 19/250 claims; 231 omitted by whole-claim priority/budget or stale offline delivery status. Full claims, omitted IDs/reasons and raw locators remain in the internal audit. IDs are traceable, not automatic author retrieval."
+            }
+          ],
+          "parent_diff": [
+            {
+              "id": "claim:50f69fba0da9b4e7d981f5cbf0d62cea1d844228ce4235c3ef84a67ed23e987a",
+              "text": "本卡范围: 父代比较不可用：没有显式绑定的父代档案。另源开发反例不充当父代，也不进入主队列分母。"
+            }
+          ],
+          "process": [
+            {
+              "id": "claim:480306abcd59a4e61f19f8d72ae1377c698375cd356bd8b7238a24c98383e05d",
+              "text": "all: 首末记录任务净进度：回合等权中位数4.286706m，四分位[4.027608,4.381979]；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=276259/0，缺步=0。"
+            },
+            {
+              "id": "claim:4a135985e34438342fd64bd83680134a767d4acff96ad9dd023ece0eaeea2ab7",
+              "text": "all: 全回合可判定记录中的“低进度确认且至少一足XY速度≥0.05”合取占比：回合等权均值0.011563，池化比值0.011411（分子58.12/分母5093.2 sample_cell_s）；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=254660/21599，缺步=0。"
+            },
+            {
+              "id": "claim:b091987e380f5eaca815780c6a85339883df84aaf1d8b7fbbbcef854c8053d6f",
+              "text": "all: 全回合可判定记录中的“低进度确认且全部足XY速度<0.05”合取占比：回合等权均值0.000003，池化比值0.000004（分子0.02/分母5525.16 sample_cell_s）；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=276258/1，缺步=0。"
+            },
+            {
+              "id": "claim:17851fa8e5bb6c1c982771b98bc1691b9c7ce86e169f738246ddbae51bcf2701",
+              "text": "all: robot_0.support.RL_foot低XY速度off已观察连续记录格时长≥0.5s：已观察阳性1/可判定864回合，未知0、未处理0、总数864；仅限现有记录，未知不作阴性，多个模式可重叠。"
+            },
+            {
+              "id": "claim:803f7a99f297a7bdb3eb48469633303dd6f8949425dd25b6ca129fe28effecd2",
+              "text": "s43c01e90fef0.r2.e204 | public_dev.joint_ood_level_3 | forbidden_contact: robot_0.body.base current越阈0条，区间：无已观察阳性；history ANY越阈1条，区间：步312–312，1条，格时长代理0.02s、观测跨度0s，左/右截尾=false/true；单条短事件保留。"
+            },
+            {
+              "id": "claim:07f7387e9f62ab784625df8a93bee125b3e0341a4707ebe7c579ae606a863d0e",
+              "text": "s43c01e90fef0.r2.e205 | public_dev.joint_ood_level_3 | timeout: robot_0.body.base current越阈0条，区间：无已观察阳性；history ANY越阈0条，区间：无已观察阳性；单条短事件保留。"
+            }
+          ],
+          "results": [
+            {
+              "id": "claim:bbe908a8996db35866424cea84510e0e13936a8a236345421672c61665417e26",
+              "text": "all: 本队列共864回合、276259条有效记录；存档任务结果：{\"forbidden_contact\":72,\"off_course\":1,\"success\":785,\"timeout\":6}。"
+            }
+          ],
+          "visual": [
+            {
+              "id": "trajectory.visual",
+              "text": "Numeric-only observation; media not inspected. No visual or author-model understanding claim."
+            }
+          ]
+        },
+        "report_projection": {
+          "claim_count": 250,
+          "content_hash": "63725ea20c36fbd1cf0c9fadcbd97f266b51ddf2b37a6ff531ac483b118aab04",
+          "included_claim_count": 19,
+          "omitted_claim_count": 231,
+          "omitted_claim_ids_hash": "d0062b0ed6e8190ed7129d05c6c69f2a846c67bae03082af9139e34eb4f747d0",
+          "required_claim_ids_hash": "848c4aa349561eca74a2c32bec107877bc41c0975de7ff700be41f83d06c0ba1",
+          "selection_version": "stair.trajectory_report.v1"
+        },
+        "schema_version": "true_rl_agent.stair.behavior.public.v5"
+      },
+      "source_trial_id": null
+    },
+    {
+      "http_bytes": 98119,
+      "http_sha256": "fb6a6106dcf80b41b9a635edec896b922dc40ae7fb96a5831bbc1248a0305f90",
+      "name": "g2-lane-a",
+      "user_bytes": 90443,
+      "user_sha256": "dff1470ffa5dccf47e2f5cdc90427df255ff08eedbda7a7f0cd58d656bf6dff4",
+      "profile": {
+        "card_id": "card:7123f9f7a8ef213cd977bac70e696fd4674521d3be2a56609a1bc4133eb340d6",
+        "derivation_version": "stair.trajectory_report.v1",
+        "domain": {
+          "acceptance_split": "public_dev",
+          "archive_hash": "ef4c0ea08fa15e98b18a6c39173c71bb0ccddcc62606cbeba066251ba209b3aa",
+          "catalog_version": "trajectory.p0.measurements.v2",
+          "checkpoint_hash": "sha256:65777455bc338ee9e4b172a37c62640c22d11cfe9562417634750df7e4282168",
+          "evaluation_binding_hash": "ff0b754f727af4df616e77d10f8f67019cea485ed76b1b9c6b00cf902c451178",
+          "evaluation_job_id": "p6d-production-shaped-fixture-generation-001-lane-b-eval-public-dev",
+          "evaluation_plan_hash": "ccc896297fbf01e677cd2377131d900a25dcc5ee9afc5eea7c5ac4f9f1b5c02e",
+          "projection_hash": "ea9d42a4012815a8f5ebf6b35b93303111477817feb5a1391fa807efc6167a14",
+          "seed_namespace": "formal_reference_candidate_eval",
+          "task_id": "unitree_stair_climbing",
+          "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9"
+        },
+        "lexicon_version": "stair.trajectory_terms.v1",
+        "report": {
+          "actionability": {
+            "authority": "No new inputs, controller state, outcome rules or training authority. Observations are not causes.",
+            "available": [
+              "existing task-approved reward inputs and components only"
+            ],
+            "diagnostic_only": [
+              "trajectory windows, readout history and cohort statistics do not extend reward ABI"
+            ]
+          },
+          "counterexample": [
+            {
+              "id": "claim:3c2c39b1df794ea74f01e4758f53ba36fc9228e3ed9c28c508b9378733dc6bd8",
+              "text": "sef4c0ea08fa1.r3.e281 | public_dev.tread_ood_level_5 | success: 该成功回合仍有已观察回撤0.343054m（峰步270、谷步324、返回步396）；回撤过程与成功可同时存在，返回进度不等于已证明恢复平衡。"
+            },
+            {
+              "id": "claim:d5714dea1757f419cb3b99f63ad4c942389ba3d19dca5e2acdb42ffb42dd2a35",
+              "text": "sef4c0ea08fa1.r3.e64 | public_dev.c1_conditional_frontier_level_5 | base_orientation_instability: 身体上轴已在步154出现负值；robot_0.support.FL_foot所选低速off段首次记录在步508，前者早于后者；该顺序不解释机制，低速off本身不能证明直立举足。"
+            }
+          ],
+          "gaps": [
+            {
+              "id": "claim:9587066ebb1a5c0cd101ba7795305d4d34b068d9628ff9365bb4998f8ed383d9",
+              "text": "本卡范围: 低进度确认使用完整至少0.5s窗口内最大新增进度<0.02m；初始不足窗为unknown。足速度组合沿用XY阈值0.05m/s，描述同条读取记录中的合取，不命名迈步、拒绝落脚或整体静止。"
+            },
+            {
+              "id": "claim:f503f43a6bb2211bde448121d587454ca9f3a23691dc1496848961e0e684429c",
+              "text": "本卡范围: contact marker表示所记录世界系净法向接触力模严格大于1N；记录间物理接触连续性未知，未触发不等于完全未接触，力模份额不等于重量或承载份额。"
+            },
+            {
+              "id": "claim:4738e3ea0da4dbfb93b42d6f615a8e57399b2194fc7900d217da283f6b71e51e",
+              "text": "本卡范围: 缺少实际动作、力矩/饱和、逐步奖励及门控/air-time、实际质量/全身动量、切向力和接触对象、全部非足端接触力；精确奖励响应和物理对账不可用。已记录非足端力范围仅为绑定的base。"
+            },
+            {
+              "id": "claim:dd4768ab242869541d241d660df5dba3520bb52704e2891a91a3696a4e48c9ae",
+              "text": "本卡范围: 周期资格、有效/名义限位绑定、逐类地形几何资格、历史link位置与COM速度参考点映射尚未启用，保留后续验证义务；默认站姿和高位异常阈值未冻结，不生成举腿或拖地标签。"
+            },
+            {
+              "id": "claim:edcc1c8a3c12ac30216e8753ae84bfda6260a2c718de5fbf5bd5b57091290be9",
+              "text": "本卡范围: 控制时刻标记采集读取；current传感更新延迟和history逐槽时间/valid均未记录，history ANY与current分列，不补成物理子步或真实冲量。"
+            },
+            {
+              "id": "claim:8a0bd28ec4f2f0343cd78a24d94748685c803053ed3a121fde71ad4d923327ce",
+              "text": "本卡范围: 默认回合等权，池化数值另用采样格时长代理加权；各量独立分母。格时长N×dt与观测跨度(N−1)×dt分列，左右截尾不进入完整区间时长分布；unknown和缺步不是阴性。"
+            },
+            {
+              "id": "claim:8d3ef95535488ff5236be51d6ecb52fe0f8160d525f3ad7c0b470f4499ffc892",
+              "text": "本卡范围: 先描述全队列，再展示结果、stratum和精确cell分面；不同终点时长/成功组成会影响整回合量。同cell比较只表示同公开条件格，未逐实例匹配实际随机化和命令；不是显著性、改善或因果结论。"
+            },
+            {
+              "id": "trajectory.omissions",
+              "text": "Author view includes 18/400 claims; 382 omitted by whole-claim priority/budget or stale offline delivery status. Full claims, omitted IDs/reasons and raw locators remain in the internal audit. IDs are traceable, not automatic author retrieval."
+            }
+          ],
+          "parent_diff": [
+            {
+              "id": "claim:303becfa0ea7fcb0a89f178f1bde44623a037eada6b465503b1ee8266b52b4fe",
+              "text": "本卡范围: 父代比较不可用：没有显式绑定的父代档案。另源开发反例不充当父代，也不进入主队列分母。"
+            }
+          ],
+          "process": [
+            {
+              "id": "claim:ff5207393792ef97d00f7c1e09ecadcea06419e0c05c3de7b6ad6cce84f5ba56",
+              "text": "all: 首末记录任务净进度：回合等权中位数4.254518m，四分位[3.535696,4.3658]；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=298375/0，缺步=0。"
+            },
+            {
+              "id": "claim:83d729c6009c5c353fee5f411b81dcc61e89d768bd5bb9df8aa5bb468434b23f",
+              "text": "all: 全回合可判定记录中的“低进度确认且至少一足XY速度≥0.05”合取占比：回合等权均值0.04381，池化比值0.063282（分子351.1/分母5548.14 sample_cell_s）；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=277407/20968，缺步=0。"
+            },
+            {
+              "id": "claim:437f10d20ab0ee263ed2fbe292e74603b29b3106915ea41a13e0bce458d41672",
+              "text": "all: 全回合可判定记录中的“低进度确认且全部足XY速度<0.05”合取占比：回合等权均值0.020526，池化比值0.033915（分子201.96/分母5954.86 sample_cell_s）；有效/未知/未处理/总回合=864/0/0/864，有效/未知记录=297743/632，缺步=0。"
+            },
+            {
+              "id": "claim:241c8bb1fd4961bc7fdf95734e663f55aa9f0546b246fe2c5eb918e3d414d23a",
+              "text": "all: robot_0.support.RR_foot低XY速度off已观察连续记录格时长≥0.5s：已观察阳性28/可判定864回合，未知0、未处理0、总数864；仅限现有记录，未知不作阴性，多个模式可重叠。"
+            },
+            {
+              "id": "claim:c2f8e2de636d72e53d8c26f6d1d7b23e9a42841839bb48d5ee57a3bf07e7ef88",
+              "text": "success: robot_0.support.RL_foot低XY速度off已观察连续记录格时长≥0.5s：已观察阳性3/可判定682回合，未知0、未处理0、总数682；仅限现有记录，未知不作阴性，多个模式可重叠。"
+            },
+            {
+              "id": "claim:e37f8b17bc533cfb89bc5d3903fc1a12c2a4caf00b4d3183d5150bcc2890a3f6",
+              "text": "failure: robot_0.support.RL_foot低XY速度off已观察连续记录格时长≥0.5s：已观察阳性19/可判定182回合，未知0、未处理0、总数182；仅限现有记录，未知不作阴性，多个模式可重叠。"
+            },
+            {
+              "id": "claim:7e7bc59275cc218dc76d2ebcc88cb1875cf92dbe6db1ded7ea39538167dece48",
+              "text": "sef4c0ea08fa1.r1.e127 | public_dev.c2_mechanism_ood_level_4 | forbidden_contact: robot_0.body.base current越阈0条，区间：无已观察阳性；history ANY越阈1条，区间：步326–326，1条，格时长代理0.02s、观测跨度0s，左/右截尾=false/true；单条短事件保留。"
+            }
+          ],
+          "results": [
+            {
+              "id": "claim:58ce55c5989c357f915a86926de07454fc835636a41890cf3a83f6ad37323c2c",
+              "text": "all: 本队列共864回合、298375条有效记录；存档任务结果：{\"base_orientation_instability\":16,\"forbidden_contact\":125,\"off_course\":1,\"slip\":1,\"success\":682,\"timeout\":39}。"
+            }
+          ],
+          "visual": [
+            {
+              "id": "trajectory.visual",
+              "text": "Numeric-only observation; media not inspected. No visual or author-model understanding claim."
+            }
+          ]
+        },
+        "report_projection": {
+          "claim_count": 400,
+          "content_hash": "711dcc2c1694ed01076275061893f6c7197391f3878310160ee32b04e8448047",
+          "included_claim_count": 18,
+          "omitted_claim_count": 382,
+          "omitted_claim_ids_hash": "60ba6e511956ba0223d019805d26ed835548a30a564255339a49b096e02a1228",
+          "required_claim_ids_hash": "6fef4dd42ee8405b77bc8ed76a4ec9698a042af44cbb6676b5cb77e5d26226df",
+          "selection_version": "stair.trajectory_report.v1"
+        },
+        "schema_version": "true_rl_agent.stair.behavior.public.v5"
+      },
+      "source_trial_id": "p6d-production-shaped-fixture-generation-001-lane-b"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "outputs/p1d_final/verification.json",
+      "sha256": "79f3523e27b472521fdaf8c99533ab6eb4f668e8974971f8f099ebb51410a709",
+      "bytes": 706850
+    },
+    {
+      "path": "outputs/p1d_final/paused.json",
+      "sha256": "4586fa59467d3652f8a5eb4b186c8baa58df3bfba5715399bbb7b73859e1489d",
+      "bytes": 10948
+    },
+    {
+      "path": "outputs/p1d_final/session/ledger.jsonl",
+      "sha256": "3759902e5fb03c221aef8f870553b07e4ff8ed45ad6c4c84f622c4dbe23c56bc",
+      "bytes": 728853
+    },
+    {
+      "path": "outputs/p1d_final/session/session_genesis.json",
+      "sha256": "bd9f8be35b7b4a46d53e9aed38e41c5415ac1fa373d98f33368f02f086acd432",
+      "bytes": 521147
+    },
+    {
+      "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture/eval/public_dev/summary.json",
+      "sha256": "cdc4939c385c3f7010ca5dea8f7b0dd409e621e31c9dd769b6254557eaf2f490",
+      "bytes": 216327
+    },
+    {
+      "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture/eval/public_dev/behavior_full.json",
+      "sha256": "6cfd3eb355b61e3812479f44058fbbdd6783b1b98f66582a7c586fbc1636bb8e",
+      "bytes": 5665095
+    },
+    {
+      "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture/eval/public_dev/trajectory/6b440e50fd43a5e02ba2b25d88ee961f8525aef49f122f43eee7851a006ee421/card/manifest.json",
+      "sha256": "1b4f5aa5761f8c7b1d57754149a6db053679fc285f346991b8d22edea7eeea57",
+      "bytes": 6255
+    },
+    {
+      "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture/eval/public_dev/trajectory/6b440e50fd43a5e02ba2b25d88ee961f8525aef49f122f43eee7851a006ee421/numeric/manifest.json",
+      "sha256": "986e2d5d75be48f717e96fe36b155e3f240456e33c392fde1c9011d00a56f8d4",
+      "bytes": 17546
+    },
+    {
+      "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture/eval/public_dev/trajectory/6b440e50fd43a5e02ba2b25d88ee961f8525aef49f122f43eee7851a006ee421/complete.json",
+      "sha256": "9c53455e776c62a7474f5698410b303e5b159df04e4aabae9b99d36ca5d0893b",
+      "bytes": 5393
+    },
+    {
+      "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture-generation-001-lane-a/eval/public_dev/summary.json",
+      "sha256": "d64f76ea74d20a4e7b374cd0b1805b0f862146cfc84e10f89daf2d0134313db8",
+      "bytes": 216401
+    },
+    {
+      "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture-generation-001-lane-a/eval/public_dev/behavior_full.json",
+      "sha256": "ad1259dbd83e04994debe9b55eacd6862e483d69556f81f631a6c439750642ae",
+      "bytes": 5570739
+    },
+    {
+      "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture-generation-001-lane-a/eval/public_dev/trajectory/ed2a81cd9db90d6ef6fef866025a23ce260f1f2f374fa402ecee7c945b4f47b5/card/manifest.json",
+      "sha256": "94ac2dbf563365885fc40376e272bb2eb141ba3f9786b7edf26d581ed40465a3",
+      "bytes": 6320
+    },
+    {
+      "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture-generation-001-lane-a/eval/public_dev/trajectory/ed2a81cd9db90d6ef6fef866025a23ce260f1f2f374fa402ecee7c945b4f47b5/numeric/manifest.json",
+      "sha256": "245d1882d67bafe99532e224ed42dd2a74fbdb93a05529fd14565595dd627fa0",
+      "bytes": 17568
+    },
+    {
+      "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture-generation-001-lane-a/eval/public_dev/trajectory/ed2a81cd9db90d6ef6fef866025a23ce260f1f2f374fa402ecee7c945b4f47b5/complete.json",
+      "sha256": "e721b9b339da1db7ae42d1de2e8dce9ecafe7dff068a6f930d551fe256ee4a37",
+      "bytes": 5419
+    },
+    {
+      "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture-generation-001-lane-b/eval/public_dev/summary.json",
+      "sha256": "10f408614baed3e3e2c934774c58d0fcd7363fa3c1a8f1efd3565268f30b4dec",
+      "bytes": 218798
+    },
+    {
+      "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture-generation-001-lane-b/eval/public_dev/behavior_full.json",
+      "sha256": "9e3ff05d1e14bea43754e46a14dfacc5f610f519ec53aea005e76764f295231d",
+      "bytes": 9811341
+    },
+    {
+      "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture-generation-001-lane-b/eval/public_dev/trajectory/573a85300b5b9928d200ccccfdc755da097fd4d9680c0e4cb4b217aa15306fe1/card/manifest.json",
+      "sha256": "6bfd5d960374490c13b731de9889bcb7e61741c9d1f8d89c7459e320e8e40025",
+      "bytes": 6322
+    },
+    {
+      "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture-generation-001-lane-b/eval/public_dev/trajectory/573a85300b5b9928d200ccccfdc755da097fd4d9680c0e4cb4b217aa15306fe1/numeric/manifest.json",
+      "sha256": "9e4150ca2d521fd670a68d187720bd4e891df8e30b0fa7f3a608b166d0f11125",
+      "bytes": 17717
+    },
+    {
+      "path": "outputs/p1d_final/session/runner/p6d-production-shaped-fixture-generation-001-lane-b/eval/public_dev/trajectory/573a85300b5b9928d200ccccfdc755da097fd4d9680c0e4cb4b217aa15306fe1/complete.json",
+      "sha256": "859f320f78e5ab77505c20fb5d189fc02e17b49a32ace66dc21b46ed29442702",
+      "bytes": 5420
+    },
+    {
+      "path": "outputs/p1d_final/requests/g1-lane-a/request.http_body.json",
+      "sha256": "b8f21d3385a951ca48325a0407b0c3fd8bb8a14dcc79f169d7fd44487a2e2e79",
+      "bytes": 76615
+    },
+    {
+      "path": "outputs/p1d_final/requests/g1-lane-a/user_payload.json",
+      "sha256": "5a4b5ab8f3d19bc6c7b2e8ed5e1e2dfffd84cd1898e357019ed6a9c89d4e3db5",
+      "bytes": 70415
+    },
+    {
+      "path": "outputs/p1d_final/requests/g1-lane-b/request.http_body.json",
+      "sha256": "1bb90fa729f8c3cbeab6976c2afffc226b1ae70c1e0b7787a6446b1d7851509d",
+      "bytes": 77321
+    },
+    {
+      "path": "outputs/p1d_final/requests/g1-lane-b/user_payload.json",
+      "sha256": "883181724b15e6214373eca0e650d6abe32312fd0151a3857515d764907dd6c0",
+      "bytes": 71087
+    },
+    {
+      "path": "outputs/p1d_final/requests/g2-lane-a/request.http_body.json",
+      "sha256": "fb6a6106dcf80b41b9a635edec896b922dc40ae7fb96a5831bbc1248a0305f90",
+      "bytes": 98119
+    },
+    {
+      "path": "outputs/p1d_final/requests/g2-lane-a/user_payload.json",
+      "sha256": "dff1470ffa5dccf47e2f5cdc90427df255ff08eedbda7a7f0cd58d656bf6dff4",
+      "bytes": 90443
+    },
+    {
+      "path": "outputs/p1d_final/session/job_attempts/053ceae7919f721badf4ccc4/attempt_00.result.json",
+      "sha256": "c057a79f334fa83d7c231db2e5eb993ce7ebccb0244d75419155f60766788353",
+      "bytes": 873
+    },
+    {
+      "path": "outputs/p1d_final/session/job_attempts/27a8343ece68dd17f8967faf/attempt_00.result.json",
+      "sha256": "30342919eca97feaf7a0d5105004077eba415dfcb6be868e6ef33aa041c62440",
+      "bytes": 873
+    },
+    {
+      "path": "outputs/p1d_final/session/job_attempts/4efa65d0559de66c2686c39b/attempt_00.result.json",
+      "sha256": "554320ded619ad54c88418cbe40992b5ed5a432766479e286bc12deb05b49b6d",
+      "bytes": 854
+    },
+    {
+      "path": "outputs/p1d_final/session/job_attempts/5df69199243058507cc48fdc/attempt_00.result.json",
+      "sha256": "0005751a53dfef1402903f94ab14f0fa7b35f233257fd8d1a842fb4ee0ca297e",
+      "bytes": 858
+    },
+    {
+      "path": "outputs/p1d_final/session/job_attempts/69d2bae47fcb28163e1f361f/attempt_00.result.json",
+      "sha256": "4ccc59aedb9893d0bb737df48717b5bfa08f2184b622f092230b3f0f54a540dd",
+      "bytes": 835
+    },
+    {
+      "path": "outputs/p1d_final/session/job_attempts/716b00e904d710c70195313c/attempt_00.result.json",
+      "sha256": "5a3088808e0c39bc7f41a58cb050f30d507955d67bbd3c05d1e101a52beb1335",
+      "bytes": 857
+    },
+    {
+      "path": "outputs/p1d_final/session/job_attempts/aae240aa82967fcf2e96e12b/attempt_00.result.json",
+      "sha256": "c0450c9f1ecd5dbd1837c74256a29f7026034a87bab19c9e2311c59335015c50",
+      "bytes": 851
+    },
+    {
+      "path": "outputs/p1d_final/session/job_attempts/c2e73b21dc90671d81e1f5fa/attempt_00.result.json",
+      "sha256": "ffed658d01c4f8a348bf780f33d8b7aa84fc0dfbffdea99c2816a57cbb1a2240",
+      "bytes": 857
+    },
+    {
+      "path": "outputs/p1d_final/session/job_attempts/ca28b8e3b6dea08110bb9634/attempt_00.result.json",
+      "sha256": "ec0dfc4687139e0ec2ba07300aaa3b100606f07c2812b5404e3cf1180437bc12",
+      "bytes": 876
+    },
+    {
+      "path": "outputs/p1d_final/session/job_attempts/da5a4361d8fbf39ab934cf21/attempt_00.result.json",
+      "sha256": "c7ce2f35871f2d7d2e948b96917857fd06553a5ed48fd8f2f0e84f4f6ee8eaf7",
+      "bytes": 880
+    },
+    {
+      "path": "outputs/p1d_final/session/generation_receipts/p6d-production-shaped-fixture-generation-001/34bdcdb6a1b15db87c7c8e1b4e166dd355a4281f48dfaf41a903c8b8cb202599/execution.json",
+      "sha256": "0d793983ba9489c8790a5763a6e3f298039543504ed5d8075a355676d0d2c8ed",
+      "bytes": 729196
+    },
+    {
+      "path": "outputs/p1d_final/session/generation_receipts/p6d-production-shaped-fixture-generation-001/34bdcdb6a1b15db87c7c8e1b4e166dd355a4281f48dfaf41a903c8b8cb202599/manifest.json",
+      "sha256": "29be6662b843948fdb67ffac3de22ae89ac9955c0d90a3119a15dd60fe5f8ff7",
+      "bytes": 2284
+    },
+    {
+      "path": "outputs/p1d_final/session/generation_receipts/p6d-production-shaped-fixture-generation-001/34bdcdb6a1b15db87c7c8e1b4e166dd355a4281f48dfaf41a903c8b8cb202599/selection.json",
+      "sha256": "9bd9cb6b9e8adc7529940f27cc82d96a90439c7e00835d69652625cd34a7c9e6",
+      "bytes": 8798
+    },
+    {
+      "path": "outputs/p1d_final/session/generation_receipts/p6d-production-shaped-fixture-generation-002/64c2cdeea008f5304607a886a56cb949200d57f4be102d7063641172c442ab34/manifest.json",
+      "sha256": "ddd20b7d2f7423432df880cb90a70aab581cf657c680495ddbc36e740142de6f",
+      "bytes": 2284
+    },
+    {
+      "path": "outputs/p1d_final/session/trial_receipts/p6d-production-shaped-fixture-generation-001/lane-a/b67181addee4ebf978548d17901f365acecd44616e2e856845a59ffdb000edfd/contract.json",
+      "sha256": "8caa5fdd73a97d9ade45aa4b5aec1189a63fb578875896c23f4ac689beca15ec",
+      "bytes": 20888
+    },
+    {
+      "path": "outputs/p1d_final/session/trial_receipts/p6d-production-shaped-fixture-generation-001/lane-a/b67181addee4ebf978548d17901f365acecd44616e2e856845a59ffdb000edfd/execution.json",
+      "sha256": "05b52a7260d922ec51ebaad0ee293ddc5c6790ce1c196f7762fbdf69f2d865de",
+      "bytes": 528111
+    },
+    {
+      "path": "outputs/p1d_final/session/trial_receipts/p6d-production-shaped-fixture-generation-001/lane-a/b67181addee4ebf978548d17901f365acecd44616e2e856845a59ffdb000edfd/train.json",
+      "sha256": "b65142ca859a7555a6a9d121f13db147aa64b1f6375c752d736a7d0df45b1afb",
+      "bytes": 8668
+    },
+    {
+      "path": "outputs/p1d_final/session/trial_receipts/p6d-production-shaped-fixture-generation-001/lane-a/b67181addee4ebf978548d17901f365acecd44616e2e856845a59ffdb000edfd/eval_phases/public_accept.json",
+      "sha256": "d90a20086e41ef79477c12faba5d5ca7261f6dde641e5845752a9879787bace4",
+      "bytes": 286033
+    },
+    {
+      "path": "outputs/p1d_final/session/trial_receipts/p6d-production-shaped-fixture-generation-001/lane-a/b67181addee4ebf978548d17901f365acecd44616e2e856845a59ffdb000edfd/eval_phases/public_dev.json",
+      "sha256": "2d14cbda1eda650e172e9a2de0e1be7fcf92ad2ff452f90d1ac78f0ffff8c7c6",
+      "bytes": 215592
+    },
+    {
+      "path": "outputs/p1d_final/session/trial_receipts/p6d-production-shaped-fixture-generation-001/lane-a/b67181addee4ebf978548d17901f365acecd44616e2e856845a59ffdb000edfd/eval_phases/sealed_validation.json",
+      "sha256": "6d47e026cfff03243c0102db70fa1b8c09f82301f478f99da31e43ae52664bf5",
+      "bytes": 394156
+    },
+    {
+      "path": "outputs/p1d_final/session/trial_receipts/p6d-production-shaped-fixture-generation-001/lane-b/0a9d908d4fe8f54eb23149ea62521e28292cb944d8f231cfa51886f4a00de2e8/contract.json",
+      "sha256": "33ca49fb03b41b1c0e8b929503492a697b2edc7eb6c4437048f165576e5d5d22",
+      "bytes": 20895
+    },
+    {
+      "path": "outputs/p1d_final/session/trial_receipts/p6d-production-shaped-fixture-generation-001/lane-b/0a9d908d4fe8f54eb23149ea62521e28292cb944d8f231cfa51886f4a00de2e8/train.json",
+      "sha256": "effd31243369bb9e275b6f9b44523003a3eb3f542f50f40be29b2fb2c823fabe",
+      "bytes": 8671
+    },
+    {
+      "path": "outputs/p1d_final/session/trial_receipts/p6d-production-shaped-fixture-generation-001/lane-b/0a9d908d4fe8f54eb23149ea62521e28292cb944d8f231cfa51886f4a00de2e8/eval_phases/public_dev.json",
+      "sha256": "e26324ae90db7eb9417126ab8d014bd5d9ef2a5d9d93c57ca7c13ac095a5a57e",
+      "bytes": 217989
+    }
+  ],
+  "executions": [
+    {
+      "name": "p1c_related",
+      "command": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.unit.test_stair_trajectory_report",
+        "tests.unit.test_stair_phased_evaluation",
+        "tests.unit.test_phase_postprocessing",
+        "tests.unit.test_task_prompt_adapter",
+        "tests.unit.test_prompt_capacity_projection",
+        "tests.unit.test_prompt_safety_boundaries",
+        "-v"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 17.247743500047363,
+      "log": "outputs\\trajectory_p1d\\final_checks\\p1c_related.log",
+      "sha256": "4c768a99cb70807927688d8839a9c50186caa331fef0fe4b3a43f4277cc0d156",
+      "bytes": 15075,
+      "test_count": 75,
+      "tail": "de_unwired_or_runner_owned_surfaces) ... ok\r\ntest_non_push_prompt_does_not_inherit_push_recovery_task_semantics (tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_non_push_prompt_does_not_inherit_push_recovery_task_semantics) ... ok\r\ntest_public_history_preserves_nonsensitive_error_tokens (tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_public_history_preserves_nonsensitive_error_tokens) ... ok\r\ntest_public_history_redacts_forbidden_markers_embedded_in_text_values (tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_public_history_redacts_forbidden_markers_embedded_in_text_values) ... ok\r\ntest_public_key_policy_is_boundary_aware_and_task_neutral (tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_public_key_policy_is_boundary_aware_and_task_neutral) ... ok\r\ntest_public_prompt_rejects_and_scrubs_private_hidden_trusted_and_raw_seed_data (tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_public_prompt_rejects_and_scrubs_private_hidden_trusted_and_raw_seed_data) ... ok\r\ntest_public_prompt_rejects_forbidden_markers_embedded_in_text_values (tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_public_prompt_rejects_forbidden_markers_embedded_in_text_values) ... ok\r\ntest_runner_owned_surfaces_are_denied_not_candidate_writable (tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_runner_owned_surfaces_are_denied_not_candidate_writable) ... ok\r\ntest_shared_public_history_scrub_rules_are_task_agnostic (tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_shared_public_history_scrub_rules_are_task_agnostic) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 75 tests in 16.227s\r\n\r\nOK\r\n"
+    },
+    {
+      "name": "p1b_65",
+      "command": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.unit.test_trajectory_cohort",
+        "tests.unit.test_trajectory_card",
+        "tests.unit.test_trajectory_card_verification",
+        "tests.unit.test_project_boundaries",
+        "-v"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 17.963201000005938,
+      "log": "outputs\\trajectory_p1d\\final_checks\\p1b_65.log",
+      "sha256": "82740634d85ce9bc445d07a53e7ed0fd6ce368f8c141152ffb5db432fc3fc71d",
+      "bytes": 11463,
+      "test_count": 65,
+      "tail": "tion.CardRawAuditTests.test_group_denominator_unknown_and_membership_mutations) ... ok\r\ntest_unknown_progress_window_cannot_be_counted_as_negative (tests.unit.test_trajectory_card_verification.CardRawAuditTests.test_unknown_progress_window_cannot_be_counted_as_negative) ... ok\r\ntest_generic_packages_do_not_import_concrete_task_packages (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_import_concrete_task_packages) ... ok\r\ntest_generic_packages_do_not_own_push_audit_literals (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_own_push_audit_literals) ... ok\r\ntest_generic_packages_do_not_own_stair_semantics (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_own_stair_semantics) ... ok\r\ntest_orchestration_does_not_read_legacy_provider_context (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_orchestration_does_not_read_legacy_provider_context) ... ok\r\ntest_package_imports_from_local_src_without_parent_project_imports (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_package_imports_from_local_src_without_parent_project_imports) ... ok\r\ntest_project_metadata_declares_independent_package (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_project_metadata_declares_independent_package) ... ok\r\ntest_push_recovery_package_does_not_own_stair_semantics (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_push_recovery_package_does_not_own_stair_semantics) ... ok\r\ntest_runtime_tree_does_not_reference_parent_project (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_runtime_tree_does_not_reference_parent_project) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 65 tests in 17.412s\r\n\r\nOK\r\n"
+    },
+    {
+      "name": "p1a_107",
+      "command": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.unit.test_trajectory_temporal",
+        "tests.unit.test_trajectory_measurement",
+        "tests.unit.test_stair_trajectory_adapter",
+        "tests.unit.test_stair_trajectory_evidence_build",
+        "tests.unit.test_trajectory_evidence_verification",
+        "tests.unit.test_project_boundaries",
+        "-v"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 4.293038500007242,
+      "log": "outputs\\trajectory_p1d\\final_checks\\p1a_107.log",
+      "sha256": "3c89229dd3db5884e411a080ec6b9a3ef61c906130670973ba82bdfe12ab8722",
+      "bytes": 21282,
+      "test_count": 107,
+      "tail": "tion.InputIntegrityTests.test_same_length_row_shift_fails_frozen_chunk_clock_binding) ... ok\r\ntest_successful_stream_reader_preserves_selected_ids (tests.unit.test_trajectory_evidence_verification.InputIntegrityTests.test_successful_stream_reader_preserves_selected_ids) ... ok\r\ntest_generic_packages_do_not_import_concrete_task_packages (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_import_concrete_task_packages) ... ok\r\ntest_generic_packages_do_not_own_push_audit_literals (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_own_push_audit_literals) ... ok\r\ntest_generic_packages_do_not_own_stair_semantics (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_own_stair_semantics) ... ok\r\ntest_orchestration_does_not_read_legacy_provider_context (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_orchestration_does_not_read_legacy_provider_context) ... ok\r\ntest_package_imports_from_local_src_without_parent_project_imports (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_package_imports_from_local_src_without_parent_project_imports) ... ok\r\ntest_project_metadata_declares_independent_package (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_project_metadata_declares_independent_package) ... ok\r\ntest_push_recovery_package_does_not_own_stair_semantics (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_push_recovery_package_does_not_own_stair_semantics) ... ok\r\ntest_runtime_tree_does_not_reference_parent_project (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_runtime_tree_does_not_reference_parent_project) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 107 tests in 3.894s\r\n\r\nOK\r\n"
+    },
+    {
+      "name": "legacy_201",
+      "command": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.unit.test_stair_trajectory_input_inspection",
+        "tests.unit.test_numeric_evidence",
+        "tests.unit.test_process_report",
+        "tests.unit.test_stair_process_report",
+        "tests.unit.test_push_process_report",
+        "tests.unit.test_visual_observer",
+        "tests.unit.test_visual_review",
+        "tests.unit.test_native_snapshot_media",
+        "tests.unit.test_stair_behavior",
+        "tests.unit.test_push_behavior",
+        "tests.unit.test_feedback_evidence_boundary",
+        "tests.unit.test_task_visual_observation",
+        "tests.unit.test_stair_numeric_capture",
+        "tests.unit.test_push_numeric_capture",
+        "tests.unit.test_p3r_stair_projection",
+        "tests.unit.test_push_feedback_projection",
+        "tests.unit.test_stair_trajectory_reference_facts",
+        "-v"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 54.805742600001395,
+      "log": "outputs\\trajectory_p1d\\final_checks\\legacy_201.log",
+      "sha256": "ba7af3e2af12b3d2ca9ad21c04a325a4eaa7fe1512d6f0e8f0a624687e7325bd",
+      "bytes": 39646,
+      "test_count": 201,
+      "tail": "real_r4_e35_step14_code11_and_episode_count135) ... ok\r\ntest_real_r4_e60_fl_planar_run_and_step626_discriminate_xyz (tests.unit.test_stair_trajectory_reference_facts.LockedRawReferenceTests.test_real_r4_e60_fl_planar_run_and_step626_discriminate_xyz) ... ok\r\ntest_all_16_combinations_round_trip_with_low_role_index_bit (tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_all_16_combinations_round_trip_with_low_role_index_bit) ... ok\r\ntest_complete_left_and_right_censored_runs_keep_one_sample_event (tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_complete_left_and_right_censored_runs_keep_one_sample_event) ... ok\r\ntest_legacy_e54_specific_counterexample_uses_xy_too (tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_legacy_e54_specific_counterexample_uses_xy_too) ... ok\r\ntest_normalized_quaternion_controls_sign_and_body_frame_raw_is_diagnostic (tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_normalized_quaternion_controls_sign_and_body_frame_raw_is_diagnostic) ... ok\r\ntest_planar_speed_and_strict_force_and_speed_boundaries (tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_planar_speed_and_strict_force_and_speed_boundaries) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 201 tests in 52.580s\r\n\r\nOK\r\n{\"status\": \"pass\", \"output\": \"C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpv_s_21cx\\\\audit.json\", \"declaration\": \"every_control_step_of_each_scored_first_episode_including_pre_reset_terminal\", \"padding\": \"valid=false; zero-filled numeric values are not observations\", \"episode_count\": 288, \"valid_rows\": 861, \"padding_rows\": 3, \"post_outcome_observations\": \"not_collected\", \"reset_time_sample\": \"not_collected\"}\r\n"
+    },
+    {
+      "name": "frozen",
+      "command": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/verify_stair_trajectory_evidence.py",
+        "--input",
+        "outputs/trajectory_p1a/repair_t1_t2/r4",
+        "--input",
+        "outputs/trajectory_p1a/repair_t1_t2/legacy_dev",
+        "--output",
+        "outputs\\trajectory_p1d\\final_checks\\frozen_verification.json"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 13.566725400043651,
+      "log": "outputs\\trajectory_p1d\\final_checks\\frozen.log",
+      "sha256": "8c9e9d9c1a396aea44be3c7ae5c217ab3dd3485a664d8881dfc3beb59764ada5",
+      "bytes": 276,
+      "test_count": null,
+      "tail": "{\r\n  \"passed\": true,\r\n  \"necessary\": {\r\n    \"counts\": {\r\n      \"pass\": 247\r\n    },\r\n    \"fact_count\": 247,\r\n    \"compared_scalar_fields\": 4168\r\n  },\r\n  \"full\": {\r\n    \"counts\": {\r\n      \"pass\": 309\r\n    },\r\n    \"fact_count\": 309,\r\n    \"compared_scalar_fields\": 45157\r\n  }\r\n}\r\n"
+    },
+    {
+      "name": "raw_audit",
+      "command": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/verify_policy_behavior_card.py",
+        "--input",
+        "outputs/trajectory_p1b/repair_b1/final_card",
+        "--output",
+        "outputs\\trajectory_p1d\\final_checks\\raw_audit.json"
+      ],
+      "exit_code": 1,
+      "wall_seconds": 0.18140370002947748,
+      "log": "outputs\\trajectory_p1d\\final_checks\\raw_audit.log",
+      "sha256": "358d96518e3a27f5b7cb8c1888eacb11b7904fe99e001aa6f82779ce39434ac1",
+      "bytes": 875,
+      "test_count": null,
+      "tail": "Traceback (most recent call last):\r\n  File \"D:\\humanoid_agent\\true_RL_Agent\\scripts\\verify_policy_behavior_card.py\", line 475, in <module>\r\n    main()\r\n  File \"D:\\humanoid_agent\\true_RL_Agent\\scripts\\verify_policy_behavior_card.py\", line 467, in main\r\n    report = verify(args.input)\r\n             ^^^^^^^^^^^^^^^^^^\r\n  File \"D:\\humanoid_agent\\true_RL_Agent\\scripts\\verify_policy_behavior_card.py\", line 399, in verify\r\n    check(sha(ROOT/path), digest, \"executed production code \" + path)\r\n  File \"D:\\humanoid_agent\\true_RL_Agent\\scripts\\verify_policy_behavior_card.py\", line 48, in check\r\n    raise AssertionError(f\"{label}: {actual!r} != {expected!r}\")\r\nAssertionError: executed production code scripts/build_policy_behavior_card.py: '736691edbd6d4816d9caed1590f48404d34f6ea5cc0fb7ed276d61a67cf74c69' != '0e68d1fb95c2c5d18d2a21daba0f4d463cdaee4568156b44c269a148bd097591'\r\n"
+    },
+    {
+      "name": "p1d_and_lifecycle",
+      "command": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.unit.test_stair_trajectory_pipeline",
+        "tests.unit.test_stair_composition",
+        "tests.unit.test_subprocess_runner",
+        "tests.unit.test_runner_p1_reliability",
+        "tests.unit.test_generation_context",
+        "tests.integration.test_generation_session",
+        "-v"
+      ],
+      "exit_code": 1,
+      "wall_seconds": 624.9975125000346,
+      "log": "outputs\\trajectory_p1d\\final_checks\\p1d_and_lifecycle.log",
+      "sha256": "f7996bc52f11f8bcce152acc82c8bda4f81687b7d92b1964db02a10ff2ee0507",
+      "bytes": 27485,
+      "test_count": 133,
+      "tail": "aration_session_final_and_replay) ... skipped 'Stair runtime source closure requires target Isaac installation'\r\ntest_stair_runtime_and_infrastructure_failures_keep_distinct_evidence (tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_runtime_and_infrastructure_failures_keep_distinct_evidence) ... skipped 'Stair runtime source closure requires target Isaac installation'\r\n\r\n======================================================================\r\nERROR: test_stair_composition (unittest.loader._FailedTest.test_stair_composition)\r\n----------------------------------------------------------------------\r\nImportError: Failed to import test module: test_stair_composition\r\nTraceback (most recent call last):\r\n  File \"C:\\Users\\lover\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\Lib\\unittest\\loader.py\", line 137, in loadTestsFromName\r\n    module = __import__(module_name)\r\n             ^^^^^^^^^^^^^^^^^^^^^^^\r\nModuleNotFoundError: No module named 'tests.unit.test_stair_composition'\r\n\r\n\r\n======================================================================\r\nERROR: test_generation_context (unittest.loader._FailedTest.test_generation_context)\r\n----------------------------------------------------------------------\r\nImportError: Failed to import test module: test_generation_context\r\nTraceback (most recent call last):\r\n  File \"C:\\Users\\lover\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\Lib\\unittest\\loader.py\", line 137, in loadTestsFromName\r\n    module = __import__(module_name)\r\n             ^^^^^^^^^^^^^^^^^^^^^^^\r\nModuleNotFoundError: No module named 'tests.unit.test_generation_context'\r\n\r\n\r\n----------------------------------------------------------------------\r\nRan 133 tests in 624.033s\r\n\r\nFAILED (errors=2, skipped=8)\r\n"
+    }
+  ],
+  "test_results": {
+    "runs": [
+      {
+        "name": "p1c_related",
+        "path": "outputs\\trajectory_p1d\\final_checks\\p1c_related.log",
+        "sha256": "4c768a99cb70807927688d8839a9c50186caa331fef0fe4b3a43f4277cc0d156",
+        "bytes": 15075,
+        "count_by_result": {
+          "ok": 75
+        },
+        "tail": "ndaries.PromptSafetyBoundaryTests.test_runner_owned_surfaces_are_denied_not_candidate_writable) ... ok\r\ntest_shared_public_history_scrub_rules_are_task_agnostic (tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_shared_public_history_scrub_rules_are_task_agnostic) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 75 tests in 16.227s\r\n\r\nOK\r\n"
+      },
+      {
+        "name": "p1b_65",
+        "path": "outputs\\trajectory_p1d\\final_checks\\p1b_65.log",
+        "sha256": "82740634d85ce9bc445d07a53e7ed0fd6ce368f8c141152ffb5db432fc3fc71d",
+        "bytes": 11463,
+        "count_by_result": {
+          "ok": 65
+        },
+        "tail": "cs (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_push_recovery_package_does_not_own_stair_semantics) ... ok\r\ntest_runtime_tree_does_not_reference_parent_project (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_runtime_tree_does_not_reference_parent_project) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 65 tests in 17.412s\r\n\r\nOK\r\n"
+      },
+      {
+        "name": "p1a_107",
+        "path": "outputs\\trajectory_p1d\\final_checks\\p1a_107.log",
+        "sha256": "3c89229dd3db5884e411a080ec6b9a3ef61c906130670973ba82bdfe12ab8722",
+        "bytes": 21282,
+        "count_by_result": {
+          "ok": 107
+        },
+        "tail": "cs (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_push_recovery_package_does_not_own_stair_semantics) ... ok\r\ntest_runtime_tree_does_not_reference_parent_project (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_runtime_tree_does_not_reference_parent_project) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 107 tests in 3.894s\r\n\r\nOK\r\n"
+      },
+      {
+        "name": "legacy_201",
+        "path": "outputs\\trajectory_p1d\\final_checks\\legacy_201.log",
+        "sha256": "ba7af3e2af12b3d2ca9ad21c04a325a4eaa7fe1512d6f0e8f0a624687e7325bd",
+        "bytes": 39646,
+        "count_by_result": {
+          "ok": 201
+        },
+        "tail": "\"pass\", \"output\": \"C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpv_s_21cx\\\\audit.json\", \"declaration\": \"every_control_step_of_each_scored_first_episode_including_pre_reset_terminal\", \"padding\": \"valid=false; zero-filled numeric values are not observations\", \"episode_count\": 288, \"valid_rows\": 861, \"padding_rows\": 3, \"post_outcome_observations\": \"not_collected\", \"reset_time_sample\": \"not_collected\"}\r\n"
+      },
+      {
+        "name": "p1d_and_lifecycle",
+        "path": "outputs\\trajectory_p1d\\final_checks\\p1d_and_lifecycle.log",
+        "sha256": "f7996bc52f11f8bcce152acc82c8bda4f81687b7d92b1964db02a10ff2ee0507",
+        "bytes": 27485,
+        "count_by_result": {
+          "ok": 122,
+          "ERROR": 2,
+          "skipped 'file symlinks unavailable: OSError'": 1,
+          "skipped 'Linux process-group contract'": 2,
+          "skipped 'Linux parent-death contract'": 1,
+          "skipped 'Stair runtime source closure requires target Isaac installation'": 4
+        },
+        "tail": "codex-runtimes\\codex-primary-runtime\\dependencies\\python\\Lib\\unittest\\loader.py\", line 137, in loadTestsFromName\r\n    module = __import__(module_name)\r\n             ^^^^^^^^^^^^^^^^^^^^^^^\r\nModuleNotFoundError: No module named 'tests.unit.test_generation_context'\r\n\r\n\r\n----------------------------------------------------------------------\r\nRan 133 tests in 624.033s\r\n\r\nFAILED (errors=2, skipped=8)\r\n"
+      },
+      {
+        "name": "p1d_screen_followup",
+        "path": "outputs\\trajectory_p1d\\final_checks\\p1d_screen_followup.log",
+        "sha256": "a32dac42d59d968ce1cddb340d606d37a50e0f22b59b1ae6425499550d77e271",
+        "bytes": 4920,
+        "count_by_result": {
+          "ok": 24
+        },
+        "tail": "tairPhasedEvaluationTests.test_three_phase_assembly_matches_monolithic_scientific_summary) ... ok\r\ntest_unified_parent_guard_reuses_genesis_public_dev_receipt (tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_unified_parent_guard_reuses_genesis_public_dev_receipt) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 24 tests in 6.246s\r\n\r\nOK\r\n"
+      },
+      {
+        "name": "final_code_followup",
+        "path": "outputs\\trajectory_p1d\\final_checks\\final_code_followup.log",
+        "sha256": "4458da03e914853e4ca924eb89eeacaefa687e4e04d84cbf32b1f44333d064b0",
+        "bytes": 9358,
+        "count_by_result": {
+          "ok": 47
+        },
+        "tail": "airPhasedEvaluationTests.test_three_phase_assembly_matches_monolithic_scientific_summary) ... ok\r\ntest_unified_parent_guard_reuses_genesis_public_dev_receipt (tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_unified_parent_guard_reuses_genesis_public_dev_receipt) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 47 tests in 21.802s\r\n\r\nOK\r\n"
+      },
+      {
+        "name": "corrected_composition_context",
+        "path": "outputs\\trajectory_p1d\\final_checks\\corrected_composition_context.log",
+        "sha256": "37d8525f6f28ec2ece3553dbdebfa13c4ea00faf8c7dab32ced31a2c322fc5e0",
+        "bytes": 13980,
+        "count_by_result": {
+          "ok": 70
+        },
+        "tail": "ase13Tests.test_unbound_public_score_does_not_enter_next_round_history) ... ok\r\ntest_validated_exploration_projection_is_scrubbed_before_final_prompt (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_validated_exploration_projection_is_scrubbed_before_final_prompt) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 70 tests in 46.830s\r\n\r\nOK\r\n"
+      },
+      {
+        "name": "automatic_profile_final",
+        "path": "outputs\\trajectory_p1d\\final_checks\\automatic_profile_final.log",
+        "sha256": "db6a84e8042c088352fb7141d9a939114b27d18a6a79a4168ad51b32db4cd064",
+        "bytes": 2177,
+        "count_by_result": {
+          "ok": 11
+        },
+        "tail": "test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_repeated_build_and_budget_change_reuse_artifacts) ... ok\r\ntest_versions_robots_and_budget_reject_explicitly (tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_versions_robots_and_budget_reject_explicitly) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 11 tests in 8.510s\r\n\r\nOK\r\n"
+      }
+    ],
+    "unique_real_tests": 642,
+    "unique_passed": 634,
+    "unique_skipped": 8,
+    "real_failures": {},
+    "collection_errors": {
+      "unittest.loader._FailedTest.test_stair_composition": [
+        "ERROR"
+      ],
+      "unittest.loader._FailedTest.test_generation_context": [
+        "ERROR"
+      ]
+    },
+    "unique_test_ids": {
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_chinese_report_exactly_8192_and_one_byte_over": [
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_diagnostic_source_not_promoted_to_reference_or_round_trial": [
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_exact_final_bytes_and_one_byte_below_required_fail": [
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_full_ids_text_unknown_denominators_and_omissions_survive": [
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_full_replay_rejects_rehashed_text_missing_required_and_audit_edits": [
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_last_lane_is_explicitly_separate_from_accepted_lane": [
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_minimum_core_keeps_entire_report_and_provider_serialization": [
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_parent_no_archive_mixed_catalog_and_foreign_scope": [
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_paths_sealed_text_and_changed_sentence_rejected_before_scrubbing": [
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_receipt_counts_and_digests_reject_rehashed_invalid_values": [
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_source_sibling_job_checkpoint_and_plan_mismatches_rejected": [
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_version_dispatch_replays_all_old_views_without_upgrading": [
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_wrong_unselected_sibling_is_not_hidden_by_last_lane": [
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_canonical_phase_accepts_explicit_final_confirmation_namespace": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_current_robot_rows_enforce_candidate_sealed_consistency": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_frozen_p5_reference_and_current_candidates_share_comparison_statistics": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_generation_cost_and_genesis_guard_bootstrap_are_separate": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_guard_chain_replay_rejects_nonaccepted_head_transition": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_guard_chain_replay_updates_only_after_accepted_generation": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_historical_screen_statistics_replay_through_formal_assembly": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_numeric_archive_is_bound_to_exact_phase_and_summary": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_phase_binding_and_non_public_dev_selector_inputs_fail_closed": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_phase_cli_identity_is_all_or_nothing": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_phase_cost_is_exactly_the_executed_split": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_phase_summary_preserves_learner_evidence_outside_task_semantics": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_real_v3_public_accept_projection_preserves_distinct_guards_and_paired_order": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_reference_does_not_consume_candidate_public_to_sealed_guard": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_reference_three_phase_assembly_needs_no_candidate_selection": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_runner_parser_and_phase_receipt_preserve_plan_binding": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_selector_filters_unobserved_runtime_effect_before_ranking": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_selector_ranks_tiny_gaps_and_filters_clear_guard_regression": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_selector_records_declared_cross_gpu_execution_differences": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_selector_requires_typed_public_dev_evidence": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_selector_uses_public_dev_only_and_can_return_no_selection": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_stair_plugin_owns_the_optional_phase_capability": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_three_phase_assembly_matches_monolithic_scientific_summary": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_unified_parent_guard_reuses_genesis_public_dev_receipt": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_phase_postprocessing.PhasePostprocessingTests.test_child_exits_and_lease_releases_before_finalization_and_seal": [
+        "ok"
+      ],
+      "tests.unit.test_phase_postprocessing.PhasePostprocessingTests.test_cpu_failure_does_not_publish_or_repeat_gpu_rollout": [
+        "ok"
+      ],
+      "tests.unit.test_phase_postprocessing.PhasePostprocessingTests.test_fresh_capture_cannot_skip_cpu_handoff": [
+        "ok"
+      ],
+      "tests.unit.test_phase_postprocessing.PhasePostprocessingTests.test_handoff_without_task_finalizer_is_not_complete": [
+        "ok"
+      ],
+      "tests.unit.test_task_prompt_adapter.TaskPromptAdapterTests.test_neutral_prompt_adapter_carries_task_memory_in_canonical_feedback_only": [
+        "ok"
+      ],
+      "tests.unit.test_task_prompt_adapter.TaskPromptAdapterTests.test_non_push_full_prompt_payload_does_not_expose_push_reward_inputs": [
+        "ok"
+      ],
+      "tests.unit.test_task_prompt_adapter.TaskPromptAdapterTests.test_public_context_builder_includes_sanitized_task_prompt_sections": [
+        "ok"
+      ],
+      "tests.unit.test_task_prompt_adapter.TaskPromptAdapterTests.test_task_plugin_exposes_neutral_prompt_adapter_without_push_semantics": [
+        "ok"
+      ],
+      "tests.unit.test_task_prompt_adapter.TaskPromptAdapterTests.test_task_prompt_sections_reject_context_explosion": [
+        "ok"
+      ],
+      "tests.unit.test_task_prompt_adapter.TaskPromptAdapterTests.test_task_prompt_sections_reject_curriculum_interfaces": [
+        "ok"
+      ],
+      "tests.unit.test_task_prompt_adapter.TaskPromptAdapterTests.test_task_prompt_sections_scrub_absolute_paths": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_capacity_projection.PromptCapacityReceiptTests.test_minimum_core_receipt_stays_bound_through_failed_source_repair": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_capacity_projection.PromptCapacityReceiptTests.test_receipt_binds_visible_projection_and_is_deterministic": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_capacity_projection.PromptCapacityReceiptTests.test_receipt_or_visible_content_tamper_is_rejected": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_first_arrival_prompt_omits_only_exact_completion_diagnostics": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_historical_compaction_normalizes_absent_detail_omissions": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_provider_section_keys_cover_all_but_task_only_metadata": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_provider_task_receipt_keeps_v1_32k_history_replayable": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_provider_task_receipt_measures_the_exact_shipped_sections": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_push_uses_its_own_minimum_core_without_stair_fields": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_stair_bootstrap_minimum_core_has_explicit_sentinel": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_stair_capacity_pressure_keeps_current_best_and_latest": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_stair_capacity_projection_normalizes_absent_feedback_entries": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_stair_compacts_static_contract_before_measured_feedback": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_stair_minimum_core_preserves_mode_guidance_and_seed_counts": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_stair_minimum_core_retains_compacted_public_dev_feedback": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_stair_nonfeedback_pressure_with_empty_entries_reaches_minimum_core": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_stair_worst_case_preflight_is_deterministic_and_keeps_headroom": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_unknown_common_section_remains_fail_closed": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_effective_controls_exclude_unwired_or_runner_owned_surfaces": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_non_push_prompt_does_not_inherit_push_recovery_task_semantics": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_public_history_preserves_nonsensitive_error_tokens": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_public_history_redacts_forbidden_markers_embedded_in_text_values": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_public_key_policy_is_boundary_aware_and_task_neutral": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_public_prompt_rejects_and_scrubs_private_hidden_trusted_and_raw_seed_data": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_public_prompt_rejects_forbidden_markers_embedded_in_text_values": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_runner_owned_surfaces_are_denied_not_candidate_writable": [
+        "ok"
+      ],
+      "tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_shared_public_history_scrub_rules_are_task_agnostic": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_cohort.CohortTests.test_activity_longest_run_preserves_alternating_entity_contributions": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_cohort.CohortTests.test_all_failure_no_parent_and_exact_cell_facets": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_cohort.CohortTests.test_any_moving_witness_with_other_unknown_all_low_requires_all_feet": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_cohort.CohortTests.test_complete_runs_exclude_left_and_right_censoring_and_keep_one_sample": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_cohort.CohortTests.test_cross_source_and_duplicate_rejected": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_cohort.CohortTests.test_current_history_separate_and_inversion_not_upright_foot_label": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_cohort.CohortTests.test_different_dt_and_length_distinguish_episode_equal_from_cell_weight": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_cohort.CohortTests.test_endpoint_net_remains_valid_while_incomplete_path_is_unknown": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_cohort.CohortTests.test_force_share_eligibility_uses_p1a_sum_n_not_dt_scaled_integral": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_cohort.CohortTests.test_gap_cannot_prove_episode_absence_but_witness_proves_presence": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_cohort.CohortTests.test_low_progress_active_and_quiet_records_are_disjoint_and_xy_strict": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_cohort.CohortTests.test_missing_foot_does_not_remove_root_or_other_foot_denominator": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_cohort.CohortTests.test_missing_velocity_and_progress_stay_unknown": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_cohort.CohortTests.test_norm_and_fz_have_independent_samples_and_episode_denominators": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_cohort.CohortTests.test_presence_unknown_without_witness_not_negative": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_cohort.CohortTests.test_representative_ties_deterministic_and_success_retreat_is_retained": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_cohort.CohortTests.test_same_and_alternating_feet_do_not_become_same_long_state": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_cohort.CohortTests.test_successful_long_mode_witness_and_same_cell_failure_both_selected": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_cohort.CohortTests.test_unprocessed_unknown_and_negative_are_distinct": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_cohort.CohortTests.test_zero_force_is_valid_off_but_share_unknown": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_aggregate_is_primary_only_and_cannot_accept_duplicate_source": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_all_failure_card_has_no_success_reference_fallback": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_all_final_pointers_resolve_to_same_record_and_source": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_all_sentences_have_resolvable_operands_and_exact_reading_view": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_causal_or_strong_behavior_labels_are_not_generated": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_cohort_extra_operand_cannot_override_derived_unit": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_cohort_four_parent_metric_substitutions_rejected_after_rerender_rehash": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_cohort_label_unit_entity_and_combo_literal_mutations_rejected": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_cohort_legal_metric_switch_derives_new_semantics": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_cohort_metric_unit_must_match_its_descriptor": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_composite_template_operand_roles_cannot_be_swapped": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_current_history_swap_is_not_accepted_by_structural_validation": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_deleted_operand_and_wrong_byte_offset_fail": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_false_numeric_sentence_cannot_pass_with_valid_schema": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_force_entity_order_cannot_be_changed_as_a_free_label": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_four_artifact_build_and_no_overwrite": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_frozen_examples_not_silently_omitted_and_omissions_explicit": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_full_evidence_hash_checked_not_only_selected_example_lines": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_header_trial_checkpoint_protocol_permission_mutations_rejected": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_inverted_before_entity_must_match_off_interval": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_missing_attitude_endpoints_are_called_first_last_valid_records": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_missing_measurement_is_not_silently_unprocessed": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_no_raw_paths_in_sentences_or_reading_view_and_p1c_explicit": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_one_row_terminal_current_and_history_are_separate_sentences": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_output_is_deterministic": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_policy_main_view_is_small_without_dropping_audit_claims": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_same_foot_other_episode_cannot_be_substituted_under_original_scope": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_success_and_before_claims_require_actual_premises": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_unsupported_template_and_kind_status_rejected": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_wrong_entity_is_rejected_even_after_rehash": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card.CardTests.test_wrong_manifest_hash_rejected": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card_verification.CardRawAuditTests.test_all_metrics_and_intervals_match_independent_raw_calculations": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card_verification.CardRawAuditTests.test_alternating_foot_contributor_count_and_entity_order_mutations": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card_verification.CardRawAuditTests.test_current_history_swap_rejected_by_raw_not_claim_template": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card_verification.CardRawAuditTests.test_force_share_cannot_be_replaced_by_marker_occupancy": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card_verification.CardRawAuditTests.test_group_denominator_unknown_and_membership_mutations": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_card_verification.CardRawAuditTests.test_unknown_progress_window_cannot_be_counted_as_negative": [
+        "ok"
+      ],
+      "tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_import_concrete_task_packages": [
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_own_push_audit_literals": [
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_own_stair_semantics": [
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_project_boundaries.ProjectBoundaryTests.test_orchestration_does_not_read_legacy_provider_context": [
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_project_boundaries.ProjectBoundaryTests.test_package_imports_from_local_src_without_parent_project_imports": [
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_project_boundaries.ProjectBoundaryTests.test_project_metadata_declares_independent_package": [
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_project_boundaries.ProjectBoundaryTests.test_push_recovery_package_does_not_own_stair_semantics": [
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_project_boundaries.ProjectBoundaryTests.test_runtime_tree_does_not_reference_parent_project": [
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.NumericEpisodeContractTests.test_control_clock_is_explicit_and_has_no_invented_t0": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.NumericEpisodeContractTests.test_locator_shapes_bounds_and_integer_coordinates_are_required": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.NumericEpisodeContractTests.test_predicates_preserve_unknown_and_reject_invalid_values_before_coercion": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.NumericEpisodeContractTests.test_record_identity_changes_with_entity_channel_and_configuration": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.NumericEpisodeContractTests.test_reset_duplicate_or_invalid_steps_are_rejected": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.NumericEpisodeContractTests.test_sealed_split_rejected_even_when_archive_is_frozen": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.NumericEpisodeContractTests.test_source_reference_locates_exact_chunk_rows_and_environment": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.NumericEpisodeContractTests.test_stable_ids_preserve_source_trial_and_episode_namespaces": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_absence_is_three_valued_and_counterevidence_is_decisive": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_all_constant_runs_retain_single_sample_and_both_censor_directions": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_conjunction_retains_window_operands_for_state_and_transition": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_conjunction_uses_three_valued_logic_and_preserves_operands": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_event_brackets_overlap_or_touch_without_definite_before": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_left_track_unknown_also_bounds_candidate_search": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_nearest_onset_equal_distance_chooses_earlier_without_deleting_events": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_one_sample_contact_interrupts_absence_without_debounce": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_onset_pairing_can_reuse_target_and_keep_unpaired_reference": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_onset_pairing_does_not_cross_unknown_or_missing_steps": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_pair_reference_covers_excluded_earlier_tie_candidate": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_pair_search_covers_real_window_dependencies_for_either_operand": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_pair_search_gap_reference_includes_both_sides_of_gap": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_pair_search_includes_unknown_boundary_rows_but_not_other_islands": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_same_foot_and_alternating_feet_cannot_be_merged": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_same_named_tracks_from_another_source_cannot_be_composed": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_same_occupancy_different_order_has_different_runs_and_events": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_same_step_onsets_do_not_claim_physical_or_strict_readout_order": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_state_relations_keep_operand_ids_and_readout_limits": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_state_relations_reject_foreign_episode_nonstate_or_false_interval": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_track_length_mismatch_is_rejected_by_public_operators": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_two_sample_state_records_have_unique_ids_despite_shared_brackets": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_unknown_and_step_gap_split_runs_without_invented_transitions": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_unpaired_reference_covers_entire_negative_search": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_unpaired_without_joint_reference_coverage_keeps_local_unknown_proof": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_all_records_are_json_safe_unique_and_relations_resolve_to_operands": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_all_sixteen_contact_combinations_have_frozen_lsb_role_encoding": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_backtracking_and_return_do_not_reassign_success": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_current_history_and_terminal_manager_event_remain_separate": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_dynamic_entity_counts_and_joint_mapping_use_binding_order": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_endpoint_margin_records_include_position_operand_and_frozen_result": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_episode_equal_and_cell_time_weighted_fractions_have_explicit_units": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_equal_occupancy_different_order_retains_different_events": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_force_integral_does_not_bridge_gap_or_invalid_foot_sample": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_force_norm_signed_vertical_share_and_trapezoid_are_distinct": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_force_zero_denominator_is_unavailable_not_zero_share": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_full_body_rotation_and_world_translation_do_not_fake_relative_motion": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_fz_component_keeps_its_own_valid_denominator": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_invalid_manager_flag_is_unknown_and_json_safe_without_losing_other_evidence": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_invalid_quaternion_only_blocks_its_dependent_measurements": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_low_progress_requires_full_point03_window_and_records_confirmation": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_low_progress_strict_threshold_and_motion_are_separate": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_missing_force_and_invalid_single_foot_preserve_unaffected_root": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_normalized_quaternion_controls_primary_sign_raw_is_separate": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_paths_differences_and_drawdown_search_do_not_cross_missing_step": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_planar_predicate_does_not_require_vertical_velocity_or_attitude": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_strict_force_and_planar_speed_boundaries_discriminate_xyz": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_task_projection_and_paths_are_distinct_from_net_displacement": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_adapter_to_measurement_keeps_static_origin_current_history_and_outcome": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_all_first_episodes_retain_values_and_cross_chunk_row_locators": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_all_recorded_public_seeds_and_global_chunk_indices_are_kept": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_bound_entities_and_task_configuration_keep_original_authority": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_clock_cannot_drift_from_seed_history_or_frozen_binding": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_dtype_changes_cannot_silently_downcast_later_chunk_values": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_entire_source_is_verified_before_first_episode_is_yielded": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_gap_overlap_resets_and_valid_reentry_are_rejected": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_history_and_historical_reference_limitations_are_preserved": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_history_declaration_cannot_upgrade_buffer_to_physical_samples": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_invalid_padding_never_becomes_observation": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_inventory_preserves_raw_channels_and_marks_locator_derivations": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_late_seed_public_scope_is_checked_before_first_yield": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_manifest_content_must_match_pinned_hash": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_nonfinite_components_and_raw_quaternion_are_not_repaired_or_discarded": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_only_public_dev_v2_profile_is_accepted": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_outcome_assignment_and_static_origin_are_checked": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_same_episode_label_and_checkpoint_in_distinct_sources_never_share_identity": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_task_source_roles_and_units_cannot_drift": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_termination_contract_and_pre_reset_boundary_are_checked": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_v2_missing_declared_channels_and_contract_fields_are_rejected": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_evidence_build.EvidenceBuildTests.test_invalid_late_chunk_never_publishes_complete_manifest": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_evidence_build.EvidenceBuildTests.test_missing_selection_never_claims_complete_or_falls_back": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_evidence_build.EvidenceBuildTests.test_sealed_source_rejected_before_any_episode_is_emitted": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_evidence_build.EvidenceBuildTests.test_selected_evidence_has_resolvable_operands_and_deterministic_bytes": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_complete_inventory_maps_derived_locators_without_inventing_raw_channels": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_deleted_mean_body_position_is_unsupported_and_cannot_pass": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_deleted_short_transition_and_wrong_censor_fail": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_float_rounding_is_reported_and_outside_tolerance_fails": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_integer_and_boolean_values_never_use_float_tolerance": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_inventory_and_locator_mutations_fail_the_complete_acceptance_gate": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_missing_field_is_unsupported_even_if_other_values_match": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_role_order_rejected_instead_of_relabeling": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_same_display_name_does_not_merge_sources": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_short_contact_and_both_censored_sides_are_preserved": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_source_identity_rejects_float_and_boolean_indices": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_threshold_source_is_read_from_record_not_inferred_from_magnitude": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_evidence_verification.InputIntegrityTests.test_changed_chunk_rows_rejected_even_with_updated_output_hash": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_evidence_verification.InputIntegrityTests.test_evidence_tamper_fails_before_numeric_mapping": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_evidence_verification.InputIntegrityTests.test_record_source_splice_rejected_even_with_matching_file_hash": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_evidence_verification.InputIntegrityTests.test_reference_run_and_environment_require_exact_integers": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_evidence_verification.InputIntegrityTests.test_same_length_row_shift_fails_frozen_chunk_clock_binding": [
+        "ok"
+      ],
+      "tests.unit.test_trajectory_evidence_verification.InputIntegrityTests.test_successful_stream_reader_preserves_selected_ids": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_cli_writes_only_after_success_and_does_not_overwrite": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_coordinated_history_and_seed_clock_change_cannot_override_frozen_binding": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_gap_overlap_and_metadata_shape_are_rejected": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_late_chunk_hash_is_actually_read": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_nan_in_valid_rows_rejected_but_padding_is_not_an_observation": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_outcome_cell_and_static_environment_mapping_are_checked": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_permissions_follow_identity_and_seed_not_incidental_contract_text": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_pinned_manifest_hash_rejects_modified_manifest": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_public_archive_counts_terminal_rows_and_excludes_padding": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_quaternion_and_missing_channel_are_rejected": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_recorded_episode_clock_and_outcome_length_must_agree": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_reset_episode_must_not_reenter_valid_prefix": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_role_order_and_task_identity_cannot_drift": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_termination_mask_union_must_match_done_on_valid_rows": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_termination_names_must_match_frozen_manager_mapping": [
+        "ok"
+      ],
+      "tests.unit.test_numeric_evidence.NumericEvidenceTests.test_failed_budget_never_publishes_complete_manifest": [
+        "ok"
+      ],
+      "tests.unit.test_numeric_evidence.NumericEvidenceTests.test_publication_round_trip_and_corrupt_chunk": [
+        "ok"
+      ],
+      "tests.unit.test_process_report.ProcessReportTests.test_absence_of_observation_is_not_normality": [
+        "ok"
+      ],
+      "tests.unit.test_process_report.ProcessReportTests.test_budget_cannot_remove_required_counterexample_or_residual": [
+        "ok"
+      ],
+      "tests.unit.test_process_report.ProcessReportTests.test_comparison_requires_real_denominators_and_same_rule": [
+        "ok"
+      ],
+      "tests.unit.test_process_report.ProcessReportTests.test_descriptive_term_cannot_be_discriminating_group_statement": [
+        "ok"
+      ],
+      "tests.unit.test_process_report.ProcessReportTests.test_legal_unicode_observation_is_omitted_whole_with_conflict_and_coverage_kept": [
+        "ok"
+      ],
+      "tests.unit.test_process_report.ProcessReportTests.test_missing_section_is_not_silently_replaced_by_generic_unknown": [
+        "ok"
+      ],
+      "tests.unit.test_process_report.ProcessReportTests.test_parent_update_reuses_optional_policy_without_clipping_or_duplicate_gaps": [
+        "ok"
+      ],
+      "tests.unit.test_process_report.ProcessReportTests.test_terminal_same_step_is_not_an_earlier_event": [
+        "ok"
+      ],
+      "tests.unit.test_process_report.ProcessReportTests.test_visual_prose_without_alignment_and_visibility_is_not_admitted": [
+        "ok"
+      ],
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_candidate_names_are_a_separate_append_only_proposal_ledger": [
+        "ok"
+      ],
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_cards_use_actual_development_counts_and_explicit_counterexamples": [
+        "ok"
+      ],
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_comparison_requires_parent_binding_and_identical_cohort": [
+        "ok"
+      ],
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_empty_signature_is_negative_only_with_sufficient_controls": [
+        "ok"
+      ],
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_equal_peak_starts_new_excursion_and_no_retreat_is_not_missing": [
+        "ok"
+      ],
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_equal_success_occurrence_is_explicitly_not_discriminating": [
+        "ok"
+      ],
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_full_derivation_preserves_every_old_measurement_and_is_bounded": [
+        "ok"
+      ],
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_legacy_outputs_and_mixed_comparison_are_unchanged_or_explicit": [
+        "ok"
+      ],
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_previous_process_public_is_readable_but_not_silently_compared_as_v2": [
+        "ok"
+      ],
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_primary_success_example_does_not_hide_other_successful_process_terms": [
+        "ok"
+      ],
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_progress_attitude_does_not_hide_large_roll_behind_small_pitch": [
+        "ok"
+      ],
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_progress_return_and_censored_tail_preserve_different_meanings": [
+        "ok"
+      ],
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_public_report_explains_insufficient_controls_without_calling_measurements_missing": [
+        "ok"
+      ],
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_representative_uses_all_four_conditions_then_median_and_identifier": [
+        "ok"
+      ],
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_required_capacity_failure_cannot_erase_counterexample_or_residual": [
+        "ok"
+      ],
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_sampling_is_order_independent_clips_unions_and_names_unseen": [
+        "ok"
+      ],
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_short_progress_retains_unreturned_tail_and_names_omissions": [
+        "ok"
+      ],
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_signature_uses_strict_terminal_and_frozen_time_bins": [
+        "ok"
+      ],
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_success_only_keeps_zero_failure_residual_and_missing_sections": [
+        "ok"
+      ],
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_three_residual_states_and_control_precedence": [
+        "ok"
+      ],
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_time_bins_distinguish_same_terms": [
+        "ok"
+      ],
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_coverage_is_replayable_rule_independent_and_unions_steps": [
+        "ok"
+      ],
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_full_rows_cards_and_sample_windows_remain_out_of_prompt": [
+        "ok"
+      ],
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_later_recovery_and_recurrence_survive_first_unlatched_detail": [
+        "ok"
+      ],
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_modal_combination_precedes_duration_and_ties_are_disclosed": [
+        "ok"
+      ],
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_no_failure_is_zero_failure_residual_not_missing_success": [
+        "ok"
+      ],
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_no_latch_is_an_unavailable_interval_not_zero_instability": [
+        "ok"
+      ],
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_outcome_pathways_preserve_latch_final_state_and_success_counterexample": [
+        "ok"
+      ],
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_outline_distinguishes_no_post_latch_samples_from_observed_zero": [
+        "ok"
+      ],
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_outline_distinguishes_unexecuted_invalid_and_unobserved_windows": [
+        "ok"
+      ],
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_parent_and_unicode_pressure_drop_only_optional_visual_sentence": [
+        "ok"
+      ],
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_parent_diff_renders_both_process_denominators_and_replays": [
+        "ok"
+      ],
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_residual_window_signature_controls_minimum_and_episode_aggregation": [
+        "ok"
+      ],
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_shared_explanations_are_once_without_removing_scope_or_rule_slots": [
+        "ok"
+      ],
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_unexecuted_event_does_not_borrow_other_event_count_controls": [
+        "ok"
+      ],
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_v3_is_separate_and_preserves_v2_projection_and_slots": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_absent_mapping_is_visual_only_even_without_numeric_binding": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_actual_request_contains_images_but_no_private_identity": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_alias_identity_cannot_change_between_calls": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_ambiguous_same_alias_windows_and_duplicate_view_steps_are_rejected": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_base64_random_words_are_not_text_leaks": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_budget_includes_retries_and_rejects_without_mutation": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_budget_media_and_prepared_request_cannot_disagree": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_call_receipts_exact_request_usage_and_fingerprint": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_candidate_names_remain_proposals_and_merge_history_is_required": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_custom_outcome_enum_is_scanned": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_dual_view_subframes_stay_cumulative_across_calls": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_episode_priority_does_not_override_conflict_or_semantic_admission": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_episode_priority_only_accepts_approved_alias_integer_ranks": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_explicit_episode_priority_precedes_temporal_and_keeps_original_evidence": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_forbidden_inferences_are_task_checked_before_numeric_mapping": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_grid_pixels_match_frame_order_roi_and_step_glyphs": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_incomplete_identity_or_foreign_numeric_input_is_rejected": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_invalid_containers_preserve_three_raw_observations_without_s3": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_json_escapes_are_scanned_after_decoding": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_measurement_claim_is_explicit_and_task_registered": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_missing_or_changed_fingerprint_is_not_confirmation_evidence": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_negative_assertion_rendering_does_not_certify_visual_prose": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_non_list_containers_are_not_coerced_or_allowed_to_hide_siblings": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_outcome_tokens_are_rejected_in_public_text_and_s0_keys": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_provider_thinking_setting_is_sealed_and_sent": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_replay_cannot_borrow_original_episode_numeric_evidence": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_s0_binding_cannot_borrow_another_declared_source_or_episode": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_s0_whitelist_defines_unit_body_reference_frame_and_source": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_short_report_keeps_verbatim_conflict_and_all_output_denominator": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_short_report_prefers_process_over_scalar_checked_static_pose": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_subframes_pixels_bytes_cost_and_episode_caps": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_task_mapping_preserves_conflict_without_rewriting_observation": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_temporal_change_needs_time_and_a_shared_view": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_transport_error_stays_charged_and_is_recorded": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_uncertainty_allows_120_characters_while_text_stays_at_200": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_unknown_bodies_and_excess_observations_are_not_filtered": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_unqualified_normality_is_preserved_but_not_projected": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_v3_dual_view_references_bind_pixels_without_spending_extra_episodes": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_v3_rejects_redundant_v2_fields_instead_of_repairing_them": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_view_step_pair_must_exist_not_just_each_component": [
+        "ok"
+      ],
+      "tests.unit.test_visual_observer.VisualObserverTests.test_window_and_sampling_are_derived_from_citations_not_all_input_frames": [
+        "ok"
+      ],
+      "tests.unit.test_visual_review.VisualReviewTests.test_changed_text_uncertainty_identity_and_images_expire_review": [
+        "ok"
+      ],
+      "tests.unit.test_visual_review.VisualReviewTests.test_incomplete_duplicate_unexplained_and_cross_case_reviews_are_rejected": [
+        "ok"
+      ],
+      "tests.unit.test_visual_review.VisualReviewTests.test_numeric_consistency_cannot_replace_semantic_review": [
+        "ok"
+      ],
+      "tests.unit.test_visual_review.VisualReviewTests.test_support_does_not_erase_numeric_conflict_or_container_failure": [
+        "ok"
+      ],
+      "tests.unit.test_visual_review.VisualReviewTests.test_task_rejection_does_not_rebind_or_admit_reviewed_observation": [
+        "ok"
+      ],
+      "tests.unit.test_visual_review.VisualReviewTests.test_verdicts_keep_denominator_and_original_audit": [
+        "ok"
+      ],
+      "tests.unit.test_native_snapshot_media.NativeSnapshotMediaTests.test_capture_manifest_to_actual_request_keeps_bytes_and_only_recorded_steps": [
+        "ok"
+      ],
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_actionability_separates_instantaneous_inputs_from_diagnostic_history": [
+        "ok"
+      ],
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_diff_checks_parent_source_cohort_and_unavailable": [
+        "ok"
+      ],
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_direction_extrema_and_retreat_keep_terminal_time_and_signed_orientation": [
+        "ok"
+      ],
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_full_archive_derivation_missing_anchor_history_and_bounded_public": [
+        "ok"
+      ],
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_g1_binding_and_actionability_are_derived_from_its_actual_abi": [
+        "ok"
+      ],
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_named_body_reorder_preserves_events_and_extrema_with_bound_names": [
+        "ok"
+      ],
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_old_archive_does_not_invent_history_or_block_common_field_comparison": [
+        "ok"
+      ],
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_parallel_per_body_streak_window_and_terminal_order": [
+        "ok"
+      ],
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_phase_sealing_portable_replay_and_actual_author_payload": [
+        "ok"
+      ],
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_qualified_reference_assembly_reaches_empty_history_author_without_fake_trial": [
+        "ok"
+      ],
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_representatives_do_not_substitute_unmatched_success_and_keep_denominators": [
+        "ok"
+      ],
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_unloaded_low_motion_duration_threshold_history_and_overlap": [
+        "ok"
+      ],
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_world_y_roll_reflection_keeps_scalar_rules_and_reflects_signed_pose": [
+        "ok"
+      ],
+      "tests.unit.test_push_behavior.PushBehaviorTests.test_dwell_concurrent_conditions_success_counterexample_and_final_state": [
+        "ok"
+      ],
+      "tests.unit.test_push_behavior.PushBehaviorTests.test_event_relative_displacement_peak_and_unexecuted_second_event": [
+        "ok"
+      ],
+      "tests.unit.test_push_behavior.PushBehaviorTests.test_force_control_does_not_count_reducer_storage_slot_as_failed_recovery": [
+        "ok"
+      ],
+      "tests.unit.test_push_behavior.PushBehaviorTests.test_force_last_pulse_anchor_closed_padding_and_partial_coverage": [
+        "ok"
+      ],
+      "tests.unit.test_push_behavior.PushBehaviorTests.test_parent_diff_can_omit_optional_pose_without_losing_examples_or_counts": [
+        "ok"
+      ],
+      "tests.unit.test_push_behavior.PushBehaviorTests.test_parent_diff_requires_actual_parent_same_domain_and_complete_coverage": [
+        "ok"
+      ],
+      "tests.unit.test_push_behavior.PushBehaviorTests.test_phase_seals_behavior_only_when_produced_and_history_parent_diff_is_idempotent": [
+        "ok"
+      ],
+      "tests.unit.test_push_behavior.PushBehaviorTests.test_prompt_replay_and_final_provider_payload_keep_bounded_facts": [
+        "ok"
+      ],
+      "tests.unit.test_push_behavior.PushBehaviorTests.test_public_keeps_every_stratum_and_does_not_fabricate_unmatched_success": [
+        "ok"
+      ],
+      "tests.unit.test_push_behavior.PushBehaviorTests.test_selection_uses_failure_coverage_and_diff_refuses_semantics_change": [
+        "ok"
+      ],
+      "tests.unit.test_push_behavior.PushBehaviorTests.test_signed_motion_and_old_profile_missing_direction": [
+        "ok"
+      ],
+      "tests.unit.test_feedback_evidence_boundary.FeedbackEvidenceBoundaryTests.test_feedback_only_in_place_projection_is_isolated_and_repeatable": [
+        "ok"
+      ],
+      "tests.unit.test_feedback_evidence_boundary.FeedbackEvidenceBoundaryTests.test_in_place_authority_edits_are_rejected_without_mutating_validated_history": [
+        "ok"
+      ],
+      "tests.unit.test_feedback_evidence_boundary.FeedbackEvidenceBoundaryTests.test_third_task_evidence_survives_memory_and_offline_provider_request": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.SnapshotNumericAlignmentTests.test_push_missing_fields_and_tolerances": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.SnapshotNumericAlignmentTests.test_push_overlap_uses_named_velocity_layout_and_only_real_samples": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.SnapshotNumericAlignmentTests.test_push_wrong_quaternion_velocity_or_rows_are_mismatches": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.SnapshotNumericAlignmentTests.test_stair_actual_samples_step_lookup_and_joint_binding": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.SnapshotNumericAlignmentTests.test_stair_missing_data_and_binding_never_pass": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.SnapshotNumericAlignmentTests.test_stair_named_binding_missing_names_are_incomplete_and_bad_counts_fail": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.SnapshotNumericAlignmentTests.test_stair_recorded_joint_names_resolve_permutation_and_check_explicit_ids": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.SnapshotNumericAlignmentTests.test_stair_wrong_row_quaternion_order_and_joint_order_detected": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_binding": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_bound_array_snapshot_and_shape_validation": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_cited_view_pairs_and_no_time_from_two_views": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_claim_requires_exact_object_and_boolean_without_legacy_strings": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_explicit_polarity_and_strict_threshold_boundaries": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_independent_claim_arrays": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_missing_measurements_do_not_satisfy_negative_assertions": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_push_attachment": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_push_measurements": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_push_s0_uses_recorded_references_not_velocity": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_push_visual_episode_priority_uses_logical_exemplar_and_known_terminal_failure": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_s0_source_binding_and_public_whitelist": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_stair_asset_bound_forward_s0_and_blind_definition": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_stair_attachment": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_stair_forward_uses_supplied_axis_and_quaternion_sign": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_stair_measurements": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_stair_s0_reference_and_missing_fields": [
+        "ok"
+      ],
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_stair_visual_episode_priority_reuses_numeric_exemplar_then_terminal_failure": [
+        "ok"
+      ],
+      "tests.unit.test_stair_numeric_capture.StairNumericCaptureTests.test_actual_recorder_skips_history_snapshot_when_capture_is_off": [
+        "ok"
+      ],
+      "tests.unit.test_stair_numeric_capture.StairNumericCaptureTests.test_g1_history_uses_bound_two_support_roles": [
+        "ok"
+      ],
+      "tests.unit.test_stair_numeric_capture.StairNumericCaptureTests.test_live_to_archive_recomputes_all_outcomes_and_ignores_reset_padding": [
+        "ok"
+      ],
+      "tests.unit.test_stair_numeric_capture.StairNumericCaptureTests.test_sensor_history_snapshot_preserves_role_order_vectors_clock_and_copies": [
+        "ok"
+      ],
+      "tests.unit.test_push_numeric_capture.PushNumericCaptureTests.test_budget_and_episode_gap_fail_without_valid_manifest": [
+        "ok"
+      ],
+      "tests.unit.test_push_numeric_capture.PushNumericCaptureTests.test_cli_capture_is_public_dev_only_and_legacy_is_out_of_scope": [
+        "ok"
+      ],
+      "tests.unit.test_push_numeric_capture.PushNumericCaptureTests.test_force_partial_pulse_fall_and_closed_padding_do_not_cross_reset": [
+        "ok"
+      ],
+      "tests.unit.test_push_numeric_capture.PushNumericCaptureTests.test_force_sequence_not_per_pulse_inclusive_window_and_final_frame": [
+        "ok"
+      ],
+      "tests.unit.test_push_numeric_capture.PushNumericCaptureTests.test_rollout_explicit_integration_and_capture_off_are_equivalent": [
+        "ok"
+      ],
+      "tests.unit.test_push_numeric_capture.PushNumericCaptureTests.test_signed_world_motion_distinguishes_equal_norms_and_uses_reset_origin": [
+        "ok"
+      ],
+      "tests.unit.test_push_numeric_capture.PushNumericCaptureTests.test_truncated_capture_publishes_data_but_never_terminal_success": [
+        "ok"
+      ],
+      "tests.unit.test_push_numeric_capture.PushNumericCaptureTests.test_v2_requires_motion_fields_instead_of_silently_falling_back_to_v1": [
+        "ok"
+      ],
+      "tests.unit.test_push_numeric_capture.PushNumericCaptureTests.test_velocity_events_all_conditions_interruption_and_final_instability": [
+        "ok"
+      ],
+      "tests.unit.test_push_numeric_capture.RecoveryClassificationCompatibilityTests.test_shared_terminal_classification_retains_strict_fall_boundaries": [
+        "ok"
+      ],
+      "tests.unit.test_push_numeric_capture.RecoveryClassificationCompatibilityTests.test_velocity_and_force_keep_their_different_failure_priorities": [
+        "ok"
+      ],
+      "tests.unit.test_p3r_stair_projection.StairProjectionRevisionTests.test_budget_pressure_cannot_erase_every_matched_comparison": [
+        "ok"
+      ],
+      "tests.unit.test_p3r_stair_projection.StairProjectionRevisionTests.test_dominant_reason_pair_is_not_lexicographic_and_counts_do_not_mix_reasons": [
+        "ok"
+      ],
+      "tests.unit.test_p3r_stair_projection.StairProjectionRevisionTests.test_missing_match_is_explicit_and_does_not_borrow_an_unrelated_success": [
+        "ok"
+      ],
+      "tests.unit.test_p3r_stair_projection.StairProjectionRevisionTests.test_motion_budget_keeps_each_failure_stratum_and_same_group_ranges": [
+        "ok"
+      ],
+      "tests.unit.test_p3r_stair_projection.StairProjectionRevisionTests.test_motion_columns_and_missing_success_are_explicit": [
+        "ok"
+      ],
+      "tests.unit.test_p3r_stair_projection.StairProjectionRevisionTests.test_motion_representative_covers_modal_conditions_before_duration": [
+        "ok"
+      ],
+      "tests.unit.test_p3r_stair_projection.StairProjectionRevisionTests.test_old_view_is_unchanged_and_comparison_resolves_column_names": [
+        "ok"
+      ],
+      "tests.unit.test_p3r_stair_projection.StairProjectionRevisionTests.test_view_keeps_process_intervals_and_narrows_proxy_names": [
+        "ok"
+      ],
+      "tests.unit.test_push_feedback_projection.PushFeedbackProjectionTests.test_current_best_dev_keeps_its_own_failure_evidence_and_is_not_duplicated": [
+        "ok"
+      ],
+      "tests.unit.test_push_feedback_projection.PushFeedbackProjectionTests.test_evaluated_candidate_feedback_takes_precedence_over_reference": [
+        "ok"
+      ],
+      "tests.unit.test_push_feedback_projection.PushFeedbackProjectionTests.test_exploration_cards_and_memory_never_include_acceptance_scores": [
+        "ok"
+      ],
+      "tests.unit.test_push_feedback_projection.PushFeedbackProjectionTests.test_failure_mode_reports_failure_even_when_successes_are_the_majority": [
+        "ok"
+      ],
+      "tests.unit.test_push_feedback_projection.PushFeedbackProjectionTests.test_initial_reference_feedback_uses_only_dev_for_both_robots": [
+        "ok"
+      ],
+      "tests.unit.test_push_feedback_projection.PushFeedbackProjectionTests.test_no_formal_generation_preserves_sibling_memory_without_false_attribution": [
+        "ok"
+      ],
+      "tests.unit.test_push_feedback_projection.PushFeedbackProjectionTests.test_task_memory_retains_failure_rates_after_aggregate_projection": [
+        "ok"
+      ],
+      "tests.unit.test_push_feedback_projection.PushFeedbackProjectionTests.test_trial_memory_uses_measured_parent_dev_and_is_idempotent": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_reference_facts.LockedRawReferenceTests.test_real_r4_e35_step14_code11_and_episode_count135": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_reference_facts.LockedRawReferenceTests.test_real_r4_e60_fl_planar_run_and_step626_discriminate_xyz": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_all_16_combinations_round_trip_with_low_role_index_bit": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_complete_left_and_right_censored_runs_keep_one_sample_event": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_legacy_e54_specific_counterexample_uses_xy_too": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_normalized_quaternion_controls_sign_and_body_frame_raw_is_diagnostic": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_planar_speed_and_strict_force_and_speed_boundaries": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_automatic_selection_has_no_frozen_examples_or_other_source": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_changed_profile_and_nonpublic_archive_rejected": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_foreign_job_checkpoint_plan_never_reuses_card": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_incomplete_owned_stage_restarts": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_manifest_published_only_after_complete_write": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_missing_manifest_does_not_fallback": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_normal_composition_wires_profile_and_preserves_old_defaults": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_private_receipt_replay_binds_configuration_source_and_public_bytes": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_repeated_build_and_budget_change_reuse_artifacts": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_versions_robots_and_budget_reject_explicitly": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_backend_environment_summary_receipt_is_exact_and_hash_bound": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_baseline_eval_optional_gpu_binding_omits_legacy_field": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_baseline_eval_rejects_duplicate_checkpoint_hash_before_launch": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_bound_eval_phase_receipt_uses_validated_summary_binding": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_bound_train_uses_host_lease_and_child_only_uuid_mapping": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_candidate_eval_rejects_duplicate_checkpoint_path_before_launch": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_candidate_eval_requires_program_checksum_before_launch": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_candidate_failure_contract_rejects_unknown_or_forged_evidence": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_candidate_failure_policy_pairing_depends_on_declared_stage": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_candidate_failure_rejects_raw_errors": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_closed_candidate_failure_is_projected_without_raw_error": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_completed_train_attempt_is_revalidated_without_relaunch": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_eval_rejects_duplicate_execution_device_before_launch": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_failed_train_summary_rejects_zero_exit": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_fake_backend_remains_neutral_to_environment_receipts": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_initial_policy_state_pairing_is_bound_to_train_result": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_initial_policy_state_pairing_rejects_missing_or_mismatched_summary": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_nonzero_eval_exit_can_return_a_complete_fail_result": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_nonzero_eval_exit_does_not_hide_incomplete_fail_evidence": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_nonzero_exit_rejects_a_pass_summary_as_inconsistent": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_nonzero_exit_requires_a_valid_identity_bound_fail_summary": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_random_train_rejects_hidden_warm_start_args_before_launch": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_runner_constructor_rejects_invalid_execution_config": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_sealed_summary_hash_is_checked_and_raw_summary_stays_private": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_sealed_summary_score_stats_must_match_public_evidence": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_sealed_summary_tamper_rejects_hash_mismatch": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_accepts_train_summary_bound_to_current_job": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_binds_train_checkpoint_to_planned_path_and_bytes": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_deletes_stale_eval_summary_before_execution": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_deletes_stale_train_summary_before_execution": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_does_not_coerce_checkpoint_fields": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_executes_and_validates_one_eval_phase": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_executes_baseline_eval_without_candidate_identity": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_executes_train_and_eval_from_structured_argv": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_preserves_task_owned_eval_metrics": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_projects_safe_evidence_manifest": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_projects_sealed_validation_gate": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_redacts_secrets_from_failed_process_output": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_baseline_manifest_or_subject_drift": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_checkpoint_bytes_before_launch": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_checkpoint_safety_hash_for_different_eval_checkpoint": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_eval_argv_candidate_path_before_execution": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_eval_summary_bound_to_different_job": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_evidence_manifest_not_bound_to_projection": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_execution_device_summary_drift": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_failed_checkpoint_safety_report": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_failed_sealed_validation_gate": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_gate_checkpoint_safety_failure": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_malformed_evidence_manifest_as_runner_error": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_metrics_candidate_contamination": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_missing_checkpoint_safety_report": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_nested_second_eval_identity": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_pass_gate_with_contamination_evidence": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_planned_checkpoint_before_launch": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_shell_strings_and_unapproved_executables": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_stale_or_mismatched_train_checkpoint_output": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_top_level_candidate_contamination": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_train_summary_identity_mismatch_before_checkpoint_parse": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_warm_start_bytes_before_train_launch": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_wrong_type_evidence_byte_size_as_runner_error": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_reports_missing_summary_as_execution_error": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_resolves_outputs_relative_to_subprocess_work_dir": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_strictly_validates_train_status": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_wraps_malformed_eval_scalar_and_status_fields": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_train_rejects_symlinked_checkpoint_output_without_following_it": [
+        "skipped 'file symlinks unavailable: OSError'"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_train_requires_checkpoint_output_contract_before_execution": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_summary_missing_uses_exactly_one_reserved_infrastructure_retry": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_train_rejects_duplicate_agent_configuration_before_launch": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_train_rejects_execution_device_drift_before_launch": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_train_rejects_forged_program_checksum_argv_before_launch": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_train_rejects_mutated_candidate_artifact_before_launch": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_unbound_eval_rejects_summary_gpu_process_binding_claim": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_unbound_train_rejects_summary_gpu_process_binding_claim": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_unclassified_train_failure_is_infrastructure_owned": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_warm_start_train_rejects_checkpoint_path_drift_before_launch": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.GpuLeaseTests.test_attempt_scope_cannot_drift_from_trusted_gpu_binding": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.GpuLeaseTests.test_cross_process_gpu_lease_conflicts_and_recovers_after_abnormal_exit": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.GpuLeaseTests.test_pre_genesis_holder_uses_v2_without_changing_v1_holder_bytes": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.GpuLeaseTests.test_same_physical_gpu_aliases_conflict_but_distinct_gpus_do_not": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_attempt_result_unknown_field_tamper_is_rejected": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_attempt_timeout_reaches_owned_process_through_train_and_eval": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_bound_gpu_attempt_records_validated_lease_wall_duration": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_foreign_reservation_cannot_close_another_logical_job": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_invalid_attempt_timeout_fails_before_reservation_or_operation": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_next_runnable_attempt_is_read_only_and_begin_or_resume_reuses_it": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_non_retryable_result_and_open_reservation_cannot_authorize_retry": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_pre_genesis_scope_round_trips_without_changing_legacy_projection": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_retry_admission_rejection_creates_no_retry_reservation": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_retry_chain_is_create_once_and_hash_bound": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_runner_attempt_timeout_cannot_expand_runner_timeout": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_runner_derives_pre_genesis_gpu_lease_holder_from_attempt_scope": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_runner_does_not_reexecute_an_existing_attempt_without_inspector": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_runner_does_not_retry_contract_failure": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_runner_resolves_tightened_timeout_before_each_reservation": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_runner_retries_only_a_registered_infrastructure_failure": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_runner_reuses_a_hash_bound_completed_output_without_reexecution": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_runner_without_admission_hook_passes_runner_timeout_to_operation": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_terminal_contract_failure_remains_invalid_without_relaunch": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_terminal_timeout_replays_typed_failure_without_relaunch": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_cleanup_failure_does_not_replace_original_without_add_note": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_cleanup_incomplete_replaces_false_original_completion": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_environment_overrides_are_scoped_to_owned_child": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_incomplete_process_group_cleanup_is_typed": [
+        "skipped 'Linux process-group contract'"
+      ],
+      "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_launch_failure_is_typed": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_linux_parent_death_signal_stops_owned_job": [
+        "skipped 'Linux parent-death contract'"
+      ],
+      "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_normal_exit_quiesces_grandchild_before_logs_are_returned": [
+        "skipped 'Linux process-group contract'"
+      ],
+      "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_normal_process_streams_to_logs_and_returns_bounded_tails": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_runner_maps_cleanup_incomplete_to_nonretryable_interruption": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_timeout_cleans_direct_child_and_grandchild": [
+        "ok"
+      ],
+      "tests.unit.test_runner_p1_reliability.RunnerSingleDeviceContractTests.test_distributed_and_multi_gpu_flags_are_rejected": [
+        "ok"
+      ],
+      "tests.integration.test_generation_session.SharedGenerationSessionTests.test_five_generation_session_finishes_and_replays_at_its_frozen_boundary": [
+        "ok"
+      ],
+      "tests.integration.test_generation_session.SharedGenerationSessionTests.test_push_accepted_head_resumes_and_closes_final": [
+        "ok"
+      ],
+      "tests.integration.test_generation_session.SharedGenerationSessionTests.test_push_early_rejection_closes_without_sealed_or_a_full_result": [
+        "ok"
+      ],
+      "tests.integration.test_generation_session.SharedGenerationSessionTests.test_push_keeps_sealed_dependent_rejection_and_no_selection_distinct": [
+        "ok"
+      ],
+      "tests.integration.test_generation_session.SharedGenerationSessionTests.test_push_reference_head_uses_shared_preparation_session_final_and_replay": [
+        "ok"
+      ],
+      "tests.integration.test_generation_session.SharedGenerationSessionTests.test_push_runtime_and_infrastructure_failures_keep_distinct_evidence": [
+        "ok"
+      ],
+      "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_accepted_head_resumes_and_closes_final": [
+        "skipped 'Stair runtime source closure requires target Isaac installation'"
+      ],
+      "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_early_rejection_sealed_rejection_and_no_selection": [
+        "skipped 'Stair runtime source closure requires target Isaac installation'"
+      ],
+      "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_reference_head_uses_shared_preparation_session_final_and_replay": [
+        "skipped 'Stair runtime source closure requires target Isaac installation'"
+      ],
+      "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_runtime_and_infrastructure_failures_keep_distinct_evidence": [
+        "skipped 'Stair runtime source closure requires target Isaac installation'"
+      ],
+      "tests.unit.test_composition.CompositionTests.test_broken_stair_factory_does_not_break_push_path": [
+        "ok"
+      ],
+      "tests.unit.test_composition.CompositionTests.test_fresh_push_registry_path_does_not_import_stair_modules": [
+        "ok"
+      ],
+      "tests.unit.test_composition.CompositionTests.test_genesis_anchor_is_bound_to_training_initialization": [
+        "ok"
+      ],
+      "tests.unit.test_composition.CompositionTests.test_lazy_provider_factory_runs_once_under_concurrent_first_access": [
+        "ok"
+      ],
+      "tests.unit.test_composition.CompositionTests.test_lazy_provider_loads_once_and_validates_factory_identity": [
+        "ok"
+      ],
+      "tests.unit.test_composition.CompositionTests.test_production_stair_registration_is_lazy_and_push_stays_default": [
+        "ok"
+      ],
+      "tests.unit.test_composition.CompositionTests.test_push_composition_rejects_inconsistent_training_budget": [
+        "ok"
+      ],
+      "tests.unit.test_composition.CompositionTests.test_push_composition_rejects_noncanonical_value_types": [
+        "ok"
+      ],
+      "tests.unit.test_composition.CompositionTests.test_push_snapshot_and_runtime_share_one_validated_config": [
+        "ok"
+      ],
+      "tests.unit.test_composition.CompositionTests.test_push_task_config_rejects_invalid_programmatic_values": [
+        "ok"
+      ],
+      "tests.unit.test_composition.CompositionTests.test_registry_and_resolver_fail_closed_before_execution": [
+        "ok"
+      ],
+      "tests.unit.test_composition.CompositionTests.test_resolved_snapshot_binds_memory_and_is_immutable": [
+        "ok"
+      ],
+      "tests.unit.test_composition.CompositionTests.test_task_neutral_composition_modules_have_no_concrete_task_semantics": [
+        "ok"
+      ],
+      "tests.unit.test_composition.CompositionTests.test_two_stage_cli_uses_only_selected_task_defaults": [
+        "ok"
+      ],
+      "tests.unit.test_stair_phase_b_composition.StairPhaseBCompositionTests.test_composition_resolves_once_to_one_consistent_snapshot": [
+        "ok"
+      ],
+      "tests.unit.test_stair_phase_b_composition.StairPhaseBCompositionTests.test_default_registry_registers_stair_lazily": [
+        "ok"
+      ],
+      "tests.unit.test_stair_phase_b_composition.StairPhaseBCompositionTests.test_official_g1_agent_configuration_is_fully_bound": [
+        "ok"
+      ],
+      "tests.unit.test_stair_phase_b_composition.StairPhaseBCompositionTests.test_private_seed_namespaces_are_unique_and_disjoint": [
+        "ok"
+      ],
+      "tests.unit.test_stair_phase_b_composition.StairPhaseBCompositionTests.test_reference_role_does_not_rewrite_authorship_provenance": [
+        "ok"
+      ],
+      "tests.unit.test_stair_phase_b_composition.StairPhaseBCompositionTests.test_reward_cold_start_rejects_reference_and_score_override": [
+        "ok"
+      ],
+      "tests.unit.test_stair_phase_b_composition.StairPhaseBCompositionTests.test_reward_cold_start_skips_reference_and_binds_initial_state": [
+        "ok"
+      ],
+      "tests.unit.test_stair_phase_b_composition.StairPhaseBCompositionTests.test_scientific_identity_is_owned_by_each_task_and_excludes_placement": [
+        "ok"
+      ],
+      "tests.unit.test_stair_phase_b_composition.StairPhaseBCompositionTests.test_stair_provider_validates_injected_reference_capability": [
+        "ok"
+      ],
+      "tests.unit.test_stair_phase_b_composition.StairPhaseBCompositionTests.test_strict_config_rejects_coercion_and_relational_drift": [
+        "ok"
+      ],
+      "tests.unit.test_generation_entrypoint.GenerationEntrypointTests.test_fresh_and_resumed_cli_require_credentials_until_the_report_exists": [
+        "ok"
+      ],
+      "tests.unit.test_generation_entrypoint.GenerationEntrypointTests.test_gpu_inventory_rejects_malformed_and_duplicate_rows": [
+        "ok"
+      ],
+      "tests.unit.test_generation_entrypoint.GenerationEntrypointTests.test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_direct_prompt_payload_public_history_is_still_bounded": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_direct_prompt_payload_public_history_uses_fixed_allowlist": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_experiment_memory_full_byte_limit_preserves_latest_accepted_and_latest": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_experiment_memory_keeps_objective_and_guard_scores_unambiguous": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_experiment_memory_keeps_salient_late_components": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_experiment_memory_preserves_candidate_runtime_name_delta": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_experiment_memory_summarizes_old_entries_before_omitting_them": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_experiment_record_projects_public_data_and_hides_private_artifacts": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_first_accepted_authoring_delta_survives_runtime_salience_limit": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_generation_memory_keeps_trial_index_before_repeated_details": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_invalid_declared_accept_does_not_raise_best_public_score": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_invalid_declared_accept_is_fail_closed_in_public_history": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_malformed_generation_cannot_bypass_mechanism_attribution": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_private_artifact_rejects_malformed_checksum": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_experiment_memory_retains_bounded_component_lessons": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_payload_guard_blocks_checkpoint_selector_keys": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_does_not_relabel_eval_isolation_as_training_failure": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_does_not_treat_checkpoint_eval_as_training_load_failure": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_is_count_and_byte_bounded": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_keeps_bounded_eval_feedback_summaries": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_keeps_failed_gates_without_task_metric_semantics": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_preserves_missing_runtime_activation_as_not_available": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_preserves_omitted_detail_count_across_recompaction": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_projects_bounded_source_request_feedback": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_projects_provider_repair_failure": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_projects_runtime_and_error_evidence": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_uses_runtime_gate_not_eval_isolation_for_training_activation": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_public_context_builder_accepts_raw_mapping_records": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_public_context_builder_saves_public_only_prompt_payload": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_public_history_labels_bound_score_source": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_push_memory_adapter_tolerates_malformed_public_task_field": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_push_memory_uses_validated_public_score_not_raw_metric_mirror": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_recompact_uses_canonical_mechanism_as_candidate_identity": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_runtime_component_projection_drops_invalid_oversized_identity": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_stair_extension_guide_mentions_task_specific_public_summary": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_static_authoring_failure_feedback_overrides_stale_attempt_repair_feedback": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_task_memory_adapter_is_extension_point_without_agent_core_changes": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_task_projection_cannot_rewrite_non_feedback_runner_facts": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_task_projection_cannot_rewrite_runner_acceptance_authority": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_task_projection_separates_provider_score_from_acceptance_score": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_task_score_projection_cannot_fall_back_to_acceptance_anchor": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_unbound_public_score_does_not_enter_next_round_history": [
+        "ok"
+      ],
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_validated_exploration_projection_is_scrubbed_before_final_prompt": [
+        "ok"
+      ],
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_removed_unavailable_slot_rejected_even_with_consistent_projection_hashes": [
+        "ok"
+      ],
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_accepts_existing_summary_without_optional_diagnostics": [
+        "ok"
+      ]
+    }
+  },
+  "additional_tests": [
+    {
+      "path": "outputs/trajectory_p1d/final_checks/automatic_profile_final.log",
+      "sha256": "db6a84e8042c088352fb7141d9a939114b27d18a6a79a4168ad51b32db4cd064",
+      "bytes": 2177,
+      "test_count": 11,
+      "passed": true
+    }
+  ],
+  "frozen_compatibility": {
+    "byte_identical_files": [
+      "evidence.jsonl",
+      "policy_card.json",
+      "policy_card_zh.md"
+    ],
+    "build_seconds": 47.63782780000474,
+    "old_manifest_sha256": "3bfd19515481faa6d9f273426e6b14d141fe616642536d15a6a55c2b2f9990f0",
+    "new_manifest_sha256": "c483a0231098e1926f1a51ae3db7b82e4882caa7e25666c3b5f35238530372f9",
+    "audit_command": [
+      "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+      "-B",
+      "scripts/verify_policy_behavior_card.py",
+      "--input",
+      "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1d\\final_checks\\frozen_card",
+      "--output",
+      "outputs/trajectory_p1d/final_checks/current_frozen_raw_audit.json"
+    ],
+    "exit_code": 0,
+    "log_sha256": "13973c60c7bd0dd16d9301144884487b61f17fd74970856566bed0b5d63b09f0"
+  },
+  "frozen_compatibility_audit": {
+    "path": "outputs/trajectory_p1d/final_checks/current_frozen_raw_audit.json",
+    "sha256": "52870dcbb842705d89e75d78fd32af265ffd98f64f5ed5450712c332d7494d18",
+    "bytes": 1339049
+  },
+  "storage": {
+    "session_bytes": 3978823189,
+    "retained_p1d_output_bytes": 13315872835,
+    "scope": "three phase archives and derived evidence plus fixture lifecycle receipts; excludes development retries"
+  },
+  "independent_read_only_review": {
+    "agents": [
+      "review_evidence",
+      "review_lifecycle",
+      "review_acceptance_harness"
+    ],
+    "scope": "development code/lifecycle/evidence review; not parent final acceptance",
+    "findings_resolved": [
+      "Genesis feedback configuration binding",
+      "private build receipt cross-checks",
+      "automatic 18-slot completeness",
+      "screen attachment validation",
+      "fixture storage and environment identities"
+    ]
+  },
+  "development_failures": [
+    {
+      "path": "outputs/trajectory_p1d/development/lifecycle_1.log",
+      "sha256": "9e251edfbb65d3047bcce38a7ca5daf0c829323f2ce3557d4ccde34339553acb",
+      "bytes": 3675
+    },
+    {
+      "path": "outputs/trajectory_p1d/development/lifecycle_2.log",
+      "sha256": "9fdb235d5ce2b451ef9468796a5f9e9ec55c911d231b71f2f8365e7245acd16d",
+      "bytes": 4930
+    },
+    {
+      "path": "outputs/trajectory_p1d/development/lifecycle_3.log",
+      "sha256": "d41366dac31e02173b0640514d3a4122008e6b232efb1ea1f864008a3ecf9ce6",
+      "bytes": 2813
+    },
+    {
+      "path": "outputs/trajectory_p1d/development/lifecycle_4.log",
+      "sha256": "9b9243656d2155f2132022d5fdb8411d264ca8320eb1ae41d676adabc556c9e0",
+      "bytes": 1634
+    },
+    {
+      "path": "outputs/trajectory_p1d/development/lifecycle_5.log",
+      "sha256": "b91134c1d16aba51b363f75b752e9d6f07cfed5d29b8eef6b66c632d5ddf851f",
+      "bytes": 2221
+    },
+    {
+      "path": "outputs/trajectory_p1d/development/lifecycle_6.log",
+      "sha256": "669d41b5e0e7a13f9101d18cd27e000396b7e445fb88ad8c15a3bc4e84461ca1",
+      "bytes": 1669
+    }
+  ],
+  "not_verified": [
+    "actual checkpoint loading",
+    "Isaac rollout",
+    "GPU qualification",
+    "model comprehension",
+    "P2/E2 transfer",
+    "target isaaclab6_validation short GPU eval",
+    "new-policy scientific qualification",
+    "Go2 v2 full lifecycle",
+    "Push/G1 trajectory profile",
+    "period/limit/geometry/history-link-COM qualifications",
+    "parent numeric comparison",
+    "DeepSeek comprehension",
+    "P2/P3 experiments"
+  ],
+  "git_delivery": {
+    "production_commits": [
+      "e4c10426",
+      "ec6c3a4f"
+    ],
+    "final_head": "see final delivery response and branch HEAD (avoid self-referential commit hash)",
+    "push": "dedicated branch only; remote result recorded in final response"
+  },
+  "errata_p2a": {
+    "test_count": "634 PASS / 8 SKIP; multi-line docstring test was omitted by the old line regex",
+    "omitted_test_id": "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_accepts_existing_summary_without_optional_diagnostics",
+    "scope": "statistics correction only; original executions/logs retained"
+  }
+}

@@ -577,6 +577,7 @@ def _v2_dev_summary(value: Any) -> dict[str, Any]:
 
 
 def _v2_prompt_record(record: Mapping[str, Any]) -> dict[str, Any]:
+    _validate_trajectory_record(record)
     # Shared history freezes every field outside these three feedback domains.
     projected = {key: value for key, value in record.items() if key not in {"public_result", "decision", "generation"}}
     metrics = _metrics(record)
@@ -590,7 +591,9 @@ def _v2_prompt_record(record: Mapping[str, Any]) -> dict[str, Any]:
         "public_score": score, "comparison": {"score_source": "public_dev.score_stats.mean", "candidate_score": score}}
     if isinstance(record.get("public_result"), Mapping):
         projected["public_result"] = {"status": _mapping(record.get("public_result")).get("status"), "public_score": score,
-            "metrics": {"public_dev": dev, **{key: {"status": _mapping(metrics.get(key)).get("status", "not_available")}
+            "metrics": {"public_dev": dev,
+                **({"trajectory_phase_binding": metrics["trajectory_phase_binding"]} if "trajectory_phase_binding" in metrics else {}),
+                **{key: {"status": _mapping(metrics.get(key)).get("status", "not_available")}
                 for key in ("recovery_evidence_gate", "sealed_validation_gate")}}}
     generation = _mapping(record.get("generation"))
     if generation:
@@ -619,11 +622,13 @@ def _v2_prompt_record(record: Mapping[str, Any]) -> dict[str, Any]:
                 item["public_result"] = _v2_prompt_record(trial).get("public_result", {})
             phase = _mapping(trial.get("public_dev"))
             if phase:
-                item["public_dev"] = {"public_summary": _v2_dev_summary(phase.get("public_summary"))}
+                item["public_dev"] = {"public_summary": _v2_dev_summary(phase.get("public_summary")),
+                    **{k: phase[k] for k in ("checkpoint_hash", "evaluation_plan_hash") if k in phase}}
                 behavior = item["public_dev"]["public_summary"].get("behavior")
                 # Consume trusted parent evidence before this task's compact
                 # history drops it. Reprojecting a view preserves the bound diff.
-                if behavior is not None and ("parent_current_best" in generation or "parent_public_dev" in generation):
+                if (behavior is not None and behavior.get("schema_version") != "true_rl_agent.push_recovery.behavior.public.v4"
+                        and ("parent_current_best" in generation or "parent_public_dev" in generation)):
                     behavior["parent_diff"] = compare_push_behavior(behavior,
                         _mapping(generation.get("parent_public_dev")).get("behavior"),
                         expected_parent_checkpoint_hash=_mapping(generation.get("parent_current_best")).get("checkpoint_hash"))
@@ -636,6 +641,17 @@ def _v2_prompt_record(record: Mapping[str, Any]) -> dict[str, Any]:
                     and _mapping(trial.get("candidate")).get("candidate_id") == _mapping(record.get("candidate")).get("candidate_id")):
                 item["public_result"] = projected["public_result"]
             visible["trials"].append(item)
+        parent = _mapping(_mapping(generation.get("parent_public_dev")).get("behavior"))
+        if parent.get("schema_version") == "true_rl_agent.push_recovery.behavior.public.v4":
+            best = _mapping(generation.get("parent_current_best"))
+            expected = {"subject_kind": best.get("anchor_kind"), "subject_id": best.get("anchor_id"),
+                **{k: best.get(k) for k in ("checkpoint_hash", "subject_manifest_hash", "program_source_checksum",
+                                          "training_binding_hash", "evaluation_binding_hash")}}
+            if any(parent["domain"].get(k) != v for k, v in expected.items()):
+                raise ValueError("Push trajectory generation parent identity mismatch")
+            visible["parent_trajectory_source"] = _trajectory_source(parent)
+        elif "parent_trajectory_source" in generation:
+            visible["parent_trajectory_source"] = generation["parent_trajectory_source"]
         projected["generation"] = visible
     return projected
 
@@ -643,6 +659,8 @@ def _v2_prompt_record(record: Mapping[str, Any]) -> dict[str, Any]:
 def _v2_feedback_summary(
     records: Sequence[Mapping[str, Any]], *, initial_anchor: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
+    for record in records:
+        _validate_trajectory_record(record)
     selection, source = _feedback_source(records)
     if source is None:
         feedback = _v2_reference_feedback(initial_anchor)
@@ -663,17 +681,38 @@ def _v2_feedback_summary(
                 if current is not None else _v2_reference_feedback(initial_anchor))
             if current_feedback.get("public_dev"):
                 if "behavior" in current_feedback["public_dev"]:
-                    current_feedback["public_dev"]["behavior"] = {"status": "omitted", "reason": "behavior_budget_reserved_for_selected_feedback_trial"}
+                    prior = current_feedback["public_dev"]["behavior"]
+                    current_feedback["public_dev"]["behavior"] = {"status": "omitted", "reason": "behavior_budget_reserved_for_selected_feedback_trial",
+                        **({"source": _trajectory_source(prior)} if prior.get("schema_version") == "true_rl_agent.push_recovery.behavior.public.v4" else {})}
                 feedback["current_best"] = current_feedback
     dev = feedback.get("public_dev")
     if isinstance(dev, dict) and "behavior" not in dev:
         dev["behavior"] = {"status": "missing", "reason": "not_recorded_in_source_phase"}
+    if records and isinstance(dev, dict) and _mapping(dev.get("behavior")).get("schema_version") == "true_rl_agent.push_recovery.behavior.public.v4":
+        generation = next((_mapping(r.get("generation")) for r in reversed(records)
+            if any(t.get("trial_id") == _mapping(source).get("trial_id")
+                   for t in _mapping(r.get("generation")).get("trials", ()))), {})
+        feedback["trajectory_sources"] = {"selected_feedback": _trajectory_source(dev["behavior"]),
+            "generation_id": generation.get("generation_id"),
+            "siblings": [{"trial_id": t.get("trial_id"), "lane_id": t.get("lane_id"),
+                           "trial_status": t.get("trial_status"), "source": _trajectory_source(b)}
+                         for t in generation.get("trials", ())
+                         if (b := _mapping(_mapping(_mapping(t.get("public_dev")).get("public_summary")).get("behavior"))).get("schema_version")
+                         == "true_rl_agent.push_recovery.behavior.public.v4"],
+            "parent": generation.get("parent_trajectory_source", {"status": "unavailable"})}
     return {"schema_version": "true_rl_agent.public_feedback_summary.push_recovery.v2", **feedback}
 
 
 def _v2_reference_feedback(initial_anchor: Mapping[str, Any] | None) -> dict[str, Any]:
     anchor = _mapping(initial_anchor)
     dev = _v2_dev_summary(_metrics(anchor).get("public_dev")) if anchor.get("anchor_kind") == "reference_program" else {}
+    if _mapping(dev.get("behavior")).get("schema_version") == "true_rl_agent.push_recovery.behavior.public.v4":
+        from true_rl_agent.evaluation.binding import canonical_json_hash
+        if anchor.get("public_result_hash") != canonical_json_hash(anchor.get("public_result")):
+            raise ValueError("Push trajectory reference public result hash mismatch")
+        _validate_trajectory_record(anchor)
+        if dev["behavior"]["domain"]["subject_kind"] != "reference":
+            raise ValueError("Push trajectory reference role mismatch")
     if not dev:
         return {"status": "no_prior_public_feedback"}
     return {"status": "available", "source_selection": "reference_current_best",
@@ -692,6 +731,27 @@ def _v2_trial_feedback(selection: str, source: Mapping[str, Any]) -> dict[str, A
         "latest_public_score": _mapping(dev.get("score_stats")).get("mean"),
         "latest_failure_mode": classify_push_prompt_failure({"public_dev": dev}),
         "public_dev": dev}
+
+
+def _trajectory_source(behavior: Mapping[str, Any]) -> dict[str, Any]:
+    public = project_push_behavior(behavior)
+    return {"card_id": public["card_id"], **{k: public["domain"][k] for k in
+        ("source_id", "job_id", "subject_kind", "subject_id", "checkpoint_hash", "evaluation_plan_hash")}}
+
+
+def _validate_trajectory_record(record: Mapping[str, Any]) -> None:
+    from .trajectory_report import PUBLIC_SCHEMA, require_phase_binding, require_trial_binding
+    metrics = _metrics(record)
+    behavior = _mapping(_mapping(metrics.get("public_dev")).get("behavior"))
+    if behavior.get("schema_version") == PUBLIC_SCHEMA:
+        binding = metrics.get("trajectory_phase_binding")
+        if not isinstance(binding, Mapping):
+            raise ValueError("Push trajectory result requires explicit producer phase binding")
+        require_phase_binding(behavior, binding)
+    for trial in _mapping(record.get("generation")).get("trials", ()):
+        behavior = _mapping(_mapping(_mapping(trial.get("public_dev")).get("public_summary")).get("behavior"))
+        if behavior.get("schema_version") == PUBLIC_SCHEMA:
+            require_trial_binding(behavior, trial)
 
 
 def _minimum_core_push_prompt_sections(
@@ -714,6 +774,7 @@ def _minimum_core_push_prompt_sections(
             "source_selection", "source_round_id", "source_candidate_id", "program_source_checksum",
             "public_dev", "recovery_evidence_gate", "sealed_validation_gate",
             "current_best",
+            "trajectory_sources",
         )
         if key in feedback
     }

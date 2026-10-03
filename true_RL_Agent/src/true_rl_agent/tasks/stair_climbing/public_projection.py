@@ -125,7 +125,7 @@ def _project_unified_stair_public_result(
         set(incoming)
         - _TASK_DERIVED_INPUT_KEYS
         - RUNNER_OWNED_PUBLIC_EVAL_METRIC_KEYS
-        - {"unified_score", "behavior"}
+        - {"unified_score", "behavior", "trajectory_phase_binding"}
     )
     if unsupported:
         raise ValueError(
@@ -275,11 +275,26 @@ def _project_unified_stair_public_result(
     if "behavior" in incoming:
         from true_rl_agent.tasks.stair_climbing.behavior import project_stair_behavior
         behavior = project_stair_behavior(incoming["behavior"])
-        if (behavior["domain"]["task_protocol_hash"] != config.evaluation_semantics.to_dict()["task_protocol_hash"]
+        trajectory = behavior["schema_version"] in {"true_rl_agent.stair.behavior.public.v5", "true_rl_agent.stair.behavior.public.v6"}
+        expected_protocol = config.task_protocol_hash if trajectory else config.evaluation_semantics.to_dict()["task_protocol_hash"]
+        if (behavior["domain"]["task_protocol_hash"] != expected_protocol
                 or behavior["domain"]["checkpoint_hash"] != _mapping(
                     incoming.get(SEALED_VALIDATION_EVIDENCE_KEY), "Stair behavior checkpoint binding").get("checkpoint_hash")):
             raise ValueError("Stair behavior differs from evaluated checkpoint or protocol")
+        if trajectory:
+            from .trajectory_report import require_trajectory_phase_binding
+            binding = incoming.get("trajectory_phase_binding")
+            if not isinstance(binding, Mapping):
+                raise ValueError("Stair trajectory result requires producer phase binding")
+            require_trajectory_phase_binding(behavior, **binding)
+            if binding["evaluation_binding_hash"] != incoming["evaluation_binding"]["evaluation_binding_hash"]:
+                raise ValueError("Stair trajectory phase differs from runner evaluation binding")
+            metrics["trajectory_phase_binding"] = dict(binding)
+        elif "trajectory_phase_binding" in incoming:
+            raise ValueError("legacy Stair behavior cannot carry trajectory phase binding")
         metrics["behavior"] = behavior
+    elif "trajectory_phase_binding" in incoming:
+        raise ValueError("Stair trajectory binding requires behavior")
     return PublicEvalResult(
         status=public_result.status,
         public_score=canonical_score,

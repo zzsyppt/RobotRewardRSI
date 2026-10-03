@@ -1,4 +1,5 @@
 """Discriminating tests for the independent output-to-frozen-fact verifier."""
+import copy
 import importlib.util
 import json
 from pathlib import Path
@@ -37,7 +38,112 @@ def marker_output():
     return {"header": header, "records": records}
 
 
+def inventory_output():
+    output = marker_output()
+    output["records"] = []
+    inventory = {
+        "schema_version": "trajectory.input_inventory.v1",
+        "raw_temporal_channels": sorted(["base_pos_w", "base_quat_w", "done_mask", "episode_length",
+            "forbidden_contact_forces_w", "forbidden_contact_forces_w_history", "joint_pos",
+            "support_contact_forces_w", "support_contact_forces_w_history", "support_lin_vel_w",
+            "support_pos_w", "termination_0", "termination_1", "valid", "wrapper_done_mask"]),
+        "unavailable_quantities": ["actions", "joint_velocities", "applied_torques", "per_step_reward_terms",
+            "tangential_contact_forces", "all_nonfoot_body_contact_forces", "per_environment_actual_mass",
+            "effective_joint_limits", "parent_archive"],
+        "contact_force_scope": {
+            "support_entity_ids": ["robot_0.support." + s for s in verifier.SUPPORT],
+            "non_support_entity_ids": ["robot_0.body.base"], "all_nonfoot_body_contact_forces": "not_recorded",
+            "contact_objects": "not_recorded"},
+        "derived_locators": {
+            "control_step": {"source_array": "episode_length", "representation": "evidence_ref.steps_half_open",
+                             "indexing": "one_based_half_open"},
+            "source_chunk": {"representation": "evidence_ref.chunks", "identity_fields": ["file", "sha256"],
+                             "resolution": "source_manifest.chunks"},
+            "source_row": {"representation": "evidence_ref.chunks.rows_half_open", "indexing": "zero_based_half_open"}},
+    }
+    output["header"].update(episode_id="episode", source={"input_inventory": inventory,
+        "contact_force_history": {"history_length": 3}})
+    for entity in verifier.SUPPORT:
+        output["records"].append({"key": f"robot_0.support.{entity}.history_diagnostic",
+            "record_type": "measurement", "record_id": entity, "value": {
+                "true_count": 0, "history_any_on_current_off_count": 0, "current_on_history_all_off_count": 0,
+                "full_physics_coverage": False, "slot_timestamps": "not_recorded", "slot_validity": "not_recorded"}})
+    expected = {"history_any_on_counts": [0] * 4, "history_any_on_current_off_counts": [0] * 4,
+                "current_on_history_all_off_counts": [0] * 4, "history_length": 3,
+                "history_full_physics_coverage": False, "history_slot_timestamps": "not recorded",
+                "history_slot_validity": "not recorded", "missing_channels": list(inventory["unavailable_quantities"]),
+                "existing_temporal_channels": sorted([*inventory["raw_temporal_channels"], "step_index", "source_chunk_index", "source_chunk_row"]),
+                "inventory_contract": verifier.inventory_contract()}
+    return output, expected
+
+
+def gate_with_comparison(comparison):
+    counts = {"pass": 308}
+    status = comparison["status"]
+    counts[status] = counts.get(status, 0) + 1
+    return verifier.acceptance_passed({"necessary": {"counts": {"pass": 247}}, "full": {"counts": counts}})
+
+
 class ComparisonTests(unittest.TestCase):
+    def test_complete_inventory_maps_derived_locators_without_inventing_raw_channels(self):
+        output, expected = inventory_output()
+        view = verifier.EpisodeView(output)
+        value = view.mapping("history_and_missing_channels", expected, compact=False)
+        comparison = verifier.result("inventory", expected, value, TOLERANCE, list(view.used))
+        self.assertEqual(comparison["status"], "pass")
+        self.assertTrue(gate_with_comparison(comparison))
+        self.assertNotIn("step_index", output["header"]["source"]["input_inventory"]["raw_temporal_channels"])
+        self.assertIn("step_index", value["existing_temporal_channels"])
+
+    def test_inventory_and_locator_mutations_fail_the_complete_acceptance_gate(self):
+        original, expected = inventory_output()
+        for mutation in ("delete_inventory", "delete_raw_channel", "invent_raw_locator", "delete_missing_force",
+                         "wrong_force_scope", "wrong_row_indexing", "delete_chunk_locator", "wrong_clock_source"):
+            with self.subTest(mutation=mutation):
+                output = copy.deepcopy(original)
+                inventory = output["header"]["source"]["input_inventory"]
+                if mutation == "delete_inventory":
+                    del output["header"]["source"]["input_inventory"]
+                elif mutation == "delete_raw_channel":
+                    inventory["raw_temporal_channels"].remove("base_pos_w")
+                elif mutation == "invent_raw_locator":
+                    inventory["raw_temporal_channels"].append("step_index")
+                elif mutation == "delete_missing_force":
+                    inventory["unavailable_quantities"].remove("all_nonfoot_body_contact_forces")
+                elif mutation == "wrong_force_scope":
+                    inventory["contact_force_scope"]["all_nonfoot_body_contact_forces"] = "recorded"
+                elif mutation == "wrong_row_indexing":
+                    inventory["derived_locators"]["source_row"]["indexing"] = "one_based_half_open"
+                elif mutation == "delete_chunk_locator":
+                    del inventory["derived_locators"]["source_chunk"]
+                else:
+                    inventory["derived_locators"]["control_step"]["source_array"] = "valid"
+                view = verifier.EpisodeView(output)
+                try:
+                    actual = view.mapping("history_and_missing_channels", expected, compact=False)
+                except KeyError:
+                    actual = {}
+                comparison = verifier.result("inventory", expected, actual, TOLERANCE, list(view.used))
+                self.assertFalse(gate_with_comparison(comparison))
+                self.assertTrue(any(d["status"] in {"fail", "unsupported"} for d in comparison["differences"]))
+
+    def test_deleted_mean_body_position_is_unsupported_and_cannot_pass(self):
+        output = marker_output()
+        output["records"] = []
+        positions = [[1., 1., 0.], [1., -1., 0.], [-1., 1., 0.], [-1., -1., 0.]]
+        for entity, xyz in zip(verifier.SUPPORT, positions):
+            output["records"].append({"key": f"robot_0.support.{entity}.relative_position", "record_type": "measurement",
+                "record_id": entity, "value": {"first_body_xyz_m": xyz, "last_body_xyz_m": xyz, "mean_body_xyz_m": xyz}})
+        expected = verifier.EpisodeView(output).mapping("body_frame_anchors", {}, compact=False)
+        baseline = verifier.result("anchors", expected, expected, TOLERANCE, [])
+        self.assertTrue(gate_with_comparison(baseline))
+        del output["records"][0]["value"]["mean_body_xyz_m"]
+        actual = verifier.EpisodeView(output).mapping("body_frame_anchors", expected, compact=False)
+        comparison = verifier.result("anchors", expected, actual, TOLERANCE, [])
+        self.assertEqual(comparison["status"], "unsupported")
+        self.assertEqual(comparison["differences"][0]["path"], "value.mean_body_xyz_m")
+        self.assertFalse(gate_with_comparison(comparison))
+
     def test_integer_and_boolean_values_never_use_float_tolerance(self):
         for expected, actual in ((10000000, 10000001), (3, 3.0), (True, 1), (None, False)):
             changes, _ = verifier.compare_value(expected, actual, TOLERANCE)
@@ -118,13 +224,19 @@ class InputIntegrityTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.directory = Path(self.temp.name)
+        self.locked_sources = {"source": {"chunk.npz": {"sha256": "chunk-hash", "run_index": 1,
+                                                       "first_step": 1, "last_step": 4}}}
+
+    def load(self):
+        return verifier.load_output(self.directory, {("source", 1, 2)}, self.locked_sources)
 
     def fixture(self, bad_ref=False):
         header = {"record_type": "episode", "episode_id": "ep", "run_index": 1, "env_index": 2,
                   "source": {"manifest_sha256": "source", "source_id": "sample", "acceptance_split": "public_dev", "trial_id": "trial", "checkpoint_hash": "checkpoint"},
-                  "coverage": {"valid_rows": 1}}
+                  "coverage": {"valid_rows": 1, "first_step": 1, "last_step": 1}}
         record = {"record_type": "measurement", "episode_id": "ep", "record_id": "record", "evidence_ref": {
-            "manifest_sha256": "wrong" if bad_ref else "source", "run_index": 1, "chunks": [{"env_index": 2}]}}
+            "manifest_sha256": "wrong" if bad_ref else "source", "run_index": 1, "steps_half_open": [1, 2],
+            "chunks": [{"env_index": 2, "file": "chunk.npz", "sha256": "chunk-hash", "rows_half_open": [0, 1]}]}}
         path = self.directory / "evidence.jsonl"
         path.write_text(json.dumps(header) + "\n" + json.dumps(record) + "\n", encoding="utf-8")
         manifest = {"schema_version": "trajectory.numeric_manifest.v1", "complete": True,
@@ -138,16 +250,56 @@ class InputIntegrityTests(unittest.TestCase):
         path = self.fixture()
         path.write_text(path.read_text() + "\n", encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "SHA mismatch"):
-            verifier.load_output(self.directory, {("source", 1, 2)})
+            self.load()
 
     def test_record_source_splice_rejected_even_with_matching_file_hash(self):
         self.fixture(bad_ref=True)
         with self.assertRaisesRegex(ValueError, "reference differs"):
-            verifier.load_output(self.directory, {("source", 1, 2)})
+            self.load()
+
+    def test_changed_chunk_rows_rejected_even_with_updated_output_hash(self):
+        path = self.fixture()
+        rows = [json.loads(line) for line in path.read_text().splitlines()]
+        rows[1]["evidence_ref"]["chunks"][0]["rows_half_open"] = [0, 2]
+        path.write_text("\n".join(json.dumps(row) for row in rows) + "\n", encoding="utf-8")
+        manifest_path = self.directory / "manifest.json"
+        manifest = json.loads(manifest_path.read_text())
+        manifest["evidence"].update(sha256=verifier.sha256(path), bytes=path.stat().st_size)
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "clock and chunk/row coverage differ"):
+            self.load()
+
+    def test_reference_run_and_environment_require_exact_integers(self):
+        for field, value in (("run_index", 1.0), ("run_index", True), ("env_index", 2.0)):
+            with self.subTest(field=field, value=value):
+                path = self.fixture()
+                rows = [json.loads(line) for line in path.read_text().splitlines()]
+                ref = rows[1]["evidence_ref"]
+                target = ref if field == "run_index" else ref["chunks"][0]
+                target[field] = value
+                path.write_text("\n".join(json.dumps(row) for row in rows) + "\n", encoding="utf-8")
+                manifest_path = self.directory / "manifest.json"
+                manifest = json.loads(manifest_path.read_text())
+                manifest["evidence"].update(sha256=verifier.sha256(path), bytes=path.stat().st_size)
+                manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "reference differs"):
+                    self.load()
+
+    def test_same_length_row_shift_fails_frozen_chunk_clock_binding(self):
+        path = self.fixture()
+        rows = [json.loads(line) for line in path.read_text().splitlines()]
+        rows[1]["evidence_ref"]["chunks"][0]["rows_half_open"] = [1, 2]
+        path.write_text("\n".join(json.dumps(row) for row in rows) + "\n", encoding="utf-8")
+        manifest_path = self.directory / "manifest.json"
+        manifest = json.loads(manifest_path.read_text())
+        manifest["evidence"].update(sha256=verifier.sha256(path), bytes=path.stat().st_size)
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "frozen source clock"):
+            self.load()
 
     def test_successful_stream_reader_preserves_selected_ids(self):
         self.fixture()
-        _, selected = verifier.load_output(self.directory, {("source", 1, 2)})
+        _, selected = self.load()
         self.assertEqual(selected[("source", 1, 2)]["records"][0]["record_id"], "record")
 
 

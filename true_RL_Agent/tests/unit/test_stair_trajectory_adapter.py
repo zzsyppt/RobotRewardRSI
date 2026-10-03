@@ -77,6 +77,22 @@ class StairTrajectoryAdapterTests(unittest.TestCase):
         self.assertEqual(episode.source["resolved_cell_manifest_hash"], self.fixture.resolved.manifest_hash)
         self.assertEqual(episode.source["runtime_projection"], self.fixture.projection.to_summary_dict())
 
+    def test_inventory_preserves_raw_channels_and_marks_locator_derivations(self):
+        episode = self._episodes()[2]
+        inventory = episode.source["input_inventory"]
+        self.assertEqual(inventory["raw_temporal_channels"], sorted(episode.arrays))
+        self.assertIn("episode_length", inventory["raw_temporal_channels"])
+        for derived in ("step_index", "source_chunk_index", "source_chunk_row"):
+            self.assertNotIn(derived, inventory["raw_temporal_channels"])
+        self.assertEqual(inventory["derived_locators"]["control_step"]["source_array"], "episode_length")
+        self.assertEqual(inventory["derived_locators"]["source_chunk"]["identity_fields"], ["file", "sha256"])
+        self.assertEqual(inventory["derived_locators"]["source_row"]["indexing"], "zero_based_half_open")
+        scope = inventory["contact_force_scope"]
+        self.assertEqual(scope["support_entity_ids"], list(episode.entities["support"]))
+        self.assertEqual(scope["non_support_entity_ids"], ["robot_0.body.base"])
+        self.assertEqual(scope["all_nonfoot_body_contact_forces"], "not_recorded")
+        self.assertIn("all_nonfoot_body_contact_forces", inventory["unavailable_quantities"])
+
     def test_adapter_to_measurement_keeps_static_origin_current_history_and_outcome(self):
         episode = self._episodes()[2]
         records = measure_episode(episode)
@@ -166,7 +182,7 @@ class StairTrajectoryAdapterTests(unittest.TestCase):
         self.assertEqual(len(episode.steps), 1)
         self.assertTrue(np.isfinite(episode.arrays["support_pos_w"]).all())
 
-    def test_only_public_dev_v2_profile_is_accepted(self):
+    def test_nonpublic_or_v1_profile_with_v2_fields_is_rejected(self):
         for field, value in (("split", ["public_dev", "sealed_validation"]),
                              ("profile", "stair.unified_first_episode.v1")):
             with self.subTest(field=field):
@@ -175,7 +191,7 @@ class StairTrajectoryAdapterTests(unittest.TestCase):
                         identity["splits"] = value
                     else:
                         context["profile"] = value
-                with self.assertRaisesRegex(NumericEvidenceError, "public_dev|v2 profile"):
+                with self.assertRaisesRegex(NumericEvidenceError, "public_dev|v1 profile"):
                     self._episodes(mutate)
 
     def test_task_source_roles_and_units_cannot_drift(self):

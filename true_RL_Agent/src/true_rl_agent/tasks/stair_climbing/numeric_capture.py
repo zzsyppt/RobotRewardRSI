@@ -41,7 +41,8 @@ _HEADER_FIELDS = (
 class StairNumericCapture:
     def __init__(self, root: Path, *, identity: Mapping[str, Any], config: Any,
                  resolved_cell_manifest: ResolvedCellManifestV1,
-                 max_bytes: int = DEFAULT_MAX_ARCHIVE_BYTES) -> None:
+                 max_bytes: int = DEFAULT_MAX_ARCHIVE_BYTES,
+                 measurement_contract: Mapping[str, Any] | None = None) -> None:
         if not config.is_unified_protocol:
             raise ValueError("Stair numeric capture requires a unified evaluation protocol")
         self.writer = NumericEvidenceWriter(root, identity, max_bytes)
@@ -59,6 +60,14 @@ class StairNumericCapture:
             "invalid_padding": "valid=false; zero-filled numeric values are not observations",
             "media_status": "not_collected",
         }
+        # R1a exposes the contract interface only. No runtime defaults invent q
+        # coordinates, effective limits, imported meshes or collision evidence.
+        if measurement_contract is not None:
+            from copy import deepcopy
+            from .trajectory_capabilities import CAPTURE_PROFILE, validate_measurement_contract
+            contract = deepcopy(dict(measurement_contract))
+            validate_measurement_contract(contract, stair_runtime_projection_from_manifest(resolved_cell_manifest))
+            self.context.update(profile=CAPTURE_PROFILE, measurement_contract=contract)
         self._seeds: list[dict[str, Any]] = []
         self._step = 0
         self._run_index = 0
@@ -137,14 +146,18 @@ def recompute_stair_numeric_evidence(reference: Mapping[str, Any], *, observe_tr
     manifest = load_numeric_evidence_manifest(reference)
     context = manifest["metadata"]
     profile = context.get("profile")
-    if profile not in {STAIR_NUMERIC_PROFILE_V1, STAIR_NUMERIC_PROFILE}:
+    from .trajectory_capabilities import CAPTURE_PROFILE
+    if profile not in {STAIR_NUMERIC_PROFILE_V1, STAIR_NUMERIC_PROFILE, CAPTURE_PROFILE}:
         raise NumericEvidenceError("Stair numeric profile mismatch")
-    has_history = profile == STAIR_NUMERIC_PROFILE
+    has_history = profile != STAIR_NUMERIC_PROFILE_V1
     history = context.get("contact_force_history") if has_history else {"status": "not_recorded"}
     if has_history and (not isinstance(history, Mapping) or history.get("status") != "recorded"):
         raise NumericEvidenceError("Stair numeric v2 contact history declaration is missing")
     resolved = ResolvedCellManifestV1.from_mapping(context["resolved_cell_manifest"])
     projection = stair_runtime_projection_from_manifest(resolved)
+    if profile == CAPTURE_PROFILE:
+        from .trajectory_capabilities import validate_measurement_contract
+        validate_measurement_contract(context.get("measurement_contract", {}), projection)
     training = StairUnifiedTrainingProfile.from_mapping(context["training_profile"])
     suite = StairUnifiedEvaluationSuite.from_mapping(context["evaluation_suite"], training_profile=training)
     raw_semantics = context["semantics"]

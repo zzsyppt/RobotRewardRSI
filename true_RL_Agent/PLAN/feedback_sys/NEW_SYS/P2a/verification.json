@@ -1,0 +1,1638 @@
+{
+  "schema_version": "trajectory.p2a.development_verification.v1",
+  "base_commit": "aaf67aa23bd7e4aa8aae7a9ec9539f3aa45c6c3e",
+  "scope": "Go2 Stair three-source descriptive transfer; pending parent independent acceptance; full E2 unseen gate not met",
+  "sources": [
+    {
+      "name": "k1",
+      "replay": {
+        "source_id": "k1",
+        "source_lock_sha256": "18f585ac6c10e87a0cd8aa61299ab06adac636fc4494fd3e1fb2fdd651265dcf",
+        "card_reference": {
+          "manifest_path": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k1\\trajectory\\010593a6533422f456b186602c6fdf12790e4e6acbf0d5c0fdafc69478487f10\\card\\manifest.json",
+          "manifest_sha256": "9009891a2ae34a37578381a2bb05b223b7262415d18d48cae554d6584b247090"
+        },
+        "numeric_manifest": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k1\\trajectory\\010593a6533422f456b186602c6fdf12790e4e6acbf0d5c0fdafc69478487f10\\numeric\\manifest.json",
+        "wall_seconds": 112.3337999000214,
+        "public_bytes": 8086,
+        "mandatory_bytes": 7773,
+        "mandatory_count": 18,
+        "public_sha256": "2e1e66a218dc6e1e60bbd005b27167c546b1199d7b4e763b943eb7e7cf05b331",
+        "full_sha256": "d08481125b147a7c8b9b2f262b66f712b529539dbf2c8e990aa9962aeb7348d8",
+        "stored_bytes": 1186608168,
+        "external_model_calls": 0,
+        "gpu_runs": 0,
+        "training_runs": 0
+      },
+      "audit": {
+        "passed": true,
+        "source_id": "k1",
+        "source_manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+        "totals": {
+          "measurements": 31104,
+          "events": 199188,
+          "nearest_pairs": 67893,
+          "metric_checks": 69120,
+          "episodes": 864,
+          "aggregate_metrics": 8240,
+          "references": 31968
+        },
+        "necessary_descriptor_checks": 612,
+        "claim_count": 250,
+        "public_statement_count": 21,
+        "raw_outcomes": {
+          "success": 785,
+          "forbidden_contact": 72,
+          "timeout": 6,
+          "off_course": 1
+        },
+        "counterexamples": {
+          "successful_retreat_return": [
+            1,
+            0
+          ],
+          "single_current_retrigger": [
+            1,
+            0
+          ],
+          "xy_xyz_disagreement": [
+            1,
+            14
+          ],
+          "manager_without_current": [
+            1,
+            61
+          ],
+          "history_only_single_readout": [
+            1,
+            61
+          ]
+        },
+        "absent_cases": [
+          "inverted_before_long_lowoff"
+        ],
+        "capability_unavailable_cases": [],
+        "absence_scope": "no qualifying observed witness under the frozen selector; not proof of physical absence",
+        "gaps": "missing history excluded from physical fact accuracy; full E2 unseen gate not met",
+        "wording_review": "requires separate human/agent semantic review; source arrays and operands all checked",
+        "producer_or_renderer_imports": false,
+        "wall_seconds": 60.42777960002422
+      },
+      "predeclared_sample_count": 17,
+      "cost": {
+        "wall_seconds": 20.020605999976397,
+        "peak_process_memory_bytes": 432361472,
+        "external_model_calls": 0,
+        "api_cost": 0,
+        "training_runs": 0
+      },
+      "public_claim_count": 19,
+      "public_omitted_count": 231,
+      "RL_marker_episode_mean": 0.19000490543638177,
+      "files": [
+        {
+          "path": "outputs/p2a/k1/behavior_full.json",
+          "sha256": "d08481125b147a7c8b9b2f262b66f712b529539dbf2c8e990aa9962aeb7348d8",
+          "bytes": 5804785
+        },
+        {
+          "path": "outputs/p2a/k1/public.json",
+          "sha256": "2e1e66a218dc6e1e60bbd005b27167c546b1199d7b4e763b943eb7e7cf05b331",
+          "bytes": 9080
+        },
+        {
+          "path": "outputs/p2a/k1/receipt.json",
+          "sha256": "54794820d23a577327354c1dcafcb15e3e919c3cf6a4f802f023ca7cb6c35e6e",
+          "bytes": 7434
+        },
+        {
+          "path": "outputs/p2a/k1/replay.json",
+          "sha256": "620a030bee5f32f1ec63b6bc58f9f504d95180d85322968b400493a2992b3975",
+          "bytes": 970
+        },
+        {
+          "path": "outputs/p2a/k1/trajectory/010593a6533422f456b186602c6fdf12790e4e6acbf0d5c0fdafc69478487f10/card/evidence.jsonl",
+          "sha256": "1064a93ab8e930e45b6e3d5869f2ffffcd14b7b2758dc44b15459bd65d4be760",
+          "bytes": 55701702
+        },
+        {
+          "path": "outputs/p2a/k1/trajectory/010593a6533422f456b186602c6fdf12790e4e6acbf0d5c0fdafc69478487f10/card/manifest.json",
+          "sha256": "9009891a2ae34a37578381a2bb05b223b7262415d18d48cae554d6584b247090",
+          "bytes": 6123
+        },
+        {
+          "path": "outputs/p2a/k1/trajectory/010593a6533422f456b186602c6fdf12790e4e6acbf0d5c0fdafc69478487f10/card/policy_card.json",
+          "sha256": "1ce99a2eb813221396f23a544267a4b6b2c5834ecb5845239531d9cc34761cbd",
+          "bytes": 505642
+        },
+        {
+          "path": "outputs/p2a/k1/trajectory/010593a6533422f456b186602c6fdf12790e4e6acbf0d5c0fdafc69478487f10/card/policy_card_zh.md",
+          "sha256": "f8a8b3cd7687bc89dc3da9b375328e7916ca1fa8811804322dc7a7949b5725f3",
+          "bytes": 86974
+        },
+        {
+          "path": "outputs/p2a/k1/trajectory/010593a6533422f456b186602c6fdf12790e4e6acbf0d5c0fdafc69478487f10/complete.json",
+          "sha256": "f905b02d09fba80490f6486da7bcfde467cb379b78925277b47099f777cec0cb",
+          "bytes": 5746
+        },
+        {
+          "path": "outputs/p2a/k1/trajectory/010593a6533422f456b186602c6fdf12790e4e6acbf0d5c0fdafc69478487f10/numeric/evidence.jsonl",
+          "sha256": "0587de5718b29ca642f2373bf35421fc9e9a25cd11665756db018826ffc011ed",
+          "bytes": 1124463189
+        },
+        {
+          "path": "outputs/p2a/k1/trajectory/010593a6533422f456b186602c6fdf12790e4e6acbf0d5c0fdafc69478487f10/numeric/manifest.json",
+          "sha256": "198498d54b71e25f3bede995debbf0e92f934b3d4341908b99a4f78720b4bdf6",
+          "bytes": 17493
+        }
+      ]
+    },
+    {
+      "name": "k2",
+      "replay": {
+        "source_id": "k2",
+        "source_lock_sha256": "18f585ac6c10e87a0cd8aa61299ab06adac636fc4494fd3e1fb2fdd651265dcf",
+        "card_reference": {
+          "manifest_path": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k2\\trajectory\\b933d1c03dd1c70b21dc5879b272ed2cd95f1dc844daed63f196dafabaf06da5\\card\\manifest.json",
+          "manifest_sha256": "b59d1b5ed8b2d8f797ba59436438f9c08b7c7e31fff90c1862462a56fcdf9611"
+        },
+        "numeric_manifest": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k2\\trajectory\\b933d1c03dd1c70b21dc5879b272ed2cd95f1dc844daed63f196dafabaf06da5\\numeric\\manifest.json",
+        "wall_seconds": 86.24240160000045,
+        "public_bytes": 8032,
+        "mandatory_bytes": 8032,
+        "mandatory_count": 18,
+        "public_sha256": "b9e41070b79c4b102e960af6a1807781a6129dbc339f43241727f7269a504e36",
+        "full_sha256": "9b2b83946f80805776452c48dd9af2aa9d4c1cc11f3d6de9d0d0141f09fe9b0d",
+        "stored_bytes": 774131092,
+        "external_model_calls": 0,
+        "gpu_runs": 0,
+        "training_runs": 0
+      },
+      "audit": {
+        "passed": true,
+        "source_id": "k2",
+        "source_manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+        "totals": {
+          "measurements": 31104,
+          "events": 91345,
+          "nearest_pairs": 68660,
+          "metric_checks": 69120,
+          "episodes": 864,
+          "aggregate_metrics": 8320,
+          "references": 31968
+        },
+        "necessary_descriptor_checks": 684,
+        "claim_count": 274,
+        "public_statement_count": 20,
+        "raw_outcomes": {
+          "success": 822,
+          "forbidden_contact": 34,
+          "timeout": 4,
+          "off_course": 2,
+          "base_orientation_instability": 2
+        },
+        "counterexamples": {
+          "successful_retreat_return": [
+            1,
+            0
+          ],
+          "single_current_retrigger": [
+            1,
+            2
+          ],
+          "xy_xyz_disagreement": [
+            1,
+            9
+          ],
+          "manager_without_current": [
+            1,
+            121
+          ]
+        },
+        "absent_cases": [
+          "inverted_before_long_lowoff"
+        ],
+        "capability_unavailable_cases": [
+          "history_only_single_readout"
+        ],
+        "absence_scope": "no qualifying observed witness under the frozen selector; not proof of physical absence",
+        "gaps": "missing history excluded from physical fact accuracy; full E2 unseen gate not met",
+        "wording_review": "requires separate human/agent semantic review; source arrays and operands all checked",
+        "producer_or_renderer_imports": false,
+        "wall_seconds": 48.8901152999606
+      },
+      "predeclared_sample_count": 19,
+      "cost": {
+        "wall_seconds": 12.905329299974255,
+        "peak_process_memory_bytes": 287408128,
+        "external_model_calls": 0,
+        "api_cost": 0,
+        "training_runs": 0
+      },
+      "public_claim_count": 18,
+      "public_omitted_count": 256,
+      "RL_marker_episode_mean": 0.6370083431902648,
+      "files": [
+        {
+          "path": "outputs/p2a/k2/behavior_full.json",
+          "sha256": "9b2b83946f80805776452c48dd9af2aa9d4c1cc11f3d6de9d0d0141f09fe9b0d",
+          "bytes": 5741062
+        },
+        {
+          "path": "outputs/p2a/k2/public.json",
+          "sha256": "b9e41070b79c4b102e960af6a1807781a6129dbc339f43241727f7269a504e36",
+          "bytes": 8992
+        },
+        {
+          "path": "outputs/p2a/k2/receipt.json",
+          "sha256": "7aee6e90c19ce538837f17e4bbc92171c9ea2ef878766a08be05d23496d20362",
+          "bytes": 7438
+        },
+        {
+          "path": "outputs/p2a/k2/replay.json",
+          "sha256": "9558deda26e22b630f7b07dd51b967acfcb1ea67c367fe392fc4b617c59de82d",
+          "bytes": 969
+        },
+        {
+          "path": "outputs/p2a/k2/trajectory/b933d1c03dd1c70b21dc5879b272ed2cd95f1dc844daed63f196dafabaf06da5/card/evidence.jsonl",
+          "sha256": "48fa48f0f3e292be8a849bb02f0cfffa4e1ceac299231e423f464eb4d499b5b4",
+          "bytes": 53825175
+        },
+        {
+          "path": "outputs/p2a/k2/trajectory/b933d1c03dd1c70b21dc5879b272ed2cd95f1dc844daed63f196dafabaf06da5/card/manifest.json",
+          "sha256": "b59d1b5ed8b2d8f797ba59436438f9c08b7c7e31fff90c1862462a56fcdf9611",
+          "bytes": 6122
+        },
+        {
+          "path": "outputs/p2a/k2/trajectory/b933d1c03dd1c70b21dc5879b272ed2cd95f1dc844daed63f196dafabaf06da5/card/policy_card.json",
+          "sha256": "18b282878a3c7000ff7d423ea905d2016a00a7dbd76260429cb462e4a27dbe9c",
+          "bytes": 537758
+        },
+        {
+          "path": "outputs/p2a/k2/trajectory/b933d1c03dd1c70b21dc5879b272ed2cd95f1dc844daed63f196dafabaf06da5/card/policy_card_zh.md",
+          "sha256": "5f64cf7ab4d38aaa72e6409342ceb6997ea30ea1e0e2d52116cdeddf447394b2",
+          "bytes": 96372
+        },
+        {
+          "path": "outputs/p2a/k2/trajectory/b933d1c03dd1c70b21dc5879b272ed2cd95f1dc844daed63f196dafabaf06da5/complete.json",
+          "sha256": "ca551fcb8e01be43cc7ac807aee1205ca1e2f563090aa4f45bf43868dd4e5b4c",
+          "bytes": 5750
+        },
+        {
+          "path": "outputs/p2a/k2/trajectory/b933d1c03dd1c70b21dc5879b272ed2cd95f1dc844daed63f196dafabaf06da5/numeric/evidence.jsonl",
+          "sha256": "864e44c3528106d70d5ba2d2e6ebb33de9152446d62c5fafeb62eb86416b4626",
+          "bytes": 713884787
+        },
+        {
+          "path": "outputs/p2a/k2/trajectory/b933d1c03dd1c70b21dc5879b272ed2cd95f1dc844daed63f196dafabaf06da5/numeric/manifest.json",
+          "sha256": "7335930dafac711393b1234db471b0dae0a2d11c85fc0b1603c6f951fff81dc1",
+          "bytes": 17636
+        }
+      ]
+    },
+    {
+      "name": "k3",
+      "replay": {
+        "source_id": "k3",
+        "source_lock_sha256": "18f585ac6c10e87a0cd8aa61299ab06adac636fc4494fd3e1fb2fdd651265dcf",
+        "card_reference": {
+          "manifest_path": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k3\\trajectory\\8993a0899d8884db5e54e6f026a1ad433bb8117c91760f19f1060a099a76310d\\card\\manifest.json",
+          "manifest_sha256": "0237cde83f247258113f5cac4847e18704e79153979f70c046a9abf15570cef8"
+        },
+        "numeric_manifest": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k3\\trajectory\\8993a0899d8884db5e54e6f026a1ad433bb8117c91760f19f1060a099a76310d\\numeric\\manifest.json",
+        "wall_seconds": 127.21761269995477,
+        "public_bytes": 8127,
+        "mandatory_bytes": 8127,
+        "mandatory_count": 18,
+        "public_sha256": "48e3bb615a55100f3190b7ca6b1256e9057c7086cc95ee24d4ced6cb123ea4b6",
+        "full_sha256": "61526f47cf2552d913077f4511d19a8e3a10f48e7cced9ba00ece27d28be987a",
+        "stored_bytes": 1361663870,
+        "external_model_calls": 0,
+        "gpu_runs": 0,
+        "training_runs": 0
+      },
+      "audit": {
+        "passed": true,
+        "source_id": "k3",
+        "source_manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+        "totals": {
+          "measurements": 31104,
+          "events": 232232,
+          "nearest_pairs": 75397,
+          "metric_checks": 69120,
+          "episodes": 864,
+          "aggregate_metrics": 8400,
+          "references": 31968
+        },
+        "necessary_descriptor_checks": 648,
+        "claim_count": 400,
+        "public_statement_count": 20,
+        "raw_outcomes": {
+          "success": 682,
+          "timeout": 39,
+          "base_orientation_instability": 16,
+          "forbidden_contact": 125,
+          "off_course": 1,
+          "slip": 1
+        },
+        "counterexamples": {
+          "successful_retreat_return": [
+            1,
+            0
+          ],
+          "xy_xyz_disagreement": [
+            1,
+            0
+          ],
+          "single_current_retrigger": [
+            1,
+            0
+          ],
+          "inverted_before_long_lowoff": [
+            1,
+            50
+          ],
+          "manager_without_current": [
+            1,
+            54
+          ],
+          "history_only_single_readout": [
+            1,
+            54
+          ]
+        },
+        "absent_cases": [],
+        "capability_unavailable_cases": [],
+        "absence_scope": "no qualifying observed witness under the frozen selector; not proof of physical absence",
+        "gaps": "missing history excluded from physical fact accuracy; full E2 unseen gate not met",
+        "wording_review": "requires separate human/agent semantic review; source arrays and operands all checked",
+        "producer_or_renderer_imports": false,
+        "wall_seconds": 63.3734038999537
+      },
+      "predeclared_sample_count": 18,
+      "cost": {
+        "wall_seconds": 20.944382999907248,
+        "peak_process_memory_bytes": 479465472,
+        "external_model_calls": 0,
+        "api_cost": 0,
+        "training_runs": 0
+      },
+      "public_claim_count": 18,
+      "public_omitted_count": 382,
+      "RL_marker_episode_mean": 0.4247132716642145,
+      "files": [
+        {
+          "path": "outputs/p2a/k3/behavior_full.json",
+          "sha256": "61526f47cf2552d913077f4511d19a8e3a10f48e7cced9ba00ece27d28be987a",
+          "bytes": 10286015
+        },
+        {
+          "path": "outputs/p2a/k3/public.json",
+          "sha256": "48e3bb615a55100f3190b7ca6b1256e9057c7086cc95ee24d4ced6cb123ea4b6",
+          "bytes": 9087
+        },
+        {
+          "path": "outputs/p2a/k3/receipt.json",
+          "sha256": "1768406d19c41f5fe808df77a3929402ad098c2f7dad9897713a93b93a3aff4d",
+          "bytes": 7461
+        },
+        {
+          "path": "outputs/p2a/k3/replay.json",
+          "sha256": "da8b44aa54d9df37ea4460648e94f7880c6203f5ea82710a694245f2deb1ed43",
+          "bytes": 971
+        },
+        {
+          "path": "outputs/p2a/k3/trajectory/8993a0899d8884db5e54e6f026a1ad433bb8117c91760f19f1060a099a76310d/card/evidence.jsonl",
+          "sha256": "0d115cef8a4fa834171762816e75a213e2fff597dbbf5899a12996f3d2d20455",
+          "bytes": 60669616
+        },
+        {
+          "path": "outputs/p2a/k3/trajectory/8993a0899d8884db5e54e6f026a1ad433bb8117c91760f19f1060a099a76310d/card/manifest.json",
+          "sha256": "0237cde83f247258113f5cac4847e18704e79153979f70c046a9abf15570cef8",
+          "bytes": 6152
+        },
+        {
+          "path": "outputs/p2a/k3/trajectory/8993a0899d8884db5e54e6f026a1ad433bb8117c91760f19f1060a099a76310d/card/policy_card.json",
+          "sha256": "33178d9dee9f9a9387d893fa3767b680c1e234ffc8ae63ca4401c8740bd6e76a",
+          "bytes": 712453
+        },
+        {
+          "path": "outputs/p2a/k3/trajectory/8993a0899d8884db5e54e6f026a1ad433bb8117c91760f19f1060a099a76310d/card/policy_card_zh.md",
+          "sha256": "4c19c00c69d1085ddef45b265099e3deb97ab1a19c723830722f3b2811462adb",
+          "bytes": 150317
+        },
+        {
+          "path": "outputs/p2a/k3/trajectory/8993a0899d8884db5e54e6f026a1ad433bb8117c91760f19f1060a099a76310d/complete.json",
+          "sha256": "a5e42ef520615fde23209931d86d79e5170a03803a057b0c58d8d95c80b8ac5e",
+          "bytes": 5773
+        },
+        {
+          "path": "outputs/p2a/k3/trajectory/8993a0899d8884db5e54e6f026a1ad433bb8117c91760f19f1060a099a76310d/numeric/evidence.jsonl",
+          "sha256": "a4df5bd24c116e5b97090a20e066fe45d65d4ed2a770b53cc72e6b8f24e27442",
+          "bytes": 1289799358
+        },
+        {
+          "path": "outputs/p2a/k3/trajectory/8993a0899d8884db5e54e6f026a1ad433bb8117c91760f19f1060a099a76310d/numeric/manifest.json",
+          "sha256": "210e7d6bec939510cc48afd08cc06df1310b8a736fa2711c15bd3fe2b9696244",
+          "bytes": 17638
+        }
+      ]
+    }
+  ],
+  "code": [
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/trajectory_adapter.py",
+      "sha256": "8c6d27387e57fc4247ecb780024b7c0eb15e80154d1b7afc093469ccec3a2e2c",
+      "bytes": 25989
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/trajectory_pipeline.py",
+      "sha256": "cae9de87db396d0353f2c305730765c6b8c66e66e8627f66b2406c8190acda75",
+      "bytes": 8756
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/trajectory_artifacts.py",
+      "sha256": "9bc0402515109d20b52ba5a803a60ed9f284285f297695a59b9edea16a9edb0e",
+      "bytes": 16852
+    },
+    {
+      "path": "src/true_rl_agent/evaluation/trajectory_translation/contracts.py",
+      "sha256": "e2fff04aff2fdb1db15116ffdd018f8b4bf773979e53e90cabe9a04007448500",
+      "bytes": 6105
+    },
+    {
+      "path": "src/true_rl_agent/evaluation/trajectory_translation/measurement.py",
+      "sha256": "dd1d5f278fdd102d7fac39b83cd525e7a34a11e56a09cd972c58d9233c6708d5",
+      "bytes": 27059
+    },
+    {
+      "path": "src/true_rl_agent/evaluation/trajectory_translation/report.py",
+      "sha256": "466b1c5ecf1c275571ea64cd08bd20cd48aa7e646be1bb5e9acff375a5067a36",
+      "bytes": 52406
+    },
+    {
+      "path": "scripts/verify_policy_behavior_card.py",
+      "sha256": "9c16eac35bf1428bcbb8fb70b9ff0ce70d55ffc1e86046bf400114f394ec08cb",
+      "bytes": 29502
+    },
+    {
+      "path": "tests/unit/test_stair_trajectory_adapter.py",
+      "sha256": "413d98ee16daa70e88e3537b09a873702838e478b5f3d2d741abf5e593282c08",
+      "bytes": 18400
+    },
+    {
+      "path": "tests/unit/test_stair_trajectory_v1.py",
+      "sha256": "9e44d5e161ec61d0f3da038de906565166dccb4cda2d0b44a97ebfddd35bdb79",
+      "bytes": 9181
+    },
+    {
+      "path": "tests/unit/test_trajectory_card_verification.py",
+      "sha256": "68fb8c58d5b1707dbc5731d399b30151c1dd1421108da2cdd4e680d6fa0aa7e0",
+      "bytes": 4688
+    }
+  ],
+  "phase_documents": [
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2a/assemble_verification.py",
+      "sha256": "6e8dc5235010068ffb347b67acd9d2f16996ba122b166f6c96041bb7896882a0",
+      "bytes": 5567
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2a/audit_replay.py",
+      "sha256": "9e84b046a21a436390cf9020e8f48599426d9956c4b12d571bd89d6f73a65f4b",
+      "bytes": 18876
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2a/check_real_guards.py",
+      "sha256": "1a17ec0c094933142162df87f1e956d4bf0f203437931af1e2bc037fc4634013",
+      "bytes": 2140
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2a/comparability.json",
+      "sha256": "0daaf7f6ddda1190a46f31e16567cb016b05c915922948e3f3379979070bf54f",
+      "bytes": 6725
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2a/compat_v2.py",
+      "sha256": "9ec186f8d18b116fade45b24a424e3a9c5332fe04bef09863902b81056e84ece",
+      "bytes": 3571
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2a/DEVELOPMENT_ZH.md",
+      "sha256": "d824e1b2366a87f70234407b016d73b9a9e03c6a692ec42b99614fe84904a805",
+      "bytes": 9891
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2a/FREEZE_ZH.md",
+      "sha256": "3b592e7f42f15b460701ceba152df164392a60acdffb0c040310ee6a0901a7a3",
+      "bytes": 4848
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2a/raw_to_sentence_examples.json",
+      "sha256": "ffe323f7d53da48d26812d00000f49023aff0f8a5a164ac85800d14b2e09006d",
+      "bytes": 44885
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2a/replay.py",
+      "sha256": "8ded614bf040d51175c298e86737839fff6378fba818bdeb060fec6b0427b624",
+      "bytes": 3164
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2a/source_lock.json",
+      "sha256": "18f585ac6c10e87a0cd8aa61299ab06adac636fc4494fd3e1fb2fdd651265dcf",
+      "bytes": 41190
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2a/trace_examples.py",
+      "sha256": "44669ca431b0590e146c8511428d56f7c7cf635b9f9a3284c4ed02a3158e6657",
+      "bytes": 4106
+    }
+  ],
+  "supporting_files": [
+    {
+      "path": "outputs/p2a/audit_k1.log",
+      "sha256": "2d0f2e06c937bfed6f0ef96fe3399533f42f773631eb8d448e7eeb3af2409c02",
+      "bytes": 836
+    },
+    {
+      "path": "outputs/p2a/audit_k1_final.log",
+      "sha256": "34ddbcf0915907be89bca37366e97b829a5733f346b15d268a1f8ed6266dde64",
+      "bytes": 388
+    },
+    {
+      "path": "outputs/p2a/audit_k1_r2.log",
+      "sha256": "bef590d522ff9a60fc98f71156c5d5480616eddfd6bc8330c3d4f91d5887fea9",
+      "bytes": 388
+    },
+    {
+      "path": "outputs/p2a/audit_k2.log",
+      "sha256": "e0b967a163955bfd2b17967e94ddaba6e70b2abc21014c5b4a862b2c8665d8f9",
+      "bytes": 1296
+    },
+    {
+      "path": "outputs/p2a/audit_k2_final.log",
+      "sha256": "46110d17a1728784b22767b551e1239b80ea5334325bd48d7cb52df48180fed4",
+      "bytes": 386
+    },
+    {
+      "path": "outputs/p2a/audit_k2_r2.log",
+      "sha256": "2d0f2e06c937bfed6f0ef96fe3399533f42f773631eb8d448e7eeb3af2409c02",
+      "bytes": 836
+    },
+    {
+      "path": "outputs/p2a/audit_k2_r3.log",
+      "sha256": "81dd906a6829c7d2069ce8d03bbace0e4e6af294b3e9b4f7704be0590108d279",
+      "bytes": 387
+    },
+    {
+      "path": "outputs/p2a/audit_k3.log",
+      "sha256": "49a5525896e04d858e8f28da18dac97e9e9d658d0c7966bba5d84740ca49b969",
+      "bytes": 386
+    },
+    {
+      "path": "outputs/p2a/audit_k3_final.log",
+      "sha256": "8bca71f47027a612c7b270a9fccd5ac25b39fb39310a70020b01975ffef9f104",
+      "bytes": 387
+    },
+    {
+      "path": "outputs/p2a/baseline_measurement.py",
+      "sha256": "23a85e6e5a7665c152d6319c62eec60850c57743d488c2449548001278bc8c49",
+      "bytes": 26685
+    },
+    {
+      "path": "outputs/p2a/baseline_report.py",
+      "sha256": "e859d95a41935ba40f80305a93b2a7436948a72ddeff5d33ef88beb521bc9112",
+      "bytes": 49973
+    },
+    {
+      "path": "outputs/p2a/baseline_trajectory_adapter.py",
+      "sha256": "45f5c7315123d99b6a49231ee66e051834b3a5ebcc06ffe7adfee74f8a99a3ad",
+      "bytes": 24132
+    },
+    {
+      "path": "outputs/p2a/compat_k1.log",
+      "sha256": "79d4b4c4a0aec676b53fa6b279af0156ae20d78b6b80c2de9f8611be55306c00",
+      "bytes": 698
+    },
+    {
+      "path": "outputs/p2a/compat_k3.log",
+      "sha256": "f36004f24c30779be51e661cbb5969b7f9370f44e211343a69c9de82a610277c",
+      "bytes": 698
+    },
+    {
+      "path": "outputs/p2a/examples.log",
+      "sha256": "a2df345f1435db52ed9411a5c9d299dd580a8dbd986c77fda6703b7bc4ffa29b",
+      "bytes": 634
+    },
+    {
+      "path": "outputs/p2a/examples_final.log",
+      "sha256": "cba40589e2139394a87c1a5707898660c694b66519ce59b24a64e1b938ad6ce4",
+      "bytes": 352
+    },
+    {
+      "path": "outputs/p2a/examples_r3.log",
+      "sha256": "067a5e984fcd9e80c2256d688005b22557957f75b42354a495fa971cba7514dd",
+      "bytes": 435
+    },
+    {
+      "path": "outputs/p2a/examples_r4.log",
+      "sha256": "475ea354c5cae6cec43864643fc4863ea49a616233dbc240e85e10e81823e92d",
+      "bytes": 36
+    },
+    {
+      "path": "outputs/p2a/frozen_audit_command.json",
+      "sha256": "dd850adb4debaafeef3ae0aa74f25d744feb151d61022cc4443ab189acfb4210",
+      "bytes": 300
+    },
+    {
+      "path": "outputs/p2a/frozen_build.log",
+      "sha256": "8d966f3cdc6525ed8dbe9ca0d8579c2de0a55d8aeedc0cc6a3e32b6989a44949",
+      "bytes": 778
+    },
+    {
+      "path": "outputs/p2a/frozen_build_command.json",
+      "sha256": "7d9c8e81b6de0a3b9af20514561379f8e874d2607534af40673dc77ec04a4199",
+      "bytes": 817
+    },
+    {
+      "path": "outputs/p2a/frozen_compat.json",
+      "sha256": "7dbd6308c93afcf4d272c44e86437f1ecbc62f7dd127346eff2d9d12ef24ad9e",
+      "bytes": 375
+    },
+    {
+      "path": "outputs/p2a/frozen_raw_audit.json",
+      "sha256": "4f5fc877056a4c8f5bedbefc19e407ff3c84c875404e6159697dda7af2d355f7",
+      "bytes": 1339049
+    },
+    {
+      "path": "outputs/p2a/frozen_raw_audit.log",
+      "sha256": "c5db6c30c760d3d3b391759c3626ec58cb1972a74a68b65d299c02296cc79b3d",
+      "bytes": 237
+    },
+    {
+      "path": "outputs/p2a/frozen_verification.json",
+      "sha256": "9545fa72e6fc784b02f14fc5182e6f768f4d69abaa8c8bb3f547aa2d11551b1e",
+      "bytes": 4703192
+    },
+    {
+      "path": "outputs/p2a/frozen_verification.log",
+      "sha256": "8c9e9d9c1a396aea44be3c7ae5c217ab3dd3485a664d8881dfc3beb59764ada5",
+      "bytes": 276
+    },
+    {
+      "path": "outputs/p2a/k1_audit.json",
+      "sha256": "35ccd2eb5670711a3477a6f2cb806cc044248d9eedc3696ac25ab3655239f603",
+      "bytes": 269804
+    },
+    {
+      "path": "outputs/p2a/k1_audit_r1.json",
+      "sha256": "83e5af39f74486de5393fb2e6cb947761727d20053b4b072ba70d01618804547",
+      "bytes": 269656
+    },
+    {
+      "path": "outputs/p2a/k1_compat.json",
+      "sha256": "79d4b4c4a0aec676b53fa6b279af0156ae20d78b6b80c2de9f8611be55306c00",
+      "bytes": 698
+    },
+    {
+      "path": "outputs/p2a/k2_audit.json",
+      "sha256": "9a16a82dd10b955bab9335efb630de3af2f4057e951dd493965d0e8c0b45a9f8",
+      "bytes": 285020
+    },
+    {
+      "path": "outputs/p2a/k2_audit_r1.json",
+      "sha256": "2f696c576176937c1d027e8a5b0b8ecaabdd1d5790014dd028405697977d507a",
+      "bytes": 284871
+    },
+    {
+      "path": "outputs/p2a/k3_audit.json",
+      "sha256": "25d9f6ec02cfcfe5dceecac2f8f8e15afcde19d4efe52cc5871d7790586c2a76",
+      "bytes": 374422
+    },
+    {
+      "path": "outputs/p2a/k3_audit_r1.json",
+      "sha256": "d4821325b1c8865d2a1d8bfef65272831f15cace566c57b72d6de1464ee1a592",
+      "bytes": 374273
+    },
+    {
+      "path": "outputs/p2a/k3_compat.json",
+      "sha256": "f36004f24c30779be51e661cbb5969b7f9370f44e211343a69c9de82a610277c",
+      "bytes": 698
+    },
+    {
+      "path": "outputs/p2a/necessary_raw.json",
+      "sha256": "d3158e16bf8f1d9f914f0e7c6f09d27574398593ce825b02e655b6b68b22090f",
+      "bytes": 8362804
+    },
+    {
+      "path": "outputs/p2a/prepare.log",
+      "sha256": "292b9df32b94832a631ed30a3a34033c892f7ba27ec92ec52942c126ae2a2906",
+      "bytes": 324
+    },
+    {
+      "path": "outputs/p2a/real_guards.json",
+      "sha256": "d928ab412950683a4a74d35c74d9358d48028a73978ee31622b341d48dada39f",
+      "bytes": 1085
+    },
+    {
+      "path": "outputs/p2a/real_guards.log",
+      "sha256": "d928ab412950683a4a74d35c74d9358d48028a73978ee31622b341d48dada39f",
+      "bytes": 1085
+    },
+    {
+      "path": "outputs/p2a/regression.log",
+      "sha256": "a85c46aad479b2db56d4663cccc0a3637d0ed4eaa36f8d033143d09f2b6b40ed",
+      "bytes": 128728
+    },
+    {
+      "path": "outputs/p2a/regression_command.json",
+      "sha256": "76d3ca9e68cddb699c9ffa1f8391fcbe3dd1b4cc0ad2875befa53e521910c502",
+      "bytes": 1929
+    },
+    {
+      "path": "outputs/p2a/regression_result.json",
+      "sha256": "2796ef08433a76b48b96f26e0bfb4db1e5d54ed6bc6c00b22ad17351bb335317",
+      "bytes": 2098
+    },
+    {
+      "path": "outputs/p2a/replay_k1_final.log",
+      "sha256": "65c4be80e9a0ceb7d40b407a3596e526a851dd8512c5e316572e928678b5d118",
+      "bytes": 989
+    },
+    {
+      "path": "outputs/p2a/replay_k2.log",
+      "sha256": "3e8178595653eaed4867743a024c87da9db8c70137adf31bab91c4f509484bd5",
+      "bytes": 1244
+    },
+    {
+      "path": "outputs/p2a/replay_k2_final.log",
+      "sha256": "1354ce81708715cc11a299c5b766cfd394cee6fe48385ff334c48d11c0a0cd92",
+      "bytes": 988
+    },
+    {
+      "path": "outputs/p2a/replay_k3_final.log",
+      "sha256": "a327e028a35ed34f953767abdb91f042ff3f138de22c1621a615ffc8262c5ba3",
+      "bytes": 990
+    },
+    {
+      "path": "outputs/p2a/unit_initial.log",
+      "sha256": "989ec16ca4118e49a959c3502cee6185406931a681404f8a759c7d7718deeee1",
+      "bytes": 18044
+    },
+    {
+      "path": "outputs/p2a/unit_v1.log",
+      "sha256": "3bc2adb9cbc22d9b67f62bbcd17ee7c86ec87f2b4b6db63a3efd32056d5854e3",
+      "bytes": 1064
+    },
+    {
+      "path": "outputs/p2a/v1_final.log",
+      "sha256": "2b9d94015a8fdc118ba61a6efcb83d1dcd54f4966afbe8ab5124774977665dc1",
+      "bytes": 2654
+    }
+  ],
+  "tests": {
+    "first_full_run": {
+      "command": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.integration.test_generation_session",
+        "tests.unit.test_composition",
+        "tests.unit.test_feedback_evidence_boundary",
+        "tests.unit.test_generation_entrypoint",
+        "tests.unit.test_memory_context_phase13",
+        "tests.unit.test_native_snapshot_media",
+        "tests.unit.test_numeric_evidence",
+        "tests.unit.test_p3r_stair_projection",
+        "tests.unit.test_phase_postprocessing",
+        "tests.unit.test_process_report",
+        "tests.unit.test_project_boundaries",
+        "tests.unit.test_prompt_capacity_projection",
+        "tests.unit.test_prompt_safety_boundaries",
+        "tests.unit.test_push_behavior",
+        "tests.unit.test_push_feedback_projection",
+        "tests.unit.test_push_numeric_capture",
+        "tests.unit.test_push_process_report",
+        "tests.unit.test_runner_p1_reliability",
+        "tests.unit.test_stair_behavior",
+        "tests.unit.test_stair_numeric_capture",
+        "tests.unit.test_stair_phase_b_composition",
+        "tests.unit.test_stair_phased_evaluation",
+        "tests.unit.test_stair_process_report",
+        "tests.unit.test_stair_trajectory_adapter",
+        "tests.unit.test_stair_trajectory_evidence_build",
+        "tests.unit.test_stair_trajectory_input_inspection",
+        "tests.unit.test_stair_trajectory_pipeline",
+        "tests.unit.test_stair_trajectory_reference_facts",
+        "tests.unit.test_stair_trajectory_report",
+        "tests.unit.test_stair_trajectory_v1",
+        "tests.unit.test_subprocess_runner",
+        "tests.unit.test_task_prompt_adapter",
+        "tests.unit.test_task_visual_observation",
+        "tests.unit.test_trajectory_card",
+        "tests.unit.test_trajectory_card_verification",
+        "tests.unit.test_trajectory_cohort",
+        "tests.unit.test_trajectory_evidence_verification",
+        "tests.unit.test_trajectory_measurement",
+        "tests.unit.test_trajectory_temporal",
+        "tests.unit.test_visual_observer",
+        "tests.unit.test_visual_review",
+        "-v"
+      ],
+      "exit_code": 1,
+      "wall_seconds": 780.825531099923
+    },
+    "first_counts": {
+      "ok": 639,
+      "skipped": 8,
+      "FAIL": 1
+    },
+    "first_failures": [
+      "tests.unit.test_trajectory_card_verification.CardRawAuditTests.test_missing_history_unknown_is_checked_against_absent_raw_arrays"
+    ],
+    "repair": "independent verifier missing history ratio expected float 0.0; production unchanged; initial process had already imported old verifier",
+    "final_focused_command": [
+      ".venv/Scripts/python.exe",
+      "-B",
+      "-m",
+      "unittest",
+      "tests.unit.test_stair_trajectory_v1",
+      "tests.unit.test_trajectory_card_verification",
+      "-v"
+    ],
+    "final_focused_count": 13,
+    "unique_tests": 649,
+    "final_counts": {
+      "ok": 641,
+      "skipped": 8
+    },
+    "final_test_ids": {
+      "tests.integration.test_generation_session.SharedGenerationSessionTests.test_five_generation_session_finishes_and_replays_at_its_frozen_boundary": "ok",
+      "tests.integration.test_generation_session.SharedGenerationSessionTests.test_push_accepted_head_resumes_and_closes_final": "ok",
+      "tests.integration.test_generation_session.SharedGenerationSessionTests.test_push_early_rejection_closes_without_sealed_or_a_full_result": "ok",
+      "tests.integration.test_generation_session.SharedGenerationSessionTests.test_push_keeps_sealed_dependent_rejection_and_no_selection_distinct": "ok",
+      "tests.integration.test_generation_session.SharedGenerationSessionTests.test_push_reference_head_uses_shared_preparation_session_final_and_replay": "ok",
+      "tests.integration.test_generation_session.SharedGenerationSessionTests.test_push_runtime_and_infrastructure_failures_keep_distinct_evidence": "ok",
+      "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_accepted_head_resumes_and_closes_final": "skipped 'Stair runtime source closure requires target Isaac installation'",
+      "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_early_rejection_sealed_rejection_and_no_selection": "skipped 'Stair runtime source closure requires target Isaac installation'",
+      "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_reference_head_uses_shared_preparation_session_final_and_replay": "skipped 'Stair runtime source closure requires target Isaac installation'",
+      "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_runtime_and_infrastructure_failures_keep_distinct_evidence": "skipped 'Stair runtime source closure requires target Isaac installation'",
+      "tests.unit.test_composition.CompositionTests.test_broken_stair_factory_does_not_break_push_path": "ok",
+      "tests.unit.test_composition.CompositionTests.test_fresh_push_registry_path_does_not_import_stair_modules": "ok",
+      "tests.unit.test_composition.CompositionTests.test_genesis_anchor_is_bound_to_training_initialization": "ok",
+      "tests.unit.test_composition.CompositionTests.test_lazy_provider_factory_runs_once_under_concurrent_first_access": "ok",
+      "tests.unit.test_composition.CompositionTests.test_lazy_provider_loads_once_and_validates_factory_identity": "ok",
+      "tests.unit.test_composition.CompositionTests.test_production_stair_registration_is_lazy_and_push_stays_default": "ok",
+      "tests.unit.test_composition.CompositionTests.test_push_composition_rejects_inconsistent_training_budget": "ok",
+      "tests.unit.test_composition.CompositionTests.test_push_composition_rejects_noncanonical_value_types": "ok",
+      "tests.unit.test_composition.CompositionTests.test_push_snapshot_and_runtime_share_one_validated_config": "ok",
+      "tests.unit.test_composition.CompositionTests.test_push_task_config_rejects_invalid_programmatic_values": "ok",
+      "tests.unit.test_composition.CompositionTests.test_registry_and_resolver_fail_closed_before_execution": "ok",
+      "tests.unit.test_composition.CompositionTests.test_resolved_snapshot_binds_memory_and_is_immutable": "ok",
+      "tests.unit.test_composition.CompositionTests.test_task_neutral_composition_modules_have_no_concrete_task_semantics": "ok",
+      "tests.unit.test_composition.CompositionTests.test_two_stage_cli_uses_only_selected_task_defaults": "ok",
+      "tests.unit.test_feedback_evidence_boundary.FeedbackEvidenceBoundaryTests.test_feedback_only_in_place_projection_is_isolated_and_repeatable": "ok",
+      "tests.unit.test_feedback_evidence_boundary.FeedbackEvidenceBoundaryTests.test_in_place_authority_edits_are_rejected_without_mutating_validated_history": "ok",
+      "tests.unit.test_feedback_evidence_boundary.FeedbackEvidenceBoundaryTests.test_third_task_evidence_survives_memory_and_offline_provider_request": "ok",
+      "tests.unit.test_generation_entrypoint.GenerationEntrypointTests.test_fresh_and_resumed_cli_require_credentials_until_the_report_exists": "ok",
+      "tests.unit.test_generation_entrypoint.GenerationEntrypointTests.test_gpu_inventory_rejects_malformed_and_duplicate_rows": "ok",
+      "tests.unit.test_generation_entrypoint.GenerationEntrypointTests.test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_direct_prompt_payload_public_history_is_still_bounded": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_direct_prompt_payload_public_history_uses_fixed_allowlist": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_experiment_memory_full_byte_limit_preserves_latest_accepted_and_latest": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_experiment_memory_keeps_objective_and_guard_scores_unambiguous": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_experiment_memory_keeps_salient_late_components": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_experiment_memory_preserves_candidate_runtime_name_delta": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_experiment_memory_summarizes_old_entries_before_omitting_them": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_experiment_record_projects_public_data_and_hides_private_artifacts": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_first_accepted_authoring_delta_survives_runtime_salience_limit": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_generation_memory_keeps_trial_index_before_repeated_details": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_invalid_declared_accept_does_not_raise_best_public_score": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_invalid_declared_accept_is_fail_closed_in_public_history": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_malformed_generation_cannot_bypass_mechanism_attribution": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_private_artifact_rejects_malformed_checksum": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_experiment_memory_retains_bounded_component_lessons": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_payload_guard_blocks_checkpoint_selector_keys": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_does_not_relabel_eval_isolation_as_training_failure": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_does_not_treat_checkpoint_eval_as_training_load_failure": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_is_count_and_byte_bounded": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_keeps_bounded_eval_feedback_summaries": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_keeps_failed_gates_without_task_metric_semantics": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_preserves_missing_runtime_activation_as_not_available": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_preserves_omitted_detail_count_across_recompaction": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_projects_bounded_source_request_feedback": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_projects_provider_repair_failure": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_projects_runtime_and_error_evidence": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_uses_runtime_gate_not_eval_isolation_for_training_activation": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_public_context_builder_accepts_raw_mapping_records": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_public_context_builder_saves_public_only_prompt_payload": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_public_history_labels_bound_score_source": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_push_memory_adapter_tolerates_malformed_public_task_field": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_push_memory_uses_validated_public_score_not_raw_metric_mirror": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_recompact_uses_canonical_mechanism_as_candidate_identity": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_runtime_component_projection_drops_invalid_oversized_identity": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_stair_extension_guide_mentions_task_specific_public_summary": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_static_authoring_failure_feedback_overrides_stale_attempt_repair_feedback": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_task_memory_adapter_is_extension_point_without_agent_core_changes": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_task_projection_cannot_rewrite_non_feedback_runner_facts": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_task_projection_cannot_rewrite_runner_acceptance_authority": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_task_projection_separates_provider_score_from_acceptance_score": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_task_score_projection_cannot_fall_back_to_acceptance_anchor": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_unbound_public_score_does_not_enter_next_round_history": "ok",
+      "tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_validated_exploration_projection_is_scrubbed_before_final_prompt": "ok",
+      "tests.unit.test_native_snapshot_media.NativeSnapshotMediaTests.test_capture_manifest_to_actual_request_keeps_bytes_and_only_recorded_steps": "ok",
+      "tests.unit.test_numeric_evidence.NumericEvidenceTests.test_failed_budget_never_publishes_complete_manifest": "ok",
+      "tests.unit.test_numeric_evidence.NumericEvidenceTests.test_publication_round_trip_and_corrupt_chunk": "ok",
+      "tests.unit.test_p3r_stair_projection.StairProjectionRevisionTests.test_budget_pressure_cannot_erase_every_matched_comparison": "ok",
+      "tests.unit.test_p3r_stair_projection.StairProjectionRevisionTests.test_dominant_reason_pair_is_not_lexicographic_and_counts_do_not_mix_reasons": "ok",
+      "tests.unit.test_p3r_stair_projection.StairProjectionRevisionTests.test_missing_match_is_explicit_and_does_not_borrow_an_unrelated_success": "ok",
+      "tests.unit.test_p3r_stair_projection.StairProjectionRevisionTests.test_motion_budget_keeps_each_failure_stratum_and_same_group_ranges": "ok",
+      "tests.unit.test_p3r_stair_projection.StairProjectionRevisionTests.test_motion_columns_and_missing_success_are_explicit": "ok",
+      "tests.unit.test_p3r_stair_projection.StairProjectionRevisionTests.test_motion_representative_covers_modal_conditions_before_duration": "ok",
+      "tests.unit.test_p3r_stair_projection.StairProjectionRevisionTests.test_old_view_is_unchanged_and_comparison_resolves_column_names": "ok",
+      "tests.unit.test_p3r_stair_projection.StairProjectionRevisionTests.test_view_keeps_process_intervals_and_narrows_proxy_names": "ok",
+      "tests.unit.test_phase_postprocessing.PhasePostprocessingTests.test_child_exits_and_lease_releases_before_finalization_and_seal": "ok",
+      "tests.unit.test_phase_postprocessing.PhasePostprocessingTests.test_cpu_failure_does_not_publish_or_repeat_gpu_rollout": "ok",
+      "tests.unit.test_phase_postprocessing.PhasePostprocessingTests.test_fresh_capture_cannot_skip_cpu_handoff": "ok",
+      "tests.unit.test_phase_postprocessing.PhasePostprocessingTests.test_handoff_without_task_finalizer_is_not_complete": "ok",
+      "tests.unit.test_process_report.ProcessReportTests.test_absence_of_observation_is_not_normality": "ok",
+      "tests.unit.test_process_report.ProcessReportTests.test_budget_cannot_remove_required_counterexample_or_residual": "ok",
+      "tests.unit.test_process_report.ProcessReportTests.test_comparison_requires_real_denominators_and_same_rule": "ok",
+      "tests.unit.test_process_report.ProcessReportTests.test_descriptive_term_cannot_be_discriminating_group_statement": "ok",
+      "tests.unit.test_process_report.ProcessReportTests.test_legal_unicode_observation_is_omitted_whole_with_conflict_and_coverage_kept": "ok",
+      "tests.unit.test_process_report.ProcessReportTests.test_missing_section_is_not_silently_replaced_by_generic_unknown": "ok",
+      "tests.unit.test_process_report.ProcessReportTests.test_parent_update_reuses_optional_policy_without_clipping_or_duplicate_gaps": "ok",
+      "tests.unit.test_process_report.ProcessReportTests.test_terminal_same_step_is_not_an_earlier_event": "ok",
+      "tests.unit.test_process_report.ProcessReportTests.test_visual_prose_without_alignment_and_visibility_is_not_admitted": "ok",
+      "tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_import_concrete_task_packages": "ok",
+      "tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_own_push_audit_literals": "ok",
+      "tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_own_stair_semantics": "ok",
+      "tests.unit.test_project_boundaries.ProjectBoundaryTests.test_orchestration_does_not_read_legacy_provider_context": "ok",
+      "tests.unit.test_project_boundaries.ProjectBoundaryTests.test_package_imports_from_local_src_without_parent_project_imports": "ok",
+      "tests.unit.test_project_boundaries.ProjectBoundaryTests.test_project_metadata_declares_independent_package": "ok",
+      "tests.unit.test_project_boundaries.ProjectBoundaryTests.test_push_recovery_package_does_not_own_stair_semantics": "ok",
+      "tests.unit.test_project_boundaries.ProjectBoundaryTests.test_runtime_tree_does_not_reference_parent_project": "ok",
+      "tests.unit.test_prompt_capacity_projection.PromptCapacityReceiptTests.test_minimum_core_receipt_stays_bound_through_failed_source_repair": "ok",
+      "tests.unit.test_prompt_capacity_projection.PromptCapacityReceiptTests.test_receipt_binds_visible_projection_and_is_deterministic": "ok",
+      "tests.unit.test_prompt_capacity_projection.PromptCapacityReceiptTests.test_receipt_or_visible_content_tamper_is_rejected": "ok",
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_first_arrival_prompt_omits_only_exact_completion_diagnostics": "ok",
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_historical_compaction_normalizes_absent_detail_omissions": "ok",
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_provider_section_keys_cover_all_but_task_only_metadata": "ok",
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_provider_task_receipt_keeps_v1_32k_history_replayable": "ok",
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_provider_task_receipt_measures_the_exact_shipped_sections": "ok",
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_push_uses_its_own_minimum_core_without_stair_fields": "ok",
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_stair_bootstrap_minimum_core_has_explicit_sentinel": "ok",
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_stair_capacity_pressure_keeps_current_best_and_latest": "ok",
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_stair_capacity_projection_normalizes_absent_feedback_entries": "ok",
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_stair_compacts_static_contract_before_measured_feedback": "ok",
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_stair_minimum_core_preserves_mode_guidance_and_seed_counts": "ok",
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_stair_minimum_core_retains_compacted_public_dev_feedback": "ok",
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_stair_nonfeedback_pressure_with_empty_entries_reaches_minimum_core": "ok",
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_stair_worst_case_preflight_is_deterministic_and_keeps_headroom": "ok",
+      "tests.unit.test_prompt_capacity_projection.TaskOwnedMinimumCoreTests.test_unknown_common_section_remains_fail_closed": "ok",
+      "tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_effective_controls_exclude_unwired_or_runner_owned_surfaces": "ok",
+      "tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_non_push_prompt_does_not_inherit_push_recovery_task_semantics": "ok",
+      "tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_public_history_preserves_nonsensitive_error_tokens": "ok",
+      "tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_public_history_redacts_forbidden_markers_embedded_in_text_values": "ok",
+      "tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_public_key_policy_is_boundary_aware_and_task_neutral": "ok",
+      "tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_public_prompt_rejects_and_scrubs_private_hidden_trusted_and_raw_seed_data": "ok",
+      "tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_public_prompt_rejects_forbidden_markers_embedded_in_text_values": "ok",
+      "tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_runner_owned_surfaces_are_denied_not_candidate_writable": "ok",
+      "tests.unit.test_prompt_safety_boundaries.PromptSafetyBoundaryTests.test_shared_public_history_scrub_rules_are_task_agnostic": "ok",
+      "tests.unit.test_push_behavior.PushBehaviorTests.test_dwell_concurrent_conditions_success_counterexample_and_final_state": "ok",
+      "tests.unit.test_push_behavior.PushBehaviorTests.test_event_relative_displacement_peak_and_unexecuted_second_event": "ok",
+      "tests.unit.test_push_behavior.PushBehaviorTests.test_force_control_does_not_count_reducer_storage_slot_as_failed_recovery": "ok",
+      "tests.unit.test_push_behavior.PushBehaviorTests.test_force_last_pulse_anchor_closed_padding_and_partial_coverage": "ok",
+      "tests.unit.test_push_behavior.PushBehaviorTests.test_parent_diff_can_omit_optional_pose_without_losing_examples_or_counts": "ok",
+      "tests.unit.test_push_behavior.PushBehaviorTests.test_parent_diff_requires_actual_parent_same_domain_and_complete_coverage": "ok",
+      "tests.unit.test_push_behavior.PushBehaviorTests.test_phase_seals_behavior_only_when_produced_and_history_parent_diff_is_idempotent": "ok",
+      "tests.unit.test_push_behavior.PushBehaviorTests.test_prompt_replay_and_final_provider_payload_keep_bounded_facts": "ok",
+      "tests.unit.test_push_behavior.PushBehaviorTests.test_public_keeps_every_stratum_and_does_not_fabricate_unmatched_success": "ok",
+      "tests.unit.test_push_behavior.PushBehaviorTests.test_selection_uses_failure_coverage_and_diff_refuses_semantics_change": "ok",
+      "tests.unit.test_push_behavior.PushBehaviorTests.test_signed_motion_and_old_profile_missing_direction": "ok",
+      "tests.unit.test_push_feedback_projection.PushFeedbackProjectionTests.test_current_best_dev_keeps_its_own_failure_evidence_and_is_not_duplicated": "ok",
+      "tests.unit.test_push_feedback_projection.PushFeedbackProjectionTests.test_evaluated_candidate_feedback_takes_precedence_over_reference": "ok",
+      "tests.unit.test_push_feedback_projection.PushFeedbackProjectionTests.test_exploration_cards_and_memory_never_include_acceptance_scores": "ok",
+      "tests.unit.test_push_feedback_projection.PushFeedbackProjectionTests.test_failure_mode_reports_failure_even_when_successes_are_the_majority": "ok",
+      "tests.unit.test_push_feedback_projection.PushFeedbackProjectionTests.test_initial_reference_feedback_uses_only_dev_for_both_robots": "ok",
+      "tests.unit.test_push_feedback_projection.PushFeedbackProjectionTests.test_no_formal_generation_preserves_sibling_memory_without_false_attribution": "ok",
+      "tests.unit.test_push_feedback_projection.PushFeedbackProjectionTests.test_task_memory_retains_failure_rates_after_aggregate_projection": "ok",
+      "tests.unit.test_push_feedback_projection.PushFeedbackProjectionTests.test_trial_memory_uses_measured_parent_dev_and_is_idempotent": "ok",
+      "tests.unit.test_push_numeric_capture.PushNumericCaptureTests.test_budget_and_episode_gap_fail_without_valid_manifest": "ok",
+      "tests.unit.test_push_numeric_capture.PushNumericCaptureTests.test_cli_capture_is_public_dev_only_and_legacy_is_out_of_scope": "ok",
+      "tests.unit.test_push_numeric_capture.PushNumericCaptureTests.test_force_partial_pulse_fall_and_closed_padding_do_not_cross_reset": "ok",
+      "tests.unit.test_push_numeric_capture.PushNumericCaptureTests.test_force_sequence_not_per_pulse_inclusive_window_and_final_frame": "ok",
+      "tests.unit.test_push_numeric_capture.PushNumericCaptureTests.test_rollout_explicit_integration_and_capture_off_are_equivalent": "ok",
+      "tests.unit.test_push_numeric_capture.PushNumericCaptureTests.test_signed_world_motion_distinguishes_equal_norms_and_uses_reset_origin": "ok",
+      "tests.unit.test_push_numeric_capture.PushNumericCaptureTests.test_truncated_capture_publishes_data_but_never_terminal_success": "ok",
+      "tests.unit.test_push_numeric_capture.PushNumericCaptureTests.test_v2_requires_motion_fields_instead_of_silently_falling_back_to_v1": "ok",
+      "tests.unit.test_push_numeric_capture.PushNumericCaptureTests.test_velocity_events_all_conditions_interruption_and_final_instability": "ok",
+      "tests.unit.test_push_numeric_capture.RecoveryClassificationCompatibilityTests.test_shared_terminal_classification_retains_strict_fall_boundaries": "ok",
+      "tests.unit.test_push_numeric_capture.RecoveryClassificationCompatibilityTests.test_velocity_and_force_keep_their_different_failure_priorities": "ok",
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_coverage_is_replayable_rule_independent_and_unions_steps": "ok",
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_full_rows_cards_and_sample_windows_remain_out_of_prompt": "ok",
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_later_recovery_and_recurrence_survive_first_unlatched_detail": "ok",
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_modal_combination_precedes_duration_and_ties_are_disclosed": "ok",
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_no_failure_is_zero_failure_residual_not_missing_success": "ok",
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_no_latch_is_an_unavailable_interval_not_zero_instability": "ok",
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_outcome_pathways_preserve_latch_final_state_and_success_counterexample": "ok",
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_outline_distinguishes_no_post_latch_samples_from_observed_zero": "ok",
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_outline_distinguishes_unexecuted_invalid_and_unobserved_windows": "ok",
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_parent_and_unicode_pressure_drop_only_optional_visual_sentence": "ok",
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_parent_diff_renders_both_process_denominators_and_replays": "ok",
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_residual_window_signature_controls_minimum_and_episode_aggregation": "ok",
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_shared_explanations_are_once_without_removing_scope_or_rule_slots": "ok",
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_unexecuted_event_does_not_borrow_other_event_count_controls": "ok",
+      "tests.unit.test_push_process_report.PushProcessReportTests.test_v3_is_separate_and_preserves_v2_projection_and_slots": "ok",
+      "tests.unit.test_runner_p1_reliability.GpuLeaseTests.test_attempt_scope_cannot_drift_from_trusted_gpu_binding": "ok",
+      "tests.unit.test_runner_p1_reliability.GpuLeaseTests.test_cross_process_gpu_lease_conflicts_and_recovers_after_abnormal_exit": "ok",
+      "tests.unit.test_runner_p1_reliability.GpuLeaseTests.test_pre_genesis_holder_uses_v2_without_changing_v1_holder_bytes": "ok",
+      "tests.unit.test_runner_p1_reliability.GpuLeaseTests.test_same_physical_gpu_aliases_conflict_but_distinct_gpus_do_not": "ok",
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_attempt_result_unknown_field_tamper_is_rejected": "ok",
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_attempt_timeout_reaches_owned_process_through_train_and_eval": "ok",
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_bound_gpu_attempt_records_validated_lease_wall_duration": "ok",
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_foreign_reservation_cannot_close_another_logical_job": "ok",
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_invalid_attempt_timeout_fails_before_reservation_or_operation": "ok",
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_next_runnable_attempt_is_read_only_and_begin_or_resume_reuses_it": "ok",
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_non_retryable_result_and_open_reservation_cannot_authorize_retry": "ok",
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_pre_genesis_scope_round_trips_without_changing_legacy_projection": "ok",
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_retry_admission_rejection_creates_no_retry_reservation": "ok",
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_retry_chain_is_create_once_and_hash_bound": "ok",
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_runner_attempt_timeout_cannot_expand_runner_timeout": "ok",
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_runner_derives_pre_genesis_gpu_lease_holder_from_attempt_scope": "ok",
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_runner_does_not_reexecute_an_existing_attempt_without_inspector": "ok",
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_runner_does_not_retry_contract_failure": "ok",
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_runner_resolves_tightened_timeout_before_each_reservation": "ok",
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_runner_retries_only_a_registered_infrastructure_failure": "ok",
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_runner_reuses_a_hash_bound_completed_output_without_reexecution": "ok",
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_runner_without_admission_hook_passes_runner_timeout_to_operation": "ok",
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_terminal_contract_failure_remains_invalid_without_relaunch": "ok",
+      "tests.unit.test_runner_p1_reliability.JobAttemptJournalTests.test_terminal_timeout_replays_typed_failure_without_relaunch": "ok",
+      "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_cleanup_failure_does_not_replace_original_without_add_note": "ok",
+      "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_cleanup_incomplete_replaces_false_original_completion": "ok",
+      "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_environment_overrides_are_scoped_to_owned_child": "ok",
+      "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_incomplete_process_group_cleanup_is_typed": "skipped 'Linux process-group contract'",
+      "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_launch_failure_is_typed": "ok",
+      "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_linux_parent_death_signal_stops_owned_job": "skipped 'Linux parent-death contract'",
+      "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_normal_exit_quiesces_grandchild_before_logs_are_returned": "skipped 'Linux process-group contract'",
+      "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_normal_process_streams_to_logs_and_returns_bounded_tails": "ok",
+      "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_runner_maps_cleanup_incomplete_to_nonretryable_interruption": "ok",
+      "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_timeout_cleans_direct_child_and_grandchild": "ok",
+      "tests.unit.test_runner_p1_reliability.RunnerSingleDeviceContractTests.test_distributed_and_multi_gpu_flags_are_rejected": "ok",
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_actionability_separates_instantaneous_inputs_from_diagnostic_history": "ok",
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_diff_checks_parent_source_cohort_and_unavailable": "ok",
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_direction_extrema_and_retreat_keep_terminal_time_and_signed_orientation": "ok",
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_full_archive_derivation_missing_anchor_history_and_bounded_public": "ok",
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_g1_binding_and_actionability_are_derived_from_its_actual_abi": "ok",
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_named_body_reorder_preserves_events_and_extrema_with_bound_names": "ok",
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_old_archive_does_not_invent_history_or_block_common_field_comparison": "ok",
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_parallel_per_body_streak_window_and_terminal_order": "ok",
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_phase_sealing_portable_replay_and_actual_author_payload": "ok",
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_qualified_reference_assembly_reaches_empty_history_author_without_fake_trial": "ok",
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_representatives_do_not_substitute_unmatched_success_and_keep_denominators": "ok",
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_unloaded_low_motion_duration_threshold_history_and_overlap": "ok",
+      "tests.unit.test_stair_behavior.StairBehaviorTests.test_world_y_roll_reflection_keeps_scalar_rules_and_reflects_signed_pose": "ok",
+      "tests.unit.test_stair_numeric_capture.StairNumericCaptureTests.test_actual_recorder_skips_history_snapshot_when_capture_is_off": "ok",
+      "tests.unit.test_stair_numeric_capture.StairNumericCaptureTests.test_g1_history_uses_bound_two_support_roles": "ok",
+      "tests.unit.test_stair_numeric_capture.StairNumericCaptureTests.test_live_to_archive_recomputes_all_outcomes_and_ignores_reset_padding": "ok",
+      "tests.unit.test_stair_numeric_capture.StairNumericCaptureTests.test_sensor_history_snapshot_preserves_role_order_vectors_clock_and_copies": "ok",
+      "tests.unit.test_stair_phase_b_composition.StairPhaseBCompositionTests.test_composition_resolves_once_to_one_consistent_snapshot": "ok",
+      "tests.unit.test_stair_phase_b_composition.StairPhaseBCompositionTests.test_default_registry_registers_stair_lazily": "ok",
+      "tests.unit.test_stair_phase_b_composition.StairPhaseBCompositionTests.test_official_g1_agent_configuration_is_fully_bound": "ok",
+      "tests.unit.test_stair_phase_b_composition.StairPhaseBCompositionTests.test_private_seed_namespaces_are_unique_and_disjoint": "ok",
+      "tests.unit.test_stair_phase_b_composition.StairPhaseBCompositionTests.test_reference_role_does_not_rewrite_authorship_provenance": "ok",
+      "tests.unit.test_stair_phase_b_composition.StairPhaseBCompositionTests.test_reward_cold_start_rejects_reference_and_score_override": "ok",
+      "tests.unit.test_stair_phase_b_composition.StairPhaseBCompositionTests.test_reward_cold_start_skips_reference_and_binds_initial_state": "ok",
+      "tests.unit.test_stair_phase_b_composition.StairPhaseBCompositionTests.test_scientific_identity_is_owned_by_each_task_and_excludes_placement": "ok",
+      "tests.unit.test_stair_phase_b_composition.StairPhaseBCompositionTests.test_stair_provider_validates_injected_reference_capability": "ok",
+      "tests.unit.test_stair_phase_b_composition.StairPhaseBCompositionTests.test_strict_config_rejects_coercion_and_relational_drift": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_canonical_phase_accepts_explicit_final_confirmation_namespace": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_current_robot_rows_enforce_candidate_sealed_consistency": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_frozen_p5_reference_and_current_candidates_share_comparison_statistics": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_generation_cost_and_genesis_guard_bootstrap_are_separate": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_guard_chain_replay_rejects_nonaccepted_head_transition": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_guard_chain_replay_updates_only_after_accepted_generation": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_historical_screen_statistics_replay_through_formal_assembly": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_numeric_archive_is_bound_to_exact_phase_and_summary": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_phase_binding_and_non_public_dev_selector_inputs_fail_closed": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_phase_cli_identity_is_all_or_nothing": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_phase_cost_is_exactly_the_executed_split": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_phase_summary_preserves_learner_evidence_outside_task_semantics": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_real_v3_public_accept_projection_preserves_distinct_guards_and_paired_order": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_reference_does_not_consume_candidate_public_to_sealed_guard": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_reference_three_phase_assembly_needs_no_candidate_selection": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_runner_parser_and_phase_receipt_preserve_plan_binding": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_selector_filters_unobserved_runtime_effect_before_ranking": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_selector_ranks_tiny_gaps_and_filters_clear_guard_regression": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_selector_records_declared_cross_gpu_execution_differences": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_selector_requires_typed_public_dev_evidence": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_selector_uses_public_dev_only_and_can_return_no_selection": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_stair_plugin_owns_the_optional_phase_capability": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_three_phase_assembly_matches_monolithic_scientific_summary": "ok",
+      "tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_unified_parent_guard_reuses_genesis_public_dev_receipt": "ok",
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_candidate_names_are_a_separate_append_only_proposal_ledger": "ok",
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_cards_use_actual_development_counts_and_explicit_counterexamples": "ok",
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_comparison_requires_parent_binding_and_identical_cohort": "ok",
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_empty_signature_is_negative_only_with_sufficient_controls": "ok",
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_equal_peak_starts_new_excursion_and_no_retreat_is_not_missing": "ok",
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_equal_success_occurrence_is_explicitly_not_discriminating": "ok",
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_full_derivation_preserves_every_old_measurement_and_is_bounded": "ok",
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_legacy_outputs_and_mixed_comparison_are_unchanged_or_explicit": "ok",
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_previous_process_public_is_readable_but_not_silently_compared_as_v2": "ok",
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_primary_success_example_does_not_hide_other_successful_process_terms": "ok",
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_progress_attitude_does_not_hide_large_roll_behind_small_pitch": "ok",
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_progress_return_and_censored_tail_preserve_different_meanings": "ok",
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_public_report_explains_insufficient_controls_without_calling_measurements_missing": "ok",
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_representative_uses_all_four_conditions_then_median_and_identifier": "ok",
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_required_capacity_failure_cannot_erase_counterexample_or_residual": "ok",
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_sampling_is_order_independent_clips_unions_and_names_unseen": "ok",
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_short_progress_retains_unreturned_tail_and_names_omissions": "ok",
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_signature_uses_strict_terminal_and_frozen_time_bins": "ok",
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_success_only_keeps_zero_failure_residual_and_missing_sections": "ok",
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_three_residual_states_and_control_precedence": "ok",
+      "tests.unit.test_stair_process_report.StairProcessReportTests.test_time_bins_distinguish_same_terms": "ok",
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_adapter_to_measurement_keeps_static_origin_current_history_and_outcome": "ok",
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_all_first_episodes_retain_values_and_cross_chunk_row_locators": "ok",
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_all_recorded_public_seeds_and_global_chunk_indices_are_kept": "ok",
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_bound_entities_and_task_configuration_keep_original_authority": "ok",
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_clock_cannot_drift_from_seed_history_or_frozen_binding": "ok",
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_dtype_changes_cannot_silently_downcast_later_chunk_values": "ok",
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_entire_source_is_verified_before_first_episode_is_yielded": "ok",
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_gap_overlap_resets_and_valid_reentry_are_rejected": "ok",
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_history_and_historical_reference_limitations_are_preserved": "ok",
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_history_declaration_cannot_upgrade_buffer_to_physical_samples": "ok",
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_invalid_padding_never_becomes_observation": "ok",
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_inventory_preserves_raw_channels_and_marks_locator_derivations": "ok",
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_late_seed_public_scope_is_checked_before_first_yield": "ok",
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_manifest_content_must_match_pinned_hash": "ok",
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_nonfinite_components_and_raw_quaternion_are_not_repaired_or_discarded": "ok",
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_nonpublic_or_v1_profile_with_v2_fields_is_rejected": "ok",
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_outcome_assignment_and_static_origin_are_checked": "ok",
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_same_episode_label_and_checkpoint_in_distinct_sources_never_share_identity": "ok",
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_task_source_roles_and_units_cannot_drift": "ok",
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_termination_contract_and_pre_reset_boundary_are_checked": "ok",
+      "tests.unit.test_stair_trajectory_adapter.StairTrajectoryAdapterTests.test_v2_missing_declared_channels_and_contract_fields_are_rejected": "ok",
+      "tests.unit.test_stair_trajectory_evidence_build.EvidenceBuildTests.test_invalid_late_chunk_never_publishes_complete_manifest": "ok",
+      "tests.unit.test_stair_trajectory_evidence_build.EvidenceBuildTests.test_missing_selection_never_claims_complete_or_falls_back": "ok",
+      "tests.unit.test_stair_trajectory_evidence_build.EvidenceBuildTests.test_sealed_source_rejected_before_any_episode_is_emitted": "ok",
+      "tests.unit.test_stair_trajectory_evidence_build.EvidenceBuildTests.test_selected_evidence_has_resolvable_operands_and_deterministic_bytes": "ok",
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_cli_writes_only_after_success_and_does_not_overwrite": "ok",
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_coordinated_history_and_seed_clock_change_cannot_override_frozen_binding": "ok",
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_gap_overlap_and_metadata_shape_are_rejected": "ok",
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_late_chunk_hash_is_actually_read": "ok",
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_nan_in_valid_rows_rejected_but_padding_is_not_an_observation": "ok",
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_outcome_cell_and_static_environment_mapping_are_checked": "ok",
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_permissions_follow_identity_and_seed_not_incidental_contract_text": "ok",
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_pinned_manifest_hash_rejects_modified_manifest": "ok",
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_public_archive_counts_terminal_rows_and_excludes_padding": "ok",
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_quaternion_and_missing_channel_are_rejected": "ok",
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_recorded_episode_clock_and_outcome_length_must_agree": "ok",
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_reset_episode_must_not_reenter_valid_prefix": "ok",
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_role_order_and_task_identity_cannot_drift": "ok",
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_termination_mask_union_must_match_done_on_valid_rows": "ok",
+      "tests.unit.test_stair_trajectory_input_inspection.StairTrajectoryInputInspectionTests.test_termination_names_must_match_frozen_manager_mapping": "ok",
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_automatic_selection_has_no_frozen_examples_or_other_source": "ok",
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_changed_profile_and_nonpublic_archive_rejected": "ok",
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_foreign_job_checkpoint_plan_never_reuses_card": "ok",
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_incomplete_owned_stage_restarts": "ok",
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_manifest_published_only_after_complete_write": "ok",
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_missing_manifest_does_not_fallback": "ok",
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_normal_composition_wires_profile_and_preserves_old_defaults": "ok",
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_private_receipt_replay_binds_configuration_source_and_public_bytes": "ok",
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_removed_unavailable_slot_rejected_even_with_consistent_projection_hashes": "ok",
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_repeated_build_and_budget_change_reuse_artifacts": "ok",
+      "tests.unit.test_stair_trajectory_pipeline.AutomaticTrajectoryTests.test_versions_robots_and_budget_reject_explicitly": "ok",
+      "tests.unit.test_stair_trajectory_reference_facts.LockedRawReferenceTests.test_real_r4_e35_step14_code11_and_episode_count135": "ok",
+      "tests.unit.test_stair_trajectory_reference_facts.LockedRawReferenceTests.test_real_r4_e60_fl_planar_run_and_step626_discriminate_xyz": "ok",
+      "tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_all_16_combinations_round_trip_with_low_role_index_bit": "ok",
+      "tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_complete_left_and_right_censored_runs_keep_one_sample_event": "ok",
+      "tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_legacy_e54_specific_counterexample_uses_xy_too": "ok",
+      "tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_normalized_quaternion_controls_sign_and_body_frame_raw_is_diagnostic": "ok",
+      "tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_planar_speed_and_strict_force_and_speed_boundaries": "ok",
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_chinese_report_exactly_8192_and_one_byte_over": "ok",
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_diagnostic_source_not_promoted_to_reference_or_round_trial": "ok",
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_exact_final_bytes_and_one_byte_below_required_fail": "ok",
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_full_ids_text_unknown_denominators_and_omissions_survive": "ok",
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_full_replay_rejects_rehashed_text_missing_required_and_audit_edits": "ok",
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_last_lane_is_explicitly_separate_from_accepted_lane": "ok",
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_minimum_core_keeps_entire_report_and_provider_serialization": "ok",
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_parent_no_archive_mixed_catalog_and_foreign_scope": "ok",
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_paths_sealed_text_and_changed_sentence_rejected_before_scrubbing": "ok",
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_receipt_counts_and_digests_reject_rehashed_invalid_values": "ok",
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_source_sibling_job_checkpoint_and_plan_mismatches_rejected": "ok",
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_version_dispatch_replays_all_old_views_without_upgrading": "ok",
+      "tests.unit.test_stair_trajectory_report.StairTrajectoryReportTests.test_wrong_unselected_sibling_is_not_hidden_by_last_lane": "ok",
+      "tests.unit.test_stair_trajectory_v1.StairTrajectoryV1Tests.test_automatic_card_public_budget_missing_slot_and_source_swap": "ok",
+      "tests.unit.test_stair_trajectory_v1.StairTrajectoryV1Tests.test_current_contact_does_not_create_history_and_nan_stays_unknown": "ok",
+      "tests.unit.test_stair_trajectory_v1.StairTrajectoryV1Tests.test_missing_history_is_unknown_and_manager_is_independent": "ok",
+      "tests.unit.test_stair_trajectory_v1.StairTrajectoryV1Tests.test_v1_rejects_history_metadata_arrays_header_or_late_drift": "ok",
+      "tests.unit.test_stair_trajectory_v1.StairTrajectoryV1Tests.test_v2_missing_history_is_rejected_instead_of_downgraded": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_backend_environment_summary_receipt_is_exact_and_hash_bound": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_baseline_eval_optional_gpu_binding_omits_legacy_field": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_baseline_eval_rejects_duplicate_checkpoint_hash_before_launch": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_bound_eval_phase_receipt_uses_validated_summary_binding": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_bound_train_uses_host_lease_and_child_only_uuid_mapping": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_candidate_eval_rejects_duplicate_checkpoint_path_before_launch": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_candidate_eval_requires_program_checksum_before_launch": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_candidate_failure_contract_rejects_unknown_or_forged_evidence": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_candidate_failure_policy_pairing_depends_on_declared_stage": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_candidate_failure_rejects_raw_errors": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_closed_candidate_failure_is_projected_without_raw_error": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_completed_train_attempt_is_revalidated_without_relaunch": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_eval_rejects_duplicate_execution_device_before_launch": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_failed_train_summary_rejects_zero_exit": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_fake_backend_remains_neutral_to_environment_receipts": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_initial_policy_state_pairing_is_bound_to_train_result": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_initial_policy_state_pairing_rejects_missing_or_mismatched_summary": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_nonzero_eval_exit_can_return_a_complete_fail_result": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_nonzero_eval_exit_does_not_hide_incomplete_fail_evidence": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_nonzero_exit_rejects_a_pass_summary_as_inconsistent": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_nonzero_exit_requires_a_valid_identity_bound_fail_summary": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_random_train_rejects_hidden_warm_start_args_before_launch": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_runner_constructor_rejects_invalid_execution_config": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_sealed_summary_hash_is_checked_and_raw_summary_stays_private": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_sealed_summary_score_stats_must_match_public_evidence": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_sealed_summary_tamper_rejects_hash_mismatch": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_accepts_existing_summary_without_optional_diagnostics": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_accepts_train_summary_bound_to_current_job": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_binds_train_checkpoint_to_planned_path_and_bytes": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_deletes_stale_eval_summary_before_execution": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_deletes_stale_train_summary_before_execution": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_does_not_coerce_checkpoint_fields": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_executes_and_validates_one_eval_phase": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_executes_baseline_eval_without_candidate_identity": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_executes_train_and_eval_from_structured_argv": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_preserves_task_owned_eval_metrics": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_projects_safe_evidence_manifest": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_projects_sealed_validation_gate": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_redacts_secrets_from_failed_process_output": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_baseline_manifest_or_subject_drift": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_checkpoint_bytes_before_launch": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_checkpoint_safety_hash_for_different_eval_checkpoint": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_eval_argv_candidate_path_before_execution": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_eval_summary_bound_to_different_job": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_evidence_manifest_not_bound_to_projection": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_execution_device_summary_drift": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_failed_checkpoint_safety_report": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_failed_sealed_validation_gate": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_gate_checkpoint_safety_failure": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_malformed_evidence_manifest_as_runner_error": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_metrics_candidate_contamination": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_missing_checkpoint_safety_report": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_nested_second_eval_identity": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_pass_gate_with_contamination_evidence": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_planned_checkpoint_before_launch": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_shell_strings_and_unapproved_executables": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_stale_or_mismatched_train_checkpoint_output": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_top_level_candidate_contamination": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_train_summary_identity_mismatch_before_checkpoint_parse": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_warm_start_bytes_before_train_launch": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_rejects_wrong_type_evidence_byte_size_as_runner_error": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_reports_missing_summary_as_execution_error": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_resolves_outputs_relative_to_subprocess_work_dir": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_strictly_validates_train_status": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_runner_wraps_malformed_eval_scalar_and_status_fields": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_train_rejects_symlinked_checkpoint_output_without_following_it": "skipped 'file symlinks unavailable: OSError'",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_train_requires_checkpoint_output_contract_before_execution": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_summary_missing_uses_exactly_one_reserved_infrastructure_retry": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_train_rejects_duplicate_agent_configuration_before_launch": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_train_rejects_execution_device_drift_before_launch": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_train_rejects_forged_program_checksum_argv_before_launch": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_train_rejects_mutated_candidate_artifact_before_launch": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_unbound_eval_rejects_summary_gpu_process_binding_claim": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_unbound_train_rejects_summary_gpu_process_binding_claim": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_unclassified_train_failure_is_infrastructure_owned": "ok",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_warm_start_train_rejects_checkpoint_path_drift_before_launch": "ok",
+      "tests.unit.test_task_prompt_adapter.TaskPromptAdapterTests.test_neutral_prompt_adapter_carries_task_memory_in_canonical_feedback_only": "ok",
+      "tests.unit.test_task_prompt_adapter.TaskPromptAdapterTests.test_non_push_full_prompt_payload_does_not_expose_push_reward_inputs": "ok",
+      "tests.unit.test_task_prompt_adapter.TaskPromptAdapterTests.test_public_context_builder_includes_sanitized_task_prompt_sections": "ok",
+      "tests.unit.test_task_prompt_adapter.TaskPromptAdapterTests.test_task_plugin_exposes_neutral_prompt_adapter_without_push_semantics": "ok",
+      "tests.unit.test_task_prompt_adapter.TaskPromptAdapterTests.test_task_prompt_sections_reject_context_explosion": "ok",
+      "tests.unit.test_task_prompt_adapter.TaskPromptAdapterTests.test_task_prompt_sections_reject_curriculum_interfaces": "ok",
+      "tests.unit.test_task_prompt_adapter.TaskPromptAdapterTests.test_task_prompt_sections_scrub_absolute_paths": "ok",
+      "tests.unit.test_task_visual_observation.SnapshotNumericAlignmentTests.test_push_missing_fields_and_tolerances": "ok",
+      "tests.unit.test_task_visual_observation.SnapshotNumericAlignmentTests.test_push_overlap_uses_named_velocity_layout_and_only_real_samples": "ok",
+      "tests.unit.test_task_visual_observation.SnapshotNumericAlignmentTests.test_push_wrong_quaternion_velocity_or_rows_are_mismatches": "ok",
+      "tests.unit.test_task_visual_observation.SnapshotNumericAlignmentTests.test_stair_actual_samples_step_lookup_and_joint_binding": "ok",
+      "tests.unit.test_task_visual_observation.SnapshotNumericAlignmentTests.test_stair_missing_data_and_binding_never_pass": "ok",
+      "tests.unit.test_task_visual_observation.SnapshotNumericAlignmentTests.test_stair_named_binding_missing_names_are_incomplete_and_bad_counts_fail": "ok",
+      "tests.unit.test_task_visual_observation.SnapshotNumericAlignmentTests.test_stair_recorded_joint_names_resolve_permutation_and_check_explicit_ids": "ok",
+      "tests.unit.test_task_visual_observation.SnapshotNumericAlignmentTests.test_stair_wrong_row_quaternion_order_and_joint_order_detected": "ok",
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_binding": "ok",
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_bound_array_snapshot_and_shape_validation": "ok",
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_cited_view_pairs_and_no_time_from_two_views": "ok",
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_claim_requires_exact_object_and_boolean_without_legacy_strings": "ok",
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_explicit_polarity_and_strict_threshold_boundaries": "ok",
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_independent_claim_arrays": "ok",
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_missing_measurements_do_not_satisfy_negative_assertions": "ok",
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_push_attachment": "ok",
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_push_measurements": "ok",
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_push_s0_uses_recorded_references_not_velocity": "ok",
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_push_visual_episode_priority_uses_logical_exemplar_and_known_terminal_failure": "ok",
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_s0_source_binding_and_public_whitelist": "ok",
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_stair_asset_bound_forward_s0_and_blind_definition": "ok",
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_stair_attachment": "ok",
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_stair_forward_uses_supplied_axis_and_quaternion_sign": "ok",
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_stair_measurements": "ok",
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_stair_s0_reference_and_missing_fields": "ok",
+      "tests.unit.test_task_visual_observation.TaskVisualObservationTests.test_stair_visual_episode_priority_reuses_numeric_exemplar_then_terminal_failure": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_aggregate_is_primary_only_and_cannot_accept_duplicate_source": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_all_failure_card_has_no_success_reference_fallback": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_all_final_pointers_resolve_to_same_record_and_source": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_all_sentences_have_resolvable_operands_and_exact_reading_view": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_causal_or_strong_behavior_labels_are_not_generated": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_cohort_extra_operand_cannot_override_derived_unit": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_cohort_four_parent_metric_substitutions_rejected_after_rerender_rehash": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_cohort_label_unit_entity_and_combo_literal_mutations_rejected": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_cohort_legal_metric_switch_derives_new_semantics": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_cohort_metric_unit_must_match_its_descriptor": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_composite_template_operand_roles_cannot_be_swapped": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_current_history_swap_is_not_accepted_by_structural_validation": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_deleted_operand_and_wrong_byte_offset_fail": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_false_numeric_sentence_cannot_pass_with_valid_schema": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_force_entity_order_cannot_be_changed_as_a_free_label": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_four_artifact_build_and_no_overwrite": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_frozen_examples_not_silently_omitted_and_omissions_explicit": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_full_evidence_hash_checked_not_only_selected_example_lines": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_header_trial_checkpoint_protocol_permission_mutations_rejected": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_inverted_before_entity_must_match_off_interval": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_missing_attitude_endpoints_are_called_first_last_valid_records": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_missing_measurement_is_not_silently_unprocessed": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_no_raw_paths_in_sentences_or_reading_view_and_p1c_explicit": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_one_row_terminal_current_and_history_are_separate_sentences": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_output_is_deterministic": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_policy_main_view_is_small_without_dropping_audit_claims": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_same_foot_other_episode_cannot_be_substituted_under_original_scope": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_success_and_before_claims_require_actual_premises": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_unsupported_template_and_kind_status_rejected": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_wrong_entity_is_rejected_even_after_rehash": "ok",
+      "tests.unit.test_trajectory_card.CardTests.test_wrong_manifest_hash_rejected": "ok",
+      "tests.unit.test_trajectory_card_verification.CardRawAuditTests.test_all_metrics_and_intervals_match_independent_raw_calculations": "ok",
+      "tests.unit.test_trajectory_card_verification.CardRawAuditTests.test_alternating_foot_contributor_count_and_entity_order_mutations": "ok",
+      "tests.unit.test_trajectory_card_verification.CardRawAuditTests.test_current_history_swap_rejected_by_raw_not_claim_template": "ok",
+      "tests.unit.test_trajectory_card_verification.CardRawAuditTests.test_force_share_cannot_be_replaced_by_marker_occupancy": "ok",
+      "tests.unit.test_trajectory_card_verification.CardRawAuditTests.test_group_denominator_unknown_and_membership_mutations": "ok",
+      "tests.unit.test_trajectory_card_verification.CardRawAuditTests.test_missing_history_unknown_is_checked_against_absent_raw_arrays": "ok",
+      "tests.unit.test_trajectory_card_verification.CardRawAuditTests.test_unknown_progress_window_cannot_be_counted_as_negative": "ok",
+      "tests.unit.test_trajectory_cohort.CohortTests.test_activity_longest_run_preserves_alternating_entity_contributions": "ok",
+      "tests.unit.test_trajectory_cohort.CohortTests.test_all_failure_no_parent_and_exact_cell_facets": "ok",
+      "tests.unit.test_trajectory_cohort.CohortTests.test_any_moving_witness_with_other_unknown_all_low_requires_all_feet": "ok",
+      "tests.unit.test_trajectory_cohort.CohortTests.test_complete_runs_exclude_left_and_right_censoring_and_keep_one_sample": "ok",
+      "tests.unit.test_trajectory_cohort.CohortTests.test_cross_source_and_duplicate_rejected": "ok",
+      "tests.unit.test_trajectory_cohort.CohortTests.test_current_history_separate_and_inversion_not_upright_foot_label": "ok",
+      "tests.unit.test_trajectory_cohort.CohortTests.test_different_dt_and_length_distinguish_episode_equal_from_cell_weight": "ok",
+      "tests.unit.test_trajectory_cohort.CohortTests.test_endpoint_net_remains_valid_while_incomplete_path_is_unknown": "ok",
+      "tests.unit.test_trajectory_cohort.CohortTests.test_force_share_eligibility_uses_p1a_sum_n_not_dt_scaled_integral": "ok",
+      "tests.unit.test_trajectory_cohort.CohortTests.test_gap_cannot_prove_episode_absence_but_witness_proves_presence": "ok",
+      "tests.unit.test_trajectory_cohort.CohortTests.test_low_progress_active_and_quiet_records_are_disjoint_and_xy_strict": "ok",
+      "tests.unit.test_trajectory_cohort.CohortTests.test_missing_foot_does_not_remove_root_or_other_foot_denominator": "ok",
+      "tests.unit.test_trajectory_cohort.CohortTests.test_missing_velocity_and_progress_stay_unknown": "ok",
+      "tests.unit.test_trajectory_cohort.CohortTests.test_norm_and_fz_have_independent_samples_and_episode_denominators": "ok",
+      "tests.unit.test_trajectory_cohort.CohortTests.test_presence_unknown_without_witness_not_negative": "ok",
+      "tests.unit.test_trajectory_cohort.CohortTests.test_representative_ties_deterministic_and_success_retreat_is_retained": "ok",
+      "tests.unit.test_trajectory_cohort.CohortTests.test_same_and_alternating_feet_do_not_become_same_long_state": "ok",
+      "tests.unit.test_trajectory_cohort.CohortTests.test_successful_long_mode_witness_and_same_cell_failure_both_selected": "ok",
+      "tests.unit.test_trajectory_cohort.CohortTests.test_unprocessed_unknown_and_negative_are_distinct": "ok",
+      "tests.unit.test_trajectory_cohort.CohortTests.test_zero_force_is_valid_off_but_share_unknown": "ok",
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_complete_inventory_maps_derived_locators_without_inventing_raw_channels": "ok",
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_deleted_mean_body_position_is_unsupported_and_cannot_pass": "ok",
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_deleted_short_transition_and_wrong_censor_fail": "ok",
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_float_rounding_is_reported_and_outside_tolerance_fails": "ok",
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_integer_and_boolean_values_never_use_float_tolerance": "ok",
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_inventory_and_locator_mutations_fail_the_complete_acceptance_gate": "ok",
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_missing_field_is_unsupported_even_if_other_values_match": "ok",
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_role_order_rejected_instead_of_relabeling": "ok",
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_same_display_name_does_not_merge_sources": "ok",
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_short_contact_and_both_censored_sides_are_preserved": "ok",
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_source_identity_rejects_float_and_boolean_indices": "ok",
+      "tests.unit.test_trajectory_evidence_verification.ComparisonTests.test_threshold_source_is_read_from_record_not_inferred_from_magnitude": "ok",
+      "tests.unit.test_trajectory_evidence_verification.InputIntegrityTests.test_changed_chunk_rows_rejected_even_with_updated_output_hash": "ok",
+      "tests.unit.test_trajectory_evidence_verification.InputIntegrityTests.test_evidence_tamper_fails_before_numeric_mapping": "ok",
+      "tests.unit.test_trajectory_evidence_verification.InputIntegrityTests.test_record_source_splice_rejected_even_with_matching_file_hash": "ok",
+      "tests.unit.test_trajectory_evidence_verification.InputIntegrityTests.test_reference_run_and_environment_require_exact_integers": "ok",
+      "tests.unit.test_trajectory_evidence_verification.InputIntegrityTests.test_same_length_row_shift_fails_frozen_chunk_clock_binding": "ok",
+      "tests.unit.test_trajectory_evidence_verification.InputIntegrityTests.test_successful_stream_reader_preserves_selected_ids": "ok",
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_all_records_are_json_safe_unique_and_relations_resolve_to_operands": "ok",
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_all_sixteen_contact_combinations_have_frozen_lsb_role_encoding": "ok",
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_backtracking_and_return_do_not_reassign_success": "ok",
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_current_history_and_terminal_manager_event_remain_separate": "ok",
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_dynamic_entity_counts_and_joint_mapping_use_binding_order": "ok",
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_endpoint_margin_records_include_position_operand_and_frozen_result": "ok",
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_episode_equal_and_cell_time_weighted_fractions_have_explicit_units": "ok",
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_equal_occupancy_different_order_retains_different_events": "ok",
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_force_integral_does_not_bridge_gap_or_invalid_foot_sample": "ok",
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_force_norm_signed_vertical_share_and_trapezoid_are_distinct": "ok",
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_force_zero_denominator_is_unavailable_not_zero_share": "ok",
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_full_body_rotation_and_world_translation_do_not_fake_relative_motion": "ok",
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_fz_component_keeps_its_own_valid_denominator": "ok",
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_invalid_manager_flag_is_unknown_and_json_safe_without_losing_other_evidence": "ok",
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_invalid_quaternion_only_blocks_its_dependent_measurements": "ok",
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_low_progress_requires_full_point03_window_and_records_confirmation": "ok",
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_low_progress_strict_threshold_and_motion_are_separate": "ok",
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_missing_force_and_invalid_single_foot_preserve_unaffected_root": "ok",
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_normalized_quaternion_controls_primary_sign_raw_is_separate": "ok",
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_paths_differences_and_drawdown_search_do_not_cross_missing_step": "ok",
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_planar_predicate_does_not_require_vertical_velocity_or_attitude": "ok",
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_strict_force_and_planar_speed_boundaries_discriminate_xyz": "ok",
+      "tests.unit.test_trajectory_measurement.TrajectoryMeasurementTests.test_task_projection_and_paths_are_distinct_from_net_displacement": "ok",
+      "tests.unit.test_trajectory_temporal.NumericEpisodeContractTests.test_control_clock_is_explicit_and_has_no_invented_t0": "ok",
+      "tests.unit.test_trajectory_temporal.NumericEpisodeContractTests.test_locator_shapes_bounds_and_integer_coordinates_are_required": "ok",
+      "tests.unit.test_trajectory_temporal.NumericEpisodeContractTests.test_predicates_preserve_unknown_and_reject_invalid_values_before_coercion": "ok",
+      "tests.unit.test_trajectory_temporal.NumericEpisodeContractTests.test_record_identity_changes_with_entity_channel_and_configuration": "ok",
+      "tests.unit.test_trajectory_temporal.NumericEpisodeContractTests.test_reset_duplicate_or_invalid_steps_are_rejected": "ok",
+      "tests.unit.test_trajectory_temporal.NumericEpisodeContractTests.test_sealed_split_rejected_even_when_archive_is_frozen": "ok",
+      "tests.unit.test_trajectory_temporal.NumericEpisodeContractTests.test_source_reference_locates_exact_chunk_rows_and_environment": "ok",
+      "tests.unit.test_trajectory_temporal.NumericEpisodeContractTests.test_stable_ids_preserve_source_trial_and_episode_namespaces": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_absence_is_three_valued_and_counterevidence_is_decisive": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_all_constant_runs_retain_single_sample_and_both_censor_directions": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_conjunction_retains_window_operands_for_state_and_transition": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_conjunction_uses_three_valued_logic_and_preserves_operands": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_event_brackets_overlap_or_touch_without_definite_before": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_left_track_unknown_also_bounds_candidate_search": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_nearest_onset_equal_distance_chooses_earlier_without_deleting_events": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_one_sample_contact_interrupts_absence_without_debounce": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_onset_pairing_can_reuse_target_and_keep_unpaired_reference": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_onset_pairing_does_not_cross_unknown_or_missing_steps": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_pair_reference_covers_excluded_earlier_tie_candidate": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_pair_search_covers_real_window_dependencies_for_either_operand": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_pair_search_gap_reference_includes_both_sides_of_gap": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_pair_search_includes_unknown_boundary_rows_but_not_other_islands": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_same_foot_and_alternating_feet_cannot_be_merged": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_same_named_tracks_from_another_source_cannot_be_composed": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_same_occupancy_different_order_has_different_runs_and_events": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_same_step_onsets_do_not_claim_physical_or_strict_readout_order": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_state_relations_keep_operand_ids_and_readout_limits": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_state_relations_reject_foreign_episode_nonstate_or_false_interval": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_track_length_mismatch_is_rejected_by_public_operators": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_two_sample_state_records_have_unique_ids_despite_shared_brackets": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_unknown_and_step_gap_split_runs_without_invented_transitions": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_unpaired_reference_covers_entire_negative_search": "ok",
+      "tests.unit.test_trajectory_temporal.TemporalEvidenceTests.test_unpaired_without_joint_reference_coverage_keeps_local_unknown_proof": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_absent_mapping_is_visual_only_even_without_numeric_binding": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_actual_request_contains_images_but_no_private_identity": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_alias_identity_cannot_change_between_calls": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_ambiguous_same_alias_windows_and_duplicate_view_steps_are_rejected": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_base64_random_words_are_not_text_leaks": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_budget_includes_retries_and_rejects_without_mutation": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_budget_media_and_prepared_request_cannot_disagree": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_call_receipts_exact_request_usage_and_fingerprint": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_candidate_names_remain_proposals_and_merge_history_is_required": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_custom_outcome_enum_is_scanned": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_dual_view_subframes_stay_cumulative_across_calls": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_episode_priority_does_not_override_conflict_or_semantic_admission": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_episode_priority_only_accepts_approved_alias_integer_ranks": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_explicit_episode_priority_precedes_temporal_and_keeps_original_evidence": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_forbidden_inferences_are_task_checked_before_numeric_mapping": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_grid_pixels_match_frame_order_roi_and_step_glyphs": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_incomplete_identity_or_foreign_numeric_input_is_rejected": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_invalid_containers_preserve_three_raw_observations_without_s3": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_json_escapes_are_scanned_after_decoding": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_measurement_claim_is_explicit_and_task_registered": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_missing_or_changed_fingerprint_is_not_confirmation_evidence": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_negative_assertion_rendering_does_not_certify_visual_prose": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_non_list_containers_are_not_coerced_or_allowed_to_hide_siblings": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_outcome_tokens_are_rejected_in_public_text_and_s0_keys": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_provider_thinking_setting_is_sealed_and_sent": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_replay_cannot_borrow_original_episode_numeric_evidence": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_s0_binding_cannot_borrow_another_declared_source_or_episode": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_s0_whitelist_defines_unit_body_reference_frame_and_source": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_short_report_keeps_verbatim_conflict_and_all_output_denominator": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_short_report_prefers_process_over_scalar_checked_static_pose": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_subframes_pixels_bytes_cost_and_episode_caps": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_task_mapping_preserves_conflict_without_rewriting_observation": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_temporal_change_needs_time_and_a_shared_view": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_transport_error_stays_charged_and_is_recorded": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_uncertainty_allows_120_characters_while_text_stays_at_200": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_unknown_bodies_and_excess_observations_are_not_filtered": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_unqualified_normality_is_preserved_but_not_projected": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_v3_dual_view_references_bind_pixels_without_spending_extra_episodes": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_v3_rejects_redundant_v2_fields_instead_of_repairing_them": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_view_step_pair_must_exist_not_just_each_component": "ok",
+      "tests.unit.test_visual_observer.VisualObserverTests.test_window_and_sampling_are_derived_from_citations_not_all_input_frames": "ok",
+      "tests.unit.test_visual_review.VisualReviewTests.test_changed_text_uncertainty_identity_and_images_expire_review": "ok",
+      "tests.unit.test_visual_review.VisualReviewTests.test_incomplete_duplicate_unexplained_and_cross_case_reviews_are_rejected": "ok",
+      "tests.unit.test_visual_review.VisualReviewTests.test_numeric_consistency_cannot_replace_semantic_review": "ok",
+      "tests.unit.test_visual_review.VisualReviewTests.test_support_does_not_erase_numeric_conflict_or_container_failure": "ok",
+      "tests.unit.test_visual_review.VisualReviewTests.test_task_rejection_does_not_rebind_or_admit_reviewed_observation": "ok",
+      "tests.unit.test_visual_review.VisualReviewTests.test_verdicts_keep_denominator_and_original_audit": "ok",
+      "tests.unit.test_stair_trajectory_v1.StairTrajectoryV1Tests.test_all_success_without_manager_trigger_retains_missing_history_witness": "ok"
+    }
+  },
+  "frozen_gate": {
+    "necessary": {
+      "counts": {
+        "pass": 247
+      },
+      "fact_count": 247,
+      "compared_scalar_fields": 4168
+    },
+    "full": {
+      "counts": {
+        "pass": 309
+      },
+      "fact_count": 309,
+      "compared_scalar_fields": 45157
+    }
+  },
+  "v2_compat": [
+    {
+      "passed": true,
+      "source": "k1",
+      "base_commit": "aaf67aa23bd7e4aa8aae7a9ec9539f3aa45c6c3e",
+      "episodes": 864,
+      "record_bytes_compared": 515628,
+      "numeric_sha256": "0587de5718b29ca642f2373bf35421fc9e9a25cd11665756db018826ffc011ed",
+      "all_card_claims_and_ids_equal": 250,
+      "baseline_code_sha256": {
+        "adapter": "45f5c7315123d99b6a49231ee66e051834b3a5ebcc06ffe7adfee74f8a99a3ad",
+        "measurement": "23a85e6e5a7665c152d6319c62eec60850c57743d488c2449548001278bc8c49",
+        "report": "e859d95a41935ba40f80305a93b2a7436948a72ddeff5d33ef88beb521bc9112"
+      },
+      "wall_seconds": 98.45654919999652,
+      "storage": "only small old source snapshots; no duplicate numeric evidence"
+    },
+    {
+      "passed": true,
+      "source": "k3",
+      "base_commit": "aaf67aa23bd7e4aa8aae7a9ec9539f3aa45c6c3e",
+      "episodes": 864,
+      "record_bytes_compared": 593129,
+      "numeric_sha256": "a4df5bd24c116e5b97090a20e066fe45d65d4ed2a770b53cc72e6b8f24e27442",
+      "all_card_claims_and_ids_equal": 400,
+      "baseline_code_sha256": {
+        "adapter": "45f5c7315123d99b6a49231ee66e051834b3a5ebcc06ffe7adfee74f8a99a3ad",
+        "measurement": "23a85e6e5a7665c152d6319c62eec60850c57743d488c2449548001278bc8c49",
+        "report": "e859d95a41935ba40f80305a93b2a7436948a72ddeff5d33ef88beb521bc9112"
+      },
+      "wall_seconds": 131.0234154999489,
+      "storage": "only small old source snapshots; no duplicate numeric evidence"
+    }
+  ],
+  "frozen_card_compat": {
+    "passed": true,
+    "byte_identical_files": {
+      "evidence.jsonl": "58f1014f557847c5ee32a3c03e4bebf4becdc2bc35552c6ac948a5fcc576af6e",
+      "policy_card.json": "d83ddf0b8ee28e8d00705de81029930474b47ba230532596d50aabd2e9b0d9a2",
+      "policy_card_zh.md": "c5589b8b79efd605c5d5d305a84ba58f246de3fbba55a39d48cff0d7f90c90ac"
+    },
+    "wall_seconds": 27.870076599996537
+  },
+  "real_guards": {
+    "passed": true,
+    "checks": [
+      {
+        "source": "k1",
+        "case": "swapped_source",
+        "passed": true,
+        "error": "trajectory card source/trial/checkpoint/task/catalog mismatch"
+      },
+      {
+        "source": "k1",
+        "case": "mandatory_budget",
+        "passed": true,
+        "error": "trajectory mandatory facts exceed byte budget: 7773 > 7772"
+      },
+      {
+        "source": "k2",
+        "case": "swapped_source",
+        "passed": true,
+        "error": "trajectory card source/trial/checkpoint/task/catalog mismatch"
+      },
+      {
+        "source": "k2",
+        "case": "mandatory_budget",
+        "passed": true,
+        "error": "trajectory mandatory facts exceed byte budget: 8032 > 8031"
+      },
+      {
+        "source": "k3",
+        "case": "swapped_source",
+        "passed": true,
+        "error": "trajectory card source/trial/checkpoint/task/catalog mismatch"
+      },
+      {
+        "source": "k3",
+        "case": "mandatory_budget",
+        "passed": true,
+        "error": "trajectory mandatory facts exceed byte budget: 8127 > 8126"
+      }
+    ]
+  },
+  "review": {
+    "identity": "read-only agent independently verified 87 NPZ SHA and identities, K2 endpoint, P1d 634+8/82 errata; PASS",
+    "semantics": "read-only Astra ultra reviewed final diff, every public sentence and template representatives, all source audit results and v2 compatibility; PASS",
+    "scope": "agent review did not independently execute tests; developer NumPy oracle has no production translator/renderer imports"
+  },
+  "e2": {
+    "three_actual_weights": true,
+    "three_independent_random_experiments": false,
+    "unseen_policy_qualified": false,
+    "strict_parent_difference": false,
+    "causal_improvement": false,
+    "push_p3_p4": false,
+    "external_model_calls": 0,
+    "gpu_runs_by_p2a": 0,
+    "training_runs": 0
+  }
+}

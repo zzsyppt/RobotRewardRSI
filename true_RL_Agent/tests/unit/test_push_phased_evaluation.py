@@ -158,6 +158,21 @@ class PushPhasedEvaluationTests(unittest.TestCase):
                     self.assertEqual(actual.metrics[key], expected.metrics[key])
                 self.assertEqual(actual.metrics["sealed_validation_gate"]["status"], "pass")
 
+    def test_full_assembly_rejects_missing_phase_or_receipt(self):
+        plan = self.plan(ExperimentSubject.reference("complete-reference"))
+        results = [self.phase(plan, phase) for phase in EvaluationPhase]
+        receipts = self.receipts(plan, results)
+        for missing in EvaluationPhase:
+            with self.subTest(missing_phase=missing), self.assertRaisesRegex(ValueError, "every evaluation phase"):
+                self.adapter.assemble_reference_full_summary(eval_plan=plan,
+                    phase_results=[r for r in results if r.phase != missing], phase_receipt_refs=receipts)
+            with self.subTest(missing_receipt=missing), self.assertRaises(ValueError):
+                self.adapter.assemble_reference_full_summary(eval_plan=plan, phase_results=results,
+                    phase_receipt_refs={p: ref for p, ref in receipts.items() if p != missing})
+        with self.assertRaisesRegex(ValueError, "duplicate phase"):
+            self.adapter.assemble_reference_full_summary(eval_plan=plan,
+                phase_results=[*results, results[0]], phase_receipt_refs=receipts)
+
     def test_selector_uses_dev_behavior_and_stable_ties(self):
         guard = self.plan(ExperimentSubject.reference("parent"))
         guard_screen = self.screen(guard, self.phase(guard, EvaluationPhase.PUBLIC_DEV), "guard_reference")

@@ -1,0 +1,2226 @@
+{
+  "schema_version": "stair.p2c1.verification.v1",
+  "status": "development_pass_root_gate_pending",
+  "baseline_commit": "ca140cfd1e6084118e0c36a4c28f8fe97a2dc294",
+  "pre_raw_rule_freeze_commit": "c7aa200b62f697d1b16327c1278e2f89c067f60d",
+  "branch": "codex/trajectory-translator-upgrade",
+  "only_writer": "root development thread",
+  "stage": "P2c1 only; offline current-marker cycles/phase; no nominal-limit or terrain implementation",
+  "catalog": "trajectory.p0.measurements.v3 additive to v2; old v2 default and replay preserved",
+  "tests": {
+    "cycles": {
+      "tests": 15,
+      "pass": 15,
+      "fail": 0,
+      "error": 0,
+      "skip": 0
+    },
+    "compatibility": {
+      "tests": 139,
+      "pass": 139,
+      "fail": 0,
+      "error": 0,
+      "skip": 0
+    }
+  },
+  "commands": [
+    {
+      "name": "cycles",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\tests_01\\cycles.memory.json",
+        "-m",
+        "unittest",
+        "tests.unit.test_trajectory_cycles",
+        "tests.unit.test_stair_cycle_supplement",
+        "-v"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.unit.test_trajectory_cycles",
+        "tests.unit.test_stair_cycle_supplement",
+        "-v"
+      ],
+      "wall_seconds": 5.6948649999685585,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 111456256
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "3c6c9cfb3c2afade7208fab86252f9e46c8243f8fc6c300c75372925d6ae9f74",
+      "stdout": {
+        "path": "outputs/p2c1/tests_01/cycles.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "stderr": {
+        "path": "outputs/p2c1/tests_01/cycles.stderr.txt",
+        "sha256": "3c6c9cfb3c2afade7208fab86252f9e46c8243f8fc6c300c75372925d6ae9f74",
+        "bytes": 2730
+      }
+    },
+    {
+      "name": "compatibility",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\tests_01\\compatibility.memory.json",
+        "-m",
+        "unittest",
+        "tests.unit.test_stair_trajectory_report",
+        "tests.unit.test_stair_trajectory_pipeline",
+        "tests.unit.test_trajectory_card",
+        "tests.unit.test_trajectory_measurement",
+        "tests.unit.test_trajectory_cohort",
+        "tests.unit.test_push_trajectory_pipeline",
+        "tests.unit.test_push_trajectory",
+        "-v"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.unit.test_stair_trajectory_report",
+        "tests.unit.test_stair_trajectory_pipeline",
+        "tests.unit.test_trajectory_card",
+        "tests.unit.test_trajectory_measurement",
+        "tests.unit.test_trajectory_cohort",
+        "tests.unit.test_push_trajectory_pipeline",
+        "tests.unit.test_push_trajectory",
+        "-v"
+      ],
+      "wall_seconds": 51.20506549999118,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 439775232
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e76b2207385f103ad1e7d0c7bd001d77dcae6006a4c2343e8ddb3e49bc7cba00",
+      "stdout": {
+        "path": "outputs/p2c1/tests_01/compatibility.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "stderr": {
+        "path": "outputs/p2c1/tests_01/compatibility.stderr.txt",
+        "sha256": "e76b2207385f103ad1e7d0c7bd001d77dcae6006a4c2343e8ddb3e49bc7cba00",
+        "bytes": 25981
+      }
+    },
+    {
+      "name": "build_k1",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\real_01\\build_k1.memory.json",
+        "scripts/build_stair_cycle_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1d\\raw\\k1_numeric_evidence\\manifest.json",
+        "--manifest-sha256",
+        "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+        "--source-id",
+        "k1",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\real_01\\k1",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k1\\public.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/build_stair_cycle_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1d\\raw\\k1_numeric_evidence\\manifest.json",
+        "--manifest-sha256",
+        "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+        "--source-id",
+        "k1",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\real_01\\k1",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k1\\public.json"
+      ],
+      "wall_seconds": 11.30951399996411,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 297869312
+      },
+      "stdout_sha256": "89aef3424d4198f495775e482b53d9c524ba8812cb2926ec4048f44aeb88ce02",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": {
+        "path": "outputs/p2c1/real_01/build_k1.stdout.txt",
+        "sha256": "89aef3424d4198f495775e482b53d9c524ba8812cb2926ec4048f44aeb88ce02",
+        "bytes": 5668
+      },
+      "stderr": {
+        "path": "outputs/p2c1/real_01/build_k1.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    {
+      "name": "oracle_k1",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\real_01\\oracle_k1.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c1/audit_raw.py",
+        "--source",
+        "k1",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\real_01\\k1"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c1/audit_raw.py",
+        "--source",
+        "k1",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\real_01\\k1"
+      ],
+      "wall_seconds": 8.030996200046502,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 255303680
+      },
+      "stdout_sha256": "54be90aadefb7c969379bc7fe56cbfdcc7fc249e8a96d7eddf315d32cd639062",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": {
+        "path": "outputs/p2c1/real_01/oracle_k1.stdout.txt",
+        "sha256": "54be90aadefb7c969379bc7fe56cbfdcc7fc249e8a96d7eddf315d32cd639062",
+        "bytes": 791
+      },
+      "stderr": {
+        "path": "outputs/p2c1/real_01/oracle_k1.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    {
+      "name": "build_k2",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\real_01\\build_k2.memory.json",
+        "scripts/build_stair_cycle_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\raw\\k2\\manifest.json",
+        "--manifest-sha256",
+        "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+        "--source-id",
+        "k2",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\real_01\\k2",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k2\\public.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/build_stair_cycle_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\raw\\k2\\manifest.json",
+        "--manifest-sha256",
+        "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+        "--source-id",
+        "k2",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\real_01\\k2",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k2\\public.json"
+      ],
+      "wall_seconds": 10.91922240005806,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 275374080
+      },
+      "stdout_sha256": "65207807c39ddf1069f7a3a391d7eef10e3237301b73c579e2800833dbb33584",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": {
+        "path": "outputs/p2c1/real_01/build_k2.stdout.txt",
+        "sha256": "65207807c39ddf1069f7a3a391d7eef10e3237301b73c579e2800833dbb33584",
+        "bytes": 5638
+      },
+      "stderr": {
+        "path": "outputs/p2c1/real_01/build_k2.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    {
+      "name": "oracle_k2",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\real_01\\oracle_k2.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c1/audit_raw.py",
+        "--source",
+        "k2",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\real_01\\k2"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c1/audit_raw.py",
+        "--source",
+        "k2",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\real_01\\k2"
+      ],
+      "wall_seconds": 8.033301300019957,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 256524288
+      },
+      "stdout_sha256": "1ed9a904dc7bec02beaea378adb26253723160e502bc87efe0b64e93c2d29570",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": {
+        "path": "outputs/p2c1/real_01/oracle_k2.stdout.txt",
+        "sha256": "1ed9a904dc7bec02beaea378adb26253723160e502bc87efe0b64e93c2d29570",
+        "bytes": 764
+      },
+      "stderr": {
+        "path": "outputs/p2c1/real_01/oracle_k2.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    {
+      "name": "build_k3",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\real_01\\build_k3.memory.json",
+        "scripts/build_stair_cycle_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p0\\raw\\numeric_evidence\\manifest.json",
+        "--manifest-sha256",
+        "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+        "--source-id",
+        "k3",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\real_01\\k3",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k3\\public.json"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/build_stair_cycle_supplement.py",
+        "--manifest",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p0\\raw\\numeric_evidence\\manifest.json",
+        "--manifest-sha256",
+        "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+        "--source-id",
+        "k3",
+        "--output",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\real_01\\k3",
+        "--base-public",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\k3\\public.json"
+      ],
+      "wall_seconds": 12.087096399976872,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 317857792
+      },
+      "stdout_sha256": "f34f5c2e6d0568eec26b596128621f419f82b1922410997d5fc59e2d19ff37a5",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": {
+        "path": "outputs/p2c1/real_01/build_k3.stdout.txt",
+        "sha256": "f34f5c2e6d0568eec26b596128621f419f82b1922410997d5fc59e2d19ff37a5",
+        "bytes": 5691
+      },
+      "stderr": {
+        "path": "outputs/p2c1/real_01/build_k3.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    {
+      "name": "oracle_k3",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\real_01\\oracle_k3.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c1/audit_raw.py",
+        "--source",
+        "k3",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\real_01\\k3"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c1/audit_raw.py",
+        "--source",
+        "k3",
+        "--directory",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\real_01\\k3"
+      ],
+      "wall_seconds": 8.168346200021915,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 268181504
+      },
+      "stdout_sha256": "cd27271ca7118be57c0c4805016001de74fa674a3541e33aa478240ef413724e",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": {
+        "path": "outputs/p2c1/real_01/oracle_k3.stdout.txt",
+        "sha256": "cd27271ca7118be57c0c4805016001de74fa674a3541e33aa478240ef413724e",
+        "bytes": 792
+      },
+      "stderr": {
+        "path": "outputs/p2c1/real_01/oracle_k3.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    {
+      "name": "old_artifacts",
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\NEW_SYS\\P2b1\\run_final.py",
+        "--child",
+        "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2c1\\compat\\old_artifacts.memory.json",
+        "PLAN/feedback_sys/NEW_SYS/P2c1/verify_compatibility.py"
+      ],
+      "exit_code": 0,
+      "logical_argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P2c1/verify_compatibility.py"
+      ],
+      "wall_seconds": 3.393789399997331,
+      "memory": {
+        "scope": "actual_python_process_not_windows_venv_launcher",
+        "peak_working_set_bytes": 113782784
+      },
+      "stdout_sha256": "12e18180e93c76e068ad611c3bb8ee8ce3c419bea252dba5eb5688c960c79aaa",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": {
+        "path": "outputs/p2c1/compat/old_artifacts.stdout.txt",
+        "sha256": "12e18180e93c76e068ad611c3bb8ee8ce3c419bea252dba5eb5688c960c79aaa",
+        "bytes": 8115
+      },
+      "stderr": {
+        "path": "outputs/p2c1/compat/old_artifacts.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    }
+  ],
+  "sources": [
+    {
+      "source_id": "k1",
+      "oracle": {
+        "status": "PASS",
+        "source_id": "k1",
+        "episodes": 864,
+        "measurement_records_checked": 8640,
+        "chunk_sha256_checked": 27,
+        "source_lock_sha256": "18f585ac6c10e87a0cd8aa61299ab06adac636fc4494fd3e1fb2fdd651265dcf",
+        "source_manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+        "supplement_manifest_sha256": "89aef3424d4198f495775e482b53d9c524ba8812cb2926ec4048f44aeb88ce02",
+        "found_example_categories": [
+          "period_median_deviation",
+          "qualified",
+          "period_cv",
+          "debounce_sensitive",
+          "boundary_context_insufficient",
+          "qualified_phase",
+          "insufficient_cycles"
+        ],
+        "wall_seconds": 7.75875190005172,
+        "oracle": "independent scalar formulas + direct locked NPZ; no production cycle/adapter imports"
+      },
+      "manifest": {
+        "schema_version": "stair.cycle_supplement_manifest.v1",
+        "complete": true,
+        "catalog_version": "trajectory.p0.measurements.v3",
+        "base_catalog_version": "trajectory.p0.measurements.v2",
+        "source_manifest_ref": {
+          "schema_version": "true_rl_agent.numeric_evidence.ref.v1",
+          "manifest_path": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1d\\raw\\k1_numeric_evidence\\manifest.json",
+          "manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3"
+        },
+        "binding": {
+          "manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+          "trial_id": "stair-dev-replay-fca6a59c8142d012-eval-public-dev",
+          "checkpoint_hash": "sha256:fca6a59c8142d0120c5b534addab03885995dd64931fc3b974b9f94b997fe729",
+          "task_id": "unitree_stair_climbing",
+          "evaluation_binding": {
+            "schema_version": "true_rl_agent.evaluation.binding.v1",
+            "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+            "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+            "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+            "seed_cohort_hash": "a7830816449821400a6ae51fabbb046f8d98ab3084bfcaeb56b240249ea790ea",
+            "evaluation_binding_hash": "ff0b754f727af4df616e77d10f8f67019cea485ed76b1b9c6b00cf902c451178"
+          },
+          "seed_namespace": "formal_reference_candidate_eval",
+          "robot_projection_hash": "ea9d42a4012815a8f5ebf6b35b93303111477817feb5a1391fa807efc6167a14",
+          "semantics_hash": "14d8aaa1193c9ad7bb1835a2acf94a96bf7b33b3c0a7db9215910e931c29e005",
+          "catalog_version": "trajectory.p0.measurements.v3",
+          "acceptance_split": "public_dev",
+          "profile": "stair.unified_first_episode.v2",
+          "entities": {
+            "root": [
+              "robot_0.root"
+            ],
+            "support": [
+              "robot_0.support.FL_foot",
+              "robot_0.support.FR_foot",
+              "robot_0.support.RL_foot",
+              "robot_0.support.RR_foot"
+            ],
+            "forbidden": [
+              "robot_0.body.base"
+            ],
+            "joints": [
+              "FL_hip_joint",
+              "FR_hip_joint",
+              "RL_hip_joint",
+              "RR_hip_joint",
+              "FL_thigh_joint",
+              "FR_thigh_joint",
+              "RL_thigh_joint",
+              "RR_thigh_joint",
+              "FL_calf_joint",
+              "FR_calf_joint",
+              "RL_calf_joint",
+              "RR_calf_joint"
+            ]
+          }
+        },
+        "measurement_config": {
+          "version": "trajectory.contact_cycles.v1",
+          "catalog_version": "trajectory.p0.measurements.v3",
+          "contact_threshold_n": 1.0,
+          "complete_cycles_per_window": 4,
+          "population_cv_max": 0.15,
+          "median_relative_deviation_max": 0.2,
+          "debounce_max_run_samples": [
+            1,
+            2
+          ],
+          "boundary_context_samples": 3,
+          "phase_resultant_min": 0.9,
+          "roundoff_tolerance": 1e-12,
+          "threshold_source": "development_calibration:predeclared_resolution_and_variation_rule",
+          "window_policy": "all_consecutive_four_cycle_windows_local_only",
+          "debounce_policy": "independent_single_pass_bounded_raw_runs",
+          "phase_policy": "one_target_onset_per_half_open_reference_cycle_both_qualified"
+        },
+        "artifacts": {
+          "cycles.jsonl": {
+            "sha256": "1e240c412f226d52788968d09b64beafe57579740245af7e6c3348108a9253a3",
+            "bytes": 72503635
+          },
+          "report.json": {
+            "sha256": "3d989b3b3b319081eb355559eb39295a32e5f815e54465ac5dd3d6e8d98a41f5",
+            "bytes": 22568
+          },
+          "preview.json": {
+            "sha256": "b7247d0c5408b8b0d1578089dea784a60dbca83aef94b5147b2e4f00499c57d4",
+            "bytes": 8086
+          },
+          "preview_receipt.json": {
+            "sha256": "46bb0096723bc3a0bd0031d90740687f4b060a9cada8ac60918f320d734eec2e",
+            "bytes": 1083
+          }
+        },
+        "code_sha256": {
+          "tasks/stair_climbing/trajectory_cycles.py": "9ee3f00e4b44a329c820732f8628397562c426f8d7b080d936fcd849cc4f56fb",
+          "evaluation/trajectory_translation/__init__.py": "a0f279c7f0a30427ed230c65c52f91de3727cad8e19ea1c10d5baf11b701c02f",
+          "evaluation/trajectory_translation/cohort.py": "2e5e5a80f86e1dbe46bc3383cb1d058e574d526488a9da222093e92556faac20",
+          "evaluation/trajectory_translation/contracts.py": "e2fff04aff2fdb1db15116ffdd018f8b4bf773979e53e90cabe9a04007448500",
+          "evaluation/trajectory_translation/cycles.py": "d9c31e2ce0e65b02aa2e5cb6954741403c190664ba53d1ef10457fb891c3a522",
+          "evaluation/trajectory_translation/measurement.py": "dd1d5f278fdd102d7fac39b83cd525e7a34a11e56a09cd972c58d9233c6708d5",
+          "evaluation/trajectory_translation/report.py": "466b1c5ecf1c275571ea64cd08bd20cd48aa7e646be1bb5e9acff375a5067a36",
+          "evaluation/trajectory_translation/temporal.py": "d628a872e4130563138e2fd74dbbfccd895e1da62f457b5a85b555a97ed9122b",
+          "tasks/stair_climbing/trajectory_adapter.py": "8c6d27387e57fc4247ecb780024b7c0eb15e80154d1b7afc093469ccec3a2e2c",
+          "tasks/stair_climbing/trajectory_artifacts.py": "9bc0402515109d20b52ba5a803a60ed9f284285f297695a59b9edea16a9edb0e",
+          "tasks/stair_climbing/trajectory_report.py": "04c95e060df49550e75b9896aa98730b6fb838c6871dc8714e82360a4b61f7ba",
+          "tasks/stair_climbing/runtime_projection.py": "33377cbcfcde69f56d230d63e6639a1d09cc47ffdb5825cd213880d42531e6af",
+          "runner/numeric_evidence.py": "2283e8e9f770135a610506173e91948fdfc7dcf79b9b227f5f0932a44da30579"
+        },
+        "episode_count": 864,
+        "wall_seconds": 10.844103300012648,
+        "cpu_seconds": 10.453125,
+        "peak_working_set_bytes": 297869312,
+        "external_model_calls": 0,
+        "gpu_runs": 0,
+        "training_runs": 0,
+        "status": "offline_qualification_pending_independent_gate"
+      },
+      "summary": {
+        "episode_count": 864,
+        "groups": {
+          "contact_cycles:robot_0.support.FL_foot": {
+            "entity_ids": [
+              "robot_0.support.FL_foot"
+            ],
+            "episodes": 864,
+            "counts": {
+              "total_rows": 276259,
+              "known_rows": 276259,
+              "unknown_rows": 0,
+              "missing_steps": 0,
+              "known_adjacent_edges": 275395,
+              "covered_unique_edges": 169816,
+              "complete_cycles": 10714,
+              "candidate_windows": 8122,
+              "qualified_windows": 3751,
+              "qualified_unique_cycles": 5991,
+              "islands_with_fewer_than_four_cycles": 0
+            },
+            "episodes_with_qualified_windows": 726,
+            "episodes_with_known_rows": 864,
+            "episodes_with_known_adjacent_edges": 864,
+            "episodes_with_candidate_windows": 864,
+            "unknown_rhythm_episodes": 138,
+            "episode_median_qualified_cycle_period_s": {
+              "minimum": 0.28,
+              "q25": 0.54,
+              "median": 0.585,
+              "q75": 0.62,
+              "maximum": 0.77,
+              "mean": 0.5801928374655648,
+              "quantile_method": "linear",
+              "count": 726
+            },
+            "episode_equal_qualified_span_fraction": {
+              "minimum": 0.0,
+              "q25": 0.4723683571555757,
+              "median": 0.7670807453416149,
+              "q75": 0.8914473684210527,
+              "maximum": 0.9822695035460993,
+              "mean": 0.63770576451264,
+              "quantile_method": "linear",
+              "count": 864
+            },
+            "pooled_qualified_span_fraction": 0.6166270266344704,
+            "rejected_window_reasons": {
+              "period_median_deviation": 4262,
+              "period_cv": 3654,
+              "boundary_context_insufficient": 1235,
+              "debounce_sensitive": 2967
+            }
+          },
+          "contact_cycles:robot_0.support.FR_foot": {
+            "entity_ids": [
+              "robot_0.support.FR_foot"
+            ],
+            "episodes": 864,
+            "counts": {
+              "total_rows": 276259,
+              "known_rows": 276259,
+              "unknown_rows": 0,
+              "missing_steps": 0,
+              "known_adjacent_edges": 275395,
+              "covered_unique_edges": 171912,
+              "complete_cycles": 10366,
+              "candidate_windows": 7774,
+              "qualified_windows": 3741,
+              "qualified_unique_cycles": 5996,
+              "islands_with_fewer_than_four_cycles": 0
+            },
+            "episodes_with_qualified_windows": 738,
+            "episodes_with_known_rows": 864,
+            "episodes_with_known_adjacent_edges": 864,
+            "episodes_with_candidate_windows": 864,
+            "unknown_rhythm_episodes": 126,
+            "episode_median_qualified_cycle_period_s": {
+              "minimum": 0.32,
+              "q25": 0.54,
+              "median": 0.6,
+              "q75": 0.62,
+              "maximum": 0.78,
+              "mean": 0.583048780487805,
+              "quantile_method": "linear",
+              "count": 738
+            },
+            "episode_equal_qualified_span_fraction": {
+              "minimum": 0.0,
+              "q25": 0.49209302325581394,
+              "median": 0.768025078369906,
+              "q75": 0.8361291431575967,
+              "maximum": 0.9785714285714285,
+              "mean": 0.6438480674479502,
+              "quantile_method": "linear",
+              "count": 864
+            },
+            "pooled_qualified_span_fraction": 0.6242379128161368,
+            "rejected_window_reasons": {
+              "period_cv": 3208,
+              "period_median_deviation": 3927,
+              "boundary_context_insufficient": 890,
+              "debounce_sensitive": 2136
+            }
+          },
+          "contact_cycles:robot_0.support.RL_foot": {
+            "entity_ids": [
+              "robot_0.support.RL_foot"
+            ],
+            "episodes": 864,
+            "counts": {
+              "total_rows": 276259,
+              "known_rows": 276259,
+              "unknown_rows": 0,
+              "missing_steps": 0,
+              "known_adjacent_edges": 275395,
+              "covered_unique_edges": 100189,
+              "complete_cycles": 9835,
+              "candidate_windows": 7244,
+              "qualified_windows": 1982,
+              "qualified_unique_cycles": 3573,
+              "islands_with_fewer_than_four_cycles": 1
+            },
+            "episodes_with_qualified_windows": 526,
+            "episodes_with_known_rows": 864,
+            "episodes_with_known_adjacent_edges": 864,
+            "episodes_with_candidate_windows": 863,
+            "unknown_rhythm_episodes": 338,
+            "episode_median_qualified_cycle_period_s": {
+              "minimum": 0.39,
+              "q25": 0.54,
+              "median": 0.56,
+              "q75": 0.6,
+              "maximum": 0.68,
+              "mean": 0.5654372623574143,
+              "quantile_method": "linear",
+              "count": 526
+            },
+            "episode_equal_qualified_span_fraction": {
+              "minimum": 0.0,
+              "q25": 0.0,
+              "median": 0.535483870967742,
+              "q75": 0.6517241379310345,
+              "maximum": 0.8407643312101911,
+              "mean": 0.3822241451765253,
+              "quantile_method": "linear",
+              "count": 864
+            },
+            "pooled_qualified_span_fraction": 0.36380108571324826,
+            "rejected_window_reasons": {
+              "debounce_sensitive": 3787,
+              "period_median_deviation": 4640,
+              "period_cv": 4537,
+              "boundary_context_insufficient": 1120
+            }
+          },
+          "contact_cycles:robot_0.support.RR_foot": {
+            "entity_ids": [
+              "robot_0.support.RR_foot"
+            ],
+            "episodes": 864,
+            "counts": {
+              "total_rows": 276259,
+              "known_rows": 276259,
+              "unknown_rows": 0,
+              "missing_steps": 0,
+              "known_adjacent_edges": 275395,
+              "covered_unique_edges": 31183,
+              "complete_cycles": 15408,
+              "candidate_windows": 12816,
+              "qualified_windows": 505,
+              "qualified_unique_cycles": 1085,
+              "islands_with_fewer_than_four_cycles": 0
+            },
+            "episodes_with_qualified_windows": 189,
+            "episodes_with_known_rows": 864,
+            "episodes_with_known_adjacent_edges": 864,
+            "episodes_with_candidate_windows": 864,
+            "unknown_rhythm_episodes": 675,
+            "episode_median_qualified_cycle_period_s": {
+              "minimum": 0.42,
+              "q25": 0.54,
+              "median": 0.5700000000000001,
+              "q75": 0.62,
+              "maximum": 0.71,
+              "mean": 0.5791534391534392,
+              "quantile_method": "linear",
+              "count": 189
+            },
+            "episode_equal_qualified_span_fraction": {
+              "minimum": 0.0,
+              "q25": 0.0,
+              "median": 0.0,
+              "q75": 0.0,
+              "maximum": 0.889967637540453,
+              "mean": 0.11543047200973097,
+              "quantile_method": "linear",
+              "count": 864
+            },
+            "pooled_qualified_span_fraction": 0.1132300876922239,
+            "rejected_window_reasons": {
+              "period_median_deviation": 11969,
+              "boundary_context_insufficient": 5934,
+              "debounce_sensitive": 11887,
+              "period_cv": 11736
+            }
+          },
+          "contact_phase:robot_0.support.FL_foot,robot_0.support.FR_foot": {
+            "entity_ids": [
+              "robot_0.support.FL_foot",
+              "robot_0.support.FR_foot"
+            ],
+            "episodes": 864,
+            "candidate_windows": 3751,
+            "qualified_windows": 3052,
+            "episodes_with_qualified_phase": 648
+          },
+          "contact_phase:robot_0.support.FL_foot,robot_0.support.RL_foot": {
+            "entity_ids": [
+              "robot_0.support.FL_foot",
+              "robot_0.support.RL_foot"
+            ],
+            "episodes": 864,
+            "candidate_windows": 3751,
+            "qualified_windows": 1617,
+            "episodes_with_qualified_phase": 437
+          },
+          "contact_phase:robot_0.support.FL_foot,robot_0.support.RR_foot": {
+            "entity_ids": [
+              "robot_0.support.FL_foot",
+              "robot_0.support.RR_foot"
+            ],
+            "episodes": 864,
+            "candidate_windows": 3751,
+            "qualified_windows": 309,
+            "episodes_with_qualified_phase": 130
+          },
+          "contact_phase:robot_0.support.FR_foot,robot_0.support.RL_foot": {
+            "entity_ids": [
+              "robot_0.support.FR_foot",
+              "robot_0.support.RL_foot"
+            ],
+            "episodes": 864,
+            "candidate_windows": 3741,
+            "qualified_windows": 1677,
+            "episodes_with_qualified_phase": 455
+          },
+          "contact_phase:robot_0.support.FR_foot,robot_0.support.RR_foot": {
+            "entity_ids": [
+              "robot_0.support.FR_foot",
+              "robot_0.support.RR_foot"
+            ],
+            "episodes": 864,
+            "candidate_windows": 3741,
+            "qualified_windows": 271,
+            "episodes_with_qualified_phase": 117
+          },
+          "contact_phase:robot_0.support.RL_foot,robot_0.support.RR_foot": {
+            "entity_ids": [
+              "robot_0.support.RL_foot",
+              "robot_0.support.RR_foot"
+            ],
+            "episodes": 864,
+            "candidate_windows": 1982,
+            "qualified_windows": 166,
+            "episodes_with_qualified_phase": 83
+          }
+        },
+        "weighting": "episode-equal summaries; pooled unique valid readout edges separately; no window-weighted global period",
+        "scope": "whole recorded public-dev cohort; local qualification is not whole-episode periodicity"
+      },
+      "preview": {
+        "status": "offline_preview_not_production_delivery",
+        "base_canonical_content_unchanged": true,
+        "serialization": "canonical_compact_sorted_utf8_no_trailing_newline",
+        "base_content_hash": "65c19dd506b5cb0b8aac6291dae9410671389e2fbd9955407e306f5e9953c796",
+        "base_required_claim_ids_hash": "47e0ec3144f0e194a84ad1dba1e487609219fa8c7b1fcfd589569cb14ae13a4a",
+        "included_ids": [],
+        "omitted": [
+          {
+            "id": "cycle:1eeef901ec908ba1d12aa5a7f915fa3792a9ad4afc118775a76f739a6c4836b9",
+            "reason": "optional_whole_sentence_combined_budget"
+          },
+          {
+            "id": "cycle:2e305194bb7bf90a9a9b2af6f34b6e3b82c252b1908ea81f93b78ac40e790ea0",
+            "reason": "optional_whole_sentence_combined_budget"
+          },
+          {
+            "id": "cycle:84b0c13ffdd9bbb2b52a8d9ed89228b8eeb9759b3b4b0cf85fb9751722b5d8d5",
+            "reason": "optional_whole_sentence_combined_budget"
+          },
+          {
+            "id": "cycle:a613b82231c4c068b950f5bbd39082206d02d657a4c7ac3662799fbe14af3f6a",
+            "reason": "optional_whole_sentence_combined_budget"
+          }
+        ],
+        "combined_bytes": 8086,
+        "max_bytes": 8192
+      },
+      "files": [
+        {
+          "path": "outputs/p2c1/real_01/k1/cycles.jsonl",
+          "sha256": "1e240c412f226d52788968d09b64beafe57579740245af7e6c3348108a9253a3",
+          "bytes": 72503635
+        },
+        {
+          "path": "outputs/p2c1/real_01/k1/manifest.json",
+          "sha256": "89aef3424d4198f495775e482b53d9c524ba8812cb2926ec4048f44aeb88ce02",
+          "bytes": 5668
+        },
+        {
+          "path": "outputs/p2c1/real_01/k1/oracle.json",
+          "sha256": "54be90aadefb7c969379bc7fe56cbfdcc7fc249e8a96d7eddf315d32cd639062",
+          "bytes": 791
+        },
+        {
+          "path": "outputs/p2c1/real_01/k1/preview.json",
+          "sha256": "b7247d0c5408b8b0d1578089dea784a60dbca83aef94b5147b2e4f00499c57d4",
+          "bytes": 8086
+        },
+        {
+          "path": "outputs/p2c1/real_01/k1/preview_receipt.json",
+          "sha256": "46bb0096723bc3a0bd0031d90740687f4b060a9cada8ac60918f320d734eec2e",
+          "bytes": 1083
+        },
+        {
+          "path": "outputs/p2c1/real_01/k1/raw_examples.json",
+          "sha256": "d37d963284e9b7d96ac119c261f22728c5b48932bfdd4f7ebb589d78916a97bb",
+          "bytes": 270012
+        },
+        {
+          "path": "outputs/p2c1/real_01/k1/report.json",
+          "sha256": "3d989b3b3b319081eb355559eb39295a32e5f815e54465ac5dd3d6e8d98a41f5",
+          "bytes": 22568
+        }
+      ]
+    },
+    {
+      "source_id": "k2",
+      "oracle": {
+        "status": "PASS",
+        "source_id": "k2",
+        "episodes": 864,
+        "measurement_records_checked": 8640,
+        "chunk_sha256_checked": 30,
+        "source_lock_sha256": "18f585ac6c10e87a0cd8aa61299ab06adac636fc4494fd3e1fb2fdd651265dcf",
+        "source_manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+        "supplement_manifest_sha256": "65207807c39ddf1069f7a3a391d7eef10e3237301b73c579e2800833dbb33584",
+        "found_example_categories": [
+          "period_cv",
+          "period_median_deviation",
+          "qualified",
+          "boundary_context_insufficient",
+          "qualified_phase",
+          "debounce_sensitive"
+        ],
+        "wall_seconds": 7.725173800019547,
+        "oracle": "independent scalar formulas + direct locked NPZ; no production cycle/adapter imports"
+      },
+      "manifest": {
+        "schema_version": "stair.cycle_supplement_manifest.v1",
+        "complete": true,
+        "catalog_version": "trajectory.p0.measurements.v3",
+        "base_catalog_version": "trajectory.p0.measurements.v2",
+        "source_manifest_ref": {
+          "schema_version": "true_rl_agent.numeric_evidence.ref.v1",
+          "manifest_path": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\p2a\\raw\\k2\\manifest.json",
+          "manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20"
+        },
+        "binding": {
+          "manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+          "trial_id": "stair-dev-replay-bcd8de3a9d0e6e6a-eval-public-dev",
+          "checkpoint_hash": "sha256:bcd8de3a9d0e6e6a6c84b8c7833dc4a1b0ed697758ddee6f9c9eb31416a2f93c",
+          "task_id": "unitree_stair_climbing",
+          "evaluation_binding": {
+            "schema_version": "true_rl_agent.evaluation.binding.v1",
+            "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+            "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+            "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+            "seed_cohort_hash": "a7830816449821400a6ae51fabbb046f8d98ab3084bfcaeb56b240249ea790ea",
+            "evaluation_binding_hash": "ff0b754f727af4df616e77d10f8f67019cea485ed76b1b9c6b00cf902c451178"
+          },
+          "seed_namespace": "formal_reference_candidate_eval",
+          "robot_projection_hash": "ea9d42a4012815a8f5ebf6b35b93303111477817feb5a1391fa807efc6167a14",
+          "semantics_hash": "14d8aaa1193c9ad7bb1835a2acf94a96bf7b33b3c0a7db9215910e931c29e005",
+          "catalog_version": "trajectory.p0.measurements.v3",
+          "acceptance_split": "public_dev",
+          "profile": "stair.unified_first_episode.v1",
+          "entities": {
+            "root": [
+              "robot_0.root"
+            ],
+            "support": [
+              "robot_0.support.FL_foot",
+              "robot_0.support.FR_foot",
+              "robot_0.support.RL_foot",
+              "robot_0.support.RR_foot"
+            ],
+            "forbidden": [
+              "robot_0.body.base"
+            ],
+            "joints": [
+              "FL_hip_joint",
+              "FR_hip_joint",
+              "RL_hip_joint",
+              "RR_hip_joint",
+              "FL_thigh_joint",
+              "FR_thigh_joint",
+              "RL_thigh_joint",
+              "RR_thigh_joint",
+              "FL_calf_joint",
+              "FR_calf_joint",
+              "RL_calf_joint",
+              "RR_calf_joint"
+            ]
+          }
+        },
+        "measurement_config": {
+          "version": "trajectory.contact_cycles.v1",
+          "catalog_version": "trajectory.p0.measurements.v3",
+          "contact_threshold_n": 1.0,
+          "complete_cycles_per_window": 4,
+          "population_cv_max": 0.15,
+          "median_relative_deviation_max": 0.2,
+          "debounce_max_run_samples": [
+            1,
+            2
+          ],
+          "boundary_context_samples": 3,
+          "phase_resultant_min": 0.9,
+          "roundoff_tolerance": 1e-12,
+          "threshold_source": "development_calibration:predeclared_resolution_and_variation_rule",
+          "window_policy": "all_consecutive_four_cycle_windows_local_only",
+          "debounce_policy": "independent_single_pass_bounded_raw_runs",
+          "phase_policy": "one_target_onset_per_half_open_reference_cycle_both_qualified"
+        },
+        "artifacts": {
+          "cycles.jsonl": {
+            "sha256": "9ad7981b9cfe50c7de9aa33b144e2ebf374e8dfa23d16b974b82baadd32182ff",
+            "bytes": 73001185
+          },
+          "report.json": {
+            "sha256": "2c88a1b5d9630c7a27cc405fb6533d6c5d4e1067d44ca9b0acc33d1f1d816d89",
+            "bytes": 21914
+          },
+          "preview.json": {
+            "sha256": "cfa9059e0dbfca1a2d6932da5f1f841c878316a5f25e412befadc53b19f4f27c",
+            "bytes": 8032
+          },
+          "preview_receipt.json": {
+            "sha256": "da42785a59ba09a0e20707fdb1f0bbb6fa5a53e6760a26cbdc518bc0b25084c6",
+            "bytes": 1083
+          }
+        },
+        "code_sha256": {
+          "tasks/stair_climbing/trajectory_cycles.py": "9ee3f00e4b44a329c820732f8628397562c426f8d7b080d936fcd849cc4f56fb",
+          "evaluation/trajectory_translation/__init__.py": "a0f279c7f0a30427ed230c65c52f91de3727cad8e19ea1c10d5baf11b701c02f",
+          "evaluation/trajectory_translation/cohort.py": "2e5e5a80f86e1dbe46bc3383cb1d058e574d526488a9da222093e92556faac20",
+          "evaluation/trajectory_translation/contracts.py": "e2fff04aff2fdb1db15116ffdd018f8b4bf773979e53e90cabe9a04007448500",
+          "evaluation/trajectory_translation/cycles.py": "d9c31e2ce0e65b02aa2e5cb6954741403c190664ba53d1ef10457fb891c3a522",
+          "evaluation/trajectory_translation/measurement.py": "dd1d5f278fdd102d7fac39b83cd525e7a34a11e56a09cd972c58d9233c6708d5",
+          "evaluation/trajectory_translation/report.py": "466b1c5ecf1c275571ea64cd08bd20cd48aa7e646be1bb5e9acff375a5067a36",
+          "evaluation/trajectory_translation/temporal.py": "d628a872e4130563138e2fd74dbbfccd895e1da62f457b5a85b555a97ed9122b",
+          "tasks/stair_climbing/trajectory_adapter.py": "8c6d27387e57fc4247ecb780024b7c0eb15e80154d1b7afc093469ccec3a2e2c",
+          "tasks/stair_climbing/trajectory_artifacts.py": "9bc0402515109d20b52ba5a803a60ed9f284285f297695a59b9edea16a9edb0e",
+          "tasks/stair_climbing/trajectory_report.py": "04c95e060df49550e75b9896aa98730b6fb838c6871dc8714e82360a4b61f7ba",
+          "tasks/stair_climbing/runtime_projection.py": "33377cbcfcde69f56d230d63e6639a1d09cc47ffdb5825cd213880d42531e6af",
+          "runner/numeric_evidence.py": "2283e8e9f770135a610506173e91948fdfc7dcf79b9b227f5f0932a44da30579"
+        },
+        "episode_count": 864,
+        "wall_seconds": 10.484577000024728,
+        "cpu_seconds": 10.1875,
+        "peak_working_set_bytes": 275374080,
+        "external_model_calls": 0,
+        "gpu_runs": 0,
+        "training_runs": 0,
+        "status": "offline_qualification_pending_independent_gate"
+      },
+      "summary": {
+        "episode_count": 864,
+        "groups": {
+          "contact_cycles:robot_0.support.FL_foot": {
+            "entity_ids": [
+              "robot_0.support.FL_foot"
+            ],
+            "episodes": 864,
+            "counts": {
+              "total_rows": 276949,
+              "known_rows": 276949,
+              "unknown_rows": 0,
+              "missing_steps": 0,
+              "known_adjacent_edges": 276085,
+              "covered_unique_edges": 176092,
+              "complete_cycles": 10715,
+              "candidate_windows": 8123,
+              "qualified_windows": 3989,
+              "qualified_unique_cycles": 6190,
+              "islands_with_fewer_than_four_cycles": 0
+            },
+            "episodes_with_qualified_windows": 723,
+            "episodes_with_known_rows": 864,
+            "episodes_with_known_adjacent_edges": 864,
+            "episodes_with_candidate_windows": 864,
+            "unknown_rhythm_episodes": 141,
+            "episode_median_qualified_cycle_period_s": {
+              "minimum": 0.26,
+              "q25": 0.54,
+              "median": 0.5700000000000001,
+              "q75": 0.62,
+              "maximum": 0.8,
+              "mean": 0.5758921161825726,
+              "quantile_method": "linear",
+              "count": 723
+            },
+            "episode_equal_qualified_span_fraction": {
+              "minimum": 0.0,
+              "q25": 0.5533729087965462,
+              "median": 0.8298965419501134,
+              "q75": 0.9073612659279173,
+              "maximum": 0.9725085910652921,
+              "mean": 0.6577219529384201,
+              "quantile_method": "linear",
+              "count": 864
+            },
+            "pooled_qualified_span_fraction": 0.6378180632776138,
+            "rejected_window_reasons": {
+              "period_cv": 3622,
+              "period_median_deviation": 3992,
+              "boundary_context_insufficient": 1088,
+              "debounce_sensitive": 2483
+            }
+          },
+          "contact_cycles:robot_0.support.FR_foot": {
+            "entity_ids": [
+              "robot_0.support.FR_foot"
+            ],
+            "episodes": 864,
+            "counts": {
+              "total_rows": 276949,
+              "known_rows": 276949,
+              "unknown_rows": 0,
+              "missing_steps": 0,
+              "known_adjacent_edges": 276085,
+              "covered_unique_edges": 189351,
+              "complete_cycles": 10256,
+              "candidate_windows": 7664,
+              "qualified_windows": 4255,
+              "qualified_unique_cycles": 6590,
+              "islands_with_fewer_than_four_cycles": 0
+            },
+            "episodes_with_qualified_windows": 764,
+            "episodes_with_known_rows": 864,
+            "episodes_with_known_adjacent_edges": 864,
+            "episodes_with_candidate_windows": 864,
+            "unknown_rhythm_episodes": 100,
+            "episode_median_qualified_cycle_period_s": {
+              "minimum": 0.24,
+              "q25": 0.54,
+              "median": 0.58,
+              "q75": 0.62,
+              "maximum": 0.8,
+              "mean": 0.582630890052356,
+              "quantile_method": "linear",
+              "count": 764
+            },
+            "episode_equal_qualified_span_fraction": {
+              "minimum": 0.0,
+              "q25": 0.7095360560929423,
+              "median": 0.8304192597845623,
+              "q75": 0.854384293965835,
+              "maximum": 0.9836065573770492,
+              "mean": 0.704240640047516,
+              "quantile_method": "linear",
+              "count": 864
+            },
+            "pooled_qualified_span_fraction": 0.6858431280221671,
+            "rejected_window_reasons": {
+              "period_cv": 2681,
+              "period_median_deviation": 3236,
+              "boundary_context_insufficient": 823,
+              "debounce_sensitive": 1778
+            }
+          },
+          "contact_cycles:robot_0.support.RL_foot": {
+            "entity_ids": [
+              "robot_0.support.RL_foot"
+            ],
+            "episodes": 864,
+            "counts": {
+              "total_rows": 276949,
+              "known_rows": 276949,
+              "unknown_rows": 0,
+              "missing_steps": 0,
+              "known_adjacent_edges": 276085,
+              "covered_unique_edges": 178158,
+              "complete_cycles": 10819,
+              "candidate_windows": 8227,
+              "qualified_windows": 3877,
+              "qualified_unique_cycles": 6200,
+              "islands_with_fewer_than_four_cycles": 0
+            },
+            "episodes_with_qualified_windows": 749,
+            "episodes_with_known_rows": 864,
+            "episodes_with_known_adjacent_edges": 864,
+            "episodes_with_candidate_windows": 864,
+            "unknown_rhythm_episodes": 115,
+            "episode_median_qualified_cycle_period_s": {
+              "minimum": 0.36,
+              "q25": 0.54,
+              "median": 0.58,
+              "q75": 0.62,
+              "maximum": 0.78,
+              "mean": 0.5842323097463284,
+              "quantile_method": "linear",
+              "count": 749
+            },
+            "episode_equal_qualified_span_fraction": {
+              "minimum": 0.0,
+              "q25": 0.5624147943095608,
+              "median": 0.7572690965418136,
+              "q75": 0.9108910891089109,
+              "maximum": 0.9826388888888888,
+              "mean": 0.6597918086910942,
+              "quantile_method": "linear",
+              "count": 864
+            },
+            "pooled_qualified_span_fraction": 0.6453012659144829,
+            "rejected_window_reasons": {
+              "period_cv": 3472,
+              "period_median_deviation": 4027,
+              "boundary_context_insufficient": 1875,
+              "debounce_sensitive": 3041
+            }
+          },
+          "contact_cycles:robot_0.support.RR_foot": {
+            "entity_ids": [
+              "robot_0.support.RR_foot"
+            ],
+            "episodes": 864,
+            "counts": {
+              "total_rows": 276949,
+              "known_rows": 276949,
+              "unknown_rows": 0,
+              "missing_steps": 0,
+              "known_adjacent_edges": 276085,
+              "covered_unique_edges": 195613,
+              "complete_cycles": 10543,
+              "candidate_windows": 7951,
+              "qualified_windows": 4436,
+              "qualified_unique_cycles": 6805,
+              "islands_with_fewer_than_four_cycles": 0
+            },
+            "episodes_with_qualified_windows": 759,
+            "episodes_with_known_rows": 864,
+            "episodes_with_known_adjacent_edges": 864,
+            "episodes_with_candidate_windows": 864,
+            "unknown_rhythm_episodes": 105,
+            "episode_median_qualified_cycle_period_s": {
+              "minimum": 0.22,
+              "q25": 0.54,
+              "median": 0.58,
+              "q75": 0.62,
+              "maximum": 0.78,
+              "mean": 0.5880368906455863,
+              "quantile_method": "linear",
+              "count": 759
+            },
+            "episode_equal_qualified_span_fraction": {
+              "minimum": 0.0,
+              "q25": 0.6886411889596603,
+              "median": 0.8870673952641166,
+              "q75": 0.921311475409836,
+              "maximum": 0.9695945945945946,
+              "mean": 0.7296950320059379,
+              "quantile_method": "linear",
+              "count": 864
+            },
+            "pooled_qualified_span_fraction": 0.7085245485991633,
+            "rejected_window_reasons": {
+              "period_cv": 3050,
+              "period_median_deviation": 3325,
+              "boundary_context_insufficient": 946,
+              "debounce_sensitive": 1896
+            }
+          },
+          "contact_phase:robot_0.support.FL_foot,robot_0.support.FR_foot": {
+            "entity_ids": [
+              "robot_0.support.FL_foot",
+              "robot_0.support.FR_foot"
+            ],
+            "episodes": 864,
+            "candidate_windows": 3989,
+            "qualified_windows": 1418,
+            "episodes_with_qualified_phase": 475
+          },
+          "contact_phase:robot_0.support.FL_foot,robot_0.support.RL_foot": {
+            "entity_ids": [
+              "robot_0.support.FL_foot",
+              "robot_0.support.RL_foot"
+            ],
+            "episodes": 864,
+            "candidate_windows": 3989,
+            "qualified_windows": 1438,
+            "episodes_with_qualified_phase": 469
+          },
+          "contact_phase:robot_0.support.FL_foot,robot_0.support.RR_foot": {
+            "entity_ids": [
+              "robot_0.support.FL_foot",
+              "robot_0.support.RR_foot"
+            ],
+            "episodes": 864,
+            "candidate_windows": 3989,
+            "qualified_windows": 3265,
+            "episodes_with_qualified_phase": 671
+          },
+          "contact_phase:robot_0.support.FR_foot,robot_0.support.RL_foot": {
+            "entity_ids": [
+              "robot_0.support.FR_foot",
+              "robot_0.support.RL_foot"
+            ],
+            "episodes": 864,
+            "candidate_windows": 4255,
+            "qualified_windows": 1391,
+            "episodes_with_qualified_phase": 456
+          },
+          "contact_phase:robot_0.support.FR_foot,robot_0.support.RR_foot": {
+            "entity_ids": [
+              "robot_0.support.FR_foot",
+              "robot_0.support.RR_foot"
+            ],
+            "episodes": 864,
+            "candidate_windows": 4255,
+            "qualified_windows": 3472,
+            "episodes_with_qualified_phase": 714
+          },
+          "contact_phase:robot_0.support.RL_foot,robot_0.support.RR_foot": {
+            "entity_ids": [
+              "robot_0.support.RL_foot",
+              "robot_0.support.RR_foot"
+            ],
+            "episodes": 864,
+            "candidate_windows": 3877,
+            "qualified_windows": 3157,
+            "episodes_with_qualified_phase": 684
+          }
+        },
+        "weighting": "episode-equal summaries; pooled unique valid readout edges separately; no window-weighted global period",
+        "scope": "whole recorded public-dev cohort; local qualification is not whole-episode periodicity"
+      },
+      "preview": {
+        "status": "offline_preview_not_production_delivery",
+        "base_canonical_content_unchanged": true,
+        "serialization": "canonical_compact_sorted_utf8_no_trailing_newline",
+        "base_content_hash": "0492d8ab923bbda0094f62b8dc151cd97089711d2a0cabc102162f89506ed9b2",
+        "base_required_claim_ids_hash": "9113ae975c957d3a59180f75211bf35aaf1f369590a4ff4d4165f22b26982508",
+        "included_ids": [],
+        "omitted": [
+          {
+            "id": "cycle:836b63957506e13dc01aa60fd760b960878fb84d4edf9c6295915f8f7c6186ca",
+            "reason": "optional_whole_sentence_combined_budget"
+          },
+          {
+            "id": "cycle:2200e0a24db0b8d5453352c6a9ca64cb8953a30d20ed750ca176ec9b34176080",
+            "reason": "optional_whole_sentence_combined_budget"
+          },
+          {
+            "id": "cycle:0bc6f0dfce5adb7e48ab8b11a5d94b45ab44a9895f970f272b4575a50f5669c7",
+            "reason": "optional_whole_sentence_combined_budget"
+          },
+          {
+            "id": "cycle:3109e309c80a4fc879b0942911a270f7df5ee8cb6f5c1d48296e2e078bc86f1b",
+            "reason": "optional_whole_sentence_combined_budget"
+          }
+        ],
+        "combined_bytes": 8032,
+        "max_bytes": 8192
+      },
+      "files": [
+        {
+          "path": "outputs/p2c1/real_01/k2/cycles.jsonl",
+          "sha256": "9ad7981b9cfe50c7de9aa33b144e2ebf374e8dfa23d16b974b82baadd32182ff",
+          "bytes": 73001185
+        },
+        {
+          "path": "outputs/p2c1/real_01/k2/manifest.json",
+          "sha256": "65207807c39ddf1069f7a3a391d7eef10e3237301b73c579e2800833dbb33584",
+          "bytes": 5638
+        },
+        {
+          "path": "outputs/p2c1/real_01/k2/oracle.json",
+          "sha256": "1ed9a904dc7bec02beaea378adb26253723160e502bc87efe0b64e93c2d29570",
+          "bytes": 764
+        },
+        {
+          "path": "outputs/p2c1/real_01/k2/preview.json",
+          "sha256": "cfa9059e0dbfca1a2d6932da5f1f841c878316a5f25e412befadc53b19f4f27c",
+          "bytes": 8032
+        },
+        {
+          "path": "outputs/p2c1/real_01/k2/preview_receipt.json",
+          "sha256": "da42785a59ba09a0e20707fdb1f0bbb6fa5a53e6760a26cbdc518bc0b25084c6",
+          "bytes": 1083
+        },
+        {
+          "path": "outputs/p2c1/real_01/k2/raw_examples.json",
+          "sha256": "c53ead544673f4ca6cfcbf4520b2e03850d631e87c99d5be7c0f7f85d75617b0",
+          "bytes": 266735
+        },
+        {
+          "path": "outputs/p2c1/real_01/k2/report.json",
+          "sha256": "2c88a1b5d9630c7a27cc405fb6533d6c5d4e1067d44ca9b0acc33d1f1d816d89",
+          "bytes": 21914
+        }
+      ]
+    },
+    {
+      "source_id": "k3",
+      "oracle": {
+        "status": "PASS",
+        "source_id": "k3",
+        "episodes": 864,
+        "measurement_records_checked": 8640,
+        "chunk_sha256_checked": 30,
+        "source_lock_sha256": "18f585ac6c10e87a0cd8aa61299ab06adac636fc4494fd3e1fb2fdd651265dcf",
+        "source_manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+        "supplement_manifest_sha256": "f34f5c2e6d0568eec26b596128621f419f82b1922410997d5fc59e2d19ff37a5",
+        "found_example_categories": [
+          "qualified",
+          "period_median_deviation",
+          "period_cv",
+          "boundary_context_insufficient",
+          "debounce_sensitive",
+          "qualified_phase",
+          "insufficient_cycles"
+        ],
+        "wall_seconds": 7.872447600006126,
+        "oracle": "independent scalar formulas + direct locked NPZ; no production cycle/adapter imports"
+      },
+      "manifest": {
+        "schema_version": "stair.cycle_supplement_manifest.v1",
+        "complete": true,
+        "catalog_version": "trajectory.p0.measurements.v3",
+        "base_catalog_version": "trajectory.p0.measurements.v2",
+        "source_manifest_ref": {
+          "schema_version": "true_rl_agent.numeric_evidence.ref.v1",
+          "manifest_path": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p0\\raw\\numeric_evidence\\manifest.json",
+          "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83"
+        },
+        "binding": {
+          "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+          "trial_id": "stair-dev-replay-7b582643510cc9dd-diagnostic-eval-diagnostic-public-dev",
+          "checkpoint_hash": "sha256:7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c",
+          "task_id": "unitree_stair_climbing",
+          "evaluation_binding": {
+            "schema_version": "true_rl_agent.evaluation.binding.v1",
+            "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+            "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+            "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+            "seed_cohort_hash": "d41ac09594b4a4b4b48c2df075088328301a68d293bf9310882030574115ac32",
+            "evaluation_binding_hash": "1db7a52e1cec0769caf34926267b41981c8aa066341ca26354962ee758b5905b"
+          },
+          "seed_namespace": "public_dev_diagnostic_n5_r4_20261001",
+          "robot_projection_hash": "ea9d42a4012815a8f5ebf6b35b93303111477817feb5a1391fa807efc6167a14",
+          "semantics_hash": "14d8aaa1193c9ad7bb1835a2acf94a96bf7b33b3c0a7db9215910e931c29e005",
+          "catalog_version": "trajectory.p0.measurements.v3",
+          "acceptance_split": "public_dev",
+          "profile": "stair.unified_first_episode.v2",
+          "entities": {
+            "root": [
+              "robot_0.root"
+            ],
+            "support": [
+              "robot_0.support.FL_foot",
+              "robot_0.support.FR_foot",
+              "robot_0.support.RL_foot",
+              "robot_0.support.RR_foot"
+            ],
+            "forbidden": [
+              "robot_0.body.base"
+            ],
+            "joints": [
+              "FL_hip_joint",
+              "FR_hip_joint",
+              "RL_hip_joint",
+              "RR_hip_joint",
+              "FL_thigh_joint",
+              "FR_thigh_joint",
+              "RL_thigh_joint",
+              "RR_thigh_joint",
+              "FL_calf_joint",
+              "FR_calf_joint",
+              "RL_calf_joint",
+              "RR_calf_joint"
+            ]
+          }
+        },
+        "measurement_config": {
+          "version": "trajectory.contact_cycles.v1",
+          "catalog_version": "trajectory.p0.measurements.v3",
+          "contact_threshold_n": 1.0,
+          "complete_cycles_per_window": 4,
+          "population_cv_max": 0.15,
+          "median_relative_deviation_max": 0.2,
+          "debounce_max_run_samples": [
+            1,
+            2
+          ],
+          "boundary_context_samples": 3,
+          "phase_resultant_min": 0.9,
+          "roundoff_tolerance": 1e-12,
+          "threshold_source": "development_calibration:predeclared_resolution_and_variation_rule",
+          "window_policy": "all_consecutive_four_cycle_windows_local_only",
+          "debounce_policy": "independent_single_pass_bounded_raw_runs",
+          "phase_policy": "one_target_onset_per_half_open_reference_cycle_both_qualified"
+        },
+        "artifacts": {
+          "cycles.jsonl": {
+            "sha256": "342332bcd3206125c38980cd28e6f5e8d7e8adea90e342ecbfd5dbbebee2dfca",
+            "bytes": 74975811
+          },
+          "report.json": {
+            "sha256": "427f9c188b7642d9eb1b73d08ac077a8098d0c59585cedd3ba7d48c315e428bb",
+            "bytes": 22602
+          },
+          "preview.json": {
+            "sha256": "8a66d7d0da7540cb10ce45fd51edadc66e700434e52f94fd2bdef77d9bb44f3a",
+            "bytes": 8127
+          },
+          "preview_receipt.json": {
+            "sha256": "5cec3bf017084cffea81b959eb643b742cd073e948c1776c4d7632d8194c577f",
+            "bytes": 1083
+          }
+        },
+        "code_sha256": {
+          "tasks/stair_climbing/trajectory_cycles.py": "9ee3f00e4b44a329c820732f8628397562c426f8d7b080d936fcd849cc4f56fb",
+          "evaluation/trajectory_translation/__init__.py": "a0f279c7f0a30427ed230c65c52f91de3727cad8e19ea1c10d5baf11b701c02f",
+          "evaluation/trajectory_translation/cohort.py": "2e5e5a80f86e1dbe46bc3383cb1d058e574d526488a9da222093e92556faac20",
+          "evaluation/trajectory_translation/contracts.py": "e2fff04aff2fdb1db15116ffdd018f8b4bf773979e53e90cabe9a04007448500",
+          "evaluation/trajectory_translation/cycles.py": "d9c31e2ce0e65b02aa2e5cb6954741403c190664ba53d1ef10457fb891c3a522",
+          "evaluation/trajectory_translation/measurement.py": "dd1d5f278fdd102d7fac39b83cd525e7a34a11e56a09cd972c58d9233c6708d5",
+          "evaluation/trajectory_translation/report.py": "466b1c5ecf1c275571ea64cd08bd20cd48aa7e646be1bb5e9acff375a5067a36",
+          "evaluation/trajectory_translation/temporal.py": "d628a872e4130563138e2fd74dbbfccd895e1da62f457b5a85b555a97ed9122b",
+          "tasks/stair_climbing/trajectory_adapter.py": "8c6d27387e57fc4247ecb780024b7c0eb15e80154d1b7afc093469ccec3a2e2c",
+          "tasks/stair_climbing/trajectory_artifacts.py": "9bc0402515109d20b52ba5a803a60ed9f284285f297695a59b9edea16a9edb0e",
+          "tasks/stair_climbing/trajectory_report.py": "04c95e060df49550e75b9896aa98730b6fb838c6871dc8714e82360a4b61f7ba",
+          "tasks/stair_climbing/runtime_projection.py": "33377cbcfcde69f56d230d63e6639a1d09cc47ffdb5825cd213880d42531e6af",
+          "runner/numeric_evidence.py": "2283e8e9f770135a610506173e91948fdfc7dcf79b9b227f5f0932a44da30579"
+        },
+        "episode_count": 864,
+        "wall_seconds": 11.652160900062881,
+        "cpu_seconds": 11.484375,
+        "peak_working_set_bytes": 317857792,
+        "external_model_calls": 0,
+        "gpu_runs": 0,
+        "training_runs": 0,
+        "status": "offline_qualification_pending_independent_gate"
+      },
+      "summary": {
+        "episode_count": 864,
+        "groups": {
+          "contact_cycles:robot_0.support.FL_foot": {
+            "entity_ids": [
+              "robot_0.support.FL_foot"
+            ],
+            "episodes": 864,
+            "counts": {
+              "total_rows": 298375,
+              "known_rows": 298375,
+              "unknown_rows": 0,
+              "missing_steps": 0,
+              "known_adjacent_edges": 297511,
+              "covered_unique_edges": 154071,
+              "complete_cycles": 10619,
+              "candidate_windows": 8052,
+              "qualified_windows": 3554,
+              "qualified_unique_cycles": 5548,
+              "islands_with_fewer_than_four_cycles": 34
+            },
+            "episodes_with_qualified_windows": 640,
+            "episodes_with_known_rows": 864,
+            "episodes_with_known_adjacent_edges": 864,
+            "episodes_with_candidate_windows": 830,
+            "unknown_rhythm_episodes": 224,
+            "episode_median_qualified_cycle_period_s": {
+              "minimum": 0.33999999999999997,
+              "q25": 0.55,
+              "median": 0.56,
+              "q75": 0.5800000000000001,
+              "maximum": 0.75,
+              "mean": 0.572203125,
+              "quantile_method": "linear",
+              "count": 640
+            },
+            "episode_equal_qualified_span_fraction": {
+              "minimum": 0.0,
+              "q25": 0.0,
+              "median": 0.7092069199517048,
+              "q75": 0.88,
+              "maximum": 0.9722222222222222,
+              "mean": 0.5595073229064803,
+              "quantile_method": "linear",
+              "count": 864
+            },
+            "pooled_qualified_span_fraction": 0.5178665662782217,
+            "rejected_window_reasons": {
+              "period_median_deviation": 4388,
+              "period_cv": 3941,
+              "boundary_context_insufficient": 1102,
+              "debounce_sensitive": 2626
+            }
+          },
+          "contact_cycles:robot_0.support.FR_foot": {
+            "entity_ids": [
+              "robot_0.support.FR_foot"
+            ],
+            "episodes": 864,
+            "counts": {
+              "total_rows": 298375,
+              "known_rows": 298375,
+              "unknown_rows": 0,
+              "missing_steps": 0,
+              "known_adjacent_edges": 297511,
+              "covered_unique_edges": 147077,
+              "complete_cycles": 11435,
+              "candidate_windows": 8860,
+              "qualified_windows": 3266,
+              "qualified_unique_cycles": 5323,
+              "islands_with_fewer_than_four_cycles": 33
+            },
+            "episodes_with_qualified_windows": 638,
+            "episodes_with_known_rows": 864,
+            "episodes_with_known_adjacent_edges": 864,
+            "episodes_with_candidate_windows": 831,
+            "unknown_rhythm_episodes": 226,
+            "episode_median_qualified_cycle_period_s": {
+              "minimum": 0.36,
+              "q25": 0.54,
+              "median": 0.56,
+              "q75": 0.58,
+              "maximum": 0.76,
+              "mean": 0.562539184952978,
+              "quantile_method": "linear",
+              "count": 638
+            },
+            "episode_equal_qualified_span_fraction": {
+              "minimum": 0.0,
+              "q25": 0.0,
+              "median": 0.6337459415584416,
+              "q75": 0.8762565455031915,
+              "maximum": 0.9798657718120806,
+              "mean": 0.5356712094192579,
+              "quantile_method": "linear",
+              "count": 864
+            },
+            "pooled_qualified_span_fraction": 0.4943581917979503,
+            "rejected_window_reasons": {
+              "period_median_deviation": 5465,
+              "period_cv": 4997,
+              "debounce_sensitive": 3975,
+              "boundary_context_insufficient": 1779
+            }
+          },
+          "contact_cycles:robot_0.support.RL_foot": {
+            "entity_ids": [
+              "robot_0.support.RL_foot"
+            ],
+            "episodes": 864,
+            "counts": {
+              "total_rows": 298375,
+              "known_rows": 298375,
+              "unknown_rows": 0,
+              "missing_steps": 0,
+              "known_adjacent_edges": 297511,
+              "covered_unique_edges": 36044,
+              "complete_cycles": 15486,
+              "candidate_windows": 12894,
+              "qualified_windows": 617,
+              "qualified_unique_cycles": 1302,
+              "islands_with_fewer_than_four_cycles": 0
+            },
+            "episodes_with_qualified_windows": 225,
+            "episodes_with_known_rows": 864,
+            "episodes_with_known_adjacent_edges": 864,
+            "episodes_with_candidate_windows": 864,
+            "unknown_rhythm_episodes": 639,
+            "episode_median_qualified_cycle_period_s": {
+              "minimum": 0.26,
+              "q25": 0.54,
+              "median": 0.56,
+              "q75": 0.58,
+              "maximum": 0.6900000000000001,
+              "mean": 0.559288888888889,
+              "quantile_method": "linear",
+              "count": 225
+            },
+            "episode_equal_qualified_span_fraction": {
+              "minimum": 0.0,
+              "q25": 0.0,
+              "median": 0.0,
+              "q75": 0.24117340194855344,
+              "maximum": 0.9522292993630573,
+              "mean": 0.12743993662918493,
+              "quantile_method": "linear",
+              "count": 864
+            },
+            "pooled_qualified_span_fraction": 0.1211518229578066,
+            "rejected_window_reasons": {
+              "period_cv": 11744,
+              "period_median_deviation": 11902,
+              "boundary_context_insufficient": 6460,
+              "debounce_sensitive": 11908
+            }
+          },
+          "contact_cycles:robot_0.support.RR_foot": {
+            "entity_ids": [
+              "robot_0.support.RR_foot"
+            ],
+            "episodes": 864,
+            "counts": {
+              "total_rows": 298375,
+              "known_rows": 298375,
+              "unknown_rows": 0,
+              "missing_steps": 0,
+              "known_adjacent_edges": 297511,
+              "covered_unique_edges": 55640,
+              "complete_cycles": 14156,
+              "candidate_windows": 11564,
+              "qualified_windows": 966,
+              "qualified_unique_cycles": 1964,
+              "islands_with_fewer_than_four_cycles": 1
+            },
+            "episodes_with_qualified_windows": 309,
+            "episodes_with_known_rows": 864,
+            "episodes_with_known_adjacent_edges": 864,
+            "episodes_with_candidate_windows": 863,
+            "unknown_rhythm_episodes": 555,
+            "episode_median_qualified_cycle_period_s": {
+              "minimum": 0.18,
+              "q25": 0.55,
+              "median": 0.58,
+              "q75": 0.6,
+              "maximum": 0.74,
+              "mean": 0.5717152103559872,
+              "quantile_method": "linear",
+              "count": 309
+            },
+            "episode_equal_qualified_span_fraction": {
+              "minimum": 0.0,
+              "q25": 0.0,
+              "median": 0.0,
+              "q75": 0.41339716779879865,
+              "maximum": 0.970873786407767,
+              "mean": 0.19728004022464773,
+              "quantile_method": "linear",
+              "count": 864
+            },
+            "pooled_qualified_span_fraction": 0.18701829512186105,
+            "rejected_window_reasons": {
+              "period_median_deviation": 10459,
+              "period_cv": 10117,
+              "boundary_context_insufficient": 3762,
+              "debounce_sensitive": 9126
+            }
+          },
+          "contact_phase:robot_0.support.FL_foot,robot_0.support.FR_foot": {
+            "entity_ids": [
+              "robot_0.support.FL_foot",
+              "robot_0.support.FR_foot"
+            ],
+            "episodes": 864,
+            "candidate_windows": 3554,
+            "qualified_windows": 2069,
+            "episodes_with_qualified_phase": 475
+          },
+          "contact_phase:robot_0.support.FL_foot,robot_0.support.RL_foot": {
+            "entity_ids": [
+              "robot_0.support.FL_foot",
+              "robot_0.support.RL_foot"
+            ],
+            "episodes": 864,
+            "candidate_windows": 3554,
+            "qualified_windows": 444,
+            "episodes_with_qualified_phase": 173
+          },
+          "contact_phase:robot_0.support.FL_foot,robot_0.support.RR_foot": {
+            "entity_ids": [
+              "robot_0.support.FL_foot",
+              "robot_0.support.RR_foot"
+            ],
+            "episodes": 864,
+            "candidate_windows": 3554,
+            "qualified_windows": 761,
+            "episodes_with_qualified_phase": 232
+          },
+          "contact_phase:robot_0.support.FR_foot,robot_0.support.RL_foot": {
+            "entity_ids": [
+              "robot_0.support.FR_foot",
+              "robot_0.support.RL_foot"
+            ],
+            "episodes": 864,
+            "candidate_windows": 3266,
+            "qualified_windows": 416,
+            "episodes_with_qualified_phase": 160
+          },
+          "contact_phase:robot_0.support.FR_foot,robot_0.support.RR_foot": {
+            "entity_ids": [
+              "robot_0.support.FR_foot",
+              "robot_0.support.RR_foot"
+            ],
+            "episodes": 864,
+            "candidate_windows": 3266,
+            "qualified_windows": 771,
+            "episodes_with_qualified_phase": 233
+          },
+          "contact_phase:robot_0.support.RL_foot,robot_0.support.RR_foot": {
+            "entity_ids": [
+              "robot_0.support.RL_foot",
+              "robot_0.support.RR_foot"
+            ],
+            "episodes": 864,
+            "candidate_windows": 617,
+            "qualified_windows": 40,
+            "episodes_with_qualified_phase": 26
+          }
+        },
+        "weighting": "episode-equal summaries; pooled unique valid readout edges separately; no window-weighted global period",
+        "scope": "whole recorded public-dev cohort; local qualification is not whole-episode periodicity"
+      },
+      "preview": {
+        "status": "offline_preview_not_production_delivery",
+        "base_canonical_content_unchanged": true,
+        "serialization": "canonical_compact_sorted_utf8_no_trailing_newline",
+        "base_content_hash": "4c413623b4ed359f46a4edc2ff3aa732beea377fc05d709c2beeaabc1923dacd",
+        "base_required_claim_ids_hash": "5e577e940e0c3851336371c658b52bbc05a8230a662ee06092179173948fbc3c",
+        "included_ids": [],
+        "omitted": [
+          {
+            "id": "cycle:64f9a6f02e10f750b5e82e39d7c0a067bc913b1fdec9e89fdaa0eb1cd6ffed44",
+            "reason": "optional_whole_sentence_combined_budget"
+          },
+          {
+            "id": "cycle:afd78271478d4245a2045b1bb4e7e58505060b2537fea87af0a0a33c106e11de",
+            "reason": "optional_whole_sentence_combined_budget"
+          },
+          {
+            "id": "cycle:37534a34123dd1fe1d1b415bea06abf8d6984635747dbd8651e843b7cbbd884c",
+            "reason": "optional_whole_sentence_combined_budget"
+          },
+          {
+            "id": "cycle:309e316e31e914f7d5733cc6a7eec72282ae276834f86100bc07818c5b4f0ea5",
+            "reason": "optional_whole_sentence_combined_budget"
+          }
+        ],
+        "combined_bytes": 8127,
+        "max_bytes": 8192
+      },
+      "files": [
+        {
+          "path": "outputs/p2c1/real_01/k3/cycles.jsonl",
+          "sha256": "342332bcd3206125c38980cd28e6f5e8d7e8adea90e342ecbfd5dbbebee2dfca",
+          "bytes": 74975811
+        },
+        {
+          "path": "outputs/p2c1/real_01/k3/manifest.json",
+          "sha256": "f34f5c2e6d0568eec26b596128621f419f82b1922410997d5fc59e2d19ff37a5",
+          "bytes": 5691
+        },
+        {
+          "path": "outputs/p2c1/real_01/k3/oracle.json",
+          "sha256": "cd27271ca7118be57c0c4805016001de74fa674a3541e33aa478240ef413724e",
+          "bytes": 792
+        },
+        {
+          "path": "outputs/p2c1/real_01/k3/preview.json",
+          "sha256": "8a66d7d0da7540cb10ce45fd51edadc66e700434e52f94fd2bdef77d9bb44f3a",
+          "bytes": 8127
+        },
+        {
+          "path": "outputs/p2c1/real_01/k3/preview_receipt.json",
+          "sha256": "5cec3bf017084cffea81b959eb643b742cd073e948c1776c4d7632d8194c577f",
+          "bytes": 1083
+        },
+        {
+          "path": "outputs/p2c1/real_01/k3/raw_examples.json",
+          "sha256": "54e034b49d9cfe2b6fd24fa871de26d36b0832eadc17004a603bab418bf6b600",
+          "bytes": 346602
+        },
+        {
+          "path": "outputs/p2c1/real_01/k3/report.json",
+          "sha256": "427f9c188b7642d9eb1b73d08ac077a8098d0c59585cedd3ba7d48c315e428bb",
+          "bytes": 22602
+        }
+      ]
+    }
+  ],
+  "old_artifact_checks": {
+    "status": "PASS",
+    "p2a_artifact_count": 33,
+    "p2a_artifacts": [
+      {
+        "path": "outputs/p2a/k1/behavior_full.json",
+        "sha256": "d08481125b147a7c8b9b2f262b66f712b529539dbf2c8e990aa9962aeb7348d8",
+        "bytes": 5804785
+      },
+      {
+        "path": "outputs/p2a/k1/public.json",
+        "sha256": "2e1e66a218dc6e1e60bbd005b27167c546b1199d7b4e763b943eb7e7cf05b331",
+        "bytes": 9080
+      },
+      {
+        "path": "outputs/p2a/k1/receipt.json",
+        "sha256": "54794820d23a577327354c1dcafcb15e3e919c3cf6a4f802f023ca7cb6c35e6e",
+        "bytes": 7434
+      },
+      {
+        "path": "outputs/p2a/k1/replay.json",
+        "sha256": "620a030bee5f32f1ec63b6bc58f9f504d95180d85322968b400493a2992b3975",
+        "bytes": 970
+      },
+      {
+        "path": "outputs/p2a/k1/trajectory/010593a6533422f456b186602c6fdf12790e4e6acbf0d5c0fdafc69478487f10/card/evidence.jsonl",
+        "sha256": "1064a93ab8e930e45b6e3d5869f2ffffcd14b7b2758dc44b15459bd65d4be760",
+        "bytes": 55701702
+      },
+      {
+        "path": "outputs/p2a/k1/trajectory/010593a6533422f456b186602c6fdf12790e4e6acbf0d5c0fdafc69478487f10/card/manifest.json",
+        "sha256": "9009891a2ae34a37578381a2bb05b223b7262415d18d48cae554d6584b247090",
+        "bytes": 6123
+      },
+      {
+        "path": "outputs/p2a/k1/trajectory/010593a6533422f456b186602c6fdf12790e4e6acbf0d5c0fdafc69478487f10/card/policy_card.json",
+        "sha256": "1ce99a2eb813221396f23a544267a4b6b2c5834ecb5845239531d9cc34761cbd",
+        "bytes": 505642
+      },
+      {
+        "path": "outputs/p2a/k1/trajectory/010593a6533422f456b186602c6fdf12790e4e6acbf0d5c0fdafc69478487f10/card/policy_card_zh.md",
+        "sha256": "f8a8b3cd7687bc89dc3da9b375328e7916ca1fa8811804322dc7a7949b5725f3",
+        "bytes": 86974
+      },
+      {
+        "path": "outputs/p2a/k1/trajectory/010593a6533422f456b186602c6fdf12790e4e6acbf0d5c0fdafc69478487f10/complete.json",
+        "sha256": "f905b02d09fba80490f6486da7bcfde467cb379b78925277b47099f777cec0cb",
+        "bytes": 5746
+      },
+      {
+        "path": "outputs/p2a/k1/trajectory/010593a6533422f456b186602c6fdf12790e4e6acbf0d5c0fdafc69478487f10/numeric/evidence.jsonl",
+        "sha256": "0587de5718b29ca642f2373bf35421fc9e9a25cd11665756db018826ffc011ed",
+        "bytes": 1124463189
+      },
+      {
+        "path": "outputs/p2a/k1/trajectory/010593a6533422f456b186602c6fdf12790e4e6acbf0d5c0fdafc69478487f10/numeric/manifest.json",
+        "sha256": "198498d54b71e25f3bede995debbf0e92f934b3d4341908b99a4f78720b4bdf6",
+        "bytes": 17493
+      },
+      {
+        "path": "outputs/p2a/k2/behavior_full.json",
+        "sha256": "9b2b83946f80805776452c48dd9af2aa9d4c1cc11f3d6de9d0d0141f09fe9b0d",
+        "bytes": 5741062
+      },
+      {
+        "path": "outputs/p2a/k2/public.json",
+        "sha256": "b9e41070b79c4b102e960af6a1807781a6129dbc339f43241727f7269a504e36",
+        "bytes": 8992
+      },
+      {
+        "path": "outputs/p2a/k2/receipt.json",
+        "sha256": "7aee6e90c19ce538837f17e4bbc92171c9ea2ef878766a08be05d23496d20362",
+        "bytes": 7438
+      },
+      {
+        "path": "outputs/p2a/k2/replay.json",
+        "sha256": "9558deda26e22b630f7b07dd51b967acfcb1ea67c367fe392fc4b617c59de82d",
+        "bytes": 969
+      },
+      {
+        "path": "outputs/p2a/k2/trajectory/b933d1c03dd1c70b21dc5879b272ed2cd95f1dc844daed63f196dafabaf06da5/card/evidence.jsonl",
+        "sha256": "48fa48f0f3e292be8a849bb02f0cfffa4e1ceac299231e423f464eb4d499b5b4",
+        "bytes": 53825175
+      },
+      {
+        "path": "outputs/p2a/k2/trajectory/b933d1c03dd1c70b21dc5879b272ed2cd95f1dc844daed63f196dafabaf06da5/card/manifest.json",
+        "sha256": "b59d1b5ed8b2d8f797ba59436438f9c08b7c7e31fff90c1862462a56fcdf9611",
+        "bytes": 6122
+      },
+      {
+        "path": "outputs/p2a/k2/trajectory/b933d1c03dd1c70b21dc5879b272ed2cd95f1dc844daed63f196dafabaf06da5/card/policy_card.json",
+        "sha256": "18b282878a3c7000ff7d423ea905d2016a00a7dbd76260429cb462e4a27dbe9c",
+        "bytes": 537758
+      },
+      {
+        "path": "outputs/p2a/k2/trajectory/b933d1c03dd1c70b21dc5879b272ed2cd95f1dc844daed63f196dafabaf06da5/card/policy_card_zh.md",
+        "sha256": "5f64cf7ab4d38aaa72e6409342ceb6997ea30ea1e0e2d52116cdeddf447394b2",
+        "bytes": 96372
+      },
+      {
+        "path": "outputs/p2a/k2/trajectory/b933d1c03dd1c70b21dc5879b272ed2cd95f1dc844daed63f196dafabaf06da5/complete.json",
+        "sha256": "ca551fcb8e01be43cc7ac807aee1205ca1e2f563090aa4f45bf43868dd4e5b4c",
+        "bytes": 5750
+      },
+      {
+        "path": "outputs/p2a/k2/trajectory/b933d1c03dd1c70b21dc5879b272ed2cd95f1dc844daed63f196dafabaf06da5/numeric/evidence.jsonl",
+        "sha256": "864e44c3528106d70d5ba2d2e6ebb33de9152446d62c5fafeb62eb86416b4626",
+        "bytes": 713884787
+      },
+      {
+        "path": "outputs/p2a/k2/trajectory/b933d1c03dd1c70b21dc5879b272ed2cd95f1dc844daed63f196dafabaf06da5/numeric/manifest.json",
+        "sha256": "7335930dafac711393b1234db471b0dae0a2d11c85fc0b1603c6f951fff81dc1",
+        "bytes": 17636
+      },
+      {
+        "path": "outputs/p2a/k3/behavior_full.json",
+        "sha256": "61526f47cf2552d913077f4511d19a8e3a10f48e7cced9ba00ece27d28be987a",
+        "bytes": 10286015
+      },
+      {
+        "path": "outputs/p2a/k3/public.json",
+        "sha256": "48e3bb615a55100f3190b7ca6b1256e9057c7086cc95ee24d4ced6cb123ea4b6",
+        "bytes": 9087
+      },
+      {
+        "path": "outputs/p2a/k3/receipt.json",
+        "sha256": "1768406d19c41f5fe808df77a3929402ad098c2f7dad9897713a93b93a3aff4d",
+        "bytes": 7461
+      },
+      {
+        "path": "outputs/p2a/k3/replay.json",
+        "sha256": "da8b44aa54d9df37ea4460648e94f7880c6203f5ea82710a694245f2deb1ed43",
+        "bytes": 971
+      },
+      {
+        "path": "outputs/p2a/k3/trajectory/8993a0899d8884db5e54e6f026a1ad433bb8117c91760f19f1060a099a76310d/card/evidence.jsonl",
+        "sha256": "0d115cef8a4fa834171762816e75a213e2fff597dbbf5899a12996f3d2d20455",
+        "bytes": 60669616
+      },
+      {
+        "path": "outputs/p2a/k3/trajectory/8993a0899d8884db5e54e6f026a1ad433bb8117c91760f19f1060a099a76310d/card/manifest.json",
+        "sha256": "0237cde83f247258113f5cac4847e18704e79153979f70c046a9abf15570cef8",
+        "bytes": 6152
+      },
+      {
+        "path": "outputs/p2a/k3/trajectory/8993a0899d8884db5e54e6f026a1ad433bb8117c91760f19f1060a099a76310d/card/policy_card.json",
+        "sha256": "33178d9dee9f9a9387d893fa3767b680c1e234ffc8ae63ca4401c8740bd6e76a",
+        "bytes": 712453
+      },
+      {
+        "path": "outputs/p2a/k3/trajectory/8993a0899d8884db5e54e6f026a1ad433bb8117c91760f19f1060a099a76310d/card/policy_card_zh.md",
+        "sha256": "4c19c00c69d1085ddef45b265099e3deb97ab1a19c723830722f3b2811462adb",
+        "bytes": 150317
+      },
+      {
+        "path": "outputs/p2a/k3/trajectory/8993a0899d8884db5e54e6f026a1ad433bb8117c91760f19f1060a099a76310d/complete.json",
+        "sha256": "a5e42ef520615fde23209931d86d79e5170a03803a057b0c58d8d95c80b8ac5e",
+        "bytes": 5773
+      },
+      {
+        "path": "outputs/p2a/k3/trajectory/8993a0899d8884db5e54e6f026a1ad433bb8117c91760f19f1060a099a76310d/numeric/evidence.jsonl",
+        "sha256": "a4df5bd24c116e5b97090a20e066fe45d65d4ed2a770b53cc72e6b8f24e27442",
+        "bytes": 1289799358
+      },
+      {
+        "path": "outputs/p2a/k3/trajectory/8993a0899d8884db5e54e6f026a1ad433bb8117c91760f19f1060a099a76310d/numeric/manifest.json",
+        "sha256": "210e7d6bec939510cc48afd08cc06df1310b8a736fa2711c15bd3fe2b9696244",
+        "bytes": 17638
+      }
+    ],
+    "v2_replays": [
+      {
+        "source": "k1",
+        "full_and_public_replay_equal": true,
+        "public_sha256": "2e1e66a218dc6e1e60bbd005b27167c546b1199d7b4e763b943eb7e7cf05b331"
+      },
+      {
+        "source": "k2",
+        "full_and_public_replay_equal": true,
+        "public_sha256": "b9e41070b79c4b102e960af6a1807781a6129dbc339f43241727f7269a504e36"
+      },
+      {
+        "source": "k3",
+        "full_and_public_replay_equal": true,
+        "public_sha256": "48e3bb615a55100f3190b7ca6b1256e9057c7086cc95ee24d4ced6cb123ea4b6"
+      }
+    ],
+    "push_frozen_files": 22,
+    "p1b_frozen_card_files": 3,
+    "scope": "v2 content SHA and actual full/public replay; NOT rerun of historical 247/309 fact gates"
+  },
+  "P2b2_test_id_errata": {
+    "old_verification": {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2b2/verification.json",
+      "sha256": "fa4c426f9dd3b7efd597f5388c958911c2fecb2754f8d18de3770602b8ccf10f",
+      "bytes": 180052
+    },
+    "original_log": {
+      "path": "outputs/p2b2/final/regression.stderr.txt",
+      "sha256": "1341397ab17bef4f0f41f6eb7a8e59e29b8712a9a220709844082f95cbd1eed4",
+      "bytes": 129186
+    },
+    "corrections": [
+      {
+        "historical_key": "tests.unit.test_push_force_consumers.PushForceConsumersTests.test_two_native_snapshot_streams_close_at_each_env_terminal.test_two_native_snapshot_streams_close_at_each_env_terminal",
+        "correct_test_id": "tests.unit.test_push_force_consumers.PushForceConsumersTests.test_two_native_snapshot_streams_close_at_each_env_terminal",
+        "historical_status": {
+          "status": "ERROR",
+          "last_log": "regression"
+        },
+        "source": "tests/unit/test_push_force_consumers.py",
+        "line": 288
+      },
+      {
+        "historical_key": "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_accepted_head_resumes_and_closes_final.test_stair_accepted_head_resumes_and_closes_final",
+        "correct_test_id": "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_accepted_head_resumes_and_closes_final",
+        "historical_status": {
+          "status": "skipped 'Stair runtime source closure requires target Isaac installation'",
+          "last_log": "regression"
+        },
+        "source": "tests/integration/test_generation_session.py",
+        "line": 279
+      },
+      {
+        "historical_key": "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_early_rejection_sealed_rejection_and_no_selection.test_stair_early_rejection_sealed_rejection_and_no_selection",
+        "correct_test_id": "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_early_rejection_sealed_rejection_and_no_selection",
+        "historical_status": {
+          "status": "skipped 'Stair runtime source closure requires target Isaac installation'",
+          "last_log": "regression"
+        },
+        "source": "tests/integration/test_generation_session.py",
+        "line": 254
+      },
+      {
+        "historical_key": "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_reference_head_uses_shared_preparation_session_final_and_replay.test_stair_reference_head_uses_shared_preparation_session_final_and_replay",
+        "correct_test_id": "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_reference_head_uses_shared_preparation_session_final_and_replay",
+        "historical_status": {
+          "status": "skipped 'Stair runtime source closure requires target Isaac installation'",
+          "last_log": "regression"
+        },
+        "source": "tests/integration/test_generation_session.py",
+        "line": 361
+      },
+      {
+        "historical_key": "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_runtime_and_infrastructure_failures_keep_distinct_evidence.test_stair_runtime_and_infrastructure_failures_keep_distinct_evidence",
+        "correct_test_id": "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_runtime_and_infrastructure_failures_keep_distinct_evidence",
+        "historical_status": {
+          "status": "skipped 'Stair runtime source closure requires target Isaac installation'",
+          "last_log": "regression"
+        },
+        "source": "tests/integration/test_generation_session.py",
+        "line": 227
+      }
+    ],
+    "historical_files_modified": false
+  },
+  "code_and_deliverables": [
+    {
+      "path": "src/true_rl_agent/evaluation/trajectory_translation/cycles.py",
+      "sha256": "d9c31e2ce0e65b02aa2e5cb6954741403c190664ba53d1ef10457fb891c3a522",
+      "bytes": 13056
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/trajectory_cycles.py",
+      "sha256": "9ee3f00e4b44a329c820732f8628397562c426f8d7b080d936fcd849cc4f56fb",
+      "bytes": 11174
+    },
+    {
+      "path": "scripts/build_stair_cycle_supplement.py",
+      "sha256": "b7343270b190cf86eea3b9280d7f0f92ffaee76cf01ebf5475f7cf3d1a8e9ac3",
+      "bytes": 1222
+    },
+    {
+      "path": "tests/unit/cycle_oracle.py",
+      "sha256": "7d909af5bde037fe61e92d1b2bfef9f4eb7a1a31d57d7a9d80d2c0c60245883f",
+      "bytes": 9989
+    },
+    {
+      "path": "tests/unit/test_trajectory_cycles.py",
+      "sha256": "ca5526ef77f347b87fec0c8fce70c80545d669be1ed24445da59368c64705137",
+      "bytes": 9128
+    },
+    {
+      "path": "tests/unit/test_stair_cycle_supplement.py",
+      "sha256": "0506051a3765c98ec5b0527d3c34d398fa22728567b7cb04f77f62c93d2e5dc3",
+      "bytes": 4238
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2c1/assemble_verification.py",
+      "sha256": "c6aa7df16c20614597a995c101849697fc9782a8533bb04d303c40fc4b960cd3",
+      "bytes": 6974
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2c1/audit_raw.py",
+      "sha256": "f533b60f4ee2458c2cd249c4b06c53e74460173b7b388d7d1975eaf1877828c1",
+      "bytes": 11665
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2c1/run_validation.py",
+      "sha256": "26f5cff1b032bf0ee7ef89d019054de5824d06533e2cd7b547717c1280bdb705",
+      "bytes": 2633
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2c1/verify_compatibility.py",
+      "sha256": "2a4215cffd89a64d0cda69782faf6a82e0c4c1335ef18000dd8f6d9d1a804fae",
+      "bytes": 1957
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2c1/FREEZE_ZH.md",
+      "sha256": "47474899c9c1641da2f4215819bb19f51e328ef887ba54c5886cc7c6efdf33a1",
+      "bytes": 5560
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2c1/DEVELOPMENT_ZH.md",
+      "sha256": "740ea9e68858f01619158aed4ed15266fa5d6e89f0a7f85245f0da436980caff",
+      "bytes": 11290
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P2c1/REAL_EXAMPLES.json",
+      "sha256": "88ba026f0972345dc86fd00c373f74395ff6c95f2c90d64f6414ff8fb3fd258b",
+      "bytes": 138543
+    }
+  ],
+  "key_diff": {
+    "path": "outputs/p2c1/key_diff.patch",
+    "sha256": "38798ec15d9f873f5538794a127e4dbf010cdf325e987023e6a2022624929174",
+    "bytes": 26755
+  },
+  "cost": {
+    "external_model_calls": 0,
+    "gpu_runs": 0,
+    "training_runs": 0,
+    "server_writes": 0,
+    "measured_command_wall_seconds_sum": 118.84219640004449,
+    "maximum_python_peak_working_set_bytes": 439775232
+  },
+  "limits": [
+    "No K5 or P3 pilot behavior read; no statistical holdout/generalization claim.",
+    "All four new optional sentences omitted in each real 8192B preview; new full offline report retained.",
+    "P2c2/C3 and production delivery await separate root authorization; not permanently unavailable.",
+    "Ruff absent in venv; no dependency installation. 154 applicable tests passed without skips.",
+    "Windows normal-permission initial status clean; sandbox deep-path D was not deletion."
+  ],
+  "parent_gate": "commit/push current branch then stop writing for independent review"
+}

@@ -1,0 +1,1004 @@
+{
+  "schema_version": "trajectory.p2a.sources.v1",
+  "sources": [
+    {
+      "source_id": "k1",
+      "manifest_relative_path": "outputs/trajectory_p1d/raw/k1_numeric_evidence/manifest.json",
+      "manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+      "identity": {
+        "job_id": "stair-dev-replay-fca6a59c8142d012-eval-public-dev",
+        "task_id": "unitree_stair_climbing",
+        "subject_kind": "reference",
+        "subject_id": "go2-stair-official-flat-derived-v1",
+        "subject_manifest_hash": "ece5ad653267f11e5b791403208472f42622e44661fdbc7162776799a370dbd4",
+        "program_source_checksum": "sha256:10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+        "training_binding_hash": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98",
+        "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+        "evaluation_binding": {
+          "schema_version": "true_rl_agent.evaluation.binding.v1",
+          "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+          "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+          "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+          "seed_cohort_hash": "a7830816449821400a6ae51fabbb046f8d98ab3084bfcaeb56b240249ea790ea",
+          "evaluation_binding_hash": "ff0b754f727af4df616e77d10f8f67019cea485ed76b1b9c6b00cf902c451178"
+        },
+        "evaluation_plan_hash": "febc1c36a47b3681812197eef04c19d2e1b9de258d8332b73be571e84f6b76ea",
+        "checkpoint_hash": "sha256:fca6a59c8142d0120c5b534addab03885995dd64931fc3b974b9f94b997fe729",
+        "resolved_cell_manifest_hash": "7e8fa0c45109bbfc0162a90cf68d4186a0a3f96a0df9cce1e9b1b09f50aa6de9",
+        "seed_namespace": "formal_reference_candidate_eval",
+        "splits": [
+          "public_dev"
+        ],
+        "environment_source_preflight": {
+          "schema_version": "true_rl_agent.task.stair_climbing.execution_source_preflight.v1",
+          "status": "pass",
+          "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+          "source_manifest_hash": "ef434773192061f3e8d32c369a64c8178da802727440ebcf35aee855e77e9991"
+        },
+        "backend_execution_environment_verification": {
+          "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+          "backend_id": "isaac_lab_rsl_rl",
+          "status": "pass",
+          "expected_manifest_hash": "c472e507378f1256f95a7ffd69a3408cadd69fdcfdc6282a842e54562916fac0",
+          "actual_manifest_hash": "c472e507378f1256f95a7ffd69a3408cadd69fdcfdc6282a842e54562916fac0"
+        }
+      },
+      "profile": "stair.unified_first_episode.v2",
+      "chunks": [
+        {
+          "file": "chunk_000000.npz",
+          "sha256": "5518421701fb1c13944be8a6c9296d415a3493ca35394b8e0a6f502ae05fe4c0",
+          "stored_bytes": 4856560
+        },
+        {
+          "file": "chunk_000001.npz",
+          "sha256": "f75b38b62d6f6bdd5fa545e34fff671b1a2ef52720caf33234d090f7a0f22bdd",
+          "stored_bytes": 4949439
+        },
+        {
+          "file": "chunk_000002.npz",
+          "sha256": "9417882c249999f404116718da44293122f5b0de5b871e18327c3721bb048ccd",
+          "stored_bytes": 4920953
+        },
+        {
+          "file": "chunk_000003.npz",
+          "sha256": "a0e509c79f8e7a2bf67d044f3adea1a9b7b6fd3ec5c1334856d8373b4845eeb0",
+          "stored_bytes": 4852012
+        },
+        {
+          "file": "chunk_000004.npz",
+          "sha256": "aa929120e0475a4674716ac89689b7b7d31a216966f51721ae8b96fbf4875b42",
+          "stored_bytes": 3881268
+        },
+        {
+          "file": "chunk_000005.npz",
+          "sha256": "71c590752daa998e3f26041b3386b2df0cdff1bb33c4e22da4e93d10e694cfa2",
+          "stored_bytes": 987495
+        },
+        {
+          "file": "chunk_000006.npz",
+          "sha256": "4a8c6cd53206c8b5a9ee853c16f2fcd81e0311a2c3ddf069879e057439c3c95e",
+          "stored_bytes": 291129
+        },
+        {
+          "file": "chunk_000007.npz",
+          "sha256": "f42e639bfe68be9c1a94a1f191477c60db6950ab243fb2b42df4a3eb8ff99ed4",
+          "stored_bytes": 59071
+        },
+        {
+          "file": "chunk_000008.npz",
+          "sha256": "353c75cf79b514da704df1d9c5b7256ea5425af642ae83cfff479d1b8440aa64",
+          "stored_bytes": 17874
+        },
+        {
+          "file": "chunk_000009.npz",
+          "sha256": "dd181de837924a1cb8dbc311e51ae7aff25ba24000b8b1f51f356775af797b12",
+          "stored_bytes": 4867661
+        },
+        {
+          "file": "chunk_000010.npz",
+          "sha256": "c9163c064e867090242e906a875cbd849bc8be520f6000c457ebfa874170da00",
+          "stored_bytes": 4966781
+        },
+        {
+          "file": "chunk_000011.npz",
+          "sha256": "7e179f56035cf25fa25a92c4e27a4d909b2e4bcc9843ba3711fd6cfb6ee53f4d",
+          "stored_bytes": 4920116
+        },
+        {
+          "file": "chunk_000012.npz",
+          "sha256": "663bade285d638cffa435ff02fef49da0ac90338d8e4ebb93f8d91e04e57f500",
+          "stored_bytes": 4844483
+        },
+        {
+          "file": "chunk_000013.npz",
+          "sha256": "a8295df08d3b73217bb6992ae6c7c1e74f1bafc94c2da7a09cb5cc3d6e85e1d5",
+          "stored_bytes": 3917162
+        },
+        {
+          "file": "chunk_000014.npz",
+          "sha256": "024dc47ca6e275e7d01bbe4c10eebd90dd8251ddf7ef6729c6fea9b7da8e6fb6",
+          "stored_bytes": 974610
+        },
+        {
+          "file": "chunk_000015.npz",
+          "sha256": "44c8687ce255d9a90346613af4032f40a1e61f5c25123876c8c23132d491dc4b",
+          "stored_bytes": 150463
+        },
+        {
+          "file": "chunk_000016.npz",
+          "sha256": "6f657ed1f0f7190e174b049a0645522dadaa54aa98d6649d0b2b7bdb93ef04ef",
+          "stored_bytes": 34480
+        },
+        {
+          "file": "chunk_000017.npz",
+          "sha256": "581cbd01e25124d3372f2b5941d2f90099f15ec94545948468c4575f4844fb52",
+          "stored_bytes": 18471
+        },
+        {
+          "file": "chunk_000018.npz",
+          "sha256": "a8107e0e87b80f7295fca0a70ef4cc0b2fe37f030756c2bc5c2095a648cbc561",
+          "stored_bytes": 4874374
+        },
+        {
+          "file": "chunk_000019.npz",
+          "sha256": "0ac2aa6ea76ac595ab4efccac74853e33d24e03164537162f3b3b76a0381deb5",
+          "stored_bytes": 4975646
+        },
+        {
+          "file": "chunk_000020.npz",
+          "sha256": "2ed3e813141b77bd7f3bf8caf25e9900d5b649567ac5ac24d47b0c3ab4d05ceb",
+          "stored_bytes": 4963376
+        },
+        {
+          "file": "chunk_000021.npz",
+          "sha256": "f14ac6bad5957dc12f14430c5a14c0f9aa898068a62082d5650a91ac7fb9ecaf",
+          "stored_bytes": 4948301
+        },
+        {
+          "file": "chunk_000022.npz",
+          "sha256": "29c829e63ea76b91d33ec93e029d50451825bfa4a11b4a99abb5e4af6b02fc41",
+          "stored_bytes": 4006178
+        },
+        {
+          "file": "chunk_000023.npz",
+          "sha256": "315ba4098a2bacdc8fc4a011913f85597928b4c2a5de1b99446d24c1c6502b73",
+          "stored_bytes": 1103488
+        },
+        {
+          "file": "chunk_000024.npz",
+          "sha256": "276f9024cf7a102319ae79960c61fa682e79878edf8d1f72db7f4db3ca82942a",
+          "stored_bytes": 227579
+        },
+        {
+          "file": "chunk_000025.npz",
+          "sha256": "f1cb2cd3f40f5e13197cd09f18152bb20e2c6d6d9f118762bccf0825ab59dc18",
+          "stored_bytes": 63386
+        },
+        {
+          "file": "chunk_000026.npz",
+          "sha256": "079913b89627dcef7cc66c92d4ba4fd796f9e98f503c36cf5dad978600961d71",
+          "stored_bytes": 22597
+        }
+      ],
+      "predeclared_examples": [
+        {
+          "run_index": 2,
+          "env_index": 11,
+          "primary_reason": "success",
+          "cell_id": "public_dev.c0_id_level_3",
+          "stratum": "c0_id",
+          "selection_hash": "0060a54d532cfd0d5f220427dee98d45035b68c146bf78db364039476fa36c07",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 1,
+          "env_index": 71,
+          "primary_reason": "forbidden_contact",
+          "cell_id": "public_dev.c1_conditional_frontier_level_5",
+          "stratum": "c1_conditional_frontier",
+          "selection_hash": "0650e34c719d471b647f33d887671441afaa0bf7b57fe9777b9f8ffc8ea9aebe",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 2,
+          "env_index": 54,
+          "primary_reason": "success",
+          "cell_id": "public_dev.c1_conditional_frontier_level_4",
+          "stratum": "c1_conditional_frontier",
+          "selection_hash": "003b91f7565b4be084b34b37c5d4a0f5487447cf4c8671eeeec370a45ff772db",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 3,
+          "env_index": 74,
+          "primary_reason": "success",
+          "cell_id": "public_dev.c1_id_level_3",
+          "stratum": "c1_id",
+          "selection_hash": "01e73988a07963b024a9caabeeb6f923fd91d124036859f5aed4f2c18425cb18",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 3,
+          "env_index": 113,
+          "primary_reason": "forbidden_contact",
+          "cell_id": "public_dev.c2_mechanism_ood_level_2",
+          "stratum": "c2_mechanism_ood",
+          "selection_hash": "1ad54f9cb8582ad3186eeb47d5b80fa7d3951ae6b4117d7619f3901c0da69f18",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 2,
+          "env_index": 134,
+          "primary_reason": "success",
+          "cell_id": "public_dev.c2_mechanism_ood_level_5",
+          "stratum": "c2_mechanism_ood",
+          "selection_hash": "02c5433270f1f6fb849558a09d2989e2dccbdaa331554ab879b14f6f94da1287",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 3,
+          "env_index": 173,
+          "primary_reason": "success",
+          "cell_id": "public_dev.height_ood_level_5",
+          "stratum": "height_ood",
+          "selection_hash": "0183f364e87d13d40cdb5c911cfcdeb5f1fbdafb3c97514cdf5a232d6ddd0b74",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 1,
+          "env_index": 196,
+          "primary_reason": "forbidden_contact",
+          "cell_id": "public_dev.joint_ood_level_2",
+          "stratum": "joint_ood",
+          "selection_hash": "203d2de6d7ac46ad4d472fd821c16904043970803666bf55a491dc8da481f001",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 1,
+          "env_index": 180,
+          "primary_reason": "success",
+          "cell_id": "public_dev.joint_ood_level_1",
+          "stratum": "joint_ood",
+          "selection_hash": "02d4cb030721844919bcd3efcb55c11ca10e2e952d4cf168dd84e14d01f73ab3",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 2,
+          "env_index": 233,
+          "primary_reason": "success",
+          "cell_id": "public_dev.phase_composition_ood_level_4",
+          "stratum": "phase_composition_ood",
+          "selection_hash": "01835d000fff017b74224e4e47de469e5ecbdf675cdf9c31bb5f972e69578da1",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 1,
+          "env_index": 280,
+          "primary_reason": "forbidden_contact",
+          "cell_id": "public_dev.tread_ood_level_5",
+          "stratum": "tread_ood",
+          "selection_hash": "18edb4bd5d9af1689e84a48663d89461189e0fd33feddd87517a37c26ffeb2dc",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 3,
+          "env_index": 253,
+          "primary_reason": "success",
+          "cell_id": "public_dev.tread_ood_level_2",
+          "stratum": "tread_ood",
+          "selection_hash": "04a7eff140493b9bd0685290b18fe948c0b23f7cfde95309682eebe9701f22f8",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 3,
+          "env_index": 276,
+          "primary_reason": "off_course",
+          "cell_id": "public_dev.tread_ood_level_5",
+          "stratum": "tread_ood",
+          "selection_hash": "50ae48a6b01ec3b1d35b9b34ee38747a8bf517a3c0f2f95c443f73b43e998691",
+          "selection_reason": "additional_outcome_hash_min"
+        },
+        {
+          "run_index": 3,
+          "env_index": 285,
+          "primary_reason": "timeout",
+          "cell_id": "public_dev.tread_ood_level_5",
+          "stratum": "tread_ood",
+          "selection_hash": "2a72b1f4ee9ab8f65c2e5af523d8e5df42b28d9cbcb38e1948b594d2ae1424a9",
+          "selection_reason": "additional_outcome_hash_min"
+        }
+      ],
+      "evaluation_uses": [
+        "development_regression",
+        "descriptive_audit"
+      ],
+      "prospective_confirmation": false
+    },
+    {
+      "source_id": "k2",
+      "manifest_relative_path": "outputs/p2a/raw/k2/manifest.json",
+      "manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20",
+      "identity": {
+        "job_id": "stair-dev-replay-bcd8de3a9d0e6e6a-eval-public-dev",
+        "task_id": "unitree_stair_climbing",
+        "subject_kind": "candidate",
+        "subject_id": "stair_swing_foot_level_sweep_penalty_v1",
+        "subject_manifest_hash": "e9f40a3c33000bb34ec29f81035cb7c8b15043b0e52b8de8dfff8894533cde69",
+        "program_source_checksum": "sha256:29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45",
+        "training_binding_hash": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98",
+        "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+        "evaluation_binding": {
+          "schema_version": "true_rl_agent.evaluation.binding.v1",
+          "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+          "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+          "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+          "seed_cohort_hash": "a7830816449821400a6ae51fabbb046f8d98ab3084bfcaeb56b240249ea790ea",
+          "evaluation_binding_hash": "ff0b754f727af4df616e77d10f8f67019cea485ed76b1b9c6b00cf902c451178"
+        },
+        "evaluation_plan_hash": "d9b080b250ea4bb53b12e003818e9de7387e61ebbb4781d2958ad96ab07b0e6e",
+        "checkpoint_hash": "sha256:bcd8de3a9d0e6e6a6c84b8c7833dc4a1b0ed697758ddee6f9c9eb31416a2f93c",
+        "resolved_cell_manifest_hash": "7e8fa0c45109bbfc0162a90cf68d4186a0a3f96a0df9cce1e9b1b09f50aa6de9",
+        "seed_namespace": "formal_reference_candidate_eval",
+        "splits": [
+          "public_dev"
+        ],
+        "environment_source_preflight": {
+          "schema_version": "true_rl_agent.task.stair_climbing.execution_source_preflight.v1",
+          "status": "pass",
+          "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+          "source_manifest_hash": "dc4f199cf0c1fcca156291aa32f0747f99134c216572ed3c7d28399abf7a6520"
+        },
+        "backend_execution_environment_verification": {
+          "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+          "backend_id": "isaac_lab_rsl_rl",
+          "status": "pass",
+          "expected_manifest_hash": "5a5358ba6672f5d3ec6d69e01e1adbcffe13c56e7212130d6ef79b62470b7949",
+          "actual_manifest_hash": "5a5358ba6672f5d3ec6d69e01e1adbcffe13c56e7212130d6ef79b62470b7949"
+        }
+      },
+      "profile": "stair.unified_first_episode.v1",
+      "chunks": [
+        {
+          "file": "chunk_000000.npz",
+          "sha256": "5b0ffc4ec830801d64ed76b8eb733303b777d8fa7a7d90ff23b639cd48e4f02d",
+          "stored_bytes": 3434410
+        },
+        {
+          "file": "chunk_000001.npz",
+          "sha256": "67ba06681669be186f333675a7e2dd2242f96f29ba082a066074478066d87344",
+          "stored_bytes": 3458039
+        },
+        {
+          "file": "chunk_000002.npz",
+          "sha256": "4b858a25c3b887c46037f6b7539b66dcc031031fa9517d8834ac87cc35693edd",
+          "stored_bytes": 3476908
+        },
+        {
+          "file": "chunk_000003.npz",
+          "sha256": "af5557fb909a130701ea1ad9ef47390d3865bbc37700ad1e59e8a41f0fbdaccc",
+          "stored_bytes": 3466514
+        },
+        {
+          "file": "chunk_000004.npz",
+          "sha256": "344e3447aef8ec53d3e9b4c9791420bc0f900c721be4b43c813f764277001b6e",
+          "stored_bytes": 2788466
+        },
+        {
+          "file": "chunk_000005.npz",
+          "sha256": "8422509b4e2ca4c9ce92bb09f1592f1e15cee6ab00fa76de8e25f6ff0abf1d8a",
+          "stored_bytes": 594758
+        },
+        {
+          "file": "chunk_000006.npz",
+          "sha256": "29ebc9f41639d7b797e98e50582ac5825a692ae070d8f79e5a7eca1c5fd5c26b",
+          "stored_bytes": 104882
+        },
+        {
+          "file": "chunk_000007.npz",
+          "sha256": "78aa0ca6a408aa93b6aeea543ec135bbd9ed081b801813e67a55fe17521954a1",
+          "stored_bytes": 48697
+        },
+        {
+          "file": "chunk_000008.npz",
+          "sha256": "1d5dbfa07e5188bdd699846fbc38c10bd8ca34c1e35be200cefeb682a880c7e9",
+          "stored_bytes": 29875
+        },
+        {
+          "file": "chunk_000009.npz",
+          "sha256": "f0a5f890c40618c49c701c529207ad4864d8f09faa36194f70a648db125a9c12",
+          "stored_bytes": 11178
+        },
+        {
+          "file": "chunk_000010.npz",
+          "sha256": "26fdd2f44a9a8cbdd090f33258123acf62038ef6dcd6914b7959df3da5b7b888",
+          "stored_bytes": 3441529
+        },
+        {
+          "file": "chunk_000011.npz",
+          "sha256": "77da722d6950fe8cbb614487519626b31f4b9ab649d71eba1221bd53dd12884f",
+          "stored_bytes": 3455680
+        },
+        {
+          "file": "chunk_000012.npz",
+          "sha256": "854904ab3e918314d17f90960a29272934ad6f57592e888f6a7692118f30c4bf",
+          "stored_bytes": 3454443
+        },
+        {
+          "file": "chunk_000013.npz",
+          "sha256": "bd672eb56cdd84cc120a3df4eca1d275dfb050b1572287b55b2c2773ff57ea69",
+          "stored_bytes": 3443682
+        },
+        {
+          "file": "chunk_000014.npz",
+          "sha256": "743f1d8e414716c6f332404333bd2ab1fac9abac23c9ac8cd06e2b179ceb6766",
+          "stored_bytes": 2792125
+        },
+        {
+          "file": "chunk_000015.npz",
+          "sha256": "7cd4f4f4be37b5b3ca5626a48399bb24ab589cabd6d30c56fa1363a22645ba66",
+          "stored_bytes": 669965
+        },
+        {
+          "file": "chunk_000016.npz",
+          "sha256": "aa34b8659cf7067106d95e2776afe7a267adf7fec4dfe73f283c8986712b82a5",
+          "stored_bytes": 184167
+        },
+        {
+          "file": "chunk_000017.npz",
+          "sha256": "0ed699fbfa3a3cfa4cee956714325f7a64badcc264f919e23291bd5d9fe8bc5f",
+          "stored_bytes": 90780
+        },
+        {
+          "file": "chunk_000018.npz",
+          "sha256": "2de3e7c6d6376791b0143f7742c41db0715bc7388ea14023c37e4195e25f21c9",
+          "stored_bytes": 75943
+        },
+        {
+          "file": "chunk_000019.npz",
+          "sha256": "5a2873d4f09e48b112ee503cd9a8fbd12a9ad61293835234539a5ae572ed4219",
+          "stored_bytes": 26691
+        },
+        {
+          "file": "chunk_000020.npz",
+          "sha256": "83922639419c2a34bd82437d51695215a455cfc22f4f3ed60526fefb9b15d188",
+          "stored_bytes": 3443708
+        },
+        {
+          "file": "chunk_000021.npz",
+          "sha256": "a354c99d1ccbb257c462ac8f74adb7324919b53a87014b83eb810240c2f29b76",
+          "stored_bytes": 3452885
+        },
+        {
+          "file": "chunk_000022.npz",
+          "sha256": "1b77283512eea35d60403b5c97d34442557fd0feb6c9e64ec776ec91f25fc69a",
+          "stored_bytes": 3464790
+        },
+        {
+          "file": "chunk_000023.npz",
+          "sha256": "a4c4a211afdab6635361a7b9c766f0163ab9e1bf053e4a0b1022988af9ccce30",
+          "stored_bytes": 3472885
+        },
+        {
+          "file": "chunk_000024.npz",
+          "sha256": "e6285bd329caad7d59c932c3c6efb6b26c0dadf43dce673a354ba51e71572ff4",
+          "stored_bytes": 2808765
+        },
+        {
+          "file": "chunk_000025.npz",
+          "sha256": "7550d2fdd2c9626e0abce63bfc0eb0f6a38bd1566f29a20ea102328ac1190979",
+          "stored_bytes": 674499
+        },
+        {
+          "file": "chunk_000026.npz",
+          "sha256": "49933439257434c6e15ec7af406a0e8f280f31210a1ed14a3cefd47b9661018e",
+          "stored_bytes": 118003
+        },
+        {
+          "file": "chunk_000027.npz",
+          "sha256": "09bc23b659569bb394209f82e7616611fea22b59a7fbfda66f442b580c8d1ed9",
+          "stored_bytes": 34927
+        },
+        {
+          "file": "chunk_000028.npz",
+          "sha256": "9e9168173258952416e8fd3eb9ea4c5ffef8eb63e7139e52af0d1b1af1abaa8e",
+          "stored_bytes": 21765
+        },
+        {
+          "file": "chunk_000029.npz",
+          "sha256": "dd0fc88372408719077c9df5f401cc13584016853812baeea7fbe3f245251032",
+          "stored_bytes": 10426
+        }
+      ],
+      "predeclared_examples": [
+        {
+          "run_index": 3,
+          "env_index": 14,
+          "primary_reason": "success",
+          "cell_id": "public_dev.c0_id_level_4",
+          "stratum": "c0_id",
+          "selection_hash": "0315627be01361146c16552a1eb44d6be2208190674eeb519c3d8e98afab1943",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 2,
+          "env_index": 67,
+          "primary_reason": "forbidden_contact",
+          "cell_id": "public_dev.c1_conditional_frontier_level_5",
+          "stratum": "c1_conditional_frontier",
+          "selection_hash": "22266e573ab7648b8b48a33b95927e65f3b77eba9ae3524707950091f8fb85b4",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 1,
+          "env_index": 59,
+          "primary_reason": "success",
+          "cell_id": "public_dev.c1_conditional_frontier_level_4",
+          "stratum": "c1_conditional_frontier",
+          "selection_hash": "0803b5cee476a7ad05440a06da63b4d970446fbaef1de1c0e720d46493854c52",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 3,
+          "env_index": 90,
+          "primary_reason": "success",
+          "cell_id": "public_dev.c1_id_level_4",
+          "stratum": "c1_id",
+          "selection_hash": "0455d7096d048e2eef2f5b9b0b3d6e76e166a19b8a31172aff9cc52979941a9d",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 2,
+          "env_index": 139,
+          "primary_reason": "forbidden_contact",
+          "cell_id": "public_dev.c2_mechanism_ood_level_5",
+          "stratum": "c2_mechanism_ood",
+          "selection_hash": "062a843689dda71a5169c7f9b706059b0ef1b1811ca41ba3631f1312055dbb52",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 2,
+          "env_index": 134,
+          "primary_reason": "success",
+          "cell_id": "public_dev.c2_mechanism_ood_level_5",
+          "stratum": "c2_mechanism_ood",
+          "selection_hash": "0059c10b87eb78122086b96f2b7fdcc0bea3966e31e13dff086c8370954d95c0",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 2,
+          "env_index": 176,
+          "primary_reason": "forbidden_contact",
+          "cell_id": "public_dev.height_ood_level_5",
+          "stratum": "height_ood",
+          "selection_hash": "2e4cd1073c17d320799332e7a60deccb2bcb6ef07c33dfbfcff9eb4738302d06",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 1,
+          "env_index": 154,
+          "primary_reason": "success",
+          "cell_id": "public_dev.height_ood_level_1",
+          "stratum": "height_ood",
+          "selection_hash": "001bed07015f1625b39587f52790cbaed7589680b8995512cfbffb72e6fc773c",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 3,
+          "env_index": 195,
+          "primary_reason": "forbidden_contact",
+          "cell_id": "public_dev.joint_ood_level_2",
+          "stratum": "joint_ood",
+          "selection_hash": "2e6172bfaf918d09c4bd21e08141f04cf51f545eb2e89908287c859a794b7717",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 3,
+          "env_index": 201,
+          "primary_reason": "success",
+          "cell_id": "public_dev.joint_ood_level_2",
+          "stratum": "joint_ood",
+          "selection_hash": "01966f4bf570b6d3562e1bd5d0e1a71f0bbfb1034a5d2b1b40a09983c5730c58",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 1,
+          "env_index": 251,
+          "primary_reason": "success",
+          "cell_id": "public_dev.phase_composition_ood_level_5",
+          "stratum": "phase_composition_ood",
+          "selection_hash": "01cd3c55d3a87b8484b51db23180ed1745e7b2898d05ff0cdfc9489089a44576",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 2,
+          "env_index": 278,
+          "primary_reason": "base_orientation_instability",
+          "cell_id": "public_dev.tread_ood_level_5",
+          "stratum": "tread_ood",
+          "selection_hash": "67fa6999db08df4a4c1c8b108a2c8b4d1f63fb7a16644a1a8e82cc6c20821300",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 1,
+          "env_index": 254,
+          "primary_reason": "success",
+          "cell_id": "public_dev.tread_ood_level_2",
+          "stratum": "tread_ood",
+          "selection_hash": "05380d275b3364fd5cde38fb980a7753299c0d36ab54dc998debc189b702c2fd",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 3,
+          "env_index": 120,
+          "primary_reason": "off_course",
+          "cell_id": "public_dev.c2_mechanism_ood_level_4",
+          "stratum": "c2_mechanism_ood",
+          "selection_hash": "47b6769118615052955ac28234ccd20ded3b7b93344d5825ecd32d5fe0379c4f",
+          "selection_reason": "additional_outcome_hash_min"
+        },
+        {
+          "run_index": 2,
+          "env_index": 108,
+          "primary_reason": "timeout",
+          "cell_id": "public_dev.c2_mechanism_ood_level_2",
+          "stratum": "c2_mechanism_ood",
+          "selection_hash": "8a7f8eff63f2a5e4ee563ca565cce2e4653f102bfa2225c2db608415cb4244fd",
+          "selection_reason": "additional_outcome_hash_min"
+        }
+      ],
+      "evaluation_uses": [
+        "development_regression",
+        "descriptive_audit"
+      ],
+      "prospective_confirmation": false
+    },
+    {
+      "source_id": "k3",
+      "manifest_relative_path": "outputs/trajectory_p0/raw/numeric_evidence/manifest.json",
+      "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+      "identity": {
+        "job_id": "stair-dev-replay-7b582643510cc9dd-diagnostic-eval-diagnostic-public-dev",
+        "task_id": "unitree_stair_climbing",
+        "subject_kind": "reference",
+        "subject_id": "go2-stair-official-flat-derived-v1",
+        "subject_manifest_hash": "ece5ad653267f11e5b791403208472f42622e44661fdbc7162776799a370dbd4",
+        "program_source_checksum": "sha256:10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+        "training_binding_hash": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98",
+        "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+        "evaluation_binding": {
+          "schema_version": "true_rl_agent.evaluation.binding.v1",
+          "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+          "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+          "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+          "seed_cohort_hash": "d41ac09594b4a4b4b48c2df075088328301a68d293bf9310882030574115ac32",
+          "evaluation_binding_hash": "1db7a52e1cec0769caf34926267b41981c8aa066341ca26354962ee758b5905b"
+        },
+        "evaluation_plan_hash": "c10b9bbcd5191909f9ec925e042bd7cb33e5516b0e1d5ff1cb415968f4e89f19",
+        "checkpoint_hash": "sha256:7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c",
+        "resolved_cell_manifest_hash": "7e8fa0c45109bbfc0162a90cf68d4186a0a3f96a0df9cce1e9b1b09f50aa6de9",
+        "seed_namespace": "public_dev_diagnostic_n5_r4_20261001",
+        "splits": [
+          "public_dev"
+        ],
+        "environment_source_preflight": {
+          "schema_version": "true_rl_agent.task.stair_climbing.execution_source_preflight.v1",
+          "status": "pass",
+          "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+          "source_manifest_hash": "27cbf13780dbc2e0087019aefdacfe9cf4e7930d0c845a56f6c28f3382018d9a"
+        },
+        "backend_execution_environment_verification": {
+          "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+          "backend_id": "isaac_lab_rsl_rl",
+          "status": "pass",
+          "expected_manifest_hash": "df178ed6908d8118b1cf48b74f9b8946889d9334242af196f7f8451ab779ac59",
+          "actual_manifest_hash": "df178ed6908d8118b1cf48b74f9b8946889d9334242af196f7f8451ab779ac59"
+        }
+      },
+      "profile": "stair.unified_first_episode.v2",
+      "chunks": [
+        {
+          "file": "chunk_000000.npz",
+          "sha256": "5f5e89aef9bf56a51d638be61c33783abe8473e79337bc2743599fd96b5e0e6b",
+          "stored_bytes": 5108112
+        },
+        {
+          "file": "chunk_000001.npz",
+          "sha256": "c60f501d8570e604f6191aae1c43d96ba4dc190c7c72eeea9a573d62ff7850ec",
+          "stored_bytes": 5029277
+        },
+        {
+          "file": "chunk_000002.npz",
+          "sha256": "c3af7b8c4d0bafd9e2b681d4397a860aab190a5f760fcd33ab065f3276f182a2",
+          "stored_bytes": 4948331
+        },
+        {
+          "file": "chunk_000003.npz",
+          "sha256": "b9158bfb8f21b261f21191186a3653501fdf12ef87dee3d9a960919ab86a43cc",
+          "stored_bytes": 4853835
+        },
+        {
+          "file": "chunk_000004.npz",
+          "sha256": "e24c1e6f1211b9a214195ff27a6d57d59cc46ce88e34c031be4e612522444586",
+          "stored_bytes": 4265140
+        },
+        {
+          "file": "chunk_000005.npz",
+          "sha256": "42879b5c20c63820dc248d9871578d3bd9dd4873c5f8948314682dc6f1500c78",
+          "stored_bytes": 1693023
+        },
+        {
+          "file": "chunk_000006.npz",
+          "sha256": "6e05aa64fcbcf7ad9c71c1071ca498955293ebd4469736fb4eb070c212b5afdb",
+          "stored_bytes": 906883
+        },
+        {
+          "file": "chunk_000007.npz",
+          "sha256": "f6bcc456d9df6b49911ae0103f1b07400e6710adf154d9b225ae03a05d740f43",
+          "stored_bytes": 531618
+        },
+        {
+          "file": "chunk_000008.npz",
+          "sha256": "46f25e34674effb59b82a0e0619858336b58db36e7e469657b6da7332059249f",
+          "stored_bytes": 401799
+        },
+        {
+          "file": "chunk_000009.npz",
+          "sha256": "8f7e3905852d985fc3fb83f07014c31b4c04ef158c7cb5c91990e3d4d6ca716a",
+          "stored_bytes": 120097
+        },
+        {
+          "file": "chunk_000010.npz",
+          "sha256": "618b4b50718c094ac0d50919653022f401fe707b8df1323e3fec62410f430184",
+          "stored_bytes": 5110478
+        },
+        {
+          "file": "chunk_000011.npz",
+          "sha256": "6e6fa76e01360349b96f02d3583af2076d173e457cbac07a5714b79724f50102",
+          "stored_bytes": 5026983
+        },
+        {
+          "file": "chunk_000012.npz",
+          "sha256": "4b3a4789382c6e752548119ccff1287c797a6d7a4f67b356a7b570bad6125a61",
+          "stored_bytes": 4955476
+        },
+        {
+          "file": "chunk_000013.npz",
+          "sha256": "a4fe7618e01e042ba711dcb678e7096d5b75b8be3add206f68d1034a73e5e398",
+          "stored_bytes": 4917517
+        },
+        {
+          "file": "chunk_000014.npz",
+          "sha256": "f11e67dd36812c0ba9f118f0432608e52f02c3effcfb1b3d7120a74c8451e59a",
+          "stored_bytes": 4326241
+        },
+        {
+          "file": "chunk_000015.npz",
+          "sha256": "370f902cf01c97c3a9ba60f042a3c2c9ef0427ce266ecb09542dce0f58b2ffb6",
+          "stored_bytes": 1762324
+        },
+        {
+          "file": "chunk_000016.npz",
+          "sha256": "cf6c313826b4396f6c9bafa81a0c7b8d26689187767382b6c05f012403c5ffea",
+          "stored_bytes": 853262
+        },
+        {
+          "file": "chunk_000017.npz",
+          "sha256": "0cf0a0e4b3760683d02911dc54b7d2508a244fbb05b169c2f468ee1f8c9958f2",
+          "stored_bytes": 447539
+        },
+        {
+          "file": "chunk_000018.npz",
+          "sha256": "0a98bd0efc8918eb9b44f7845d7b466aafd035c6eddfb0b15a2d62e68b175384",
+          "stored_bytes": 324935
+        },
+        {
+          "file": "chunk_000019.npz",
+          "sha256": "a580f4cafd1a9a2499972987ba66e3416535dd2fbf9edf475aff8ed0008ac7d5",
+          "stored_bytes": 103041
+        },
+        {
+          "file": "chunk_000020.npz",
+          "sha256": "f27c02714544adc793b371118cae98c363f795cf1bd12dd5f91696de013eecb9",
+          "stored_bytes": 5110747
+        },
+        {
+          "file": "chunk_000021.npz",
+          "sha256": "7f43a6bd084bb02f2d7b2d8f101f93768407bbf341c8f381dba3581f643397d8",
+          "stored_bytes": 5056691
+        },
+        {
+          "file": "chunk_000022.npz",
+          "sha256": "15e3fb6a4f21659cabdeae01eab943756423de51123f36cae79265434480725f",
+          "stored_bytes": 4978995
+        },
+        {
+          "file": "chunk_000023.npz",
+          "sha256": "e625821a591e8d7f2c1c3dc647406b694768852255e6b6c354b53a4b68efbfef",
+          "stored_bytes": 4888380
+        },
+        {
+          "file": "chunk_000024.npz",
+          "sha256": "dd7248bd84780695a4e024761eaeaeb1c29bfdd56a934182175d268ba1e9e6f1",
+          "stored_bytes": 4188879
+        },
+        {
+          "file": "chunk_000025.npz",
+          "sha256": "afc4a61a5dbcfceb2c005fd35d65b0f25cb1f95b48e91df3d59f69472a17ef65",
+          "stored_bytes": 1640021
+        },
+        {
+          "file": "chunk_000026.npz",
+          "sha256": "2628f8f2d686b0c031ba834afa740e11cef08b6d8f2f3ac720d09bb8b81ad263",
+          "stored_bytes": 790447
+        },
+        {
+          "file": "chunk_000027.npz",
+          "sha256": "25823bf5416a683fe54c117e2ed0c522fd63d349dfac65dae947dd58ee519c0e",
+          "stored_bytes": 381138
+        },
+        {
+          "file": "chunk_000028.npz",
+          "sha256": "b981a688fa0905966e3b27133f2eb0f36906a8b02bd37564fe6d9371be0be22c",
+          "stored_bytes": 237501
+        },
+        {
+          "file": "chunk_000029.npz",
+          "sha256": "554e4dd61f903ea387d72093a8e939b2533e51e1859e1d28cef411c119b651a3",
+          "stored_bytes": 81035
+        }
+      ],
+      "predeclared_examples": [
+        {
+          "run_index": 1,
+          "env_index": 22,
+          "primary_reason": "success",
+          "cell_id": "public_dev.c0_id_level_4",
+          "stratum": "c0_id",
+          "selection_hash": "012a94b297a31e69bb301d15dc53f60e397ea6de7ff6fb3b0590da7648b4bff3",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 1,
+          "env_index": 50,
+          "primary_reason": "base_orientation_instability",
+          "cell_id": "public_dev.c1_conditional_frontier_level_4",
+          "stratum": "c1_conditional_frontier",
+          "selection_hash": "046faabce7e4a96946461f107f4ccbe2f090014f90fc548af94a26c5c52bed37",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 2,
+          "env_index": 43,
+          "primary_reason": "success",
+          "cell_id": "public_dev.c1_conditional_frontier_level_3",
+          "stratum": "c1_conditional_frontier",
+          "selection_hash": "0070f6545933caef64ba68504c75f01aabc64fafd4e675511baaee1c8ac2072b",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 1,
+          "env_index": 73,
+          "primary_reason": "success",
+          "cell_id": "public_dev.c1_id_level_3",
+          "stratum": "c1_id",
+          "selection_hash": "0322b2999ff87bfc1efa1ba2b90320773dd65acfabdea4900c9e70844411040b",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 3,
+          "env_index": 142,
+          "primary_reason": "forbidden_contact",
+          "cell_id": "public_dev.c2_mechanism_ood_level_5",
+          "stratum": "c2_mechanism_ood",
+          "selection_hash": "09f724e582d461f517a800bdd3bec9fd8c0e56f4be99c436e03b11856571180b",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 2,
+          "env_index": 133,
+          "primary_reason": "success",
+          "cell_id": "public_dev.c2_mechanism_ood_level_5",
+          "stratum": "c2_mechanism_ood",
+          "selection_hash": "0090a0973eae68df0783e662811718831d39f0d530436d573be975208d8ea90e",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 2,
+          "env_index": 168,
+          "primary_reason": "forbidden_contact",
+          "cell_id": "public_dev.height_ood_level_5",
+          "stratum": "height_ood",
+          "selection_hash": "0c0fe48c92bee515a606c42793e50e5afcf31e606c34b1358e192704d96d2ba3",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 2,
+          "env_index": 172,
+          "primary_reason": "success",
+          "cell_id": "public_dev.height_ood_level_5",
+          "stratum": "height_ood",
+          "selection_hash": "01229d49a40956e5711af79006a6d5c2fdcf2e7665697458e5a18f8d48127117",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 3,
+          "env_index": 193,
+          "primary_reason": "forbidden_contact",
+          "cell_id": "public_dev.joint_ood_level_2",
+          "stratum": "joint_ood",
+          "selection_hash": "011681c941341c2f0fde4fe8edc358379a9a39b55a81f14d8ba5bc9a0d9561d5",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 3,
+          "env_index": 185,
+          "primary_reason": "success",
+          "cell_id": "public_dev.joint_ood_level_1",
+          "stratum": "joint_ood",
+          "selection_hash": "0110ec86e0a104b49089cf2386debeaeb0eee115c63badf959b0cb49f5bb3b80",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 2,
+          "env_index": 216,
+          "primary_reason": "success",
+          "cell_id": "public_dev.phase_composition_ood_level_3",
+          "stratum": "phase_composition_ood",
+          "selection_hash": "0417f2c8c67534bba02a488676120b9c276210eaef7804227377cc670bf1ded2",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 2,
+          "env_index": 280,
+          "primary_reason": "forbidden_contact",
+          "cell_id": "public_dev.tread_ood_level_5",
+          "stratum": "tread_ood",
+          "selection_hash": "23183342ddb4340a2f67421d38a26edca547bb6cdb2669884d89c72ed6100bb1",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 1,
+          "env_index": 286,
+          "primary_reason": "success",
+          "cell_id": "public_dev.tread_ood_level_5",
+          "stratum": "tread_ood",
+          "selection_hash": "0fd85f39818763dc59bd46fa4f89efc1b352d7585dc1907c2f75bde415492c03",
+          "selection_reason": "stratum_outcome_hash_min"
+        },
+        {
+          "run_index": 1,
+          "env_index": 175,
+          "primary_reason": "off_course",
+          "cell_id": "public_dev.height_ood_level_5",
+          "stratum": "height_ood",
+          "selection_hash": "8b6cb6f9235e34d7ca949eb72a0f450a2b65b526fda37c5366e7746b259720d9",
+          "selection_reason": "additional_outcome_hash_min"
+        },
+        {
+          "run_index": 1,
+          "env_index": 206,
+          "primary_reason": "slip",
+          "cell_id": "public_dev.joint_ood_level_3",
+          "stratum": "joint_ood",
+          "selection_hash": "0d763020f356a5ba40b29ad242ea4f04a95d9f2bab75f0cda50282165ed7f938",
+          "selection_reason": "additional_outcome_hash_min"
+        },
+        {
+          "run_index": 3,
+          "env_index": 58,
+          "primary_reason": "timeout",
+          "cell_id": "public_dev.c1_conditional_frontier_level_4",
+          "stratum": "c1_conditional_frontier",
+          "selection_hash": "0f3bcd7faa2934181751424d5a03fee60c7d8e31383175b9f99160bab816fe03",
+          "selection_reason": "additional_outcome_hash_min"
+        }
+      ],
+      "evaluation_uses": [
+        "development_regression",
+        "descriptive_audit"
+      ],
+      "prospective_confirmation": false
+    }
+  ]
+}

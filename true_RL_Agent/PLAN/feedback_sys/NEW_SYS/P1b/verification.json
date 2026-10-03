@@ -1,0 +1,387 @@
+{
+  "schema_version": "trajectory.p1b.development_verification.v1",
+  "status": "development_self_tests_and_two_readonly_reviews_passed_parent_acceptance_pending",
+  "baseline_head": "fe1f5c3775d402a5c245dd754c3041f3be92b53c",
+  "branch": "codex/trajectory-translator-upgrade",
+  "execution_date_utc": "2026-10-03",
+  "only_writer": "root development thread",
+  "parent_gate": "stop after commit/push; no P1c/P2/P3",
+  "predecessor_acceptance": {
+    "authority": "explicit parent handoff, not inferred from old pending-status files",
+    "P0": "2d888a84 accepted",
+    "P1a_initial": "0960aa51 rejected",
+    "P1a_repair": "fe1f5c3775d402a5c245dd754c3041f3be92b53c accepted"
+  },
+  "artifacts": {
+    "manifest.json": {
+      "path": "outputs/trajectory_p1b/final_card/manifest.json",
+      "sha256": "58b7fea18bf36ae22113e651bde2616af2a934925b5fd34c831f157190bc9d5e",
+      "bytes": 8666
+    },
+    "evidence.jsonl": {
+      "path": "outputs/trajectory_p1b/final_card/evidence.jsonl",
+      "sha256": "58f1014f557847c5ee32a3c03e4bebf4becdc2bc35552c6ac948a5fcc576af6e",
+      "bytes": 61332614
+    },
+    "policy_card.json": {
+      "path": "outputs/trajectory_p1b/final_card/policy_card.json",
+      "sha256": "d83ddf0b8ee28e8d00705de81029930474b47ba230532596d50aabd2e9b0d9a2",
+      "bytes": 1233288
+    },
+    "policy_card_zh.md": {
+      "path": "outputs/trajectory_p1b/final_card/policy_card_zh.md",
+      "sha256": "c5589b8b79efd605c5d5d305a84ba58f246de3fbba55a39d48cff0d7f90c90ac",
+      "bytes": 295251
+    }
+  },
+  "primary_episodes": 864,
+  "primary_rows": 298375,
+  "example_source_episodes": 2,
+  "selected_examples": 27,
+  "frozen_E1_examples": 18,
+  "claims": 801,
+  "main_claims": 15,
+  "expanded_claims": 786,
+  "expanded_sections": 33,
+  "cost": {
+    "wall_seconds": 20.55060079996474,
+    "peak_process_memory_bytes": 242462720,
+    "external_model_calls": 0,
+    "api_cost": 0,
+    "training_runs": 0
+  },
+  "primary_binding": {
+    "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+    "trial_id": "stair-dev-replay-7b582643510cc9dd-diagnostic-eval-diagnostic-public-dev",
+    "checkpoint_hash": "sha256:7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c",
+    "task_id": "unitree_stair_climbing",
+    "evaluation_binding": {
+      "schema_version": "true_rl_agent.evaluation.binding.v1",
+      "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+      "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+      "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+      "seed_cohort_hash": "d41ac09594b4a4b4b48c2df075088328301a68d293bf9310882030574115ac32",
+      "evaluation_binding_hash": "1db7a52e1cec0769caf34926267b41981c8aa066341ca26354962ee758b5905b"
+    },
+    "seed_namespace": "public_dev_diagnostic_n5_r4_20261001",
+    "robot_projection_hash": "ea9d42a4012815a8f5ebf6b35b93303111477817feb5a1391fa807efc6167a14",
+    "semantics_hash": "14d8aaa1193c9ad7bb1835a2acf94a96bf7b33b3c0a7db9215910e931c29e005",
+    "catalog_version": "trajectory.p0.measurements.v2",
+    "acceptance_split": "public_dev",
+    "profile": "stair.unified_first_episode.v2",
+    "entities": {
+      "root": [
+        "robot_0.root"
+      ],
+      "support": [
+        "robot_0.support.FL_foot",
+        "robot_0.support.FR_foot",
+        "robot_0.support.RL_foot",
+        "robot_0.support.RR_foot"
+      ],
+      "forbidden": [
+        "robot_0.body.base"
+      ],
+      "joints": [
+        "FL_hip_joint",
+        "FR_hip_joint",
+        "RL_hip_joint",
+        "RR_hip_joint",
+        "FL_thigh_joint",
+        "FR_thigh_joint",
+        "RL_thigh_joint",
+        "RR_thigh_joint",
+        "FL_calf_joint",
+        "FR_calf_joint",
+        "RL_calf_joint",
+        "RR_calf_joint"
+      ]
+    }
+  },
+  "input_files": {
+    "9286eb28af78ba85ffcfd031dce14770e398830306b207e3b569aab5f20adfe4": {
+      "manifest_path": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1a\\repair_t1_t2\\r4\\manifest.json",
+      "manifest_sha256": "69e812534d6080e10ddf522f239e49f729bc5eb1d4eff5bab396bb35a6c84397",
+      "evidence_path": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1a\\repair_t1_t2\\r4\\evidence.jsonl",
+      "path": "evidence.jsonl",
+      "sha256": "9286eb28af78ba85ffcfd031dce14770e398830306b207e3b569aab5f20adfe4",
+      "bytes": 1289750110
+    },
+    "e53f38d1164e0d5e0c4c102d142e7440460d371e4282b12c14df3e9a4b98c7bd": {
+      "manifest_path": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1a\\repair_t1_t2\\legacy_dev\\manifest.json",
+      "manifest_sha256": "cc56d3ed2ddf25a74ba87bee8371af0670b17f87012ee82c7619297575b2b3ad",
+      "evidence_path": "D:\\humanoid_agent\\true_RL_Agent\\outputs\\trajectory_p1a\\repair_t1_t2\\legacy_dev\\evidence.jsonl",
+      "path": "evidence.jsonl",
+      "sha256": "e53f38d1164e0d5e0c4c102d142e7440460d371e4282b12c14df3e9a4b98c7bd",
+      "bytes": 4147480
+    }
+  },
+  "frozen_inputs": [
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P0/source_lock.json",
+      "sha256": "c3f0f643eaead24df15da92c5247375c1a32c8d383639186587a02131d7fb412",
+      "bytes": 27337
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P0/input_contract.json",
+      "sha256": "582e3932bb8db8d7f33d941251db69d9c22c1c692d655c753510b1909b161a25",
+      "bytes": 25987
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P0/e1_selection.json",
+      "sha256": "4f45e1f9138a322a4f369a6ea3a287dc50c7de74519b4af5dca8208edeb777fc",
+      "bytes": 14600
+    },
+    {
+      "path": "PLAN/feedback_sys/NEW_SYS/P0/necessary_facts.json",
+      "sha256": "ce3a6115793eb4e182f3bb5641f163dc9d7858e3f4682b9ee99806ab637d7c74",
+      "bytes": 115890
+    },
+    {
+      "path": "outputs/trajectory_p0/reference/full_reference_facts.json",
+      "sha256": "661c6782dc198d8367dc20c6b42b4a2d4d30b9d6d333dcebbf72d4e60528f009",
+      "bytes": 2747870
+    }
+  ],
+  "production_dependency_sha256": {
+    "scripts/build_policy_behavior_card.py": "0e68d1fb95c2c5d18d2a21daba0f4d463cdaee4568156b44c269a148bd097591",
+    "src/true_rl_agent/evaluation/trajectory_translation/cohort.py": "2e5e5a80f86e1dbe46bc3383cb1d058e574d526488a9da222093e92556faac20",
+    "src/true_rl_agent/evaluation/trajectory_translation/report.py": "4277cf49f7cd113f46eaee93bde9f4b0a5d88a9454551beeef647b446fba26bc",
+    "src/true_rl_agent/evaluation/trajectory_translation/contracts.py": "672c9468761d1b30343c9f7562a7ba0c91559d60019c1250f9f1a626138a0c57",
+    "src/true_rl_agent/evaluation/trajectory_translation/measurement.py": "23a85e6e5a7665c152d6319c62eec60850c57743d488c2449548001278bc8c49",
+    "src/true_rl_agent/evaluation/trajectory_translation/temporal.py": "d628a872e4130563138e2fd74dbbfccd895e1da62f457b5a85b555a97ed9122b",
+    "src/true_rl_agent/tasks/stair_climbing/trajectory_adapter.py": "45f5c7315123d99b6a49231ee66e051834b3a5ebcc06ffe7adfee74f8a99a3ad",
+    "src/true_rl_agent/runner/numeric_evidence.py": "2283e8e9f770135a610506173e91948fdfc7dcf79b9b227f5f0932a44da30579"
+  },
+  "changed_code": [
+    {
+      "path": "scripts/build_policy_behavior_card.py",
+      "sha256": "0e68d1fb95c2c5d18d2a21daba0f4d463cdaee4568156b44c269a148bd097591",
+      "bytes": 7876
+    },
+    {
+      "path": "scripts/verify_policy_behavior_card.py",
+      "sha256": "5bebd1b28d2818c29e0edcb1e574c1dc846b796774223075903a93aaaf099f4d",
+      "bytes": 28774
+    },
+    {
+      "path": "src/true_rl_agent/evaluation/trajectory_translation/cohort.py",
+      "sha256": "2e5e5a80f86e1dbe46bc3383cb1d058e574d526488a9da222093e92556faac20",
+      "bytes": 22011
+    },
+    {
+      "path": "src/true_rl_agent/evaluation/trajectory_translation/report.py",
+      "sha256": "4277cf49f7cd113f46eaee93bde9f4b0a5d88a9454551beeef647b446fba26bc",
+      "bytes": 45366
+    },
+    {
+      "path": "tests/unit/test_trajectory_cohort.py",
+      "sha256": "c70789b8debc94e31fcae69dbe931174ab5e7b5ab88a7b54be8245d591165528",
+      "bytes": 12468
+    },
+    {
+      "path": "tests/unit/test_trajectory_card.py",
+      "sha256": "2c9c6449e25a6c1c3adce2d83bc6c31d0fa04571cf0aa701cb055f6d9ca47b41",
+      "bytes": 17512
+    },
+    {
+      "path": "tests/unit/test_trajectory_card_verification.py",
+      "sha256": "205d1019d5e056b8021eeee657d58b3cba06933b7129b3722cd918524b0d86ef",
+      "bytes": 3959
+    }
+  ],
+  "executions": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest tests.unit.test_trajectory_cohort tests.unit.test_trajectory_card tests.unit.test_trajectory_card_verification tests.unit.test_project_boundaries -v",
+      "cwd": "D:/humanoid_agent/true_RL_Agent",
+      "environment": {
+        "PYTHONPATH": "src"
+      },
+      "exit_code": 0,
+      "test_count": 60,
+      "reported_seconds": 16.519,
+      "log": {
+        "path": "outputs/trajectory_p1b/final_new_tests.log",
+        "sha256": "aeaa9502f74e1b5311cb3f0b96f1aeef2231e06cba99ea7917ba2315695d1248",
+        "bytes": 10599
+      },
+      "raw_tail": " (tests.unit.test_trajectory_card_verification.CardRawAuditTests.test_current_history_swap_rejected_by_raw_not_claim_template) ... ok\ntest_force_share_cannot_be_replaced_by_marker_occupancy (tests.unit.test_trajectory_card_verification.CardRawAuditTests.test_force_share_cannot_be_replaced_by_marker_occupancy) ... ok\ntest_group_denominator_unknown_and_membership_mutations (tests.unit.test_trajectory_card_verification.CardRawAuditTests.test_group_denominator_unknown_and_membership_mutations) ... ok\ntest_unknown_progress_window_cannot_be_counted_as_negative (tests.unit.test_trajectory_card_verification.CardRawAuditTests.test_unknown_progress_window_cannot_be_counted_as_negative) ... ok\ntest_generic_packages_do_not_import_concrete_task_packages (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_import_concrete_task_packages) ... ok\ntest_generic_packages_do_not_own_push_audit_literals (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_own_push_audit_literals) ... ok\ntest_generic_packages_do_not_own_stair_semantics (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_own_stair_semantics) ... ok\ntest_orchestration_does_not_read_legacy_provider_context (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_orchestration_does_not_read_legacy_provider_context) ... ok\ntest_package_imports_from_local_src_without_parent_project_imports (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_package_imports_from_local_src_without_parent_project_imports) ... ok\ntest_project_metadata_declares_independent_package (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_project_metadata_declares_independent_package) ... ok\ntest_push_recovery_package_does_not_own_stair_semantics (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_push_recovery_package_does_not_own_stair_semantics) ... ok\ntest_runtime_tree_does_not_reference_parent_project (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_runtime_tree_does_not_reference_parent_project) ... ok\n\n----------------------------------------------------------------------\nRan 60 tests in 16.519s\n\nOK\n"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest tests.unit.test_trajectory_temporal tests.unit.test_trajectory_measurement tests.unit.test_stair_trajectory_adapter tests.unit.test_stair_trajectory_evidence_build tests.unit.test_trajectory_evidence_verification tests.unit.test_project_boundaries -v",
+      "cwd": "D:/humanoid_agent/true_RL_Agent",
+      "environment": {
+        "PYTHONPATH": "src"
+      },
+      "exit_code": 0,
+      "test_count": 107,
+      "reported_seconds": 5.135,
+      "log": {
+        "path": "outputs/trajectory_p1b/p1a_regression.log",
+        "sha256": "0f6551e9a4b4f5455e57d247018eef6fa1317c839109181e90ce405ffddc2502",
+        "bytes": 21282
+      },
+      "raw_tail": "y_evidence_verification.InputIntegrityTests.test_record_source_splice_rejected_even_with_matching_file_hash) ... ok\ntest_reference_run_and_environment_require_exact_integers (tests.unit.test_trajectory_evidence_verification.InputIntegrityTests.test_reference_run_and_environment_require_exact_integers) ... ok\ntest_same_length_row_shift_fails_frozen_chunk_clock_binding (tests.unit.test_trajectory_evidence_verification.InputIntegrityTests.test_same_length_row_shift_fails_frozen_chunk_clock_binding) ... ok\ntest_successful_stream_reader_preserves_selected_ids (tests.unit.test_trajectory_evidence_verification.InputIntegrityTests.test_successful_stream_reader_preserves_selected_ids) ... ok\ntest_generic_packages_do_not_import_concrete_task_packages (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_import_concrete_task_packages) ... ok\ntest_generic_packages_do_not_own_push_audit_literals (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_own_push_audit_literals) ... ok\ntest_generic_packages_do_not_own_stair_semantics (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_generic_packages_do_not_own_stair_semantics) ... ok\ntest_orchestration_does_not_read_legacy_provider_context (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_orchestration_does_not_read_legacy_provider_context) ... ok\ntest_package_imports_from_local_src_without_parent_project_imports (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_package_imports_from_local_src_without_parent_project_imports) ... ok\ntest_project_metadata_declares_independent_package (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_project_metadata_declares_independent_package) ... ok\ntest_push_recovery_package_does_not_own_stair_semantics (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_push_recovery_package_does_not_own_stair_semantics) ... ok\ntest_runtime_tree_does_not_reference_parent_project (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_runtime_tree_does_not_reference_parent_project) ... ok\n\n----------------------------------------------------------------------\nRan 107 tests in 5.135s\n\nOK\n"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest tests.unit.test_stair_trajectory_input_inspection tests.unit.test_numeric_evidence tests.unit.test_process_report tests.unit.test_stair_process_report tests.unit.test_push_process_report tests.unit.test_visual_observer tests.unit.test_visual_review tests.unit.test_native_snapshot_media tests.unit.test_stair_behavior tests.unit.test_push_behavior tests.unit.test_feedback_evidence_boundary tests.unit.test_task_visual_observation tests.unit.test_stair_numeric_capture tests.unit.test_push_numeric_capture tests.unit.test_p3r_stair_projection tests.unit.test_push_feedback_projection tests.unit.test_stair_trajectory_reference_facts -v",
+      "cwd": "D:/humanoid_agent/true_RL_Agent",
+      "environment": {
+        "PYTHONPATH": "src"
+      },
+      "exit_code": 0,
+      "test_count": 201,
+      "reported_seconds": 48.257,
+      "log": {
+        "path": "outputs/trajectory_p1b/legacy_regression.log",
+        "sha256": "aa34f339569c66d651967f0d86e24d58ba7c122cc93f27ed09acb536e9d26eba",
+        "bytes": 39646
+      },
+      "raw_tail": "onTests.test_task_memory_retains_failure_rates_after_aggregate_projection) ... ok\ntest_trial_memory_uses_measured_parent_dev_and_is_idempotent (tests.unit.test_push_feedback_projection.PushFeedbackProjectionTests.test_trial_memory_uses_measured_parent_dev_and_is_idempotent) ... ok\ntest_real_r4_e35_step14_code11_and_episode_count135 (tests.unit.test_stair_trajectory_reference_facts.LockedRawReferenceTests.test_real_r4_e35_step14_code11_and_episode_count135) ... ok\ntest_real_r4_e60_fl_planar_run_and_step626_discriminate_xyz (tests.unit.test_stair_trajectory_reference_facts.LockedRawReferenceTests.test_real_r4_e60_fl_planar_run_and_step626_discriminate_xyz) ... ok\ntest_all_16_combinations_round_trip_with_low_role_index_bit (tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_all_16_combinations_round_trip_with_low_role_index_bit) ... ok\ntest_complete_left_and_right_censored_runs_keep_one_sample_event (tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_complete_left_and_right_censored_runs_keep_one_sample_event) ... ok\ntest_legacy_e54_specific_counterexample_uses_xy_too (tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_legacy_e54_specific_counterexample_uses_xy_too) ... ok\ntest_normalized_quaternion_controls_sign_and_body_frame_raw_is_diagnostic (tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_normalized_quaternion_controls_sign_and_body_frame_raw_is_diagnostic) ... ok\ntest_planar_speed_and_strict_force_and_speed_boundaries (tests.unit.test_stair_trajectory_reference_facts.ReferenceSemanticTests.test_planar_speed_and_strict_force_and_speed_boundaries) ... ok\n\n----------------------------------------------------------------------\nRan 201 tests in 48.257s\n\nOK\n{\"status\": \"pass\", \"output\": \"C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpbc8y372b\\\\audit.json\", \"declaration\": \"every_control_step_of_each_scored_first_episode_including_pre_reset_terminal\", \"padding\": \"valid=false; zero-filled numeric values are not observations\", \"episode_count\": 288, \"valid_rows\": 861, \"padding_rows\": 3, \"post_outcome_observations\": \"not_collected\", \"reset_time_sample\": \"not_collected\"}\n"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\verify_stair_trajectory_evidence.py --input outputs\\trajectory_p1a\\repair_t1_t2\\r4 --input outputs\\trajectory_p1a\\repair_t1_t2\\legacy_dev --output outputs\\trajectory_p1b\\frozen_fact_verification.json",
+      "cwd": "D:/humanoid_agent/true_RL_Agent",
+      "environment": {
+        "PYTHONPATH": "src"
+      },
+      "exit_code": 0,
+      "test_count": null,
+      "reported_seconds": null,
+      "log": {
+        "path": "outputs/trajectory_p1b/frozen_fact_regression.log",
+        "sha256": "8c9e9d9c1a396aea44be3c7ae5c217ab3dd3485a664d8881dfc3beb59764ada5",
+        "bytes": 276
+      },
+      "raw_tail": "{\n  \"passed\": true,\n  \"necessary\": {\n    \"counts\": {\n      \"pass\": 247\n    },\n    \"fact_count\": 247,\n    \"compared_scalar_fields\": 4168\n  },\n  \"full\": {\n    \"counts\": {\n      \"pass\": 309\n    },\n    \"fact_count\": 309,\n    \"compared_scalar_fields\": 45157\n  }\n}\n"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\build_policy_behavior_card.py --input outputs\\trajectory_p1a\\repair_t1_t2\\r4\\manifest.json --input-sha256 69e812534d6080e10ddf522f239e49f729bc5eb1d4eff5bab396bb35a6c84397 --example-input outputs\\trajectory_p1a\\repair_t1_t2\\legacy_dev\\manifest.json cc56d3ed2ddf25a74ba87bee8371af0670b17f87012ee82c7619297575b2b3ad --selection PLAN\\feedback_sys\\NEW_SYS\\P0\\e1_selection.json --selection-sha256 4f45e1f9138a322a4f369a6ea3a287dc50c7de74519b4af5dca8208edeb777fc --output outputs\\trajectory_p1b\\final_card",
+      "cwd": "D:/humanoid_agent/true_RL_Agent",
+      "environment": {
+        "PYTHONPATH": "src"
+      },
+      "exit_code": 0,
+      "test_count": null,
+      "reported_seconds": null,
+      "log": {
+        "path": "outputs/trajectory_p1b/final_build.log",
+        "sha256": "7272835952a896ff7b12b04d151d4e50e3bf52a17883438dacba2dc0f8e1d4f1",
+        "bytes": 777
+      },
+      "raw_tail": "{\n  \"complete\": true,\n  \"primary_episodes\": 864,\n  \"primary_valid_rows\": 298375,\n  \"claim_count\": 801,\n  \"selected_example_count\": 27,\n  \"cost\": {\n    \"wall_seconds\": 20.55060079996474,\n    \"peak_process_memory_bytes\": 242462720,\n    \"external_model_calls\": 0,\n    \"api_cost\": 0,\n    \"training_runs\": 0\n  },\n  \"artifacts\": {\n    \"evidence.jsonl\": {\n      \"sha256\": \"58f1014f557847c5ee32a3c03e4bebf4becdc2bc35552c6ac948a5fcc576af6e\",\n      \"bytes\": 61332614\n    },\n    \"policy_card.json\": {\n      \"sha256\": \"d83ddf0b8ee28e8d00705de81029930474b47ba230532596d50aabd2e9b0d9a2\",\n      \"bytes\": 1233288\n    },\n    \"policy_card_zh.md\": {\n      \"sha256\": \"c5589b8b79efd605c5d5d305a84ba58f246de3fbba55a39d48cff0d7f90c90ac\",\n      \"bytes\": 295251\n    }\n  }\n}\n"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\verify_policy_behavior_card.py --input outputs\\trajectory_p1b\\final_card --output outputs\\trajectory_p1b\\final_independent_audit.json",
+      "cwd": "D:/humanoid_agent/true_RL_Agent",
+      "environment": {
+        "PYTHONPATH": "src"
+      },
+      "exit_code": 0,
+      "test_count": null,
+      "reported_seconds": null,
+      "log": {
+        "path": "outputs/trajectory_p1b/final_independent_audit.log",
+        "sha256": "1d7e41b93808e75af7795aabc24c592df65438e204396b2c1e702ec5700b4f64",
+        "bytes": 235
+      },
+      "raw_tail": "{\n  \"passed\": true,\n  \"raw_episodes\": 866,\n  \"metric_checks\": 69280,\n  \"aggregate_metric_checks\": 8400,\n  \"references_checked\": 32042,\n  \"claim_count\": 801,\n  \"necessary_fact_count\": 247,\n  \"wall_seconds\": 19.3081027000444\n}\n"
+    }
+  ],
+  "test_count_caution": "60 and 107 each include the same 8 boundary tests; not 368 unique tests; broader existing CPU 1fail/8err/19skip was independently reproduced on baseline, not fixed or claimed passing here",
+  "raw_audit_result": {
+    "passed": true,
+    "raw_episodes": 866,
+    "metric_checks": 69280,
+    "aggregate_metric_checks": 8400,
+    "references_checked": 32042,
+    "claim_count": 801,
+    "necessary_fact_count": 247,
+    "producer_or_oracle_imports": false,
+    "wall_seconds": 19.3081027000444
+  },
+  "supporting_artifacts": [
+    {
+      "path": "outputs/trajectory_p1b/frozen_fact_verification.json",
+      "sha256": "9545fa72e6fc784b02f14fc5182e6f768f4d69abaa8c8bb3f547aa2d11551b1e",
+      "bytes": 4703192
+    },
+    {
+      "path": "outputs/trajectory_p1b/final_independent_audit.json",
+      "sha256": "366ba33ac8cb23d215c371a322e8ec6a97c404d3456efd989e2a13dc5c64fe80",
+      "bytes": 1339047
+    },
+    {
+      "path": "outputs/trajectory_p1b/raw_spotchecks.json",
+      "sha256": "1c86624655d7e4a7d1aede205d1777c023f3e31fc4c44fbbba9e84b2f818ccd1",
+      "bytes": 707691
+    },
+    {
+      "path": "outputs/trajectory_p1b/build_handoff.py",
+      "sha256": "d68f1f40faeb76991e71d4b4a48f59308d0692e60d3a54f939e621d459df39cf",
+      "bytes": 10250
+    }
+  ],
+  "necessary_coverage": "247 core facts mapped to real claims in final_independent_audit.json; all 18 frozen samples retained; secondary raw diagnostics/transition rows/force sums/joint ranges/nearest remain expandable via P1a pointers, not all stated as Chinese scalar text",
+  "frozen_gate": {
+    "necessary": {
+      "pass": 247,
+      "total": 247,
+      "scalar_fields": 4168
+    },
+    "full": {
+      "pass": 309,
+      "total": 309,
+      "scalar_fields": 45157
+    },
+    "unsupported": 0
+  },
+  "independent_reviews": [
+    {
+      "agent": "p1b_requirements_review",
+      "mode": "read-only python -B - inline; no writes",
+      "passed": true,
+      "raw_result": "base_current_history_swap REJECTED current/history role or entity mismatch\nsuccess_failure_swap REJECTED comparison outcome role mismatch\ninverted_entity REJECTED inverted-before entity mismatch\ncross_source REJECTED claim operand outside episode/source scope\nforce_order REJECTED template entity order differs from measurement\nFINAL_REVIEW PASS",
+      "coverage": "801 claims,999 external links,105 groups/8400 metric-group independently recomputed from summaries; 8 production dependency hashes; same evidence bytes as reviewed intermediate"
+    },
+    {
+      "agent": "p1b_audit_design",
+      "mode": "read-only Python stdlib/NumPy inline; did not import production renderer or raw oracle",
+      "passed": true,
+      "sentence_audit": {
+        "claims": 801,
+        "numeric_tokens": 8629,
+        "boolean_tokens": 658,
+        "operand_scope_records": 750,
+        "p1a_seek_records": 648,
+        "errors": 0
+      },
+      "raw_extra_audit": {
+        "selected_episodes": 27,
+        "original_chunk_hashes": 60,
+        "activity_intervals": 698,
+        "activity_longest_diagnostics": 33,
+        "low_speed_off_longest_intervals": 69,
+        "passed": true
+      },
+      "inline_audit_source_hashes": [
+        "8d1d1b5a987b23574e11ae4823bfbde83ca9da97723c4e6901b89a04d5bae748",
+        "056e6549a0cc9301dba0c75dac7335a976cb22b197ea1a2a8cab5e340486adc5",
+        "2def9a7b328076ac8b05cb3199a298860678447e9e87457b9fa13da895213755"
+      ],
+      "raw_final_result": "CLAIMS_IDENTICAL True\nclaims=801, main_claims=15, detail_claims=786\neach_claim_id_once=true\neach_scoped_claim_line_once=true\nclaim_scope_and_text_exact=true\nbalanced_details=true"
+    }
+  ],
+  "root_personal_check": "Read final 15-claim main view, reviewed raw original e129 current/history tail and termination, e35 force/code, e60 XY/XYZ and102-row contributor counts, legacy e54 normalized quaternion and e60 raw progress positions; full independent raw script passed; complete three example cards in REVIEW_EVIDENCE_ZH.md.",
+  "not_verified": [
+    "parent final acceptance",
+    "P1c actual author schema migration/serialize_prompt_payload/byte budget/request",
+    "P2/P3",
+    "visual evidence",
+    "causality",
+    "new policies/robots/generalization",
+    "closed-loop benefit",
+    "deferred cycle/limit/terrain/link-COM qualification"
+  ],
+  "git_note": "Normal-permission git core.longpaths=true read-only status checked clean at baseline and only explicit P1b additions before staging. Never stage sandbox false deletions. Commit and remote identity reported after commit to avoid circular self hash."
+}

@@ -1,0 +1,74 @@
+{
+  "schema_version": "push.p2b1.rules_code_freeze.v1",
+  "frozen_at_utc": "2026-10-03T08:22:56.147468+00:00",
+  "code_commit": "25d68a69d8e733a2549af7caeac5863c543d0b42",
+  "git_tree": "212b86c7650364519a99c0af85ca27ce1df334e4",
+  "preimplementation_freeze_commit": "e6350588",
+  "rule_config": {
+    "catalog_version": "push.root_measurements.v1",
+    "pre_window_s": 0.5,
+    "threshold_source": "archive.parameters_native_pose_dtype",
+    "sample_clock": "after_physics_before_reset_and_interval_write",
+    "integral": "finite_control_sample_cells_sum_speed_times_dt_not_exact_path",
+    "recovery": "first_verified_dwell_ge_required_latched",
+    "temporal": "readout_runs_with_unknown_gaps_and_censoring"
+  },
+  "template_version": "push.root_zh.v1",
+  "files_sha256": {
+    "PLAN/feedback_sys/NEW_SYS/P2b1/audit_replay.py": "2a4e3c1de86ffb80ed1ac36ab34c19d6ef797a76ec4f4d6fc9303911f8f2eb8f",
+    "PLAN/feedback_sys/NEW_SYS/P2b1/FREEZE_ZH.md": "f65251e91b493dc13d3c00e9dad06813363ceeecf10dea78e6b669b88c92e9a5",
+    "PLAN/feedback_sys/NEW_SYS/P2b1/source_lock.json": "30ea3e730cd5f1868a30729d2101d5c157f0b547f015776f1cafaf2e3c852bfd",
+    "scripts/build_push_behavior_card.py": "13fb648e4a3186a31bc418a6b6b750d2fefc062943319b6ad3fc3c5cf212e209",
+    "src/true_rl_agent/evaluation/trajectory_translation/__init__.py": "a0f279c7f0a30427ed230c65c52f91de3727cad8e19ea1c10d5baf11b701c02f",
+    "src/true_rl_agent/evaluation/trajectory_translation/cohort.py": "2e5e5a80f86e1dbe46bc3383cb1d058e574d526488a9da222093e92556faac20",
+    "src/true_rl_agent/evaluation/trajectory_translation/contracts.py": "e2fff04aff2fdb1db15116ffdd018f8b4bf773979e53e90cabe9a04007448500",
+    "src/true_rl_agent/evaluation/trajectory_translation/measurement.py": "dd1d5f278fdd102d7fac39b83cd525e7a34a11e56a09cd972c58d9233c6708d5",
+    "src/true_rl_agent/evaluation/trajectory_translation/report.py": "466b1c5ecf1c275571ea64cd08bd20cd48aa7e646be1bb5e9acff375a5067a36",
+    "src/true_rl_agent/evaluation/trajectory_translation/temporal.py": "d628a872e4130563138e2fd74dbbfccd895e1da62f457b5a85b555a97ed9122b",
+    "src/true_rl_agent/runner/numeric_evidence.py": "2283e8e9f770135a610506173e91948fdfc7dcf79b9b227f5f0932a44da30579",
+    "src/true_rl_agent/tasks/push_recovery/failure_classifier.py": "de73a2a0be70f2dd7db5fe578f6741daaa2c04125ab873a3b2eff4015d19b01d",
+    "src/true_rl_agent/tasks/push_recovery/force_runtime.py": "e35daf385bc07c198e94a497573e6b8a3db01df2c5cca6f02fe3d25fe40bd2ed",
+    "src/true_rl_agent/tasks/push_recovery/numeric_capture.py": "2aa675122947045482ea9f17b4dba6f4fc7c98923470a2e6e5c665eaa33aef7c",
+    "src/true_rl_agent/tasks/push_recovery/rollout.py": "0b67f1191635f9a143c1b4a62f3d4c73b7ba795ab28d601c9b06515f61cfd69e",
+    "src/true_rl_agent/tasks/push_recovery/runtime.py": "525db076f41e2315bd7b556aa535f589ba0cbfafe5cdaf7670072a55b7597975",
+    "src/true_rl_agent/tasks/push_recovery/trajectory_adapter.py": "225cbc59bc88be2d97ca3914640a700e352bc7ee430a298c0c2cef8558f54e18",
+    "src/true_rl_agent/tasks/push_recovery/trajectory_card.py": "50a071d842f5bff20909b37e9e00311d1e1115a74cd2501cf182f7c19bd1e820",
+    "src/true_rl_agent/tasks/push_recovery/trajectory_measurement.py": "c3eac6b058a2928ed268b3e9ade3ec189ed04cd0893b438b2fcb2444fb4bcd5b",
+    "tests/unit/test_push_trajectory.py": "640c2c727d1aece1e609241760fa18185a0b3487017bcd04d971d430fd619090",
+    "tests/unit/test_push_trajectory_semantics.py": "9c0da5ac024c7284ac97bba1007ec21e94fafc9b89fa0a239c4deb0fe9020c97",
+    "PLAN/feedback_sys/NEW_SYS/P2b1/audit_semantic_binding.py": "d2b8aa463136ed5aec24f5baec5ad4627153dbf3a68c819578c9a8ccd7235a29"
+  },
+  "selection_rule": "sha256(p2b1|manifest_sha|run|env)_minimum_per_stratum_outcome; separate first(run,env,slot) witnesses",
+  "K4_use": "development_regression_and_descriptive_audit_not_holdout",
+  "K5_use": "new192ep_force_capture_after_this_freeze; not_used_to_tune_this_translator; not_fully_historically_unseen",
+  "K5_first_confirmation": "independent_task_once_no_parameter_tuning_or_PASS_selection; failure_kept_before_any_revision",
+  "P2b2_pending": [
+    "normal_runner_profile_and_identity",
+    "public_task_version_dispatch",
+    "phase_generation_receipt",
+    "local_final_payload_capture",
+    "legacy_replay"
+  ],
+  "source_manifest_sha256": {
+    "k4_force_v1": [
+      "df5c5df7c34b464d337d030ac3bdcc29652c5dbc3bc54e14d42b5cfb762a5acb",
+      "d046a312e7513c05cb10250b7ca7f3c7aa0f949c65b758c1f3d261ac3e6d738e",
+      "88cd2c660d822853f416b19f056a34f7bdd5af0b9f82443d77bd4d45ce31d9f7"
+    ],
+    "k4_velocity_v2": [
+      "07b09b76ac2127d430a8458f0fda4ee3970ba23ea47cf8cb8aeba1817e1469f6",
+      "6e37742005beb9af385d11ec54b7b67f349889144e2f0a8d714bd4f48bc901be",
+      "1882c39533447701852e22645a3f8482f0183ab3efa2ce271749934f166f1188"
+    ]
+  },
+  "validation_contract": "push.raw_episode_operand_binding.v1",
+  "pre_acceptance_correction": {
+    "previous_code_commit": "6fa1206ac6a26a5c6dcc40d8c1cd0fa55f3065db",
+    "previous_head": "3801a20c1502af013b700e95b5862e3b657353d9",
+    "previous_rules_code_freeze_sha256": "c9e8301c6e6e72575d42f9c0267aca9c4582ceaf12b8c0afed1ae42750c75e78",
+    "parent_acceptance": "FAIL_semantic_swaps_before_this_fix",
+    "reason": "Bind complete measured records and card operands to explicit qualified raw episodes; preserve numeric rules/templates/selection and content bytes",
+    "K5_read_or_run": false,
+    "first_K5_confirmation": "not_started"
+  }
+}

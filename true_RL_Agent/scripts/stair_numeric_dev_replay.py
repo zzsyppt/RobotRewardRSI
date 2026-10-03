@@ -35,12 +35,13 @@ from true_rl_agent.runner.job_attempts import PreGenesisExecutionScope
 from true_rl_agent.runner.native_video import add_native_video_arguments, native_video_argv_from_args
 from true_rl_agent.runner.gpu_lease import GpuLeaseManager, PreGenesisGpuLeaseHolder
 from true_rl_agent.runner.resource_shadow import discover_nvidia_gpu_inventory
-from true_rl_agent.runner.specs import CheckpointRef, require_eval_phase_result_matches_spec
+from true_rl_agent.runner.specs import CheckpointRef, GpuProcessBinding, require_eval_phase_result_matches_spec
 from true_rl_agent.tasks.stair_climbing.composition import StairClimbingCompositionProvider
 from true_rl_agent.tasks.stair_climbing.diagnostic_evaluation import (
     prepare_stair_public_dev_diagnostic, project_stair_public_dev_diagnostic,
 )
 from true_rl_agent.tasks.stair_climbing.row_catalog import stair_robot_row
+from true_rl_agent.tasks.stair_climbing.trajectory_pipeline import LEGACY_PROFILE, PROFILES
 from true_rl_agent.tasks.stair_climbing.unified_protocol import StairUnifiedProtocol
 
 
@@ -144,6 +145,9 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--diagnostic-cohort", default="v1")
     parser.add_argument("--numeric-evidence-max-bytes", type=int, default=2 * 1024**3)
     parser.add_argument("--timeout-s", type=int, default=36000)
+    parser.add_argument("--behavior-feedback-profile", choices=PROFILES, default=LEGACY_PROFILE,
+                        help="Automatic per-archive CPU trajectory cards for supported Stair Go2 numeric inputs.")
+    parser.add_argument("--trajectory-report-max-bytes", type=int, default=8192)
     add_native_video_arguments(parser)
     return parser
 
@@ -182,7 +186,9 @@ def main(argv: list[str] | None = None) -> int:
         composition = provider.resolve(
             values={**provider.cli_defaults(), "cell_variant_id": protocol.cell_variant_id,
                     "execution_device": args.device, "isaac_python": args.isaac_python,
-                    "runner_timeout_s": args.timeout_s},
+                    "runner_timeout_s": args.timeout_s,
+                    "behavior_feedback_profile": args.behavior_feedback_profile,
+                    "trajectory_report_max_bytes": args.trajectory_report_max_bytes},
             context=TaskCompositionContext(project_root=PROJECT_ROOT, output_dir=output / "composition"),
         )
         backend, config = composition.backend_adapter, composition.task_plugin.config
@@ -195,6 +201,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.cohort == "diagnostic":
             session_id += "-diagnostic"
         environment_hash = None
+        gpu_process_binding = None
         if args.mode == "run":
             if os.environ.get("CUDA_VISIBLE_DEVICES", "").strip():
                 raise ValueError("use an unmasked host CUDA ordinal for the production runner")
@@ -213,6 +220,11 @@ def main(argv: list[str] | None = None) -> int:
                 lease_root=Path("/tmp/true_rl_agent_gpu_leases"),
                 devices={item.execution_device: item.identity for item in discover_nvidia_gpu_inventory()},
             )
+            gpu_identity = manager.identity_for(args.device)
+            gpu_process_binding = GpuProcessBinding(
+                host_execution_device=args.device, process_execution_device="cuda:0",
+                resource_binding_hash=gpu_identity.identity_hash,
+            )
             with manager.acquire(args.device, holder=holder) as lease:
                 probe_started = time.monotonic()
                 report["environment_probe_gpu_lease"] = dict(lease.receipt)
@@ -229,7 +241,7 @@ def main(argv: list[str] | None = None) -> int:
                 lane_id=args.device, invocation_segment_id=execution_identity[:16],
                 budget_contract_hash=canonical_json_hash({"timeout_s": args.timeout_s, "attempts": 1}),
                 attempt_budget_units=1, max_infrastructure_retries=0,
-                resource_binding_hash=manager.identity_for(args.device).identity_hash,
+                resource_binding_hash=gpu_identity.identity_hash,
             )
             composition = replace(composition, runner=replace(composition.runner, gpu_lease_manager=manager))
         jobs = backend.materialize_reference_jobs(
@@ -238,6 +250,7 @@ def main(argv: list[str] | None = None) -> int:
             policy_initialization=composition.policy_initialization,
             evaluation_binding=backend.evaluation_binding_for(composition.task_plugin.task_spec),
             backend_execution_environment_manifest_hash=environment_hash,
+            gpu_process_binding=gpu_process_binding,
         )
         # The template supplies current evaluation structure, never source authorship.
         plan = replace(
