@@ -1,4 +1,4 @@
-"""P1d CPU integration: normal composition and generation with archived phase inputs.
+"""Current CPU integration: normal composition and generation with archived phase inputs.
 
 Only process/training/provider boundaries are fixtures. Numeric arrays are original
 R4/K1 bytes; fixture manifest identity is explicitly rebound, never new-policy data.
@@ -8,7 +8,6 @@ from __future__ import annotations
 import argparse
 from copy import deepcopy
 from dataclasses import replace
-import importlib.util
 import json
 from pathlib import Path
 import shutil
@@ -30,7 +29,7 @@ from true_rl_agent.agent_core.ledger import load_ledger
 from true_rl_agent.agent_core.public_safety import assert_public_only_prompt_payload
 from true_rl_agent.evaluation.binding import canonical_json_hash
 from true_rl_agent.evaluation.phases import EvaluationPhase
-from true_rl_agent.evaluation.trajectory_translation.report import file_sha256
+from true_rl_agent.runner.numeric_evidence import file_sha256
 from true_rl_agent.json_contract import canonical_json_bytes
 from true_rl_agent.runner.numeric_evidence import NUMERIC_EVIDENCE_REF_SCHEMA
 from true_rl_agent.runner.subprocess_runner import SubprocessRunner, _SummaryJobCompletion
@@ -39,6 +38,10 @@ from true_rl_agent.tasks.stair_climbing.episode_evidence import StairEpisodeOutc
 from true_rl_agent.tasks.stair_climbing.isaaclab_execution import StairEvaluationExecutionResult
 from true_rl_agent.tasks.stair_climbing.phased_evaluation import build_stair_eval_phase_summary
 from true_rl_agent.tasks.stair_climbing.seed_policy import STAIR_FORMAL_EVAL_NAMESPACE
+from true_rl_agent.agent_core.openai_compatible_provider import OpenAICompatibleCandidateProvider, OpenAICompatibleProviderConfig, UrllibJsonTransport
+from true_rl_agent.tasks.stair_climbing.trajectory_adapter import _load_contract
+from true_rl_agent.tasks.stair_climbing.trajectory_capabilities import CAPTURE_PROFILE
+from tests.unit.test_stair_trajectory_production import cpu_contract
 
 
 def read(path):
@@ -50,20 +53,42 @@ def write(path, value):
     path.write_bytes(canonical_json_bytes(value) + b"\n")
 
 
-def load_capture():
-    spec = importlib.util.spec_from_file_location("p1c_capture", ROOT / "PLAN/feedback_sys/NEW_SYS/P1c/capture_delivery.py")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module.capture
+class RequestCaptured(Exception):
+    pass
+
+
+class CaptureOpener:
+    def open(self, request, *, timeout):
+        self.body = request.data
+        raise RequestCaptured()
+
+
+def capture(payload, output):
+    opener = CaptureOpener()
+    provider = OpenAICompatibleCandidateProvider(OpenAICompatibleProviderConfig(
+        model="offline-request-capture", base_url="https://request-capture.invalid",
+        api_key="offline-placeholder", output_dir=output / "unused", max_tokens=32768,
+        reasoning_mode="disabled"), transport=UrllibJsonTransport())
+    with patch("urllib.request.build_opener", return_value=opener):
+        try:
+            provider.next_authoring_response(prompt_payload=payload)
+        except RequestCaptured:
+            pass
+        else:
+            raise AssertionError("production transport did not reach capture boundary")
+    request = json.loads(opener.body)
+    user = request["messages"][-1]["content"].encode("utf-8")
+    if json.loads(user) != payload:
+        raise AssertionError("serialized provider payload differs")
+    return opener.body, user
+
 
 
 class StopAfterNextRequest(BaseException):
     pass
 
 
-class ProfileProvider(StairClimbingCompositionProvider):
-    def cli_defaults(self):
-        return {**super().cli_defaults(), "behavior_feedback_profile": "trajectory_numeric_v1", "trajectory_report_max_bytes": 8192}
+ProfileProvider = StairClimbingCompositionProvider
 
 
 class ArchiveRunner(SharedStairRunner):
@@ -120,6 +145,11 @@ class ArchiveRunner(SharedStairRunner):
         (directory / "manifest.json").write_text(json.dumps(archive, ensure_ascii=False) + "\n", encoding="utf-8")
         reference = {"schema_version": NUMERIC_EVIDENCE_REF_SCHEMA, "manifest_path": str(directory / "manifest.json"),
                      "manifest_sha256": file_sha256(directory / "manifest.json")}
+        qualified = _load_contract(reference)
+        archive["metadata"].update(profile=CAPTURE_PROFILE,
+            measurement_contract=cpu_contract(qualified.projection, qualified.cells))
+        (directory / "manifest.json").write_text(json.dumps(archive, ensure_ascii=False)+"\n", encoding="utf-8")
+        reference["manifest_sha256"] = file_sha256(directory / "manifest.json")
         outcomes = tuple(tuple(StairEpisodeOutcome(**{**o, "env_index": index,
             "diagnostic_flags": tuple(o["diagnostic_flags"]), "active_terminal_terms": ()}) for index, o in enumerate(seed["outcomes"]))
             for seed in archive["metadata"]["seeds"])
@@ -160,7 +190,6 @@ def main():
     sources = {"r4": args.r4.resolve(), "k1": args.k1.resolve()}
     assert file_sha256(sources["r4"]) == "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83"
     assert file_sha256(sources["k1"]) == "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3"
-    capture = load_capture()
     requests = []
     config_rejections = []
 
@@ -179,7 +208,7 @@ def main():
             requests.append({"name": name, "http_sha256": file_sha256(target / "request.http_body.json"),
                 "user_sha256": file_sha256(target / "user_payload.json"), "http_bytes": len(body), "user_bytes": len(user),
                 "behavior": feedback})
-            print("HTTP captured", name, feedback["profile"]["card_id"], flush=True)
+            print("HTTP captured", name, feedback.get("source_evaluation_job_id", "description_unavailable"), flush=True)
             if self.generation_index == 2:
                 raise StopAfterNextRequest()
             return super().next_authoring_response(prompt_payload=prompt_payload)
@@ -216,7 +245,7 @@ def main():
             class SmallerBudget(ProfileProvider):
                 def cli_defaults(self):
                     return {**super().cli_defaults(), "trajectory_report_max_bytes": 8191}
-            for provider in (StairClimbingCompositionProvider(), SmallerBudget()):
+            for provider in (SmallerBudget(),):
                 previous_calls = (len(runner.mappings), len(requests))
                 changed = build_fixture_foundation(output, provider=provider, cell="stair.go2_12dof.unified_v3", resume=True, pause=1)
                 try:
@@ -239,16 +268,20 @@ def main():
         item["phase"] = phase
         item["full_sha256"] = file_sha256(Path(item["summary_path"]).with_name("behavior_full.json"))
     assert len(runner.mappings) == 3
-    assert len({i["phase"]["task_evidence"]["trajectory_build"]["source_id"] for i in runner.mappings}) == 3
+    assert len({i["phase"]["task_evidence"]["numeric_evidence"]["manifest_sha256"] for i in runner.mappings}) == 3
     assert len({i["phase"]["task_evidence"]["behavior"]["card_id"] for i in runner.mappings}) == 3
     next_request = requests[-1]
     assert next_request["name"] == "g2-lane-a"
     sibling = next(i for i in runner.mappings if "lane-b" in i["fixture_identity"]["job_id"])
-    assert next_request["behavior"]["profile"] == sibling["phase"]["task_evidence"]["behavior"]
+    assert next_request["behavior"]["profile"] == {"kind":"numeric_behavior", "report":sibling["phase"]["task_evidence"]["behavior"]["report"]}
+    assert next_request["behavior"]["diff"]["status"] == "available"
+    assert "behavior_comparison" not in (output/"requests/g2-lane-a/user_payload.json").read_text(encoding="utf-8")
+    assert all(not (Path(i["summary_path"]).parent/"trajectory").exists() for i in runner.mappings)
+    artifact_bytes = sum(Path(i["summary_path"]).with_name("behavior_full.json").stat().st_size for i in runner.mappings)
     receipt = {"status": "PASS_CPU_COMPOSITION_ARCHIVE_GENERATION_HTTP", "requests": requests,
         "sources": runner.mappings, "runner_completed_replays": runner.replayed,
         "changed_configuration_resume_rejections": config_rejections,
-        "wall_seconds": time.perf_counter() - started,
+        "wall_seconds": time.perf_counter() - started, "description_artifact_bytes":artifact_bytes,
         "generation_outcome": ledger[0]["generation_outcome"],
         "boundary": "normal composition runner; archived phase injection replaces process/GPU boundary; fixture training/nonpublic outcomes/provider drafts",
         "new_policy_evidence": False, "gpu_runs": 0, "external_model_calls": 0, "http_network_calls": 0,

@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[4]
 sys.path[:0] = [str(ROOT), str(ROOT / "src")]
 from tests.unit.test_push_trajectory_pipeline import seed_from_manifest
 from true_rl_agent.evaluation.process_report import report_bytes
-from true_rl_agent.evaluation.trajectory_translation.report import file_sha256
+from true_rl_agent.runner.numeric_evidence import file_sha256
 from true_rl_agent.runner.numeric_evidence import NUMERIC_EVIDENCE_REF_SCHEMA, NumericEvidenceError
 from true_rl_agent.tasks.push_recovery.trajectory_pipeline import build_phase_trajectory, replay_full_report
 

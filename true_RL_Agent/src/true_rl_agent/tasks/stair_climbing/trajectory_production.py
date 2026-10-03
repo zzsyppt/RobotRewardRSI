@@ -1,352 +1,293 @@
-"""Unified base/cycle/nominal selection for the versioned Stair production view."""
+"""Direct archive-to-behavior summaries; no intermediate card or episode ledger."""
 from __future__ import annotations
-
 from copy import deepcopy
-import json
-from pathlib import Path
-
 from true_rl_agent.evaluation.binding import canonical_json_hash
-from true_rl_agent.evaluation.process_report import SENTENCE_SECTIONS, report_bytes, validate_public_report
-from true_rl_agent.evaluation.public_projection import assert_public_projection_safe
-from true_rl_agent.evaluation.trajectory_translation.contracts import stable_id
-from true_rl_agent.evaluation.trajectory_translation import cycles as cycle_operator, joint_limits as limit_operator
+from true_rl_agent.evaluation.process_report import SENTENCE_SECTIONS, report_bytes, format_number, select_whole_claims
 from true_rl_agent.evaluation.trajectory_translation.cycles import measure_contact_cycles
 from true_rl_agent.evaluation.trajectory_translation.joint_limits import measure_joint_limits
-from true_rl_agent.evaluation.trajectory_translation.report import file_sha256, validate_claims, select_policy_summary
+from true_rl_agent.evaluation.trajectory_translation.measurement import measure_behavior, NUMERIC_CONFIG
+from true_rl_agent.evaluation.trajectory_translation.cohort import aggregate_behavior, distribution
 from .trajectory_adapter import _load_contract, iter_stair_episodes
 from .trajectory_capabilities import resolve_capabilities
-from .trajectory_cycles import summarize_cycles, _cycle_statements
+from .trajectory_cycles import episode_periods, summarize_periods
 from . import trajectory_joint_limits as limits
 from . import trajectory_terrain as terrain
 
 PROFILE = "trajectory_numeric_v2"
-CATALOG_VERSION = "stair.trajectory.production_catalog.v1"
+CATALOG_VERSION = "stair.trajectory.production_catalog.v4"
 PUBLIC_SCHEMA = "true_rl_agent.stair.behavior.public.v6"
-FULL_SCHEMA = "true_rl_agent.stair.behavior.full.v5"
-SELECTION_VERSION = "stair.trajectory.unified_selection.v1"
+FULL_SCHEMA = "true_rl_agent.stair.behavior.full.v6"
+SELECTION_VERSION = "stair.trajectory.behavior_selection.v4"
 LEXICON_VERSION = "stair.trajectory_terms.v2"
-MAX_PUBLIC_BYTES = 12288
-DEFAULT_PUBLIC_BYTES = 10240  # Smallest predeclared budget covering K1/K2/K3 required facts.
+MAX_PUBLIC_BYTES = 10240
+DEFAULT_PUBLIC_BYTES = MAX_PUBLIC_BYTES
+PROCESS_BANDS = {"near_zero_mps": .01, "forward_mps": .2,
+                 "source": "go2_stair_descriptive_bands_not_runtime_or_causal_thresholds"}
 VERSIONS = {"catalog": CATALOG_VERSION, "public": PUBLIC_SCHEMA,
             "selection": SELECTION_VERSION, "lexicon": LEXICON_VERSION}
+_number = format_number
 
 
-def _write(path, value):
-    path.write_text(json.dumps(value, ensure_ascii=False, sort_keys=True,
-                              separators=(",", ":"), allow_nan=False), encoding="utf-8")
-
-
-def build_measurements(reference: dict, output: Path, *, source_id: str) -> dict:
-    """One complete adapter pass for the three accepted supplementary operators."""
+def build_summary(reference: dict) -> dict:
+    """Validate the raw archive once and retain only consumed aggregates/events."""
     archive = _load_contract(reference)
     capabilities, bounds = resolve_capabilities(archive, reference)
-    output.mkdir(parents=True, exist_ok=False)
-    cycle_rows, joint_rows, terrain_rows = [], [], []
-    with (output / "measurements.jsonl").open("x", encoding="utf-8", newline="\n") as stream:
-        for ep in iter_stair_episodes(reference, source_id=source_id):
-            identity = {"episode_id": ep.episode_id, "run_index": ep.run_index, "env_index": ep.env_index,
-                        "runner_seed": ep.source["runner_seed"], "dt_s": ep.dt_s}
-            cycle = {**identity, "records": measure_contact_cycles(ep)}
-            cycle_rows.append(cycle)
-            joint = None
-            if bounds is not None:
-                joint = {**identity, "joint_names": list(ep.entities["joints"]),
-                         "records": measure_joint_limits(ep, bounds, q_unit="rad", asset_id=limits.ASSET_SHA)}
-                joint_rows.append(joint)
-            surface = None
-            if capabilities["nominal_terrain"]["status"] == "available":
-                cell = archive.cells[ep.env_index]
-                records, _ = terrain.measure_terrain(ep, cell.spec.geometry_payload(),
-                    geometry_digest=cell.geometry_digest, terrain_type=cell.terrain_type_index, regime=cell.terrain_regime_id)
-                surface = {**identity, "records": records}
-                terrain_rows.append(surface)
-            stream.write(json.dumps({"cycle": cycle, "joint": joint, "terrain": surface},
-                                    separators=(",", ":"), allow_nan=False) + "\n")
-    summary = {"catalog_version": CATALOG_VERSION, "archive_sha256": reference["manifest_sha256"],
-               "capabilities": capabilities, "cycle": summarize_cycles(cycle_rows),
-               "joint": limits.summarize(joint_rows) if joint_rows else None,
-               "terrain": terrain.summarize(terrain_rows) if terrain_rows else None}
-    _write(output / "summary.json", summary)
-    manifest = {"schema_version": "stair.production_measurements.v1", "complete": True,
-                "catalog_version": CATALOG_VERSION, "source": reference,
-                "artifacts": {name: {"sha256": file_sha256(output / name), "bytes": (output / name).stat().st_size}
-                              for name in ("measurements.jsonl", "summary.json")}}
-    from .trajectory_artifacts import _write_json
-    _write_json(output / "manifest.json", manifest)
-    return {"manifest_path": str(output / "manifest.json"), "manifest_sha256": file_sha256(output / "manifest.json")}
+    behavior_rows, cycle_periods, joint_values = [], [], {}
+    for ep in iter_stair_episodes(reference, source_id="behavior"):
+        behavior = measure_behavior(ep)
+        behavior_rows.append(behavior)
+        cycle_periods.append(episode_periods(measure_contact_cycles(ep)))
+        if bounds is not None:
+            for r in measure_joint_limits(ep, bounds, q_unit="rad", asset_id=limits.ASSET_SHA):
+                v = r["value"]
+                joint_values.setdefault(r["entity_ids"][0], []).append((v["counts"],v["minimum_signed_margin_rad"]))
+        if capabilities["nominal_terrain"]["status"] == "available":
+            cell = archive.cells[ep.env_index]
+            _, arrays = terrain.measure_terrain(ep, cell.spec.geometry_payload(),
+                geometry_digest=cell.geometry_digest, terrain_type=cell.terrain_type_index, regime=cell.terrain_regime_id)
+            _, relative, statuses = arrays
+            for window, mask in (("all", ep.steps > 0), ("terminal", ep.times >= ep.times[-1]-.5-1e-9)):
+                for column, entity in enumerate((*ep.entities["root"], *ep.entities["support"])):
+                    valid = mask & (statuses[:, column] == 0)
+                    behavior["facts"][window][entity+".terrain"] = {"label": entity+"参考点地形相对高度", "unit": "m",
+                        "value": float(relative[valid, column].mean()) if valid.any() else None,
+                        "valid": int(valid.sum()), "unknown": int(mask.sum()-valid.sum()), "not_applicable": 0}
+    joint = {"groups": {name:{"counts":{k:sum(c[k] for c,_ in values) for k in values[0][0]},
+        "episode_equal":{"minimum_signed_margin_rad":distribution([v for _,v in values if v is not None])}}
+        for name,values in joint_values.items()}} if joint_values else None
+    summary = {"catalog_version":CATALOG_VERSION, "archive_sha256":reference["manifest_sha256"],
+        "capabilities": capabilities, "behavior":aggregate_behavior(behavior_rows,motion_bands=PROCESS_BANDS),
+        "cycle":summarize_periods(cycle_periods), "joint":joint}
 
-
-def load_measurements(reference: dict, *, verify_records: bool = False) -> dict:
-    path = Path(reference["manifest_path"])
-    if file_sha256(path) != reference["manifest_sha256"]:
-        raise ValueError("production measurement manifest hash mismatch")
-    manifest = json.loads(path.read_bytes())
-    if (manifest["schema_version"] != "stair.production_measurements.v1"
-            or manifest["catalog_version"] != CATALOG_VERSION or manifest["complete"] is not True
-            or set(manifest["artifacts"]) != {"summary.json", "measurements.jsonl"}):
-        raise ValueError("production measurement version mismatch")
-    for name, item in manifest["artifacts"].items():
-        item_path = path.parent / name
-        if item_path.stat().st_size != item["bytes"] or file_sha256(item_path) != item["sha256"]:
-            raise ValueError("production measurement artifact bytes/hash mismatch")
-    summary = json.loads((path.parent / "summary.json").read_bytes())
-    if summary["archive_sha256"] != manifest["source"]["manifest_sha256"] or summary["catalog_version"] != CATALOG_VERSION:
-        raise ValueError("production measurement source mismatch")
-    if verify_records:
-        rows = [json.loads(line) for line in (path.parent / "measurements.jsonl").read_text(encoding="utf-8").splitlines()]
-        archive = _load_contract(manifest["source"])
-        capabilities, bounds = resolve_capabilities(archive, manifest["source"])
-        if capabilities != summary["capabilities"]:
-            raise ValueError("production capability/source binding mismatch")
-        for ep, row in zip(iter_stair_episodes(manifest["source"], source_id="production_replay"), rows, strict=True):
-            _validate_measurement_row(ep, row, bounds, archive.cells[ep.env_index], capabilities)
-        for key, aggregate in (("cycle", summarize_cycles), ("joint", limits.summarize), ("terrain", terrain.summarize)):
-            items = [row[key] for row in rows if row[key] is not None]
-            if summary[key] != (aggregate(items) if items else None):
-                raise ValueError("production summary differs from measurement operands")
+    # The author and selection consume facets, not a repeated roster per facet.
+    for group in summary["behavior"]["groups"].values():
+        group.pop("members", None)
+    # Persist the statistics actually consumed by prose/selection, not repeated
+    # all-channel vectors for every condition facet.
+    for name,g in summary["behavior"]["groups"].items():
+        for window,facts in g["facts"].items():
+            if name == "all":
+                keys = ({"net","speed","backward","active","inverted","duration"} |
+                        {k for k in facts if "." in k}) if window == "all" else {k for k in facts if k.endswith((".relative",".terrain"))}
+            elif name.startswith("outcome:"):
+                keys = {"time","inverted","tilt","rotation","forward_elevation_min","forward_elevation"} if window == "all" else (
+                    {"progress","forward_speed","height","tilt_end","low_progress"} | {k for k in facts if k.endswith(".terrain")})
+            else:
+                keys = {"forward_speed"} if window == "terminal" and "/" in name else set()
+            g["facts"][window] = {k:v for k,v in facts.items() if k in keys}
+        for facts in g["facts"].values():
+            for fact in facts.values():
+                fact.pop("positive_episodes",None)
+                fact["distribution"] = {k:fact["distribution"][k] for k in ("median","mean")}
+        for facet in ("joint_process","terminal_motion"):
+            for part in g.get(facet,{}).values():
+                part.pop("conditions",None)
+                for key in ("forward_speed_mps","end_time_s"):
+                    part[key] = {k:part[key][k] for k in ("median","count")}
+    from .behavior import comparison_operands
+    summary["comparison"] = comparison_operands(behavior_rows)
     return summary
 
 
-def _validate_measurement_row(ep, row, bounds, cell, capabilities):
-    """Retain operator metadata and raw locators without re-running extraction."""
-    identity = {"episode_id": ep.episode_id, "run_index": ep.run_index, "env_index": ep.env_index,
-                "runner_seed": ep.source["runner_seed"], "dt_s": ep.dt_s}
-    support = ep.entities["support"]
-    cycle_metrics = [("contact_cycles", [s]) for s in support]
-    cycle_metrics += [("contact_phase", [a, b]) for i, a in enumerate(support) for b in support[i+1:]]
-    for key in ("cycle", "joint", "terrain"):
-        item = row[key]
-        enabled = key == "cycle" or (bounds is not None if key == "joint" else capabilities["nominal_terrain"]["status"] == "available")
-        if not enabled:
-            if item is not None:
-                raise ValueError("unqualified production measurement present")
-            continue
-        if item is None or any(item.get(k) != v for k, v in identity.items()):
-            raise ValueError("production measurement episode/source/clock mismatch")
-        if key == "joint" and item.get("joint_names") != list(ep.entities["joints"]):
-            raise ValueError("production joint summary name/order mismatch")
-        expected_entities = ([entities for _, entities in cycle_metrics] if key == "cycle" else
-                             [[j] for j in ep.entities["joints"]] if key == "joint" else
-                             [[e] for e in (*ep.entities["root"], *support)])
-        if [r["entity_ids"] for r in item["records"]] != expected_entities:
-            raise ValueError("production measurement entity order/coverage mismatch")
-        for column, r in enumerate(item["records"]):
-            value, entities = r["value"], tuple(r["entity_ids"])
-            if key == "cycle":
-                metric = cycle_metrics[column][0]
-                if metric == "contact_phase":
-                    feet = {r["entity_ids"][0]: r["record_id"] for r in item["records"][:len(support)]}
-                    if (value["reference_record_id"] != feet[entities[0]]
-                            or value["target_record_id"] != feet[entities[1]]):
-                        raise ValueError("production cycle phase operand binding mismatch")
-                expected = {"record_type": "measurement", "key": metric, "entity_ids": list(entities),
-                    "record_id": stable_id("cycle-evidence", ep.episode_id, cycle_operator.CYCLE_CONFIG, metric, entities, value),
-                    "episode_id": ep.episode_id, "catalog_version": cycle_operator.CATALOG_VERSION,
-                    "base_catalog_version": cycle_operator.BASE_CATALOG_VERSION, "extractor_version": cycle_operator.EXTRACTOR_VERSION,
-                    "measurement_config": cycle_operator.CYCLE_CONFIG, "unit": "s; phase turns", "frame": "recorder_readout",
-                    "evidence_ref": ep.reference(("support_contact_forces_w",)), "value": value}
-            elif key == "joint":
-                expected = ep.record("nominal_joint_limits", "measurement", entities, ("joint_pos",), value,
-                    unit="rad; fraction; sampled s", frame="nominal_usd_joint_coordinate", config=limit_operator.CONFIG)
-                expected.update(catalog_version=limit_operator.CATALOG_VERSION, base_catalog_version=limit_operator.BASE_CATALOG_VERSION,
-                                extractor_version="trajectory.nominal_joint_limits.v1", asset_id=limits.ASSET_SHA)
-                expected.pop("record_id")
-                expected["record_id"] = stable_id("nominal-limit-evidence", expected)
-                bound = bounds[entities[0]]
-                if value["nominal_bounds_rad"] != [bound["lower"], bound["upper"]]:
-                    raise ValueError("production nominal bound mismatch")
-                for witness in value["witnesses"].values():
-                    index = witness["step"] - 1
-                    if witness["joint_column"] != column or witness["source"] != ep.reference(("joint_pos",), index, index+1):
-                        raise ValueError("production joint witness locator mismatch")
-            else:
-                channel = "base_pos_w" if column == 0 else "support_pos_w"
-                expected = ep.record("M10.nominal_reference_height", "measurement", entities, (channel,), value,
-                    unit="m", frame=terrain.FRAME, config=terrain.CONFIG)
-                expected["catalog_version"] = terrain.CATALOG_VERSION
-                expected.pop("record_id")
-                expected["record_id"] = stable_id("nominal-terrain", expected)
-                geometry = {"cell_id": ep.task["cell_id"], "terrain_type": cell.terrain_type_index,
-                    "geometry_digest": cell.geometry_digest, "geometry": cell.spec.geometry_payload(), "regime": cell.terrain_regime_id,
-                    "origin_world_m": list(ep.task["origin_world"]),
-                    "static_refs": {**ep.task["static_refs"], "terrain_types": {**ep.task["static_refs"]["terrain_env_origins_w"], "array": "terrain_types"}}}
-                if value["geometry_binding"] != geometry:
-                    raise ValueError("production terrain geometry/source binding mismatch")
-                for witness in [*value["witnesses"].values(), *value["first_by_status"].values()]:
-                    if witness is None:
-                        continue
-                    index = witness["step"] - 1
-                    if witness["column"] != (None if column == 0 else column-1) or witness["source_ref"] != ep.reference((channel,), index, index+1):
-                        raise ValueError("production terrain witness locator mismatch")
-            if r != expected:
-                raise ValueError("production measurement unit/frame/source/record identity mismatch")
+def source_domain(reference, archive):
+    identity = archive["identity"]
+    return {"evaluation_job_id":identity["job_id"], "evaluation_plan_hash":identity["evaluation_plan_hash"],
+        "checkpoint_hash":identity["checkpoint_hash"], "task_id":identity["task_id"],
+        **{k:identity["evaluation_binding"][k] for k in ("task_protocol_hash","evaluation_binding_hash")},
+        "seed_namespace":identity["seed_namespace"], "archive_hash":reference["manifest_sha256"],
+        "projection_hash":archive["metadata"]["runtime_projection"]["projection_hash"],
+        "catalog_version":CATALOG_VERSION,"acceptance_split":"public_dev"}
 
 
-# Each old mandatory definition has an explicit replacement, not a budget deletion.
-DEFINITIONS = {
-    "contact_definition": "Current marker: recorded world net normal-contact-force norm >1N; no physical-contact continuity, contact-object or load-share inference. An off marker does not prove no contact.",
-    "activity_definition": "Low progress: maximum additional progress in a complete >=0.5s window <0.02m; shorter initial windows unknown. Foot XY speed threshold 0.05m/s; same-readout conjunction only, not gait, refusal or whole-body rest.",
-    "coverage": "Episode-equal distributions; pooled samples/time separately, each quantity has its own valid denominator. N*dt is sample-cell time, (N-1)*dt observed span. Left/right-censored runs excluded from complete-duration distributions; missing/unknown are not negative.",
-    "comparison_scope": "Whole cohort then outcome/stratum/cell facets. Endpoint lengths and success composition affect whole-episode statistics. Same cell does not pair actual commands/randomization; no significance, improvement or causal claim.",
-    "parent": "Parent numeric comparison unavailable: no explicitly bound parent archive. Separate-source examples are not parents and never enter the primary denominator.",
-    "missing": "Actions, torque/saturation, reward terms/gates/air-time, actual mass/full-body momentum, tangential force/contact objects and other nonfoot forces missing. Recorded nonfoot scope is bound base only; exact reward response/physical balance unavailable.",
-    "deferred": "Enabled: base and local readout cycles; nominal limits/terrain only when qualified below. Terrain uses each point's XY, world-z and m; not sole clearance or contact distance. Effective runtime limits and runtime collision surface unknown. Historical link-position/COM-velocity equivalence, default-pose/high-position thresholds unverified; no raised-leg/dragging labels.",
-    "clock_history": "Pre-reset control-step readout; current sensor delay and history per-slot time/valid unknown. History ANY is separate from current, not physics substeps or true impulse.",
-}
-
-
-def _extension_claims(summary):
-    binding = {"archive_sha256": summary["archive_sha256"], "catalog_version": CATALOG_VERSION,
-               "capabilities": summary["capabilities"]}
+def _behavior_claims(summary):
+    """Semantic order and priorities never depend on archive IDs."""
+    behavior = summary["behavior"]
+    groups = behavior["groups"]
     rows, trace, required = {}, {}, []
 
-    def add(key, group_key, row, operands, reason):
-        cid = stable_id("claim", SELECTION_VERSION, binding, key, group_key, row["text"])
-        rows[cid] = ("process", {"id": cid, "text": row["text"]})
-        trace[cid] = {"measurement": key, "group": group_key, "operands": operands,
-                      "source_manifest_sha256": summary["archive_sha256"], "selection_reason": reason}
-        return cid
+    def add(key, section, text, operands, mandatory=True, priority=0):
+        cid = "claim:"+key
+        rows[cid] = (section, {"id": cid, "text": text})
+        trace[cid] = {"operands": operands, "priority": priority}
+        if mandatory:
+            required.append(cid)
 
-    groups = summary["cycle"]["groups"]
-    ordered = sorted((k for k in groups if k.startswith("contact_cycles:")),
-                     key=lambda k: (-groups[k]["counts"]["qualified_unique_cycles"], groups[k]["entity_ids"][0]))
-    statements = _cycle_statements(binding, summary["cycle"])
-    by_entity = {g["entity_ids"][0]: s for g, s in zip(
-        (g for k, g in groups.items() if k.startswith("contact_cycles:")), statements, strict=True)}
-    for index, key in enumerate(ordered):
-        group = groups[key]
-        row = dict(by_entity[group["entity_ids"][0]])
-        c = group["counts"]
-        row["text"] += (f" Unique qualified readout edges {c['covered_unique_edges']}/{c['known_adjacent_edges']}; "
-                        f"unknown rhythm {group['unknown_rhythm_episodes']}/{group['episodes']} episodes.")
-        cid = add("cycle", key, row, group, "most_qualified_unique_cycles_then_entity")
-        if index == 0:
-            required.append(cid)
-    for key, renderer in (("joint", limits.statements), ("terrain", terrain.statements)):
-        data = summary[key]
-        if data is None:
-            capability = summary["capabilities"]["nominal_joint_limits" if key == "joint" else "nominal_terrain"]
-            cid = add(key, "unavailable", {"text": f"Nominal {key} unavailable: {capability['reason']}. "
-                      "This is missing qualification, not zero observations; effective limits/runtime surface remain unknown."},
-                      capability, "explicit_missing_qualification")
-            required.append(cid)
+    def fact(facts, key, label=None, statistic="median"):
+        f = facts[key]
+        text = (f["label"] if label is None else label)+_number(f["distribution"][statistic])+f["unit"]
+        if f["valid_episodes"] != f["episodes"] or f["unknown"]:
+            text += f"（有效{f['valid_episodes']}/{f['episodes']}回合，缺失{f['unknown']}读数）"
+        return text
+
+    def presence_text(facts):
+        p = facts["inverted"]["presence"]
+        text = f"已观察到上轴向下{p['observed_positive']}/{facts['inverted']['episodes']}回合"
+        if p["unknown"]:
+            text += f"；完整记录未见{p['complete_negative']}回合，{p['unknown']}回合因缺测不能判全程阴性"
+        return text
+
+    bands = behavior["motion_bands"] or PROCESS_BANDS
+    def joint_text(group):
+        parts = group.get("joint_process", {})
+        if parts.get("observed_down") and len(parts) > 1:
+            labels = {"observed_down":"已见上轴向下", "no_down_forward":f"完整记录未见上轴向下且末速>{bands['forward_mps']:g}m/s的",
+                      "remaining":"其余已知", "unknown":"姿态或末窗未定"}
+            return "同标签内："+"；".join(labels[k]+f"{parts[k]['episodes']}回合（结束"+
+                _number(parts[k]["end_time_s"]["median"])+"s，末速"+
+                _number(parts[k]["forward_speed_mps"]["median"])+"m/s"+
+                (f"，末速有效{parts[k]['forward_speed_mps']['count']}/{parts[k]['episodes']}回合"
+                 if parts[k]['forward_speed_mps']['count'] != parts[k]['episodes'] else "")+
+                "）" for k in labels if k in parts)+"。"
+        motion = group.get("terminal_motion", {})
+        if "near_zero" in motion and ("forward" in motion or "backward" in motion):
+            labels = {"near_zero":f"|有向速度|<{bands['near_zero_mps']:g}m/s", "forward":f"有向速度>{bands['forward_mps']:g}m/s",
+                      "backward":f"有向速度<{-bands['forward_mps']:g}m/s", "remaining":"其余已知", "unknown":"末窗未定"}
+            return "末窗分布："+"；".join(labels[k]+f"的{motion[k]['episodes']}回合（速度中位"+
+                _number(motion[k]["forward_speed_mps"]["median"])+"m/s）" for k in labels if k in motion)+"。"
+        return ""
+
+    n = groups["all"]["episodes"]
+    outcomes = groups["all"]["outcomes"]
+    names = {"success":"成功", "timeout":"超时", "time_out":"超时", "forbidden_contact":"禁用部位接触标签",
+             "base_orientation_instability":"姿态失稳标签", "off_course":"偏离路线标签", "slip":"滑移标签",
+             "bad_orientation":"姿态失稳标签", "orientation":"姿态失稳标签"}
+    add("scope", "results", f"本队列{n}回合，存档结局："+"、".join(f"{names.get(k,k)}{v}" for k,v in sorted(outcomes.items()))+"。标签不等于运行时终止触发器。下述先逐回合统计再取中位数，接触组合另报回合均值；末窗是记录结束前最多0.5s。", outcomes)
+    f = groups["all"]["facts"]["all"]
+    add("motion", "process", "总体："+"；".join(fact(f,k) for k in ("net","speed","backward","active"))+"；"+presence_text(f)+"。", f)
+    for name, group in sorted(groups.items()):
+        if not name.startswith("outcome:"):
             continue
-        rendered = dict(zip(data["groups"], renderer(binding, data), strict=True))
-        if key == "joint":
-            def rank(name):
-                value = data["groups"][name]["episode_equal"]["minimum_signed_margin_rad"]["minimum"]
-                return (value is None, value if value is not None else 0, name)
-            selected = [min(data["groups"], key=rank)]
-            reason = "lowest_minimum_signed_margin_then_joint_name"
+        reason = name.split(":",1)[1]
+        f = group["facts"]["terminal"]
+        whole = group["facts"]["all"]
+        text = f"{names.get(reason,reason)}组{group['episodes']}回合："+fact(whole,"time")+"；末窗"+"、".join(fact(f,k) for k in ("progress","forward_speed","height","tilt_end","low_progress"))+"；"+presence_text(whole)+"，"+fact(whole,"tilt")+"。"+joint_text(group)
+        add("outcome."+reason, "counterexample" if reason=="success" else "process", text, group)
+        if (whole["rotation"]["distribution"]["median"] or 0)>5:
+            add("attitude."+reason,"process",names.get(reason,reason)+"组：前轴仰角极小/极大值的中位数"+_number(whole["forward_elevation_min"]["distribution"]["median"])+"/"+_number(whole["forward_elevation"]["distribution"]["median"])+"°；"+fact(whole,"rotation")+"（只累计有效连续边）。",whole,False,.3)
+    f = groups["all"]["facts"]["all"]
+    for i, entity in enumerate(behavior["support"]):
+        short = entity.rsplit(".",1)[-1]
+        cycle = summary["cycle"]["groups"]["contact_cycles:"+entity]
+        period = cycle["episode_median_qualified_cycle_period_s"]["median"]
+        text = short+"："+"、".join(fact(f, entity+"."+key, label) for key,label in
+            (("contact","接触占比"),("world","世界点速"),("relative","相对点速")))
+        text += "；身体相对位置均值(x,y,z)="+"/".join(_number(f[entity+"."+axis]["distribution"]["median"]) for axis in "xyz")+"m"
+        text += "；末窗相对点速"+_number(groups["all"]["facts"]["terminal"][entity+".relative"]["distribution"]["median"])+"m/s"
+        text += (f"；局部周期{_number(period)}s" if period is not None else "；未检出合格局部周期")+f"，{cycle['episodes_with_qualified_windows']}/{cycle['episodes']}回合有合格重复窗。"
+        add("foot."+str(i), "process", text, {"facts":{k:v for k,v in f.items() if k.startswith(entity+".")},"cycle":cycle})
+    contacts = sorted((k for k in f if k.startswith("contact.") and (f[k]["distribution"]["mean"] or 0)>0), key=lambda k:(-f[k]["distribution"]["mean"], k))[:3]
+    if contacts:
+        add("contacts", "process", "主要接触组合（按回合占比均值）："+"；".join(fact(f,k,statistic="mean") for k in contacts)+"。", {k:f[k] for k in contacts})
+    joint = summary["joint"]
+    if joint:
+        ranked = sorted(joint["groups"], key=lambda k: (-joint["groups"][k]["counts"]["inside_edge_band_rows"]/max(1,joint["groups"][k]["counts"]["finite_rows"]),k))
+        for i, name in enumerate(ranked):
+            g = joint["groups"][name]; c = g["counts"]; total = c["finite_rows"]
+            if not c["inside_edge_band_rows"] and not c["outside_rows"]:
+                continue
+            text = f"{name}名义限位：全队列有效{total}点，下/上5%边带{_number(100*c['lower_edge_rows']/total) if total else '未知'}%/{_number(100*c['upper_edge_rows']/total) if total else '未知'}%；超出名义下/上界{c['lower_outside_rows']}/{c['upper_outside_rows']}点；最小有符号余量{_number(g['episode_equal']['minimum_signed_margin_rad']['minimum'])}rad。"
+            add("joint."+name,"process",text,g,mandatory=i<2,priority=3)
+    terrain_keys = [k for k in f if k.endswith(".terrain")]
+    if terrain_keys:
+        add("terrain", "process", "参考点相对名义地形高度："+"；".join(fact(f,k,label=k.removesuffix('.terrain').rsplit('.',1)[-1]) for k in terrain_keys)+"。",{k:f[k] for k in terrain_keys})
+        for name,g in sorted(groups.items()):
+            if name.startswith("outcome:") and name != "outcome:success":
+                t = g["facts"]["terminal"]
+                known = [k for k in terrain_keys if t[k]["valid_episodes"]]
+                if not known:
+                    continue
+                reference = groups.get("outcome:success",groups["all"])["facts"]["terminal"]
+                foot_keys = [k for k in known if k != "robot_0.root.terrain"]
+                contrasting = max(foot_keys, key=lambda k: abs(t[k]["distribution"]["median"]-(reference[k]["distribution"]["median"] or 0)), default=None)
+                selected = [k for k in ("robot_0.root.terrain",contrasting) if k in known]
+                text = names.get(name.split(':',1)[1],name.split(':',1)[1])+"组末窗地形参考差："
+                text += "；".join(fact(t,k,label=k.removesuffix('.terrain').rsplit('.',1)[-1])+
+                    ("，对应成功组"+fact(reference,k,label="") if "outcome:success" in groups else "") for k in selected)+"。"
+                add("terrain."+name,"process",text,{"selected":{k:t[k] for k in selected},
+                    "reference":{k:reference[k] for k in selected}},False,.25)
+    for outcome, parent in ((k.split(':',1)[1],g) for k,g in sorted(groups.items()) if k.startswith("outcome:") and k!="outcome:success"):
+        candidates = []
+        for key, g in groups.items():
+            if not key.startswith("condition:") or not key.endswith("/"+outcome) or g["episodes"] == parent["episodes"]:
+                continue
+            condition = key.split(':',1)[1].rsplit('/',1)[0]
+            count = g["episodes"]
+            gain = abs(count/groups["condition:"+condition]["episodes"] - parent["episodes"]/n)
+            for facet in ("joint_process", "terminal_motion"):
+                for part in sorted(set(g.get(facet, {})) | set(parent.get(facet, {}))):
+                    gain += abs(g.get(facet, {}).get(part, {}).get("episodes",0)/count -
+                                parent.get(facet, {}).get(part, {}).get("episodes",0)/parent["episodes"])
+            speed = g["facts"]["terminal"]["forward_speed"]["distribution"]["median"]
+            base_speed = parent["facts"]["terminal"]["forward_speed"]["distribution"]["median"]
+            if speed is not None and base_speed is not None:
+                gain += abs(speed-base_speed)/max(abs(base_speed), bands["forward_mps"])
+            if count*gain >= 1:
+                candidates.append((count*gain, condition, g))
+        chosen = sorted(candidates, key=lambda x:(-x[0],x[1]))[:2]
+        if chosen:
+            parts = []
+            mixed = parent.get("joint_process", {}).get("observed_down") and len(parent["joint_process"]) > 1
+            for _, condition, g in chosen:
+                text = condition+f"{g['episodes']}回合"
+                if mixed:
+                    text += "（按上述联合分组顺序计"+"/".join(str(g.get("joint_process", {}).get(k,{}).get("episodes",0))
+                        for k in ("observed_down","no_down_forward","remaining","unknown") if k in parent["joint_process"])+"）"
+                elif "near_zero" in parent.get("terminal_motion", {}) and any(k in parent["terminal_motion"] for k in ("forward","backward")):
+                    text += "（按上述末窗分段顺序计"+"/".join(str(g.get("terminal_motion", {}).get(k,{}).get("episodes",0))
+                        for k in ("near_zero","forward","backward","remaining","unknown") if k in parent["terminal_motion"])+"）"
+                else:
+                    text += "，末速"+_number(g["facts"]["terminal"]["forward_speed"]["distribution"]["median"])+"m/s"
+                parts.append(text)
+            add("conditions."+outcome,"process",names.get(outcome,outcome)+"组的条件差异："+"；".join(parts)+"。",chosen,False,.2)
+    for event in behavior["witnesses"]:
+        loc = f"r{event['run_index']}/e{event['env_index']}"
+        kind = event["kind"]
+        if kind == "success_drawdown_return":
+            text = (f"成功反例{loc}：一个回撤并返回的实例，步{event['peak_step']}→{event['trough_step']}回撤"
+                    f"{_number(event['max_drawdown_m'])}m，步{event['return_step']}返回此前进度，最终成功；实例不代表发生率。")
+            section = "counterexample"
+        elif kind == "terminal_history_difference":
+            pattern = ("完整记录中，当前力全程越阈0拍、history ANY仅终点1拍" if
+                       (event['current_positive'], event['current_unknown'], event['history_positive'], event['history_unknown']) == (0,0,1,0)
+                       else f"呈现当前力越阈{event['current_positive']}拍、history ANY越阈{event['history_positive']}拍")
+            text = (f"终点缓冲差异：{event['matching_episodes']}回合"+pattern+f"。例{loc}步{event['step']}，{event['entity'].rsplit('.',1)[-1]}当前"
+                    f"{_number(event['current_terminal_n'])}N，history槽力模"+"/".join(_number(v) for v in event["history_terminal_n"])+"N；")
+            flags = sorted(k for k,v in event["terminal_flags"].items() if v)
+            text += ("同拍记录"+"、".join(flags)+"为真；" if flags else "")+"槽时标未记录，不能推定物理接触起点或持续时长。"
+            section = "process"
         else:
-            selected = [min((k for k, g in data["groups"].items() if g["regime"] == regime),
-                            key=lambda k: (data["groups"][k]["pooled_known_fraction"], data["groups"][k]["entity_id"]))
-                        for regime in sorted({g["regime"] for g in data["groups"].values()})]
-            reason = "each_regime_lowest_known_fraction_then_entity"
-        for group_key, group in data["groups"].items():
-            row = dict(rendered[group_key])
-            if key == "terrain":
-                c, median = group["counts"], group["episode_equal"]["mean"]["median"]
-                row["text"] = (f"{group['regime']} / {group['entity_id']}: nominal terrain known {c['known']}/{c['total']} "
-                    f"reference-point samples; {c['unknown']} unknown. "
-                    + (f"Episode-equal median mean (point z - nominal height) {median:.6g}m." if median is not None else "Vertical difference unknown."))
-            row["text"] += f" Valid episodes {group['known_episodes']}/{group['episodes']}."
-            cid = add(key, group_key, row, group, reason)
-            if group_key in selected:
-                required.append(cid)
+            text = (f"先后反例{loc}：步{event['first_observed_down_step']}首次观察到上轴向下，随后{event['entity'].rsplit('.',1)[-1]}"
+                    f"最长低速未触发段在步{event['start_step']}–{event['end_step']}（{event['samples']}记录点，世界XY点速最大"
+                    f"{_number(event['max_world_xy_speed_mps'])}m/s，当前力模≤{behavior['contact_threshold_n']:g}N）。不能由后段推断直立举足；先后不证明因果。")
+            section = "process"
+        add("witness."+kind,section,text,event,False,.01)
+    threshold=behavior["contact_threshold_n"]
+    missing=[]
+    if not joint: missing.append("名义关节坐标绑定")
+    if not terrain_keys: missing.append("名义地形绑定")
+    definition=(f"定义：接触标记为记录力模>{threshold:g}N；点速为相邻有效位置差/时间，分世界与身体坐标，不等于迈步。低正向进度为完整{NUMERIC_CONFIG['progress_window_s']:g}s窗最大新增<{NUMERIC_CONFIG['progress_increment_m']:g}m，含倒退；相对点速≥{NUMERIC_CONFIG['low_horizontal_speed_mps']:g}m/s为变化。初始不足窗不适用，内部缺步/非有限数未知；比例仅用有效点，确认时刻不是起点。差分归后端时标，不跨缺步。倾角用身体上轴，旋转用相邻四元数短弧，不用Euler范围推断翻转。名义边带非运行时限位；越界计数仅扣除边界转为记录精度的量化误差，有符号余量保留原值。地形差为参考点z减名义高度，非脚底净空。")
+    definition += f"末速分段{bands['near_zero_mps']:g}/{bands['forward_mps']:g}m/s仅用于本Go2阶梯摘要，非任务或因果阈值；低速未触发指世界XY点速<{NUMERIC_CONFIG['low_horizontal_speed_mps']:g}m/s且当前力≤{threshold:g}N。"
+    add("definitions","gaps",definition,{"numeric":NUMERIC_CONFIG,"contact_threshold_n":threshold})
+    missing_steps=groups["all"]["facts"]["all"]["duration"]["unknown"]
+    add("gaps","gaps",(f"记录跨度内缺{missing_steps}步；" if missing_steps else "")+("缺少"+"、".join(missing)+"；" if missing else "")+"动作力矩、奖励分项、运行时限位/表面未记录；过程不证明原因。成功组为当前队列对照，条件未逐实例配对。",summary["capabilities"])
+    add("parent","parent_diff","父代匹配与数值差分见本次反馈；本卡描述当前队列。",{})
     return rows, trace, required
 
 
-def base_operands(inputs: dict) -> dict:
-    """Internal validated operands have no legacy author-view byte constraint."""
-    claims, records = inputs["card"]["claims"], inputs["records"]
-    needed = {c["scope_record_id"] for c in claims} | {o["record_id"] for c in claims for o in c["operands"].values()}
-    return {"schema_version": "stair.production_base_operands.v1", "claims": claims,
-            "records_json": json.dumps({rid: records[rid] for rid in sorted(needed)}, ensure_ascii=False, separators=(",", ":")),
-            "domain": inputs["domain"], "card_id": "card:" + inputs["card_hash"], "source_audit": inputs["source_audit"]}
-
-
-def project_production_report(base_full: dict, summary: dict, *, max_bytes: int) -> dict:
-    """Select all required semantics together; optional claims never crowd them out."""
-    from .trajectory_report import _ACTIONABILITY
+def project_production_report(domain: dict, summary: dict, *, max_bytes: int = DEFAULT_PUBLIC_BYTES) -> dict:
     if type(max_bytes) is not int or not 0 < max_bytes <= MAX_PUBLIC_BYTES:
-        raise ValueError("production trajectory report budget must be in 1..12288")
-    if base_full["schema_version"] == "true_rl_agent.stair.behavior.full.v4":
-        # Explicit historical replay input; production finalization calls the
-        # verified operand loader directly, never builds an 8KB legacy view.
-        from .trajectory_report import project_stair_trajectory_report
-        project_stair_trajectory_report(base_full)
-        old = base_full["audit"]
-        base_full = {"schema_version": "stair.production_base_operands.v1",
-            "claims": [old["claim_trace"][cid]["claim"] for cid in old["claim_order"]],
-            "records_json": old["derivation_records_json"], "domain": base_full["public_report"]["domain"],
-            "card_id": base_full["public_report"]["card_id"],
-            "source_audit": {k: old[k] for k in ("source_bindings", "source_files", "evidence_links", "card_reference") if k in old}}
-    if base_full["schema_version"] != "stair.production_base_operands.v1":
-        raise ValueError("production base operands version mismatch")
-    base = base_full
-    from .trajectory_report import require_trajectory_source_domain, _load_pinned
-    source_audit = base["source_audit"]
-    require_trajectory_source_domain(base["domain"], source_audit["source_bindings"])
-    card_ref = source_audit["card_reference"]
-    card_manifest = _load_pinned(Path(card_ref["manifest_path"]), card_ref["manifest_sha256"])
-    if (base["card_id"] != "card:" + card_manifest["artifacts"]["policy_card.json"]["sha256"]
-            or card_manifest["primary_binding"] != source_audit["source_bindings"][0]):
-        raise ValueError("production base card/source binding mismatch")
-    records = json.loads(base["records_json"])
-    claims = base["claims"]
-    validate_claims(claims, records)
-    mandatory = select_policy_summary(claims, records)
-    for key in ("clock_history", "coverage", "comparison_scope"):
-        mandatory.append(next(c["claim_id"] for c in claims if c["template_id"] == "definition"
-                              and c["operands"]["text"]["path"] == ["text", key]))
-    claim_trace = {c["claim_id"]: {"claim": c, "scope_record_id": c["scope_record_id"],
-        "source_manifest_sha256": records[c["scope_record_id"]].get("source_manifest_sha256", base["domain"]["archive_hash"])} for c in claims}
-    audit = {"claim_order": [c["claim_id"] for c in claims], "required_claim_ids": mandatory, "claim_trace": claim_trace}
-    if base["domain"]["archive_hash"] != summary["archive_sha256"]:
-        raise ValueError("production base/measurement source mismatch")
-    rows, trace, mapping, required = {}, {}, {}, []
-    for old_id in audit["claim_order"]:
-        claim = audit["claim_trace"][old_id]["claim"]
-        if claim["template_id"] == "definition":
-            key = claim["operands"]["text"]["path"][-1]
-            if old_id not in audit["required_claim_ids"]:
-                continue
-            text = DEFINITIONS.get(key, claim["text"])
-            if key == "clock_history" and "history未采集" in claim["text"]:
-                text = "History not captured: valid denominator 0, all unknown; no inferred history events. Current update delay unknown; manager endpoint is independent of force thresholds."
-            cid = stable_id("claim", SELECTION_VERSION, old_id, text)
-            section = "parent_diff" if key == "parent" else "gaps"
-        else:
-            cid, text = old_id, claim["scope"] + ": " + claim["text"]
-            scope = records[claim["scope_record_id"]]
-            if scope["record_type"] == "episode_summary":
-                text = claim["scope"] + " | " + scope["task"]["cell_id"] + " | " + scope["task"]["outcome"]["primary_reason"] + ": " + claim["text"]
-                if scope["source_manifest_sha256"] != base["domain"]["archive_hash"]:
-                    text = "Separate-source example, outside primary denominator: " + text
-            section = ("results" if claim["template_id"] == "cohort_scope" else
-                       "counterexample" if claim["template_id"] in {"inverted_before", "successful_return"} else "process")
-        rows[cid] = (section, {"id": cid, "text": text})
-        trace[cid] = {"base_claim_id": old_id, "base_trace": audit["claim_trace"][old_id]}
-        if old_id in audit["required_claim_ids"]:
-            mapping[old_id] = cid
-    if len(mapping) != 18:
-        raise ValueError("production profile requires all 18 base semantic slots")
-    required = [mapping[cid] for cid in audit["required_claim_ids"]]
-    extra_rows, extra_trace, extra_required = _extension_claims(summary)
-    rows.update(extra_rows); trace.update(extra_trace); required.extend(extra_required)
-    optional = sorted(set(rows) - set(required))
-    domain = {**base["domain"], "catalog_version": CATALOG_VERSION}
-    card_id = "card:" + canonical_json_hash([base["card_id"], summary, VERSIONS])
-
+        raise ValueError("production trajectory report budget must be in 1..10240")
+    if domain["archive_hash"] != summary["archive_sha256"] or summary["catalog_version"] != CATALOG_VERSION:
+        raise ValueError("production summary/source mismatch")
+    rows, trace, required = _behavior_claims(summary)
+    optional = sorted(set(rows)-set(required),key=lambda cid:(trace[cid]["priority"],cid))
+    card_id = "card:" + canonical_json_hash([domain, summary, VERSIONS])
     def render(included):
         report = {s: [rows[cid][1] for cid in included if rows[cid][0] == s] for s in SENTENCE_SECTIONS}
-        report["visual"] = [{"id": "trajectory.visual", "text": "Numeric only; media uninspected. No causal, author-understanding or training-benefit claim."}]
+        report["visual"] = [{"id": "trajectory.visual", "text": "仅使用数值记录，未检查媒体。"}]
         if not report["counterexample"]:
-            report["counterexample"] = [{"id": "trajectory.counterexample_unavailable", "text": "Supported counterexample unavailable; this does not establish a failure mechanism."}]
-        report["gaps"].append({"id": "trajectory.omissions", "text":
-            f"Selected {len(included)}/{len(rows)} candidate claims; full operands, original short events and omitted IDs/reasons remain in the internal audit. IDs enable tracing, not automatic author access."})
-        report["actionability"] = deepcopy(_ACTIONABILITY)
+            report["counterexample"] = [{"id": "trajectory.counterexample_unavailable", "text": "本队列无成功对照；保留绝对过程描述。"}]
+        report["actionability"] = {"available":["现有任务允许的奖励输入和组件"],"diagnostic_only":["轨迹诊断不扩展奖励接口"],"authority":"不改变任务结局、控制器或训练权限"}
         receipt = {"selection_version": SELECTION_VERSION, "claim_count": len(rows),
                    "included_claim_count": len(included), "omitted_claim_count": len(rows)-len(included),
                    "omitted_claim_ids_hash": canonical_json_hash([cid for cid in rows if cid not in included]),
@@ -356,28 +297,13 @@ def project_production_report(base_full: dict, summary: dict, *, max_bytes: int)
         receipt["content_hash"] = canonical_json_hash(value)
         return value
 
-    included = list(required)
-    public = render(included)
-    required_bytes = report_bytes(public)
-    if required_bytes > max_bytes:
-        raise ValueError(f"production mandatory facts exceed byte budget: {required_bytes} > {max_bytes}")
-    for cid in optional:
-        candidate = render([*included, cid])
-        if report_bytes(candidate) <= max_bytes:
-            included.append(cid); public = candidate
+
+    public, included, required_bytes = select_whole_claims(required, optional, render, max_bytes=max_bytes)
     validate_production_report(public, max_bytes=max_bytes)
-    omitted = [{"claim_id": cid, "reason": "optional_whole_claim_budget", "trace": trace[cid]}
-               for cid in rows if cid not in included]
-    superseded = [{"claim_id": cid, "reason": "superseded_definition_or_offline_status"}
-                  for cid in audit["claim_order"] if cid not in mapping and cid not in rows]
-    return {"schema_version": FULL_SCHEMA, "public_report": public,
-            "audit": {"schema_version": "stair.production_delivery_audit.v1", "base_operands": base_full,
-                      "measurement_summary": summary, "base_semantic_mapping": mapping,
-                      "required_claim_ids": required, "included_claim_ids": included,
-                      "omitted_claims": omitted, "superseded_base_claims": superseded,
-                      "claim_trace": trace, "max_report_bytes": max_bytes,
-                      "report_bytes": report_bytes(public), "required_report_bytes": required_bytes,
-                      "tokens": "unknown", "runtime_validation": "not_performed_by_CPU_finalizer"}}
+    return {"schema_version":FULL_SCHEMA,"public_report":public,
+        "audit":{"summary":summary,"max_report_bytes":max_bytes,
+            "required_claim_ids":required,"included_claim_ids":included,
+            "required_report_bytes":required_bytes,"report_bytes":report_bytes(public)}}
 
 
 def validate_production_report(value, *, max_bytes=MAX_PUBLIC_BYTES):
@@ -390,14 +316,10 @@ def validate_production_report(value, *, max_bytes=MAX_PUBLIC_BYTES):
 def replay_production_report(value):
     if value["schema_version"] == PUBLIC_SCHEMA:
         return validate_production_report(value)
+    if value["schema_version"] != FULL_SCHEMA:
+        raise ValueError("unsupported Stair behavior full schema")
     audit = value["audit"]
-    if "measurements_reference" in audit:
-        if load_measurements(audit["measurements_reference"], verify_records=True) != audit["measurement_summary"]:
-            raise ValueError("production full measurement binding mismatch")
-    expected = project_production_report(audit["base_operands"], audit["measurement_summary"], max_bytes=audit["max_report_bytes"])
-    if value["public_report"] != expected["public_report"] or any(audit.get(k) != v for k, v in expected["audit"].items()):
-        raise ValueError("production full report differs from operands/selection")
-    if "trajectory_build" in audit:
-        from .trajectory_pipeline import validate_build_receipt
-        validate_build_receipt(audit["trajectory_build"], value["public_report"])
+    expected = project_production_report(value["public_report"]["domain"], audit["summary"], max_bytes=audit["max_report_bytes"])
+    if value["public_report"] != expected["public_report"] or any(audit.get(k) != v for k,v in expected["audit"].items()):
+        raise ValueError("production report differs from summary/selection")
     return validate_production_report(value["public_report"])

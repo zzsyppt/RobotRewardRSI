@@ -186,13 +186,18 @@ class PushPhasedEvaluationAdapter:
             or set(evidence) not in ({"schema_version", "phase", "seed_summaries"},
                                      {"schema_version", "phase", "seed_summaries", "behavior"},
                                      {"schema_version", "phase", "seed_summaries", "behavior", "behavior_full"},
-                                     {"schema_version", "phase", "seed_summaries", "behavior", "behavior_full", "trajectory_build"})
+                                     {"schema_version", "phase", "seed_summaries", "behavior", "behavior_full", "trajectory_build"},
+                                     {"schema_version", "phase", "seed_summaries", "description_status"})
             or evidence["schema_version"] != PUSH_PHASE_EVIDENCE_SCHEMA
             or evidence["phase"] != result.phase.value
         ):
             raise ValueError("Push phase evidence identity mismatch")
         if "behavior" in evidence and result.phase is not EvaluationPhase.PUBLIC_DEV:
             raise ValueError("Push behavior evidence is public_dev-only")
+        if "description_status" in evidence:
+            status = evidence["description_status"]
+            if result.phase is not EvaluationPhase.PUBLIC_DEV or status.get("reason") != "budget_exceeded" or status.get("status") != "unavailable":
+                raise ValueError("invalid Push description degradation")
         if "behavior_full" in evidence:
             full = evidence["behavior_full"]
             public = evidence["behavior"]
@@ -275,6 +280,8 @@ class PushPhasedEvaluationAdapter:
             if binding["checkpoint_hash"] != phase_result.checkpoint_hash:
                 raise ValueError("Push behavior checkpoint differs from its phase receipt")
             summary["behavior"] = behavior
+        if "description_status" in phase_result.task_evidence:
+            summary["description_status"] = phase_result.task_evidence["description_status"]
         return summary
 
     def project_public_dev_screen(
@@ -375,9 +382,9 @@ class PushPhasedEvaluationAdapter:
             evaluation_protocol=self.config.evaluation_protocol(),
         )
         public_metrics = dict(projected.metrics)
-        if "behavior" in first.task_evidence:
+        if "behavior" in first.task_evidence or "description_status" in first.task_evidence:
             public_metrics["public_dev"] = self.project_public_phase_summary(phase_result=first)
-            if first.task_evidence["behavior"]["schema_version"] == "true_rl_agent.push_recovery.behavior.public.v4":
+            if first.task_evidence.get("behavior", {}).get("schema_version") == "true_rl_agent.push_recovery.behavior.public.v4":
                 public_metrics["trajectory_phase_binding"] = self._trajectory_phase_binding(first)
         sealed = build_push_sealed_rollout_evidence(
             summaries=summaries[EvaluationPhase.SEALED_VALIDATION],

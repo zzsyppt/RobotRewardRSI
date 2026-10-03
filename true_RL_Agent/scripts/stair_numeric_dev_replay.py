@@ -41,7 +41,7 @@ from true_rl_agent.tasks.stair_climbing.diagnostic_evaluation import (
     prepare_stair_public_dev_diagnostic, project_stair_public_dev_diagnostic,
 )
 from true_rl_agent.tasks.stair_climbing.row_catalog import stair_robot_row
-from true_rl_agent.tasks.stair_climbing.trajectory_pipeline import LEGACY_PROFILE, PROFILES
+from true_rl_agent.tasks.stair_climbing.trajectory_pipeline import PROFILE, PROFILES
 from true_rl_agent.tasks.stair_climbing.unified_protocol import StairUnifiedProtocol
 
 
@@ -145,9 +145,9 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--diagnostic-cohort", default="v1")
     parser.add_argument("--numeric-evidence-max-bytes", type=int, default=2 * 1024**3)
     parser.add_argument("--timeout-s", type=int, default=36000)
-    parser.add_argument("--behavior-feedback-profile", choices=PROFILES, default=LEGACY_PROFILE,
+    parser.add_argument("--behavior-feedback-profile", choices=PROFILES, default=PROFILE,
                         help="Automatic per-archive CPU trajectory cards for supported Stair Go2 numeric inputs.")
-    parser.add_argument("--trajectory-report-max-bytes", type=int, default=8192)
+    parser.add_argument("--trajectory-report-max-bytes", type=int, default=None)
     add_native_video_arguments(parser)
     return parser
 

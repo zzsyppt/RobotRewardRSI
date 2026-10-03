@@ -9,17 +9,18 @@ import time
 from true_rl_agent.evaluation.binding import canonical_json_hash
 from true_rl_agent.evaluation.process_report import SENTENCE_SECTIONS, report_bytes
 from true_rl_agent.fs_contract import atomic_replace_bytes
-from true_rl_agent.evaluation.trajectory_translation.report import file_sha256
+from true_rl_agent.runner.numeric_evidence import file_sha256
 from true_rl_agent.runner.numeric_evidence import load_numeric_evidence_manifest
 from .numeric_capture import validate_push_numeric_reference, PUSH_NUMERIC_SCHEMA, PUSH_NUMERIC_V1_SCHEMA
 from .trajectory_adapter import iter_push_episodes
-from .trajectory_card import build_push_card, json_bytes, project_push_card, MAX_PUBLIC_BYTES
+from .trajectory_card import build_push_card, json_bytes, project_push_card, MAX_PUBLIC_BYTES, TEMPLATE_VERSION
 from .trajectory_measurement import measure_push_episode
 from .trajectory_report import FULL_SCHEMA, PUBLIC_SCHEMA, VERSION, phase_binding, render_verified_report, require_phase_binding
 
 LEGACY_PROFILE = "legacy_process_v1"
 TRAJECTORY_PROFILE = "trajectory_numeric_v1"
 PROFILES = (LEGACY_PROFILE, TRAJECTORY_PROFILE)
+DEFAULT_PROFILE = LEGACY_PROFILE
 SUPPORTED_CELLS = tuple(f"push.{robot}.recovery_{version}"
                        for robot in ("g1_37dof", "go2_12dof") for version in ("v2", "v3"))
 
@@ -33,13 +34,6 @@ def validate_feedback_profile(profile: str, max_bytes: int, cell_variant_id: str
         raise ValueError("trajectory report budget requires trajectory_numeric_v1")
     if profile == TRAJECTORY_PROFILE and cell_variant_id not in SUPPORTED_CELLS:
         raise ValueError("Push trajectory_numeric_v1 supports physical G1/Go2 recovery v2/v3 only")
-
-
-def _code_hashes() -> dict:
-    paths = [Path(__file__).with_name(name) for name in
-             ("trajectory_pipeline.py", "trajectory_report.py", "trajectory_adapter.py",
-              "trajectory_measurement.py", "trajectory_card.py", "numeric_capture.py")]
-    return {p.name: file_sha256(p) for p in paths}
 
 
 def _source_id(sources: list[dict]) -> str:
@@ -76,7 +70,7 @@ def build_phase_trajectory(seed_summaries, *, expected_identity: dict, context: 
         raise ValueError("Push trajectory requires each planned seed run exactly once")
     source_id = _source_id(sources)
     inputs = {"profile": TRAJECTORY_PROFILE, "sources": sources, "identity": deepcopy(expected_identity),
-              "context": deepcopy(context), "source_id": source_id, "code_sha256": _code_hashes(),
+              "context": deepcopy(context), "source_id": source_id, "semantic_versions": {"delivery":VERSION,"template":TEMPLATE_VERSION},
               "max_report_bytes": max_bytes, "expected_seed_count": expected_seed_count}
     key = canonical_json_hash(inputs)
     root = Path(output_dir) / "trajectory" / key
@@ -146,7 +140,7 @@ def validate_build_receipt(receipt: dict, public: dict) -> None:
             or receipt["phase_binding"] != phase_binding(inputs["identity"], inputs["sources"])
             or inputs["source_id"] != _source_id(inputs["sources"])
             or receipt["source_id"] != inputs["source_id"] or receipt["source_id"] != public["domain"]["source_id"]
-            or receipt["card_id"] != public["card_id"] or len(required) != 20 or len(set(required)) != 20
+            or receipt["card_id"] != public["card_id"] or not required or len(set(required)) != len(required)
             or not set(required) <= included
             or canonical_json_hash(required) != public["report_projection"]["required_claim_ids_hash"]
             or canonical_json_hash([c["id"] for c in receipt["omitted_claims"]]) != public["report_projection"]["omitted_claim_ids_hash"]

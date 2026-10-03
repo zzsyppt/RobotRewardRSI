@@ -11,9 +11,10 @@ from typing import Any
 import numpy as np
 
 from .contracts import CATALOG_VERSION, NumericEpisode, PredicateTrack, predicate
-from .temporal import compose_track, contiguous_slices, interval_rows, pair_onsets, relate_states
+from .temporal import contiguous_slices, interval_rows
 
 NUMERIC_CONFIG = {"version": CATALOG_VERSION, "quaternion_norm_tolerance": 1e-4,
+                  "motion_proxy": "adjacent_recorded_position.v2",
                   "low_horizontal_speed_mps": 0.05, "progress_window_s": 0.5,
                   "progress_increment_m": 0.02, "share_zero_tolerance": 1e-12,
                   "low_speed_and_progress_threshold_source": "development_calibration",
@@ -29,39 +30,6 @@ def _channel(episode: NumericEpisode, name: str, tail: tuple[int, ...]) -> np.nd
     if values.shape != (len(episode.steps), *tail):
         raise ValueError(f"{name}: entity/component dimensions differ from binding")
     return values
-
-
-def _range(values: np.ndarray, steps: np.ndarray) -> dict[str, Any]:
-    valid = np.isfinite(values)
-    indices = np.flatnonzero(valid)
-    if not len(indices):
-        return {"valid_count": 0, "unknown_count": len(steps), "minimum": None, "maximum": None,
-                "first": None, "last": None, "range": None, "minimum_step": None, "maximum_step": None,
-                "first_valid_step": None, "last_valid_step": None}
-    selected = values[indices]
-    lo, hi = int(indices[np.argmin(selected)]), int(indices[np.argmax(selected)])
-    return {"valid_count": len(indices), "unknown_count": len(steps) - len(indices),
-            "minimum": float(values[lo]), "maximum": float(values[hi]),
-            "first": float(selected[0]), "last": float(selected[-1]),
-            "range": float(values[hi] - values[lo]),
-            "first_valid_step": int(steps[indices[0]]), "last_valid_step": int(steps[indices[-1]]),
-            "minimum_step": int(steps[lo]), "maximum_step": int(steps[hi])}
-
-
-def _fraction(numerator: float, denominator: float) -> float | None:
-    return numerator / denominator if abs(denominator) > NUMERIC_CONFIG["share_zero_tolerance"] else None
-
-
-def _track_summary(episode: NumericEpisode, track: PredicateTrack) -> dict[str, Any]:
-    rows = interval_rows(episode, track)
-    on = int(np.count_nonzero(track.values == 1))
-    off = int(np.count_nonzero(track.values == 0))
-    return {"true_count": on, "false_count": off, "unknown_count": len(track.values) - on - off,
-            "valid_count": on + off, "fraction": _fraction(on, on + off),
-            "numerator_cell_s": on * episode.dt_s, "denominator_cell_s": (on + off) * episode.dt_s,
-            "weighting": "sample_cell_duration_proxy", "intervals": rows,
-            "observed_onset_count": int(np.count_nonzero((track.values[:-1] == 0) & (track.values[1:] == 1) & episode.adjacent)),
-            "observed_offset_count": int(np.count_nonzero((track.values[:-1] == 1) & (track.values[1:] == 0) & episode.adjacent))}
 
 
 def _drawdown(episode: NumericEpisode, progress: np.ndarray) -> dict[str, Any]:
@@ -98,300 +66,180 @@ def low_progress_track(episode: NumericEpisode, progress: np.ndarray) -> Predica
          "lookback_samples": width, "requested_window_s": NUMERIC_CONFIG["progress_window_s"],
          "progress_direction_world": episode.task["progress_direction_world"],
          "actual_window_span_s": width * episode.dt_s,
+         "not_applicable_count": int(np.count_nonzero(episode.steps < 1 + width)),
          "confirmation_semantics": "window_end_not_physical_onset"})
 
 
-def measure_episode(episode: NumericEpisode) -> list[dict[str, Any]]:
-    """Process every supplied row, retaining numeric summaries and raw short events."""
-    n, steps = len(episode.steps), episode.steps
-    support = episode.entities["support"]
-    bodies = episode.entities["forbidden"]
-    joints = episode.entities["joints"]
-    root = episode.entities["root"]
-    threshold = float(episode.task["contact_threshold_n"])
-    if not math.isfinite(threshold) or threshold < 0:
-        raise ValueError("contact threshold must be finite and nonnegative")
-    config = {**NUMERIC_CONFIG, "contact_threshold_n": threshold,
-              "contact_threshold_source": "task_spec"}
-    records: list[dict[str, Any]] = []
-    tracks: dict[str, PredicateTrack] = {}
-    track_records: dict[str, list[dict[str, Any]]] = {}
+def position_motion(episode: NumericEpisode) -> dict[str, np.ndarray]:
+    """Recorded-point derivatives at the edge end; never bridge missing rows."""
+    n, feet = len(episode.steps), len(episode.entities["support"])
+    root = _channel(episode, "base_pos_w", (3,))
+    world = _channel(episode, "support_pos_w", (feet, 3))
+    raw = _channel(episode, "base_quat_w", (4,))
+    norm = np.linalg.norm(raw, axis=1)
+    valid = np.isfinite(raw).all(axis=1) & (np.abs(norm - 1) <= NUMERIC_CONFIG["quaternion_norm_tolerance"])
+    q = np.full_like(raw, np.nan)
+    np.divide(raw, norm[:, None], out=q, where=valid[:, None])
+    offset = world - root[:, None]
+    cross = np.cross(q[:, None, 1:], offset)
+    relative = offset - 2*q[:, None, :1]*cross + 2*np.cross(q[:, None, 1:], cross)
 
-    def emit(key, entities, channels, value, unit, frame, definition):
-        absent = [name for name in channels if name not in episode.arrays]
-        records.append(episode.record(key, "measurement", entities, channels,
-            {**value, "missing_channels": absent, "processing_completeness": "processed",
-             "validity_policy": "per_quantity_required_components; see valid/unknown counts"}, unit=unit, frame=frame,
-            config={**config, "definition": definition}))
+    def derivative(points):
+        result = np.full_like(points, np.nan)
+        edges = episode.adjacent.reshape((-1,) + (1,)*(points.ndim-1))
+        result[1:] = np.where(edges, np.diff(points, axis=0)/episode.dt_s, np.nan)
+        return result
 
-    def add_track(key, entities, channels, values, definition):
-        track = PredicateTrack(episode.episode_id, key, entities, channels, values,
-                               {**config, "definition": definition})
-        tracks[key] = track
-        track_records[key] = compose_track(episode, track)
-        records.extend(track_records[key])
-        return _track_summary(episode, track)
+    return {"root": root, "world": world, "relative": relative, "quaternion": q,
+            "root_velocity": derivative(root), "world_velocity": derivative(world),
+            "relative_velocity": derivative(relative)}
 
-    p = _channel(episode, "base_pos_w", (3,))
-    position_valid = np.isfinite(p).all(axis=1)
-    direction = np.asarray(episode.task["progress_direction_world"], dtype=float)
-    origin = np.asarray(episode.task["origin_world"], dtype=float)
-    if direction.shape != (3,) or origin.shape != (3,) or not np.isfinite([direction, origin]).all() or not np.isclose(np.linalg.norm(direction), 1):
-        raise ValueError("task progress requires a finite origin and unit direction")
-    progress = (p - origin) @ direction
-    progress[~position_valid] = np.nan
-    edges = episode.adjacent & position_valid[:-1] & position_valid[1:]
-    delta = np.diff(p, axis=0)[edges]
-    dp = np.diff(progress)[edges]
-    net = (p[-1] - p[0]).tolist() if position_valid[0] and position_valid[-1] else None
-    emit("root_progress", root, ("base_pos_w",), {
-        "valid_count": int(position_valid.sum()), "unknown_count": int((~position_valid).sum()),
-        "progress": _range(progress, steps), "net_world_xyz_m": net,
-        "net_progress_m": float(progress[-1] - progress[0]) if net is not None else None,
-        "sampled_path_xy_m": float(np.linalg.norm(delta[:, :2], axis=1).sum()) if len(delta) else None,
-        "sampled_path_xyz_m": float(np.linalg.norm(delta, axis=1).sum()) if len(delta) else None,
-        "positive_progress_variation_m": float(np.maximum(dp, 0).sum()) if len(dp) else None,
-        "negative_progress_variation_m": float(np.maximum(-dp, 0).sum()) if len(dp) else None,
-        "valid_edge_count": int(edges.sum()), "path_complete": bool(edges.all()) and n > 1,
-        "interval_average_speed_mps": {"minimum": float(np.min(np.linalg.norm(delta, axis=1) / episode.dt_s)) if len(delta) else None,
-                                       "maximum": float(np.max(np.linalg.norm(delta, axis=1) / episode.dt_s)) if len(delta) else None},
-        "drawdown": _drawdown(episode, progress), "origin_world": origin.tolist(),
-        "progress_direction_world": direction.tolist(), "static_refs": episode.task.get("static_refs", {})},
-        "m", "world_and_task_projection", "M01 endpoint displacement; adjacent-valid sample polylines; no continuous path claim")
+
+def force_readouts(episode, prefix, entities, threshold):
+    """Current and stored-buffer readouts share one threshold, not one clock."""
+    channel = prefix + "_contact_forces_w"
+    current = _channel(episode, channel, (len(entities), 3))
+    cnorm = np.linalg.norm(current, axis=2)
+    cmarker = predicate(cnorm > threshold, np.isfinite(current).all(axis=2))
+    history = episode.arrays.get(channel + "_history")
+    hnorm = None if history is None else np.linalg.norm(np.asarray(history, dtype=float), axis=3)
+    hmarker = (np.full_like(cmarker, -1) if history is None else
+               predicate((hnorm > threshold).any(axis=1), np.isfinite(history).all(axis=(1, 3))))
+    return cnorm, cmarker, hnorm, hmarker
+
+
+def measure_behavior(episode: NumericEpisode) -> dict:
+    """Behavior operands for the current card, sharing the point/clock definitions."""
+    motion = position_motion(episode)
+    p, q = motion["root"], motion["quaternion"]
+    steps, dt = episode.steps, episode.dt_s
+    expected_end = int(episode.task["outcome"].get("episode_steps", steps[-1]))
+    progress = (p - episode.task["origin_world"]) @ np.asarray(episode.task["progress_direction_world"])
     low = low_progress_track(episode, progress)
-    tracks[low.key] = low
-    track_records[low.key] = compose_track(episode, low)
-    records.extend(track_records[low.key])
-    emit("low_progress", root, ("base_pos_w",), _track_summary(episode, low), "1", "task_projection", low.config)
+    up = 1 - 2*(q[:, 1]**2 + q[:, 2]**2)
+    tilt = np.degrees(np.arccos(np.clip(up, -1, 1)))
+    rotation = np.full(len(steps), np.nan)
+    rotation[1:] = np.where(episode.adjacent,
+        np.degrees(2*np.arccos(np.clip(np.abs(np.sum(q[:-1]*q[1:], axis=1)), 0, 1))), np.nan)
+    forward_z = 2*(q[:, 1]*q[:, 3] - q[:, 0]*q[:, 2])
+    elevation = np.degrees(np.arcsin(np.clip(forward_z, -1, 1)))
+    force = _channel(episode, "support_contact_forces_w", (len(episode.entities["support"]), 3))
+    marker = np.where(np.isfinite(force).all(axis=2),
+                      (np.linalg.norm(force, axis=2) > episode.task["contact_threshold_n"]).astype(float), np.nan)
+    relative_speed = np.linalg.norm(motion["relative_velocity"], axis=2)
+    root_speed = np.linalg.norm(motion["root_velocity"][:, :2], axis=1)
+    moving = np.where(np.any(relative_speed >= NUMERIC_CONFIG["low_horizontal_speed_mps"], axis=1), 1.,
+                     np.where(np.isfinite(relative_speed).all(axis=1), 0., np.nan))
+    low_values = np.where(low.values >= 0, low.values.astype(float), np.nan)
+    activity = np.where(low.values == 0, 0., np.where(low.values == 1, moving, np.nan))
+    facts = {}
 
-    raw_q = _channel(episode, "base_quat_w", (4,))
-    qnorm = np.linalg.norm(raw_q, axis=1)
-    qvalid = np.isfinite(raw_q).all(axis=1) & (np.abs(qnorm - 1) <= config["quaternion_norm_tolerance"])
-    q = np.full_like(raw_q, np.nan)
-    np.divide(raw_q, qnorm[:, None], out=q, where=qvalid[:, None])
-    w, x, y, z = q.T
-    up = 1 - 2 * (x * x + y * y)
-    raw_up = 1 - 2 * (raw_q[:, 1] ** 2 + raw_q[:, 2] ** 2)
-    roll = np.arctan2(2 * (w * x + y * z), 1 - 2 * (x * x + y * y))
-    pitch = np.arcsin(np.clip(2 * (w * y - z * x), -1, 1))
-    negative = add_track("body_up_negative", root, ("base_quat_w",), predicate(up < 0, qvalid),
-                         "M02 normalized wxyz up_z < 0; geometric axis relation, not failure cause")
-    emit("body_up", root, ("base_quat_w",), {
-        "up_z": _range(up, steps), "roll_rad": _range(roll, steps), "pitch_rad": _range(pitch, steps),
-        "negative": negative, "max_quaternion_norm_error": float(np.max(np.abs(qnorm[np.isfinite(qnorm)] - 1))) if np.isfinite(qnorm).any() else None,
-        "raw_body_up_diagnostic": {**_range(raw_up, steps),
-            "first_negative_step": int(steps[np.flatnonzero(np.isfinite(raw_up) & (raw_up < 0))[0]]) if np.any(np.isfinite(raw_up) & (raw_up < 0)) else None},
-        "raw_vs_normalized_up_z_max_abs_delta": float(np.max(np.abs(raw_up[qvalid] - up[qvalid]))) if qvalid.any() else None},
-        "1; roll/pitch rad", "body_to_world_wxyz", "M02 normalize only after raw norm validation; raw diagnostic separate")
+    def scalar(target, key, label, unit, values, mask, mode="mean", applicable=None):
+        selected = np.asarray(values)[mask]
+        valid = np.isfinite(selected)
+        na = 0 if applicable is None else int(np.count_nonzero(mask & ~applicable))
+        known = selected[valid]
+        value = None
+        if len(known):
+            value = float({"mean": np.mean, "max": np.max, "min": np.min, "sum": np.sum}[mode](known))
+        target[key] = {"label": label, "unit": unit, "value": value,
+                       "valid": int(valid.sum()), "unknown": int((~valid).sum())-na,
+                       "not_applicable": na}
 
-    force = _channel(episode, "support_contact_forces_w", (len(support), 3))
-    fvalid = np.isfinite(force).all(axis=2)
-    fnorm = np.linalg.norm(force, axis=2)
-    markers = predicate(fnorm > threshold, fvalid)
-    velocity = _channel(episode, "support_lin_vel_w", (len(support), 3))
-    vxy = np.linalg.norm(velocity[:, :, :2], axis=2)
-    vxyz = np.linalg.norm(velocity, axis=2)
-    for i, entity in enumerate(support):
-        marker_key = f"{entity}.marker"
-        stats = add_track(marker_key, (entity,), ("support_contact_forces_w",), markers[:, i],
-                          "M03 norm(current recorded net normal contact force)>threshold; sampled marker only")
-        emit(marker_key, (entity,), ("support_contact_forces_w",), stats, "1", "world", "M03 sample-cell weighted occupancy")
-        # Only xy components are dependencies of the M04 speed predicate.
-        valid = fvalid[:, i] & np.isfinite(velocity[:, i, :2]).all(axis=1)
-        vals = predicate((markers[:, i] == 0) & (vxy[:, i] < config["low_horizontal_speed_mps"]), valid)
-        key = f"{entity}.low_speed_off"
-        summary = add_track(key, (entity,), ("support_contact_forces_w", "support_lin_vel_w"), vals,
-                            "M04 current marker off AND recorded world XY speed strictly below threshold")
-        true_runs = [row for row in summary["intervals"] if row["state"] == "true"]
-        longest = max(true_runs, key=lambda row: row["sample_count"], default=None)
-        diagnostics = None
-        if longest:
-            a, b = longest["index_half_open"]
-            qmask = qvalid[a:b]
-            diagnostics = {"interval": longest, "max_speed_xy_mps": float(np.max(vxy[a:b, i])),
-                "median_speed_xy_mps": float(np.median(vxy[a:b, i])),
-                "max_speed_xyz_mps": float(np.max(vxyz[a:b, i])) if np.isfinite(vxyz[a:b, i]).all() else None,
-                "median_speed_xyz_mps": float(np.median(vxyz[a:b, i])) if np.isfinite(vxyz[a:b, i]).all() else None,
-                "max_force_norm_n": float(np.max(fnorm[a:b, i])),
-                "minimum_up_z": float(np.min(up[a:b][qmask])) if qmask.any() else None,
-                "maximum_up_z": float(np.max(up[a:b][qmask])) if qmask.any() else None,
-                "orientation_valid_count": int(qmask.sum())}
-        emit(key, (entity,), ("support_contact_forces_w", "support_lin_vel_w", "base_quat_w"),
-             {**summary, "longest": diagnostics}, "1; diagnostics m/s,N", "world", "M04 XY predicate; XYZ diagnostics only")
-
-    joint_valid = fvalid.all(axis=1)
-    codes = sum((markers[:, i] == 1).astype(np.int64) * (1 << i) for i in range(len(support)))
-    codes[~joint_valid] = -1
-    counts = [int(np.count_nonzero(codes == code)) for code in range(1 << len(support))]
-    changes = [{"step": int(steps[k]), "before": int(codes[k - 1]), "after": int(codes[k]),
-                "readout_range_s": episode.times[k - 1:k + 1].tolist()}
-               for k in range(1, n) if episode.adjacent[k - 1] and codes[k - 1] >= 0 and codes[k] >= 0 and codes[k] != codes[k - 1]]
-    equalities = []
-    for i, left in enumerate(support):
-        for j in range(i + 1, len(support)):
-            right = support[j]
-            both = fvalid[:, i] & fvalid[:, j]
-            equalities.append({"entities": [left, right], "equal_count": int(np.count_nonzero(both & (markers[:, i] == markers[:, j]))),
-                               "valid_count": int(both.sum()), "includes_both_off": True})
-            records.extend(pair_onsets(episode, tracks[f"{left}.marker"], tracks[f"{right}.marker"]))
-    emit("contact_combinations", support, ("support_contact_forces_w",),
-         {"encoding_version": config["combination_encoding"], "bit_order": list(support),
-          "bit_weights": [1 << i for i in range(len(support))], "counts": counts,
-          "valid_count": int(joint_valid.sum()), "unknown_count": int((~joint_valid).sum()),
-          "transitions": changes, "pair_state_equality": equalities,
-          "pairing_direction": "each lower role index is reference; all original events retained",
-          "all_off_does_not_establish_flight": True}, "sample_count", "role_order", "M05 role_index_lsb.v1; M06 no smoothing")
-
-    # Rectangular cell weights and adjacent-sample trapezoids are distinct.
-    joint_z_valid = np.isfinite(force[:, :, 2]).all(axis=1)
-    norm_sums = fnorm[joint_valid].sum(axis=0)
-    z_sums = force[joint_z_valid, :, 2].sum(axis=0)
-    norm_den, z_den = float(norm_sums.sum()), float(z_sums.sum())
-    integrals, force_stats = [], []
-    for i, entity in enumerate(support):
-        edges_i = episode.adjacent & fvalid[:-1, i] & fvalid[1:, i]
-        trap = ((force[:-1, i] + force[1:, i]) / 2)[edges_i].sum(axis=0) * episode.dt_s
-        trap_norm = ((fnorm[:-1, i] + fnorm[1:, i]) / 2)[edges_i].sum() * episode.dt_s
-        integrals.append({"entity": entity, "valid_edge_count": int(edges_i.sum()),
-                          "covered_span_s": int(edges_i.sum()) * episode.dt_s,
-                          "vector_ns": trap.tolist() if edges_i.any() else None,
-                          "norm_ns": float(trap_norm) if edges_i.any() else None})
-        force_stats.append({"entity": entity, "norm_n": _range(fnorm[:, i], steps),
-                            "signed_fz_n": _range(force[:, i, 2], steps)})
-    emit("force_summary", support, ("support_contact_forces_w",), {
-        "joint_valid_count": int(joint_valid.sum()), "unknown_joint_count": int((~joint_valid).sum()),
-        "signed_fz_joint_valid_count": int(joint_z_valid.sum()), "signed_fz_unknown_joint_count": int((~joint_z_valid).sum()),
-        "sample_sum_norm_n": norm_sums.tolist(), "sample_sum_signed_fz_n": z_sums.tolist(),
-        "rectangle_norm_ns": (norm_sums * episode.dt_s).tolist(),
-        "rectangle_signed_fz_ns": (z_sums * episode.dt_s).tolist(),
-        "norm_share": [_fraction(float(v), norm_den) for v in norm_sums],
-        "signed_fz_share": [_fraction(float(v), z_den) for v in z_sums],
-        "share_weighting": "joint_valid_sample_cell_duration_proxy", "per_entity": force_stats,
-        "trapezoid_sample_integral_proxy": integrals, "physical_impulse": "unavailable",
-        "momentum_balance": "unavailable_missing_mass_momentum_tangential_and_external_forces"},
-        "N; integral proxy N*s; share 1", "world", "M07 net normal contact force only; rectangles are not trapezoids or physical impulses")
-
-    support_p = _channel(episode, "support_pos_w", (len(support), 3))
-    offset = support_p - p[:, None, :]
-    # Inverse unit-quaternion rotation: v - 2*w*(q_xyz x v) + 2*q_xyz x (q_xyz x v).
-    qvec = q[:, None, 1:]
-    cross = np.cross(qvec, offset)
-    relative = offset - 2 * q[:, None, :1] * cross + 2 * np.cross(qvec, cross)
-    for i, entity in enumerate(support):
-        valid = qvalid & position_valid & np.isfinite(support_p[:, i]).all(axis=1)
-        relative[~valid, i] = np.nan
-        edge = episode.adjacent & valid[:-1] & valid[1:]
-        relative_delta = np.diff(relative[:, i], axis=0)[edge]
-        emit(f"{entity}.relative_position", (entity, *root), ("support_pos_w", "base_pos_w", "base_quat_w", "support_lin_vel_w"), {
-            "body_xyz_m": [_range(relative[:, i, axis], steps) for axis in range(3)],
-            "first_body_xyz_m": relative[0, i].tolist() if valid[0] else None,
-            "last_body_xyz_m": relative[-1, i].tolist() if valid[-1] else None,
-            "mean_body_xyz_m": np.mean(relative[valid, i], axis=0).tolist() if valid.any() else None,
-            "relative_sample_path_m": float(np.linalg.norm(relative_delta, axis=1).sum()) if edge.any() else None,
-            "valid_edge_count": int(edge.sum()), "world_xy_speed_mps": _range(vxy[:, i], steps),
-            "world_xyz_speed_mps": _range(vxyz[:, i], steps),
-            "default_pose_reference": "unavailable", "position_velocity_reference_equivalence": "unverified"},
-            "m; recorded speed m/s", "body_and_world_separate", "M08 full normalized rotation of recorded link reference; COM velocity is not its exact derivative")
-
-    joint_p = _channel(episode, "joint_pos", (len(joints),))
-    for i, entity in enumerate(joints):
-        emit(f"{entity}.pose", (entity,), ("joint_pos",),
-             {**_range(joint_p[:, i], steps), "limit_proximity": "unavailable_unbound_effective_or_nominal_limits"},
-             "rad", "joint_coordinate", "M09 absolute recorded joint position; no default abnormality threshold")
-
-    # Buffer-any is deliberately a separate readout quantity, with no slot clock.
-    for prefix, entities, current in (("support", support, force), ("forbidden", bodies,
-            _channel(episode, "forbidden_contact_forces_w", (len(bodies), 3)))):
-        channel = f"{prefix}_contact_forces_w"
-        history_name = channel + "_history"
-        if history_name in episode.arrays:
-            history_length = int(episode.source["contact_force_history"]["history_length"])
-            history = _channel(episode, history_name, (history_length, len(entities), 3))
-            hnorm = np.linalg.norm(history, axis=3)
-            hvalid = np.isfinite(history).all(axis=(1, 3))
-            hmarkers = predicate((hnorm > threshold).any(axis=1), hvalid)
-        else:
-            # Missing buffers have no slots and no physical or readout events.
-            hvalid = np.zeros((n, len(entities)), dtype=bool)
-            hmarkers = np.full((n, len(entities)), -1, dtype=np.int8)
-        cvalid = np.isfinite(current).all(axis=2)
-        cnorm = np.linalg.norm(current, axis=2)
-        cmarkers = predicate(cnorm > threshold, cvalid)
-        for i, entity in enumerate(entities):
-            if prefix == "forbidden":
-                stats = add_track(f"{entity}.current_marker", (entity,), (channel,), cmarkers[:, i],
-                                  "M07 recorded non-support body current-force marker")
-                emit(f"{entity}.current_marker", (entity,), (channel,),
-                     {**stats, "force_norm_n": _range(cnorm[:, i], steps)}, "1; force N", "world", "M07 measured body only; contact object unknown")
-            hstats = add_track(f"{entity}.history_any_marker", (entity,), (history_name,), hmarkers[:, i],
-                               "ANY stored history slot exceeds threshold; not a physical substep series")
-            both = hvalid[:, i] & cvalid[:, i]
-            emit(f"{entity}.history_diagnostic", (entity,), (channel, history_name), {
-                **hstats, "history_any_on_current_off_count": int(np.count_nonzero(both & (hmarkers[:, i] == 1) & (cmarkers[:, i] == 0))),
-                "current_on_history_all_off_count": int(np.count_nonzero(both & (cmarkers[:, i] == 1) & (hmarkers[:, i] == 0))),
-                "joint_valid_count": int(both.sum()), "slot_timestamps": "not_recorded", "slot_validity": "not_recorded",
-                "full_physics_coverage": False, "integrable_as_substeps": False},
-                "sample_count", "sensor_buffer_read_at_control_endpoint", "History diagnostics do not replace current markers")
-
-    terms = tuple(episode.task["termination_term_order"])
-    flags = ("done_mask", "wrapper_done_mask", *(f"termination_{i}" for i in range(len(terms))))
-    terminal_flags = {}
-    for name in flags:
-        arr = _channel(episode, name, ())
-        valid_flag = np.isfinite(arr) & np.isin(arr, [0, 1])
-        vals = predicate(arr == 1, valid_flag)
-        add_track(name, root, (name,), vals, "M10 archived manager/wrapper signal; not translator outcome")
-        terminal_flags[name] = bool(arr[-1]) if valid_flag[-1] else None
-    tail = {name: [bool(v) if np.isfinite(v) and v in (0, 1) else None
-                   for v in episode.arrays[name][-min(5, n):]] for name in flags if name in episode.arrays}
-    forbidden_force = _channel(episode, "forbidden_contact_forces_w", (len(bodies), 3))
-    forbidden_history = episode.arrays.get("forbidden_contact_forces_w_history")
-    def finite_tail(values):
-        array = values[-min(5, n):]
-        return np.where(np.isfinite(array), array.astype(object), None).tolist()
-    emit("task_endpoint", (*root, *bodies, *support), (*flags, "base_pos_w", "support_contact_forces_w", "forbidden_contact_forces_w", "forbidden_contact_forces_w_history"), {"outcome": episode.task["outcome"],
-        "authority": "archived_task_evaluator", "terminal_step": int(steps[-1]),
-        "terminal_time_s": float(episode.times[-1]), "terminal_flags": terminal_flags,
-        "goal_margin_m": float(episode.task["goal_progress_m"] - progress[-1]) if np.isfinite(progress[-1]) else None,
-        "deadline_margin_s": float(episode.task["deadline_s"] - episode.times[-1]),
-        "goal_progress_m": episode.task["goal_progress_m"], "deadline_s": episode.task["deadline_s"],
-        "static_refs": episode.task.get("static_refs", {}),
-        "tail_steps": steps[-min(5, n):].tolist(), "tail_flags": tail,
-        "tail_forbidden_norms_n": finite_tail(np.linalg.norm(forbidden_force, axis=2)),
-        "tail_support_norms_n": finite_tail(fnorm),
-        "tail_forbidden_history_norms_n": (finite_tail(np.linalg.norm(np.asarray(forbidden_history, dtype=np.float64), axis=3))
-                                            if forbidden_history is not None else None),
-        "geometry_clearance": "deferred_pending_independent_geometry_validation"},
-        "m; time s; force N; flags bool", "task", "M10 immutable archived outcome and valid terminal; no outcome reassignment")
-
-    # Small deterministic combinations keep their operands, rather than assigning
-    # a failure name. All runs/events above remain present regardless of selection.
-    inverted = [r for r in track_records["body_up_negative"] if r["record_type"] == "state_interval" and r["value"]["state"] == "true"]
-    slow_progress = [r for r in track_records["low_progress"] if r["record_type"] == "state_interval" and r["value"]["state"] == "true"]
-    for entity in support:
-        quiet = [r for r in track_records[f"{entity}.low_speed_off"] if r["record_type"] == "state_interval" and r["value"]["state"] == "true"]
-        for state in quiet:
-            for inv in inverted:
-                records.append(relate_states(episode, inv, state, "onset_before"))
-                records.append(relate_states(episode, inv, state, "overlap"))
-            for low_state in slow_progress:
-                if max(state["value"]["first_observed_s"], low_state["value"]["first_observed_s"]) <= min(state["value"]["last_observed_s"], low_state["value"]["last_observed_s"]):
-                    records.append(relate_states(episode, state, low_state, "overlap"))
-    return records
-
-
-def aggregate_fractions(rows: list[dict[str, Any]]) -> dict[str, Any]:
-    """Explicit arithmetic units; no policy selection or reference comparison.
-
-    Each row supplies numerator_cell_s/denominator_cell_s for one episode.
-    Missing denominators remain unknown episodes, never zero-valued observations.
-    """
-    known = [r for r in rows if r["denominator_cell_s"] > 0]
-    numerator = sum(r["numerator_cell_s"] for r in known)
-    denominator = sum(r["denominator_cell_s"] for r in known)
-    return {"total_episode_count": len(rows), "valid_episode_count": len(known),
-            "unknown_episode_count": len(rows) - len(known),
-            "episode_equal_mean": sum(r["numerator_cell_s"] / r["denominator_cell_s"] for r in known) / len(known) if known else None,
-            "sample_cell_duration_weighted_fraction": _fraction(numerator, denominator),
-            "numerator_cell_s": numerator, "denominator_cell_s": denominator,
-            "units": {"episode_equal_mean": "episode_equal_fraction", "sample_cell_duration_weighted_fraction": "sample_cell_time_fraction"}}
+    for window, mask in (("all", np.ones(len(steps), dtype=bool)),
+                         ("terminal", steps >= steps[-1] - math.floor(.5/dt + 1e-9))):
+        f = facts[window] = {}
+        rows = np.flatnonzero(mask)
+        edge_mask = mask if window == "all" else mask & (steps > steps[rows[0]])
+        scalar(f, "progress", "终点任务位置", "m", progress, steps == steps[-1])
+        scalar(f, "speed", "根部位置差分水平速度", "m/s", root_speed, edge_mask, applicable=steps>1)
+        scalar(f, "forward_speed", "正向差分速度", "m/s", motion["root_velocity"] @ np.asarray(episode.task["progress_direction_world"]), edge_mask, applicable=steps>1)
+        scalar(f, "time", "记录结束时刻", "s", steps*dt, steps==steps[-1])
+        scalar(f, "tilt", "身体上轴最大倾角", "°", tilt, mask, "max")
+        scalar(f, "tilt_end", "末端倾角", "°", tilt, steps == steps[-1])
+        scalar(f, "forward_elevation", "身体前轴最大仰角", "°", elevation, mask, "max")
+        scalar(f, "forward_elevation_min", "身体前轴最小仰角", "°", elevation, mask, "min")
+        scalar(f, "height", "根部相对场景原点z", "m", p[:,2]-episode.task["origin_world"][2], mask)
+        scalar(f, "rotation", "相邻姿态短弧转角总和", "°", rotation, edge_mask, "sum", applicable=steps>1)
+        scalar(f, "inverted", "上轴向下记录占比", "%", np.where(np.isfinite(up), 100*(up < 0), np.nan), mask)
+        expected = expected_end if window == "all" else min(expected_end, math.floor(.5/dt + 1e-9)+1)
+        f["inverted"]["presence"] = (True if np.any(up[mask] < 0) else
+            False if np.isfinite(up[mask]).all() and len(rows) == expected and steps[-1] == expected_end else None)
+        applicable = steps >= 1 + low.config["lookback_samples"]
+        scalar(f, "low_progress", "低正向进度确认占比", "%", 100*low_values, mask, applicable=applicable)
+        scalar(f, "active", "低进度且足相对身体变化占比", "%", 100*activity, mask, applicable=applicable)
+        change = np.full(len(steps), np.nan)
+        change[1:] = np.where(episode.adjacent, np.diff(progress), np.nan)
+        scalar(f, "backward", "反向位移累计", "m", np.maximum(-change, 0), edge_mask, "sum", applicable=steps>1)
+        # Endpoint displacement requires both requested ends, not merely two finite inner rows.
+        delta = progress[rows[-1]] - progress[rows[0]]
+        f["net"] = {"label": "净正向位移", "unit": "m", "value": float(delta) if np.isfinite(delta) else None,
+                    "valid": int(np.isfinite(delta)), "unknown": int(not np.isfinite(delta)), "not_applicable": 0}
+        f["duration"] = {"label": "观测跨度", "unit": "s", "value": float((steps[rows[-1]]-steps[rows[0]])*dt),
+                         "valid": len(rows), "unknown": int(steps[rows[-1]]-steps[rows[0]]+1-len(rows)), "not_applicable": 0}
+        for i, name in enumerate(episode.entities["support"]):
+            scalar(f, name+".contact", name+"接触标记占比", "%", 100*marker[:, i], mask)
+            scalar(f, name+".world", name+"世界位置差分速度", "m/s", np.linalg.norm(motion["world_velocity"][:, i], axis=1), edge_mask, applicable=steps>1)
+            scalar(f, name+".relative", name+"身体相对位置差分速度", "m/s", relative_speed[:, i], edge_mask, applicable=steps>1)
+            for axis, xyz in enumerate("xyz"):
+                scalar(f, name+"."+xyz, name+"身体相对"+xyz+"均值", "m", motion["relative"][:, i, axis], mask)
+        codes = np.sum(np.where(np.isfinite(marker), marker, 0).astype(int) * (1 << np.arange(marker.shape[1])), axis=1)
+        joint_valid = np.isfinite(marker).all(axis=1)
+        for code in range(1 << len(episode.entities["support"])):
+            scalar(f, "contact."+str(code), "+".join(e for i,e in enumerate(episode.entities["support"]) if code & (1<<i)) or "全部未触发",
+                   "%", np.where(joint_valid, 100*(codes == code), np.nan), mask)
+    events = []
+    drawdown = _drawdown(episode, progress)
+    if (episode.task["outcome"]["primary_reason"] == "success" and
+            (drawdown["max_drawdown_m"] or 0) > 0 and drawdown["return_step"] is not None):
+        indices = [int(np.searchsorted(steps, drawdown[k])) for k in ("peak_step", "trough_step", "return_step")]
+        events.append({"kind": "success_drawdown_return", **drawdown,
+            "progress_m": progress[indices].tolist(),
+            "source": episode.reference(("base_pos_w",), indices[0], indices[-1]+1)})
+    threshold = episode.task["contact_threshold_n"]
+    bodies = episode.entities["forbidden"]
+    cnorm, current, hnorm, history = force_readouts(episode, "forbidden", bodies, threshold)
+    for i, entity in enumerate(bodies):
+        if history[-1, i] == 1 and current[-1, i] == 0:
+            positive = np.flatnonzero(history[:, i] == 1)
+            flags = {name: bool(episode.arrays["termination_"+str(j)][-1])
+                     for j, name in enumerate(episode.task["termination_term_order"])
+                     if "termination_"+str(j) in episode.arrays and
+                     episode.arrays["termination_"+str(j)][-1] in (0, 1)}
+            events.append({"kind": "terminal_history_difference", "entity": entity,
+                "step": int(steps[-1]), "current_positive": int((current[:, i] == 1).sum()),
+                "current_unknown": int((current[:, i] < 0).sum()) + int(steps[-1])-len(steps),
+                "history_positive": len(positive), "history_unknown": int((history[:, i] < 0).sum()) + int(steps[-1])-len(steps),
+                "current_terminal_n": float(cnorm[-1, i]), "history_terminal_n": hnorm[-1, :, i].tolist(),
+                "terminal_flags": flags,
+                "source": episode.reference(("forbidden_contact_forces_w", "forbidden_contact_forces_w_history",
+                    *("termination_"+str(j) for j in range(len(episode.task["termination_term_order"])))) )})
+    first_down = np.flatnonzero(up < 0)
+    if len(first_down):
+        first = int(first_down[0])
+        speed = np.linalg.norm(motion["world_velocity"][:, :, :2], axis=2)
+        for i, entity in enumerate(episode.entities["support"]):
+            valid = np.isfinite(speed[:, i]) & np.isfinite(force[:, i]).all(axis=1)
+            off = predicate((np.linalg.norm(force[:, i], axis=1) <= threshold) &
+                            (speed[:, i] < NUMERIC_CONFIG["low_horizontal_speed_mps"]), valid)
+            track = PredicateTrack(episode.episode_id, "low_speed_off", (entity,), (), off, {})
+            longest = max((r for r in interval_rows(episode, track) if r["state"] == "true"),
+                          key=lambda r:r["sample_count"], default=None)
+            if longest and longest["steps_half_open"][0] > steps[first]:
+                a, b = longest["index_half_open"]
+                events.append({"kind": "down_before_low_off", "entity": entity,
+                    "first_observed_down_step": int(steps[first]), "start_step": int(steps[a]),
+                    "end_step": int(steps[b-1]), "samples": b-a, "span_s": float((steps[b-1]-steps[a])*dt),
+                    "max_world_xy_speed_mps": float(speed[a:b, i].max()),
+                    "source": episode.reference(("base_quat_w", "support_pos_w", "support_contact_forces_w"),
+                                                min(first, a-1), b)})
+    # Principled posture extrema retain principal-angle meaning; no Euler unwrap.
+    return {"episode_id": episode.episode_id, "run_index": episode.run_index, "env_index": episode.env_index,
+            "outcome": episode.task["outcome"], "stratum": episode.task["stratum_id"], "cell": episode.task["cell_id"],
+            "support": list(episode.entities["support"]), "contact_threshold_n": episode.task["contact_threshold_n"],
+            "facts": facts, "events": events,
+            "terminal_motion_complete": bool(steps[-1] == expected_end and math.floor(.5/dt+1e-9) > 0 and steps[-1] >= 1+math.floor(.5/dt+1e-9)
+                and facts["terminal"]["forward_speed"]["valid"] == math.floor(.5/dt+1e-9)),
+            "source": episode.reference(("base_pos_w", "base_quat_w", "support_pos_w", "support_contact_forces_w")),
+            "window": {"terminal_s": .5, "edge_assignment": "both_adjacent_endpoints_inside_window",
+                       "low_progress_support_samples": low.config["lookback_samples"], "confirmation_not_onset": True}}

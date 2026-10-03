@@ -573,6 +573,8 @@ def _v2_dev_summary(value: Any) -> dict[str, Any]:
         "dominant_outcome": max(labels, key=labels.get) if labels and max(labels.values()) > 0 else "not_available"}
     if isinstance(split.get("behavior"), Mapping):
         result["behavior"] = project_push_behavior(split["behavior"])
+    if "description_status" in split:
+        result["description_status"] = split["description_status"]
     return result
 
 
@@ -687,7 +689,7 @@ def _v2_feedback_summary(
                 feedback["current_best"] = current_feedback
     dev = feedback.get("public_dev")
     if isinstance(dev, dict) and "behavior" not in dev:
-        dev["behavior"] = {"status": "missing", "reason": "not_recorded_in_source_phase"}
+        dev["behavior"] = dev.pop("description_status", {"status":"missing","reason":"not_recorded_in_source_phase"})
     if records and isinstance(dev, dict) and _mapping(dev.get("behavior")).get("schema_version") == "true_rl_agent.push_recovery.behavior.public.v4":
         generation = next((_mapping(r.get("generation")) for r in reversed(records)
             if any(t.get("trial_id") == _mapping(source).get("trial_id")

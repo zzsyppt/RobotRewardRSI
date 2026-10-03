@@ -7,9 +7,9 @@ import unittest
 import numpy as np
 
 from true_rl_agent.evaluation.binding import canonical_json_hash
-from true_rl_agent.tasks.stair_climbing.trajectory_terrain import sample_reference_height, measure_terrain, summarize, CONFIG, FRAME
+from true_rl_agent.tasks.stair_climbing.trajectory_terrain import sample_reference_height, measure_terrain, CONFIG, FRAME
 from tests.unit.terrain_mesh_oracle import mesh_height, check_record, check_first_extrema
-from tests.unit.test_trajectory_measurement import sample_episode
+from tests.unit.trajectory_fixtures import sample_episode
 
 ROOT = Path(__file__).resolve().parents[2]
 HISTORY = ROOT/'outputs/p2c3/historical_02/stdout.json'
@@ -140,17 +140,6 @@ class TerrainReferenceTests(unittest.TestCase):
         bad = copy.deepcopy(records[0]); bad['record_id'] = 'resigned'
         bad['value']['witnesses']['height_min']['step'] = 2
         with self.assertRaises(AssertionError): check_first_extrema(bad, h[:, 0], z[:, 0], ep.steps)
-
-    def test_episode_equal_and_pooled_denominators_differ(self):
-        a, b = episode(1, .1), episode(3, .02)
-        a.arrays['base_pos_w'][:, 2] = 1
-        b.arrays['base_pos_w'][:, 2] = 3
-        b.arrays['base_pos_w'][0, 0] = np.nan
-        groups = summarize([{'records': measure(a)[0]}, {'records': measure(b)[0]}])['groups']
-        g = groups['flat/robot_0.root']
-        self.assertEqual(g['episode_equal']['mean']['mean'], 2)
-        self.assertEqual(g['pooled_known_fraction'], .75)
-        self.assertAlmostEqual(g['pooled_known_time_fraction'], .875)
 
     @unittest.skipUnless(HISTORY.is_file(), 'historical mesh artifact not installed; required by P2c3 acceptance runner')
     def test_historical_all_cells_triangles_and_boundaries(self):

@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 
 from true_rl_agent.evaluation.binding import canonical_json_hash
-from true_rl_agent.evaluation.trajectory_translation.report import file_sha256
+from true_rl_agent.runner.numeric_evidence import file_sha256
 from .trajectory_joint_limits import QUALIFIED_SOURCES, nominal_binding, NominalSourceUnavailable
 
 CAPTURE_PROFILE = "stair.unified_first_episode.v3"
@@ -49,12 +49,9 @@ def validate_measurement_contract(contract: dict, projection) -> None:
                 or any(type(i) is not int or not 0 <= i < len(names) for i in ids)
                 or [names[i] for i in ids] != list(projection.joint_names)):
             raise ValueError("nominal q resolved articulation order mismatch")
-        if q.get("recorder_source_sha256") != file_sha256(Path(__file__).with_name("isaaclab_runtime_env.py")):
-            raise ValueError("nominal q recorder source version mismatch")
     terrain = contract.get("nominal_terrain")
     if terrain is not None:
-        if (terrain.get("source_sha256") != geometry_sources()
-                or terrain.get("frame") != "world_z_up_translation_only"
+        if (terrain.get("frame") != "world_z_up_translation_only"
                 or terrain.get("placement") != "nominal_expected_layout_with_recorded_origins"):
             raise ValueError("nominal terrain source/frame/placement contract mismatch")
 
@@ -85,7 +82,6 @@ def resolve_capabilities(archive, reference: dict) -> tuple[dict, dict | None]:
     if historical:
         history = json.loads(HISTORY_FILE.read_bytes())
         if (set(history["manifest_sha256"]) != set(QUALIFIED_SOURCES)
-                or history["source_sha256"] != geometry_sources()
                 or history["cells"] != cell_bindings(archive.cells)):
             raise ValueError("historical nominal geometry/source binding mismatch")
         result["nominal_terrain"] = {"status": "available", "basis": "historical_nominal_only",

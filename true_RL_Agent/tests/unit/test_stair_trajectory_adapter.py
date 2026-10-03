@@ -10,7 +10,6 @@ import numpy as np
 # Reuse only the archive builder, by composition. Inheriting its TestCase would
 # silently run the old inspector tests again without exercising this adapter.
 from tests.unit import test_stair_trajectory_input_inspection as fixture
-from true_rl_agent.evaluation.trajectory_translation.measurement import measure_episode
 from true_rl_agent.runner.numeric_evidence import NumericEvidenceError, load_numeric_evidence_manifest
 from true_rl_agent.tasks.stair_climbing.trajectory_adapter import iter_stair_episodes
 
@@ -93,20 +92,6 @@ class StairTrajectoryAdapterTests(unittest.TestCase):
         self.assertEqual(scope["all_nonfoot_body_contact_forces"], "not_recorded")
         self.assertIn("all_nonfoot_body_contact_forces", inventory["unavailable_quantities"])
 
-    def test_adapter_to_measurement_keeps_static_origin_current_history_and_outcome(self):
-        episode = self._episodes()[2]
-        records = measure_episode(episode)
-        measured = {row["key"]: row for row in records if row["record_type"] == "measurement"}
-        progress = measured["root_progress"]
-        self.assertAlmostEqual(progress["value"]["progress"]["first"], 3.35, places=6)
-        self.assertEqual(progress["value"]["static_refs"], episode.task["static_refs"])
-        self.assertEqual(progress["evidence_ref"]["manifest_sha256"], episode.source["manifest_sha256"])
-        marker = measured["robot_0.support.FL_foot.marker"]
-        self.assertEqual(marker["value"]["true_count"], 3)
-        diagnostic = measured["robot_0.support.FL_foot.history_diagnostic"]
-        self.assertEqual(diagnostic["value"]["current_on_history_all_off_count"], 3)
-        self.assertFalse(diagnostic["value"]["integrable_as_substeps"])
-        self.assertEqual(measured["task_endpoint"]["value"]["outcome"], episode.task["outcome"])
 
     def test_same_episode_label_and_checkpoint_in_distinct_sources_never_share_identity(self):
         first_ref = self.fixture._archive()

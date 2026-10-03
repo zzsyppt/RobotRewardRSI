@@ -81,43 +81,7 @@ def expected(steps, forces, dt):
                          "transitions": [{"step": steps[i], "before": filtered[w-1][i-1], "after": filtered[w-1][i]}
                              for i in range(1,len(steps)) if steps[i] == steps[i-1]+1 and filtered[w-1][i] >= 0
                              and filtered[w-1][i-1] >= 0 and filtered[w-1][i] != filtered[w-1][i-1]]} for w in (1, 2)]})
-    pairs = []
-    for i in range(len(feet)):
-        for j in range(i+1, len(feet)):
-            left, right = feet[i], feet[j]
-            target_good = set(right["cycles"][c][0] for c in right["qualified_cycle_indices"])
-            rows = []
-            for window in left["windows"]:
-                if window["reasons"]:
-                    continue
-                refs = window["onset_steps"]
-                bins = [[k for k in right["onset_steps"] if a <= k < b] for a, b in zip(refs, refs[1:])]
-                reasons = []
-                if any(markers[z][j] < 0 for z, k in enumerate(steps) if refs[0]-1 <= k <= refs[-1]):
-                    reasons.append("target_coverage_unknown")
-                unique = all(len(group) == 1 for group in bins)
-                if not unique:
-                    reasons.append("zero_or_multiple_target_onsets")
-                chosen = [group[0] for group in bins] if unique else []
-                if chosen and not set(chosen) <= target_good:
-                    reasons.append("target_cycle_not_qualified")
-                phases = [(x-a)/(b-a) for x, a, b in zip(chosen, refs, refs[1:])]
-                R = mean = None
-                if not reasons:
-                    real = sum(math.cos(2*math.pi*x) for x in phases)/4
-                    imag = sum(math.sin(2*math.pi*x) for x in phases)/4
-                    R = math.hypot(real, imag)
-                    if R + 1e-12 < .9:
-                        reasons.append("phase_concentration")
-                    else:
-                        mean = (math.atan2(imag, real)/(2*math.pi)) % 1
-                        if abs(mean-1) < 1e-12:
-                            mean = 0.0
-                rows.append({"reference_onset_steps": refs, "target_onset_steps_by_cycle": bins,
-                             "raw_phase_samples": phases, "circular_resultant": R, "mean_phase_turns": mean,
-                             "reasons": reasons})
-            pairs.append(rows)
-    return feet, pairs
+    return feet
 
 
 def assert_close(actual, wanted, path=""):
@@ -139,15 +103,15 @@ def check_records(records, steps, forces, dt):
     # Independent frozen semantic literals: numeric agreement cannot establish
     # the meaning of a relabeled unit/frame, even with a recomputed record ID.
     for record in records:
-        for key, value in {"record_type": "measurement", "unit": "s; phase turns",
+        for key, value in {"record_type": "measurement", "unit": "s",
                            "frame": "recorder_readout", "catalog_version": "trajectory.p0.measurements.v3",
                            "base_catalog_version": "trajectory.p0.measurements.v2",
                            "extractor_version": "trajectory.contact_cycles.v1"}.items():
             assert record.get(key) == value, ("metadata", key, record.get(key), value)
-    feet, pairs = expected(steps, forces, dt)
+    feet = expected(steps, forces, dt)
     observed_feet = [r for r in records if r["key"] == "contact_cycles"]
     observed_pairs = [r for r in records if r["key"] == "contact_phase"]
-    assert len(observed_feet) == len(feet) and len(observed_pairs) == len(pairs)
+    assert len(observed_feet) == len(feet) and not observed_pairs
     for record, expected_foot in zip(observed_feet, feet):
         v = record["value"]
         for key in ("runs", "windows", "qualified_cycle_indices", "qualified_span_fraction", "rejected_window_reasons", "debounce_sensitivity"):
@@ -166,7 +130,4 @@ def check_records(records, steps, forces, dt):
         assert_close(v["qualified_readout_span_s"], counts["covered_unique_edges"]*dt)
         good_ids = {w["window_id"] for w in v["windows"] if not w["reasons"]}
         assert len(good_ids) == counts["qualified_windows"]
-    for record, rows in zip(observed_pairs, pairs):
-        assert_close(record["value"]["windows"], rows, "phase")
-        assert record["value"]["qualified_windows"] == sum(not row["reasons"] for row in rows)
-    return feet, pairs
+    return feet

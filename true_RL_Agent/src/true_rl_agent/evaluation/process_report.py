@@ -30,6 +30,33 @@ def report_bytes(value: Mapping[str, Any]) -> int:
                           separators=(",", ":"), allow_nan=False).encode("utf-8"))
 
 
+class ReportBudgetExceeded(ValueError):
+    """Valid mandatory description content cannot fit the requested capacity."""
+
+    def __init__(self, required_bytes: int, max_bytes: int):
+        self.required_bytes, self.max_bytes = required_bytes, max_bytes
+        super().__init__(f"mandatory facts exceed byte budget: {required_bytes} > {max_bytes}")
+
+
+def format_number(value, precision: int = 3) -> str:
+    return "未知" if value is None else format(value, f".{precision}g")
+
+
+def select_whole_claims(required, optional, render, *, max_bytes):
+    """Tasks order facts; this shared boundary only fits complete statements."""
+    included = list(required)
+    public = render(included)
+    required_bytes = report_bytes(public)
+    if required_bytes > max_bytes:
+        raise ReportBudgetExceeded(required_bytes, max_bytes)
+    for claim_id in optional:
+        proposed = render([*included, claim_id])
+        if report_bytes(proposed) <= max_bytes:
+            included.append(claim_id)
+            public = proposed
+    return public, included, required_bytes
+
+
 def _text(value: Any) -> bool:
     return isinstance(value, str) and bool(value.strip())
 

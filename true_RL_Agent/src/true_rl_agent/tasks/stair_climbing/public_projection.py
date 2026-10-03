@@ -1,6 +1,7 @@
 """Task-owned public projection for production Stair evaluation."""
 
 from __future__ import annotations
+from .trajectory_production import PUBLIC_SCHEMA as TRAJECTORY_PUBLIC_SCHEMA, FULL_SCHEMA as TRAJECTORY_FULL_SCHEMA
 
 import math
 import statistics
@@ -275,7 +276,7 @@ def _project_unified_stair_public_result(
     if "behavior" in incoming:
         from true_rl_agent.tasks.stair_climbing.behavior import project_stair_behavior
         behavior = project_stair_behavior(incoming["behavior"])
-        trajectory = behavior["schema_version"] in {"true_rl_agent.stair.behavior.public.v5", "true_rl_agent.stair.behavior.public.v6"}
+        trajectory = behavior["schema_version"] in {TRAJECTORY_PUBLIC_SCHEMA}
         expected_protocol = config.task_protocol_hash if trajectory else config.evaluation_semantics.to_dict()["task_protocol_hash"]
         if (behavior["domain"]["task_protocol_hash"] != expected_protocol
                 or behavior["domain"]["checkpoint_hash"] != _mapping(

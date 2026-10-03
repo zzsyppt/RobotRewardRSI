@@ -1,6 +1,8 @@
 """Task-owned Stair phase evidence and full-result assembly."""
 
 from __future__ import annotations
+from .trajectory_production import PUBLIC_SCHEMA as TRAJECTORY_PUBLIC_SCHEMA, FULL_SCHEMA as TRAJECTORY_FULL_SCHEMA
+from .trajectory_production import PROFILE, DEFAULT_PUBLIC_BYTES, PUBLIC_SCHEMA
 
 from collections.abc import Mapping, Sequence
 from copy import deepcopy
@@ -147,9 +149,8 @@ def finalize_stair_eval_phase_summary(
     *,
     config: StairClimbingTaskConfig,
     output_dir: Path,
-    trajectory_card_ref: Mapping[str, Any] | None = None,
-    behavior_feedback_profile: str = "legacy_process_v1",
-    trajectory_report_max_bytes: int = 8192,
+    behavior_feedback_profile: str = PROFILE,
+    trajectory_report_max_bytes: int = DEFAULT_PUBLIC_BYTES,
 ) -> dict[str, Any]:
     """Complete the single production behavior derivation on the CPU host.
 
@@ -160,7 +161,6 @@ def finalize_stair_eval_phase_summary(
     from true_rl_agent.tasks.stair_climbing.behavior import (
         project_stair_behavior,
     )
-    from true_rl_agent.tasks.stair_climbing.process_report import build_stair_process_behavior
 
     if summary.get("status") != "postprocessing":
         raise ValueError("Stair finalization requires an unfinished rollout summary")
@@ -168,12 +168,12 @@ def finalize_stair_eval_phase_summary(
         raise ValueError("Stair behavior finalization requires unified public-dev")
     finalized = deepcopy(dict(summary))
     evidence = finalized["task_evidence"]
-    from .trajectory_pipeline import TRAJECTORY_PROFILE, PRODUCTION_PROFILE, validate_feedback_profile, build_trial_trajectory_card
+    from .trajectory_pipeline import validate_feedback_profile, build_phase_description, DescriptionCapabilityUnavailable
+    from true_rl_agent.evaluation.process_report import ReportBudgetExceeded
+    from .trajectory_production import project_production_report
     validate_feedback_profile(behavior_feedback_profile, trajectory_report_max_bytes, config.cell_variant_id)
     if "numeric_evidence" not in evidence:
         raise ValueError("Stair behavior finalization requires this phase's numeric evidence manifest")
-    if trajectory_card_ref is not None and behavior_feedback_profile in (TRAJECTORY_PROFILE, PRODUCTION_PROFILE):
-        raise ValueError("automatic trajectory profile cannot take an injected card")
     reference = evidence["numeric_evidence"]
     expected = {
         **eval_spec.job_identity().to_public_dict(),
@@ -192,50 +192,38 @@ def finalize_stair_eval_phase_summary(
     archive = load_numeric_evidence_manifest(reference)
     if archive["metadata"].get("summary") != evidence["summary"]:
         raise ValueError("Stair numeric evidence summary binding mismatch")
-    if behavior_feedback_profile in (TRAJECTORY_PROFILE, PRODUCTION_PROFILE):
-        trajectory_card_ref, receipt = build_trial_trajectory_card(
-            reference, expected_identity=expected, output_dir=output_dir, profile=behavior_feedback_profile)
-        evidence["trajectory_build"] = receipt
-    if trajectory_card_ref is None:
-        full = build_stair_process_behavior(reference, expected_identity=expected)
-    else:
-        if behavior_feedback_profile == PRODUCTION_PROFILE:
-            from .trajectory_report import load_stair_trajectory_inputs
-            from .trajectory_production import load_measurements, project_production_report, base_operands
-            inputs = load_stair_trajectory_inputs(trajectory_card_ref, numeric_reference=reference, expected_identity=expected)
-            measurement_ref = receipt["measurements_reference"]
-            full = project_production_report(base_operands(inputs), load_measurements(measurement_ref), max_bytes=trajectory_report_max_bytes)
-            full["audit"]["measurements_reference"] = measurement_ref
+    full = None
+    try:
+        domain, measured, comparison = build_phase_description(reference, expected_identity=expected)
+        evidence["behavior_comparison"] = comparison
+        try:
+            full = project_production_report(domain, measured, max_bytes=trajectory_report_max_bytes)
+        except ReportBudgetExceeded as exc:
+            evidence["description_status"] = {"status":"unavailable","reason":"budget_exceeded",
+                "required_bytes":exc.required_bytes,"max_bytes":exc.max_bytes,
+                "text":"必需行为描述超出配置容量，本次保留评估数值，描述不可用。"}
+            full = {"schema_version":"stair.behavior_analysis.v1", "domain":domain, "summary":measured,
+                    "description_status":evidence["description_status"]}
         else:
-            from .trajectory_report import build_stair_trajectory_report
-            full = build_stair_trajectory_report(trajectory_card_ref, numeric_reference=reference,
-                                               expected_identity=expected, max_bytes=trajectory_report_max_bytes)
-    evidence["behavior"] = project_stair_behavior(full)
-    if "trajectory_build" in evidence:
-        if behavior_feedback_profile == TRAJECTORY_PROFILE and len(set(full["audit"]["required_claim_ids"])) != 18:
-            raise ValueError("automatic trajectory profile requires all 18 mandatory claim slots")
-        evidence["trajectory_build"]["projection"] = {
-            "profile": behavior_feedback_profile, "max_report_bytes": trajectory_report_max_bytes,
-            "card_id": evidence["behavior"]["card_id"],
-            "public_content_hash": evidence["behavior"]["report_projection"]["content_hash"],
-            "required_claim_ids": full["audit"]["required_claim_ids"],
-            "report_bytes": full["audit"]["report_bytes"],
-            **({"base_semantic_mapping": full["audit"]["base_semantic_mapping"]}
-               if behavior_feedback_profile == PRODUCTION_PROFILE else {}),
-        }
-        full["audit"]["trajectory_build"] = deepcopy(evidence["trajectory_build"])
+            evidence["behavior"] = project_stair_behavior(full)
+    except DescriptionCapabilityUnavailable:
+        evidence["description_status"] = {"status":"unavailable","reason":"unsupported_capture_contract",
+            "text":"当前描述器不支持此机器人或采集契约；档案完整性已检查，评估数值保留。"}
+    if full is not None:
+        full["source"] = reference
     from true_rl_agent.json_contract import canonical_json_bytes
     from true_rl_agent.runner.checkpoint import file_sha256
-    output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    path = output_dir / "behavior_full.json"
-    temporary = output_dir / "behavior_full.json.finalizing"
-    if path.is_symlink() or temporary.is_symlink():
-        raise ValueError("Stair full behavior output must not be a symlink")
-    temporary.write_bytes(canonical_json_bytes(full) + b"\n")
-    temporary.replace(path)
-    evidence["behavior_full"] = {"schema_version": "true_rl_agent.process_full_ref.v1",
-        "file": path.name, "sha256": file_sha256(path).removeprefix("sha256:"), "size_bytes": path.stat().st_size}
+    if full is not None:
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        path = output_dir / "behavior_full.json"
+        temporary = output_dir / "behavior_full.json.finalizing"
+        if path.is_symlink() or temporary.is_symlink():
+            raise ValueError("Stair full behavior output must not be a symlink")
+        temporary.write_bytes(canonical_json_bytes(full) + b"\n")
+        temporary.replace(path)
+        evidence["behavior_full"] = {"schema_version": "true_rl_agent.process_full_ref.v1",
+            "file": path.name, "sha256": file_sha256(path).removeprefix("sha256:"), "size_bytes": path.stat().st_size}
     split_cost = finalized["evaluation_execution_cost"]["splits"][eval_spec.phase.value]
     split_cost["postprocessing_wall_time_s"] = time.perf_counter() - wall_started
     split_cost["postprocessing_cpu_time_s"] = time.process_time() - cpu_started
@@ -523,7 +511,7 @@ def _validated_complete_phase_summary(
     if "behavior" in first.task_evidence:
         from true_rl_agent.tasks.stair_climbing.behavior import project_stair_behavior
         summary["metrics"]["behavior"] = project_stair_behavior(first.task_evidence["behavior"])
-        if summary["metrics"]["behavior"]["schema_version"] in {"true_rl_agent.stair.behavior.public.v5", "true_rl_agent.stair.behavior.public.v6"}:
+        if summary["metrics"]["behavior"]["schema_version"] in {TRAJECTORY_PUBLIC_SCHEMA}:
             # Independent producer binding, persisted in the qualified public
             # result/Genesis hash; never inferred from the report's own domain.
             summary["metrics"]["trajectory_phase_binding"] = {
@@ -832,7 +820,7 @@ def canonical_stair_phase_result_summary(
 ) -> dict[str, Any]:
     evidence = result.task_evidence
     required_fields = {"schema_version", "phase", "execution_identity", "summary"}
-    if not required_fields.issubset(evidence) or set(evidence) - required_fields - {"numeric_evidence", "behavior", "behavior_full", "trajectory_build"}:
+    if not required_fields.issubset(evidence) or set(evidence) - required_fields - {"numeric_evidence", "behavior", "behavior_full", "behavior_comparison", "description_status"}:
         raise ValueError("Stair phase task evidence fields mismatch")
     if (
         evidence.get("schema_version") != STAIR_PHASE_EVIDENCE_SCHEMA_VERSION
@@ -854,7 +842,7 @@ def canonical_stair_phase_result_summary(
         if expected_phase is not EvaluationPhase.PUBLIC_DEV or "numeric_evidence" not in evidence:
             raise ValueError("Stair behavior requires public_dev numeric evidence")
         behavior = project_stair_behavior(evidence["behavior"])
-        if behavior["schema_version"] in {"true_rl_agent.stair.behavior.public.v5", "true_rl_agent.stair.behavior.public.v6"}:
+        if behavior["schema_version"] in {TRAJECTORY_PUBLIC_SCHEMA}:
             from .trajectory_report import require_trajectory_phase_binding
             require_trajectory_phase_binding(behavior, job_id=result.job_id,
                 checkpoint_hash=result.checkpoint_hash, evaluation_plan_hash=result.evaluation_plan_hash,
@@ -866,21 +854,34 @@ def canonical_stair_phase_result_summary(
                 or behavior["domain"]["archive_hash"] != evidence["numeric_evidence"]["manifest_sha256"]
                 or behavior["domain"]["task_protocol_hash"] != config.evaluation_semantics.to_dict()["task_protocol_hash"]):
             raise ValueError("Stair behavior phase binding mismatch")
-    if "trajectory_build" in evidence:
-        if "behavior" not in evidence or "numeric_evidence" not in evidence or expected_phase is not EvaluationPhase.PUBLIC_DEV:
-            raise ValueError("Stair trajectory build receipt requires public-dev behavior")
-        from .trajectory_pipeline import validate_build_receipt
-        validate_build_receipt(evidence["trajectory_build"], behavior)
+    if "description_status" in evidence:
+        status = evidence["description_status"]
+        if ("behavior" in evidence or expected_phase is not EvaluationPhase.PUBLIC_DEV
+                or status.get("status") != "unavailable"
+                or status.get("reason") not in {"budget_exceeded","unsupported_capture_contract"}):
+            raise ValueError("invalid Stair description degradation status")
+    if "behavior_comparison" in evidence:
+        comparison = evidence["behavior_comparison"]
+        domain = comparison["domain"]
+        if (domain["checkpoint_hash"] != result.checkpoint_hash
+                or domain["evaluation_job_id"] != result.job_id
+                or domain["evaluation_plan_hash"] != result.evaluation_plan_hash
+                or domain["evaluation_binding_hash"] != result.evaluation_binding_hash
+                or domain["task_protocol_hash"] != config.task_protocol_hash
+                or domain["seed_namespace"] != execution_identity["seed_namespace"]
+                or domain["archive_hash"] != evidence["numeric_evidence"]["manifest_sha256"]
+                or ("behavior" in evidence and domain != behavior["domain"])):
+            raise ValueError("Stair comparison phase/source binding mismatch")
     if "behavior_full" in evidence:
         reference = evidence["behavior_full"]
-        if ("behavior" not in evidence or not isinstance(reference, Mapping)
+        if (("behavior" not in evidence and "description_status" not in evidence) or not isinstance(reference, Mapping)
                 or set(reference) != {"schema_version", "file", "sha256", "size_bytes"}
                 or reference["schema_version"] != "true_rl_agent.process_full_ref.v1"
                 or reference["file"] != "behavior_full.json"
                 or not isinstance(reference["sha256"], str) or len(reference["sha256"]) != 64
                 or any(c not in "0123456789abcdef" for c in reference["sha256"])
                 or type(reference["size_bytes"]) is not int or reference["size_bytes"] <= 0
-                or behavior["schema_version"] not in {"true_rl_agent.stair.behavior.public.v4", "true_rl_agent.stair.behavior.public.v5", "true_rl_agent.stair.behavior.public.v6"}):
+                or ("behavior" in evidence and behavior["schema_version"] != PUBLIC_SCHEMA)):
             raise ValueError("Stair full behavior reference mismatch")
     expected_splits = [expected_phase.value]
     if (

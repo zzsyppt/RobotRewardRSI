@@ -135,6 +135,9 @@ class StairPhasedEvaluationAdapter:
         if "behavior" in phase_result.task_evidence:
             from true_rl_agent.tasks.stair_climbing.behavior import project_stair_behavior
             summary = {**summary, "behavior": project_stair_behavior(phase_result.task_evidence["behavior"])}
+        for key in ("behavior_comparison", "description_status"):
+            if key in phase_result.task_evidence:
+                summary[key] = phase_result.task_evidence[key]
         return summary
 
     def project_reference_public_dev_gate(self, *, phase_result):

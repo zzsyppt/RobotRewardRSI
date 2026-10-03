@@ -36,7 +36,8 @@ def expected(values, steps, lower, upper, dt):
     samples = [(i, float(v)) for i, v in enumerate(values) if math.isfinite(v)]
     n = len(samples)
     counts = {"total_rows": len(values), "finite_rows": n, "unknown_rows": len(values)-n,
-              "inside_edge_band_rows": 0, "outside_rows": 0}
+              "inside_edge_band_rows": 0, "outside_rows": 0,
+              "lower_edge_rows":0,"upper_edge_rows":0,"lower_outside_rows":0,"upper_outside_rows":0,"roundoff_boundary_rows":0}
     fields = {k: None for k in ("q_range_rad", "position_fraction_range", "range_occupancy_fraction",
               "minimum_signed_margin_rad", "inside_edge_band_fraction", "outside_fraction")}
     witnesses = {}
@@ -46,6 +47,10 @@ def expected(values, steps, lower, upper, dt):
         counts["inside_edge_band_rows"] = sum(lower <= q <= upper and (q <= lower+.05*width or q >= upper-.05*width)
                                                for _, q in samples)
         counts["outside_rows"] = sum(m < 0 for m in margins)
+        counts["lower_edge_rows"] = sum(lower <= q <= lower+.05*width for _,q in samples)
+        counts["upper_edge_rows"] = sum(upper-.05*width <= q <= upper for _,q in samples)
+        counts["lower_outside_rows"] = sum(q < lower for _,q in samples)
+        counts["upper_outside_rows"] = sum(q > upper for _,q in samples)
         qlo, qhi = min(q for _, q in samples), max(q for _, q in samples)
         fields.update(q_range_rad=[qlo, qhi], position_fraction_range=[(qlo-lower)/width, (qhi-lower)/width],
                       range_occupancy_fraction=(qhi-qlo)/width, minimum_signed_margin_rad=min(margins),

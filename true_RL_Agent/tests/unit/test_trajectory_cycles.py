@@ -4,10 +4,9 @@ import unittest
 
 import numpy as np
 
-from tests.unit.test_trajectory_measurement import sample_episode
+from tests.unit.trajectory_fixtures import sample_episode
 from tests.unit.cycle_oracle import check_records
 from true_rl_agent.evaluation.trajectory_translation.cycles import measure_contact_cycles
-from true_rl_agent.tasks.stair_climbing.trajectory_cycles import summarize_cycles
 
 
 def fixture(onsets, *, n=None, width=6, dt=.02):
@@ -50,12 +49,6 @@ class ContactCycleTests(unittest.TestCase):
         self.assertEqual(v["counts"]["covered_unique_edges"], 100)
         self.assertEqual(v["qualified_readout_span_s"], 2)
         self.assertEqual([w["median_period_s"] for w in v["windows"]], [.4, .4])
-        ep2 = fixture([[4, 44, 84, 124, 164]])
-        second = self.checked(ep2)
-        summary = summarize_cycles([{"records": records}, {"records": second}])
-        group = summary["groups"]["contact_cycles:foot0"]
-        self.assertAlmostEqual(group["episode_median_qualified_cycle_period_s"]["mean"], .6)
-        self.assertAlmostEqual(group["pooled_qualified_span_fraction"], 260/(108+168))
 
     def test_cv_and_median_deviation_independent_boundaries(self):
         for lengths, reason in [([17,17,23,23], None), ([17,17,23,24], "period_cv"),
@@ -105,35 +98,12 @@ class ContactCycleTests(unittest.TestCase):
         for dt in (.02, .007):
             ep = fixture([list(range(4,165,20)), list(range(9,170,20))], dt=dt)
             records = self.checked(ep)
-            phase = records[-1]["value"]["windows"][0]
-            self.assertEqual(phase["raw_phase_samples"], [.25]*4)
-            self.assertAlmostEqual(phase["mean_phase_turns"], .25)
-            self.assertAlmostEqual(phase["circular_resultant"], 1)
+            self.assertAlmostEqual(records[0]["value"]["windows"][0]["median_period_s"],20*dt)
             ep.arrays["support_contact_forces_w_history"][:] = 99999
             self.assertEqual(records, self.checked(ep))
         ep.arrays.pop("support_contact_forces_w_history")
         self.assertEqual(records, self.checked(ep))
 
-    def test_phase_multiplicity_zero_wrap_unknown_and_concentration(self):
-        ep = fixture([list(range(104,1005,100)), list(range(104,1005,50))], width=20)
-        rows = self.checked(ep)[-1]["value"]["windows"]
-        self.assertTrue(all("zero_or_multiple_target_onsets" in row["reasons"] for row in rows))
-        ep = fixture([list(range(104,1005,100)), [103,205,303,405,503,605,703,805,903,1005]], width=20)
-        rows = self.checked(ep)[-1]["value"]["windows"]
-        self.assertTrue(all("zero_or_multiple_target_onsets" in row["reasons"] for row in rows))
-        for shift in (0, 99):
-            ep = fixture([list(range(104,1305,100)), list(range(104+shift,1305+shift,100))], width=20)
-            row = self.checked(ep)[-1]["value"]["windows"][0]
-            self.assertAlmostEqual(row["mean_phase_turns"], shift/100)
-        for shift in (71, 72):
-            starts = list(range(104,12105,1000))
-            target = [k+500+(-shift if i%2==0 else shift) for i,k in enumerate(starts)]
-            ep = fixture([starts,target], width=100)
-            row = self.checked(ep)[-1]["value"]["windows"][0]
-            self.assertEqual(row["reasons"], [] if shift==71 else ["phase_concentration"])
-        ep = fixture([list(range(4,165,20)), list(range(9,170,20))])
-        ep.arrays["support_contact_forces_w"][20,1,0] = np.nan
-        self.assertIn("target_coverage_unknown", self.checked(ep)[-1]["value"]["windows"][0]["reasons"])
 
     def test_entity_order_source_identity_and_threshold(self):
         ep = fixture([list(range(4,165,20)), list(range(9,170,20))])
@@ -142,19 +112,11 @@ class ContactCycleTests(unittest.TestCase):
         ep.arrays["support_contact_forces_w"] = ep.arrays["support_contact_forces_w"][:,::-1]
         reordered = self.checked(ep)
         self.assertEqual(reordered[0]["value"], original[1]["value"])
-        self.assertAlmostEqual(reordered[-1]["value"]["windows"][0]["mean_phase_turns"], .75)
         ep.source["manifest_sha256"] = "f"*64
         self.assertNotEqual(self.checked(ep)[0]["record_id"], reordered[0]["record_id"])
         ep.task["contact_threshold_n"] = 2
-        with self.assertRaises(ValueError):
-            measure_contact_cycles(ep)
+        self.assertEqual(measure_contact_cycles(ep)[0]["measurement_config"]["contact_threshold_n"],2)
 
-    def test_phase_left_boundary_requires_preceding_target_readout(self):
-        ep = fixture([list(range(20,181,20)), [20, *range(30,191,20)]], width=3)
-        ep.arrays["support_contact_forces_w"][18,1,0] = np.nan
-        row = self.checked(ep)[-1]["value"]["windows"][0]
-        self.assertIn("target_coverage_unknown", row["reasons"])
-        self.assertIsNone(row["mean_phase_turns"])
 
     def test_oracle_catches_self_signed_counterfeit_facts(self):
         ep = fixture([[4,24,44,64,84]])

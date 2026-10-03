@@ -1,180 +1,114 @@
-"""Automatic profile boundaries, atomic artifacts and per-archive cache behavior."""
+"""Direct archive, explicit parent and bounded description degradation."""
 from copy import deepcopy
 import json
 from pathlib import Path
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from tests.unit import test_stair_trajectory_input_inspection as fixture
-from true_rl_agent.composition.base import TaskCompositionContext, resolve_task_composition
-from true_rl_agent.evaluation.trajectory_translation.report import file_sha256
-from true_rl_agent.tasks.stair_climbing.composition import StairClimbingCompositionProvider
-from true_rl_agent.tasks.stair_climbing import trajectory_artifacts as artifacts
-from true_rl_agent.tasks.stair_climbing.trajectory_pipeline import (
-    TRAJECTORY_PROFILE, build_trial_trajectory_card, validate_feedback_profile,
-    validate_build_receipt,
-)
-from true_rl_agent.tasks.stair_climbing.trajectory_report import build_stair_trajectory_report, project_trajectory_card
-
-ROOT = Path(__file__).resolve().parents[2]
+from tests.unit import test_stair_trajectory_production as fixture
+from tests.unit.trajectory_fixtures import sample_episode
+from true_rl_agent.evaluation.phases import EvaluationPhase
+from true_rl_agent.evaluation.trajectory_translation.measurement import measure_behavior
+from true_rl_agent.runner.numeric_evidence import load_numeric_evidence_manifest, NumericEvidenceError
+from true_rl_agent.tasks.stair_climbing import trajectory_pipeline as pipeline
+from true_rl_agent.tasks.stair_climbing.phased_evaluation import finalize_stair_eval_phase_summary
+from true_rl_agent.tasks.stair_climbing.trajectory_production import project_production_report
+from true_rl_agent.tasks.stair_climbing.behavior import comparison_operands, compare_stair_behavior
+from true_rl_agent.tasks.stair_climbing.prompt_adapter import _latest_behavior_feedback
 
 
-class AutomaticTrajectoryTests(unittest.TestCase):
+class DirectDescriptionTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        fixture.StairTrajectoryInputInspectionTests.setUpClass()
-        cls.fixture = fixture.StairTrajectoryInputInspectionTests()
-        cls.fixture.setUp()
-        cls.root = cls.fixture.root
-
-        def bind(identity, context, chunks):
-            identity["evaluation_plan_hash"] = "e" * 64
-            identity["evaluation_binding"]["evaluation_binding_hash"] = "f" * 64
-        cls.reference = cls.fixture._archive(bind)
-        cls.identity = json.loads(Path(cls.reference["manifest_path"]).read_text())["identity"]
-        cls.card_ref, cls.receipt = build_trial_trajectory_card(
-            cls.reference, expected_identity=cls.identity, output_dir=cls.root / "phase")
-        cls.full = build_stair_trajectory_report(cls.card_ref, numeric_reference=cls.reference,
-                                               expected_identity=cls.identity)
+        fixture.ProductionTrajectoryTests.setUpClass()
+        cls.f = fixture.ProductionTrajectoryTests
 
     @classmethod
     def tearDownClass(cls):
-        cls.fixture.doCleanups()
+        cls.f.tearDownClass()
 
-    def test_normal_composition_wires_profile_and_preserves_old_defaults(self):
-        provider = StairClimbingCompositionProvider()
-        values = dict(provider.cli_defaults())
-        self.assertNotIn("behavior_feedback_profile", values)
-        values.update(start_mode="reward_cold_start", cell_variant_id="stair.go2_12dof.unified_v3")
-        old = resolve_task_composition(provider=provider, values=values,
-            context=TaskCompositionContext(project_root=ROOT, output_dir=self.root / "composition"))
-        values.update(behavior_feedback_profile=TRAJECTORY_PROFILE, trajectory_report_max_bytes=8192)
-        new = resolve_task_composition(provider=provider, values=values,
-            context=TaskCompositionContext(project_root=ROOT, output_dir=self.root / "composition"))
-        self.assertEqual(new.runner.eval_phase_summary_finalizer.keywords["behavior_feedback_profile"], TRAJECTORY_PROFILE)
-        self.assertEqual(new.task_defaults["behavior_feedback_profile"], TRAJECTORY_PROFILE)
-        self.assertNotIn("behavior_feedback_profile", old.task_defaults)
-        self.assertEqual(new.task_plugin.config.formal_training_binding(), old.task_plugin.config.formal_training_binding())
-        self.assertEqual(new.task_plugin.config.evaluation_protocol(), old.task_plugin.config.evaluation_protocol())
-        self.assertEqual(new.task_plugin.config.acceptance_protocol, old.task_plugin.config.acceptance_protocol)
-        self.assertNotEqual(new.genesis_identity_snapshot(), old.genesis_identity_snapshot())
-        values["trajectory_report_max_bytes"] = 8000
-        smaller = resolve_task_composition(provider=provider, values=values,
-            context=TaskCompositionContext(project_root=ROOT, output_dir=self.root / "composition"))
-        self.assertNotEqual(new.genesis_identity_snapshot(), smaller.genesis_identity_snapshot())
+    def finalization(self, budget):
+        identity=self.f.identity
+        spec=SimpleNamespace(phase=EvaluationPhase.PUBLIC_DEV,
+            job_identity=lambda:SimpleNamespace(to_public_dict=lambda:identity),
+            execution_checkpoint=lambda:SimpleNamespace(checksum=identity["checkpoint_hash"]),
+            evaluation_plan_hash=identity["evaluation_plan_hash"],
+            evaluation_binding=SimpleNamespace(to_public_dict=lambda:identity["evaluation_binding"]))
+        summary={"status":"postprocessing","task_evidence":{"numeric_evidence":self.f.reference,
+            "summary":load_numeric_evidence_manifest(self.f.reference)["metadata"]["summary"],
+            "execution_identity":{"seed_namespace":identity["seed_namespace"]}},
+            "evaluation_execution_cost":{"splits":{"public_dev":{}}},
+            **{k:identity.get(k) for k in ("environment_source_preflight","backend_execution_environment_verification")}}
+        before=deepcopy(summary["task_evidence"]["summary"])
+        result=finalize_stair_eval_phase_summary(spec,summary,
+            config=SimpleNamespace(is_unified_protocol=True,cell_variant_id="stair.go2_12dof.unified_v3"),
+            output_dir=self.f.root/"degraded",trajectory_report_max_bytes=budget)
+        self.assertEqual(result["status"],"pass")
+        self.assertEqual(result["task_evidence"]["summary"],before)
+        return result["task_evidence"]
 
-    def test_versions_robots_and_budget_reject_explicitly(self):
-        for profile, budget, cell in [("unknown", 8192, "stair.go2_12dof.unified_v3"),
-                                     (TRAJECTORY_PROFILE, 8192, "stair.g1_37dof.unified_v3"),
-                                     (TRAJECTORY_PROFILE, 8193, "stair.go2_12dof.unified_v3"),
-                                     ("legacy_process_v1", 8000, "stair.go2_12dof.unified_v3")]:
-            with self.subTest(profile=profile, budget=budget, cell=cell), self.assertRaises(ValueError):
-                validate_feedback_profile(profile, budget, cell)
+    def test_budget_degradation_preserves_evaluation_and_reaches_feedback(self):
+        evidence=self.finalization(128)
+        self.assertNotIn("behavior",evidence)
+        self.assertNotIn("trajectory_build",evidence)
+        self.assertEqual(evidence["description_status"]["reason"],"budget_exceeded")
+        self.assertIn("behavior_comparison",evidence)
+        shown=_latest_behavior_feedback([{"generation":{"trials":[{"trial_id":"fixture",
+            "public_dev":{"public_summary":{"description_status":evidence["description_status"]}}}]}}])
+        self.assertEqual(shown["description_status"],evidence["description_status"])
 
-    def test_automatic_selection_has_no_frozen_examples_or_other_source(self):
-        manifest = json.loads(Path(self.card_ref["manifest_path"]).read_text())
-        card = json.loads(Path(self.card_ref["manifest_path"]).with_name("policy_card.json").read_text(encoding="utf-8"))
-        self.assertEqual(manifest["example_source_bindings"], [])
-        self.assertEqual(manifest["selection_ref"], {"mode": "current_archive_deterministic_examples.v1", "frozen_examples": False})
-        self.assertNotIn("冻结E1样本", " ".join(c["text"] for c in card["claims"]))
-        self.assertEqual(len(self.full["audit"]["required_claim_ids"]), 18)
-        self.assertTrue(any("该槽不可提供事实" in c["text"] for c in card["claims"]))
-        self.assertEqual(self.full["public_report"]["domain"]["archive_hash"], self.reference["manifest_sha256"])
+    def test_unsupported_capability_is_bounded_but_identity_is_not_swallowed(self):
+        with patch.object(pipeline,"SUPPORTED_CELLS",()):
+            evidence=self.finalization(10240)
+            self.assertEqual(evidence["description_status"]["reason"],"unsupported_capture_contract")
+            with self.assertRaisesRegex(ValueError,"source identity"):
+                pipeline.build_phase_description(self.f.reference,expected_identity={**self.f.identity,"checkpoint_hash":"wrong"})
+            with patch.object(pipeline,"iter_numeric_evidence",side_effect=NumericEvidenceError("chunk hash mismatch")):
+                with self.assertRaisesRegex(NumericEvidenceError,"hash"):
+                    self.finalization(128)
 
-    def test_repeated_build_and_budget_change_reuse_artifacts(self):
-        with patch.object(artifacts, "measure_episode", side_effect=AssertionError("must not rebuild numeric")):
-            ref, receipt = build_trial_trajectory_card(self.reference, expected_identity=self.identity, output_dir=self.root / "phase")
-        self.assertEqual(ref, self.card_ref)
-        self.assertTrue(receipt["numeric_reused"] and receipt["card_reused"])
-        full = build_stair_trajectory_report(ref, numeric_reference=self.reference, expected_identity=self.identity,
-                                             max_bytes=self.full["audit"]["required_report_bytes"])
-        self.assertEqual(full["audit"]["included_claim_ids"], full["audit"]["required_claim_ids"])
-        with self.assertRaisesRegex(ValueError, "mandatory facts exceed"):
-            build_stair_trajectory_report(ref, numeric_reference=self.reference, expected_identity=self.identity,
-                                          max_bytes=self.full["audit"]["required_report_bytes"] - 1)
+    def pair(self):
+        left=sample_episode(80);right=sample_episode(80)
+        for e,v in ((left,1.),(right,2.)):
+            e.task.update(cell_id="same-geometry",stratum_id="fixture")
+            e.arrays["base_pos_w"][:,0]=e.times*v
+        a,b=[comparison_operands([measure_behavior(e)]) for e in (left,right)]
+        domain=deepcopy(self.f.domain)
+        parent=project_production_report(domain,self.f.summary)["public_report"]
+        candidate=project_production_report({**domain,"checkpoint_hash":"child"},self.f.summary)["public_report"]
+        a["domain"]=parent["domain"];b["domain"]=candidate["domain"]
+        return parent,candidate,a,b
 
-    def test_foreign_job_checkpoint_plan_never_reuses_card(self):
-        for key in ("job_id", "checkpoint_hash", "evaluation_plan_hash"):
-            identity = {**self.identity, key: "wrong"}
-            with self.subTest(key=key), self.assertRaisesRegex(ValueError, "identity mismatch"):
-                build_trial_trajectory_card(self.reference, expected_identity=identity, output_dir=self.root / "phase")
+    def test_explicit_parent_absolute_delta_denominators_and_mismatch(self):
+        parent,candidate,a,b=self.pair()
+        kwargs=dict(expected_parent_checkpoint_hash=parent["domain"]["checkpoint_hash"],parent_comparison=a,candidate_comparison=b)
+        result=compare_stair_behavior(parent,candidate,**kwargs)
+        self.assertEqual(result["matched_conditions"],1)
+        self.assertTrue(any(r["unit"]=="m/s" and r["parent"][0]==1 and r["candidate"][0]==2 and r["delta"]==1 for r in result["rows"]))
+        self.assertTrue(all(r["parent_n"]==r["candidate_n"]==1 for r in result["rows"]))
+        self.assertEqual(compare_stair_behavior(None,candidate,**kwargs)["status"],"available")
+        with self.assertRaisesRegex(ValueError,"parent checkpoint"):
+            compare_stair_behavior(parent,candidate,**{**kwargs,"expected_parent_checkpoint_hash":"sibling"})
+        b["descriptors"]["all.speed"]["unit"]="cm/s"
+        self.assertEqual(compare_stair_behavior(parent,candidate,**kwargs)["status"],"not_comparable")
 
-    def test_missing_manifest_does_not_fallback(self):
-        bad = {**self.reference, "manifest_path": str(self.root / "absent.json")}
-        with self.assertRaises(Exception):
-            build_trial_trajectory_card(bad, expected_identity=self.identity, output_dir=self.root / "phase")
+    def test_short_or_missing_terminal_window_never_matches_full_window_as_zero(self):
+        ep=sample_episode(8);ep.task.update(cell_id="same",stratum_id="fixture")
+        ep.arrays["base_pos_w"][:,0]=ep.times
+        facts=comparison_operands([measure_behavior(ep)])["conditions"]["same"]["terminal"]["success"]["facts"]
+        self.assertEqual(facts["forward_speed"][:2],[None,0])
+        self.assertEqual(facts["height"][:2],[None,0])
+        self.assertEqual(facts["progress"][:2],[.16,1])
 
-    def test_private_receipt_replay_binds_configuration_source_and_public_bytes(self):
-        public = self.full["public_report"]
-        receipt = {**self.receipt, "projection": {
-            "profile": TRAJECTORY_PROFILE, "max_report_bytes": 8192,
-            "card_id": public["card_id"], "public_content_hash": public["report_projection"]["content_hash"],
-            "required_claim_ids": self.full["audit"]["required_claim_ids"],
-            "report_bytes": self.full["audit"]["report_bytes"]}}
-        validate_build_receipt(receipt, public)
-        for path, value in [(('complete',), False), (('cache_key',), 'bad'),
-                (('inputs', 'archive_sha256'), 'bad'), (('inputs', 'profile'), 'legacy_process_v1'),
-                (('projection', 'card_id'), 'bad'), (('projection', 'public_content_hash'), 'bad'),
-                (('projection', 'max_report_bytes'), 1), (('projection', 'report_bytes'), 1),
-                (('projection', 'required_claim_ids'), self.full['audit']['required_claim_ids'][:-1])]:
-            bad = deepcopy(receipt)
-            target = bad
-            for part in path[:-1]:
-                target = target[part]
-            target[path[-1]] = value
-            with self.subTest(path=path), self.assertRaises(ValueError):
-                validate_build_receipt(bad, public)
-        with self.assertRaises(ValueError):
-            validate_build_receipt(receipt, {**public, 'schema_version': 'legacy'})
-
-    def test_removed_unavailable_slot_rejected_even_with_consistent_projection_hashes(self):
-        audit = self.full["audit"]
-        claims = [deepcopy(audit["claim_trace"][cid]["claim"]) for cid in audit["claim_order"]]
-        absent = next(c for c in claims if c["template_id"] == "definition"
-                      and c["operands"]["text"]["path"][-1].startswith("unavailable_"))
-        claims.remove(absent)
-        projected = project_trajectory_card({"claims": claims}, json.loads(audit["derivation_records_json"]),
-            domain=self.full["public_report"]["domain"], card_hash=self.full["public_report"]["card_id"][5:])
-        self.assertEqual(len(projected["audit"]["required_claim_ids"]), 17)
-        public = projected["public_report"]
-        receipt = {**self.receipt, "projection": {
-            "profile": TRAJECTORY_PROFILE, "max_report_bytes": 8192,
-            "card_id": public["card_id"], "public_content_hash": public["report_projection"]["content_hash"],
-            "required_claim_ids": projected["audit"]["required_claim_ids"],
-            "report_bytes": projected["audit"]["report_bytes"]}}
-        with self.assertRaisesRegex(ValueError, "binding mismatch"):
-            validate_build_receipt(receipt, public)
-
-    def test_changed_profile_and_nonpublic_archive_rejected(self):
-        for field, value in (("profile", "stair.unsupported.v3"), ("splits", ["sealed_validation"])):
-            m = json.loads(Path(self.reference["manifest_path"]).read_text())
-            m["metadata" if field == "profile" else "identity"][field] = value
-            path = self.root / (field + ".json")
-            path.write_text(json.dumps(m))
-            bad = {**self.reference, "manifest_path": str(path), "manifest_sha256": file_sha256(path)}
-            with self.subTest(field=field), self.assertRaises(ValueError):
-                build_trial_trajectory_card(bad, expected_identity=self.identity, output_dir=self.root / "phase")
-
-    def test_manifest_published_only_after_complete_write(self):
-        path = self.root / "interrupted_manifest.json"
-        with patch.object(artifacts.json, "dump", side_effect=OSError("fixture disk interruption")):
-            with self.assertRaises(OSError):
-                artifacts._write_json(path, {"complete": True})
-        self.assertFalse(path.exists())
-        self.assertTrue(path.with_name(path.name + ".partial").exists())
-
-    def test_incomplete_owned_stage_restarts(self):
-        from true_rl_agent.tasks.stair_climbing.trajectory_pipeline import _restart_incomplete
-        root = self.root / "incomplete"
-        numeric = root / "numeric"
-        numeric.mkdir(parents=True)
-        (numeric / "evidence.jsonl.partial").write_text("unfinished")
-        _restart_incomplete(numeric, root)
-        self.assertFalse(numeric.exists())
-        numeric.mkdir()
-        (numeric / "manifest.json").write_text('{"complete":true}')
-        _restart_incomplete(numeric, root)
-        self.assertTrue(numeric.exists())
+    def test_source_byte_changes_do_not_qualify_or_reject_semantic_contract(self):
+        from true_rl_agent.tasks.stair_climbing.trajectory_adapter import _load_contract
+        from true_rl_agent.tasks.stair_climbing.trajectory_capabilities import resolve_capabilities
+        archive=_load_contract(self.f.reference)
+        contract=archive.manifest["metadata"]["measurement_contract"]
+        contract["joint_position"]["recorder_source_sha256"]="1"*64
+        contract["nominal_terrain"]["source_sha256"]={k:"2"*64 for k in contract["nominal_terrain"]["source_sha256"]}
+        self.assertEqual(resolve_capabilities(archive,self.f.reference)[0]["nominal_joint_limits"]["status"],"available")
 
 
 if __name__ == "__main__":

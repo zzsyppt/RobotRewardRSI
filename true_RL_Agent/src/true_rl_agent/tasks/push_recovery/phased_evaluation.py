@@ -1,6 +1,8 @@
 """Push phase packets built from the same rollouts as the full evaluator."""
 
 from __future__ import annotations
+from .trajectory_pipeline import DEFAULT_PROFILE
+from .trajectory_card import MAX_PUBLIC_BYTES
 
 from collections.abc import Mapping, Sequence
 from copy import deepcopy
@@ -122,7 +124,7 @@ def build_push_phase_summary(
 
 def finalize_push_eval_phase_summary(
     eval_spec: EvalPhaseJobSpec, summary: Mapping[str, Any], *, output_dir: Path,
-    behavior_feedback_profile: str = "legacy_process_v1", trajectory_report_max_bytes: int = 12288,
+    behavior_feedback_profile: str = DEFAULT_PROFILE, trajectory_report_max_bytes: int = MAX_PUBLIC_BYTES,
     expected_seed_count: int | None = None,
 ) -> dict[str, Any]:
     """Derive one public-dev behavior on CPU before the runner seals it."""
@@ -151,31 +153,40 @@ def finalize_push_eval_phase_summary(
     wall_started, cpu_started = time.perf_counter(), time.process_time()
     from .trajectory_pipeline import TRAJECTORY_PROFILE, validate_feedback_profile, build_phase_trajectory
     validate_feedback_profile(behavior_feedback_profile, trajectory_report_max_bytes, context["cell_variant_id"])
+    from true_rl_agent.evaluation.process_report import ReportBudgetExceeded
+    full = None
     if behavior_feedback_profile == TRAJECTORY_PROFILE:
         # Capture records training lineage; capability is bound by the outer
         # phase/plan receipt, not claimed as a channel in historical archives.
         expected_identity["training_binding_hash"] = eval_spec.training_binding_hash
         if expected_seed_count is None:
             raise ValueError("Push automatic trajectory requires the composition seed count")
-        full, evidence["behavior"], evidence["trajectory_build"] = build_phase_trajectory(
-            evidence["seed_summaries"], expected_identity=expected_identity, context=context,
-            expected_seed_count=expected_seed_count, output_dir=output_dir, max_bytes=trajectory_report_max_bytes)
+        try:
+            full, evidence["behavior"], evidence["trajectory_build"] = build_phase_trajectory(
+                evidence["seed_summaries"], expected_identity=expected_identity, context=context,
+                expected_seed_count=expected_seed_count, output_dir=output_dir, max_bytes=trajectory_report_max_bytes)
+        except ReportBudgetExceeded as exc:
+            evidence["description_status"] = {"status":"unavailable","reason":"budget_exceeded",
+                "required_bytes":exc.required_bytes,"max_bytes":exc.max_bytes,
+                "text":"必需行为描述超出配置容量，本次保留评估数值，描述不可用。"}
     else:
         for seed in evidence["seed_summaries"]:
             validate_push_numeric_reference(seed["numeric_evidence_ref"], seed, expected_identity=expected_identity)
         full = build_push_process_behavior(evidence["seed_summaries"], context=context)
         evidence["behavior"] = project_push_behavior(full)
-    full_bytes = canonical_json_bytes(full)
-    output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    atomic_replace_bytes(output_dir / "behavior_full.json", full_bytes)
-    evidence["behavior_full"] = {"schema_version": "true_rl_agent.process_full_ref.v1",
-        "file": "behavior_full.json", "sha256": canonical_json_hash(full), "size_bytes": len(full_bytes)}
+    full_bytes = b""
+    if full is not None:
+        full_bytes = canonical_json_bytes(full)
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        atomic_replace_bytes(output_dir / "behavior_full.json", full_bytes)
+        evidence["behavior_full"] = {"schema_version": "true_rl_agent.process_full_ref.v1",
+            "file": "behavior_full.json", "sha256": canonical_json_hash(full), "size_bytes": len(full_bytes)}
     cost = finalized["evaluation_execution_cost"]["splits"][eval_spec.phase.value]
     cost["postprocessing_wall_time_s"] = time.perf_counter() - wall_started
     cost["postprocessing_cpu_time_s"] = time.process_time() - cpu_started
     cost["full_process_derivation_bytes"] = len(full_bytes)
-    cost["public_process_report_bytes"] = len(canonical_json_bytes(evidence["behavior"]))
+    cost["public_process_report_bytes"] = len(canonical_json_bytes(evidence["behavior"])) if "behavior" in evidence else 0
     finalized["task_evidence_hash"] = canonical_json_hash(evidence)
     finalized["status"] = "pass"
     return finalized

@@ -1,5 +1,6 @@
 """Task-owned, offline Push cards with bounded, deterministic public projection."""
 from __future__ import annotations
+from true_rl_agent.evaluation.process_report import format_number, select_whole_claims
 
 from collections import Counter, defaultdict
 import hashlib
@@ -56,7 +57,8 @@ def aggregate_push(records: list[dict]) -> dict:
         scalars = {}
         for key in first["pose"]:
             measured = [v["pose"][key]["mean"] for v in selected if v["pose"][key]["mean"] is not None]
-            scalars[key] = {"episode_means": distribution(measured), "valid_episodes": len(measured),
+            scalars[key] = {"label": first["pose"][key]["label"], "unit": first["pose"][key]["unit"],
+                            "episode_means": distribution(measured), "valid_episodes": len(measured),
                             "unknown_episodes": n - len(measured), "total_episodes": n,
                             "valid_samples": sum(v["pose"][key]["valid_samples"] for v in selected),
                             "unknown_samples": sum(v["pose"][key]["unknown_samples"] for v in selected)}
@@ -91,10 +93,16 @@ def select_examples(records: list[dict]) -> dict:
     for r in records:
         v = r["value"]
         bins[(v["stratum"], v["outcome_class"])].append(r)
-    def key(r):
+    def key(r, center):
         v = r["value"]
-        return hashlib.sha256(f"p2b1|{v['source']['manifest_sha256']}|{v['run_index']}|{v['env_index']}".encode()).hexdigest()
-    selected = [min(group, key=key)["record_id"] for _, group in sorted(bins.items())]
+        speed = v["pose"]["planar_speed_mps"]["mean"]
+        return (speed is None, abs(speed-center) if speed is not None and center is not None else 0,
+                v["run_index"], v["env_index"])
+    selected = []
+    for _, group in sorted(bins.items()):
+        center = distribution([r["value"]["pose"]["planar_speed_mps"]["mean"] for r in group
+                               if r["value"]["pose"]["planar_speed_mps"]["mean"] is not None])["median"]
+        selected.append(min(group, key=lambda r:key(r,center))["record_id"])
     witnesses = {}
     ordered = sorted(records, key=lambda r: (r["value"]["run_index"], r["value"]["env_index"]))
     for status in ("recovered", "full_window_without_dwell", "terminal_before_window_end"):
@@ -102,12 +110,12 @@ def select_examples(records: list[dict]) -> dict:
             for r in ordered for recovery in r["value"]["recoveries"] if recovery["status"] == status), None)
     witnesses["final_unstable_after_recovery"] = next(({"record_id": r["record_id"]}
         for r in ordered if r["value"]["final_unstable_after_recovery"] is True), None)
-    return {"rule": "sha256(p2b1|manifest_sha|run|env)_minimum_per_stratum_outcome",
+    return {"rule": "nearest_median_root_speed_per_stratum_outcome_then_run_env",
             "representatives": selected, "witnesses": witnesses}
 
 
 def _fmt(value) -> str:
-    return "未知" if value is None else format(value, ".6g")
+    return format_number(value, 6)
 
 
 def _render_claims(domain: dict, facets: dict, examples: list[dict], selection: dict, parameters: dict, timing: dict) -> list[dict]:
@@ -124,8 +132,8 @@ def _render_claims(domain: dict, facets: dict, examples: list[dict], selection: 
     anchor = "最后一个计划脉冲结束后，完整且验证的序列" if domain["mechanism"] == "world_planar_external_force" else "每次已验证速度写入事件后"
     claim("protocol", f"控制记录dt={_fmt(timing['step_dt_s'])}s；{anchor}的恢复窗为其后{timing['recovery_window_steps']}格，连续≥{timing['required_dwell_steps']}格满足五条件才锁存恢复：速度模≤{_fmt(parameters['recovery_velocity_mps'])}m/s、角速度模≤{_fmt(parameters['recovery_angular_velocity_radps'])}rad/s、|roll|与|pitch|≤{_fmt(parameters['recovery_tilt_rad'])}rad、高度≥{_fmt(parameters['recovery_height_m'])}m。终点稳定与任务结局另判。", refs)
     for key in ("planar_speed_mps", "xy_drift_m", "height_m"):
-        _, label, unit = ROOT_METRICS[key]
         m = all_["pose"][key]
+        label, unit = m["label"], m["unit"]
         claim(key, f"全程{label}：先逐回合取有效记录均值，再回合等权平均为{_fmt(m['episode_means']['mean'])}{unit}；回合均值中位数{_fmt(m['episode_means']['median'])}{unit}，有效{m['valid_episodes']}/{n}回合，未知{m['unknown_episodes']}回合；有效/未知记录{m['valid_samples']}/{m['unknown_samples']}。", refs)
     s = all_["stability"]
     claim("stable", f"五条件稳定记录占比：回合等权平均{_fmt(s['episode_equal']['mean'])}（有效{s['valid_episodes']}/{n}回合，未知{s['unknown_episodes']}）；另按记录格池化为{s['pooled_true_samples']}/{s['pooled_known_samples']}={_fmt(s['pooled_fraction'])}，未知{s['unknown_samples']}格。两种加权分别报告，稳定不等于任务成功。", refs)
@@ -209,21 +217,15 @@ def _project_bound_card(card: dict, max_bytes: int = MAX_PUBLIC_BYTES) -> dict:
     if type(max_bytes) is not int or not 0 < max_bytes <= MAX_PUBLIC_BYTES:
         raise ValueError("Push public byte budget must be in 1..12288")
     claims = card["claims"]
-    selected = [c for c in claims if c["mandatory"]]
-    def output():
+    def output(ids):
+        selected = set(ids)
         return {"schema_version": PUBLIC_VERSION, "domain": card["domain"],
-                "card_id": card["card_id"], "template_version": TEMPLATE_VERSION,
-                "claims": [{"id": c["id"], "text": c["text"]} for c in selected],
-                "omitted_claim_count": len(claims) - len(selected), "delivery_status": "offline_projection_only"}
-    if len(json_bytes(output())) > max_bytes:
-        raise ValueError("mandatory Push claims exceed public budget")
-    for claim in claims:
-        if claim["mandatory"]:
-            continue
-        selected.append(claim)
-        if len(json_bytes(output())) > max_bytes:
-            selected.pop()
-    return output()
+            "card_id": card["card_id"], "template_version": TEMPLATE_VERSION,
+            "claims": [{"id":c["id"],"text":c["text"]} for c in claims if c["id"] in selected],
+            "omitted_claim_count":len(claims)-len(selected), "delivery_status":"offline_projection_only"}
+    public, _, _ = select_whole_claims([c["id"] for c in claims if c["mandatory"]],
+        [c["id"] for c in claims if not c["mandatory"]],output,max_bytes=max_bytes)
+    return public
 
 
 def _card_core(records: list[dict], source_id: str) -> dict:

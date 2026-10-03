@@ -159,7 +159,7 @@ class StairNumericDevReplayTests(unittest.TestCase):
                 replay._parser().parse_args(self._args(self.root / "bad-parse") + flags)
             self.assertEqual(error.exception.code, 2)
 
-    def test_feedback_cli_reaches_real_composition_finalizer_and_keeps_legacy_defaults(self):
+    def test_feedback_cli_reaches_real_composition_with_one_profile_default(self):
         compositions = []
         resolve = StairClimbingCompositionProvider.resolve
 
@@ -172,18 +172,18 @@ class StairNumericDevReplayTests(unittest.TestCase):
                 patch.object(replay, "discover_nvidia_gpu_inventory", side_effect=AssertionError("GPU discovery")), \
                 patch.object(IsaacLabRslRlBackendAdapter, "resolve_session_execution_environment", side_effect=AssertionError("probe")), \
                 patch.object(SubprocessRunner, "run_eval_phase", side_effect=AssertionError("launch")):
-            for name, flags in [("legacy", []), ("explicit-legacy", ["--behavior-feedback-profile", "legacy_process_v1"]),
-                                ("trajectory", ["--behavior-feedback-profile", "trajectory_numeric_v1", "--trajectory-report-max-bytes", "8000"])]:
+            for name, flags in [("legacy", []), ("explicit-legacy", ["--behavior-feedback-profile", "trajectory_numeric_v2"]),
+                                ("trajectory", ["--behavior-feedback-profile", "trajectory_numeric_v2", "--trajectory-report-max-bytes", "8000"])]:
                 self.assertEqual(replay.main(self._args(self.root / name, capture="on") + flags), 0)
         legacy, explicit, trajectory = compositions
         self.assertEqual(legacy.task_defaults, explicit.task_defaults)
-        self.assertNotIn("behavior_feedback_profile", legacy.task_defaults)
-        self.assertNotIn("trajectory_report_max_bytes", legacy.task_defaults)
-        for composition, profile, budget in [(legacy, "legacy_process_v1", 8192), (trajectory, "trajectory_numeric_v1", 8000)]:
+        self.assertEqual(legacy.task_defaults["behavior_feedback_profile"], "trajectory_numeric_v2")
+        self.assertEqual(legacy.task_defaults["trajectory_report_max_bytes"], 10240)
+        for composition, profile, budget in [(legacy, "trajectory_numeric_v2", 10240), (trajectory, "trajectory_numeric_v2", 8000)]:
             keywords = composition.runner.eval_phase_summary_finalizer.keywords
             self.assertEqual(keywords["behavior_feedback_profile"], profile)
             self.assertEqual(keywords["trajectory_report_max_bytes"], budget)
-        self.assertEqual(trajectory.task_defaults["behavior_feedback_profile"], "trajectory_numeric_v1")
+        self.assertEqual(trajectory.task_defaults["behavior_feedback_profile"], "trajectory_numeric_v2")
         self.assertEqual(legacy.task_plugin.config.formal_training_binding(), trajectory.task_plugin.config.formal_training_binding())
         self.assertEqual(legacy.task_plugin.config.evaluation_protocol(), trajectory.task_plugin.config.evaluation_protocol())
 
@@ -192,8 +192,8 @@ class StairNumericDevReplayTests(unittest.TestCase):
                 patch.object(IsaacLabRslRlBackendAdapter, "resolve_session_execution_environment", side_effect=AssertionError("probe")) as probe, \
                 patch.object(SubprocessRunner, "run_eval_phase", side_effect=AssertionError("launch")) as launch, \
                 patch.object(replay.traceback, "print_exc"):
-            for profile, budget in [("trajectory_numeric_v1", 0), ("trajectory_numeric_v1", -1),
-                                    ("trajectory_numeric_v1", 8193), ("legacy_process_v1", 8000)]:
+            for profile, budget in [("trajectory_numeric_v2", 0), ("trajectory_numeric_v2", -1),
+                                    ("trajectory_numeric_v2", 10241)]:
                 output = self.root / f"invalid-{profile}-{budget}"
                 with self.subTest(profile=profile, budget=budget):
                     self.assertEqual(replay.main(self._args(output, mode="run") +
@@ -214,7 +214,7 @@ class StairNumericDevReplayTests(unittest.TestCase):
         self.assertIn("--trajectory-report-max-bytes", help_result.stdout)
         output = self.root / "actual-cli"
         result = subprocess.run([*command, *self._args(output, capture="on"),
-            "--behavior-feedback-profile", "trajectory_numeric_v1", "--trajectory-report-max-bytes", "8192"],
+            "--behavior-feedback-profile", "trajectory_numeric_v2", "--trajectory-report-max-bytes", "8192"],
             capture_output=True, text=True, cwd=ROOT)
         self.assertEqual(result.returncode, 0, result.stderr)
         report = json.loads((output / "result.json").read_text())

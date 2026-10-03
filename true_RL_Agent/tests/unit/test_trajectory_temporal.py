@@ -17,14 +17,8 @@ from true_rl_agent.evaluation.trajectory_translation.contracts import (
     stable_id,
 )
 from true_rl_agent.evaluation.trajectory_translation.temporal import (
-    before_ranges,
-    compose_track,
-    conjoin_same_entity,
     contiguous_slices,
     interval_rows,
-    not_observed,
-    pair_onsets,
-    relate_states,
 )
 
 
@@ -169,334 +163,29 @@ class TemporalEvidenceTests(unittest.TestCase):
         self.assertAlmostEqual(right["sample_cell_duration_proxy_s"], 0.06)
         self.assertTrue(all(r["physical_continuity"] == "unknown" for r in rows))
 
-    def test_same_occupancy_different_order_has_different_runs_and_events(self):
-        sample = episode()
-        blocked, alternating = track([0, 0, 1, 1]), track([0, 1, 0, 1])
-        self.assertEqual(int((blocked.values == 1).sum()), int((alternating.values == 1).sum()))
-        a, b = compose_track(sample, blocked), compose_track(sample, alternating)
-        self.assertEqual(sum(r["record_type"] == "event" for r in a), 1)
-        self.assertEqual(sum(r["record_type"] == "event" for r in b), 3)
-        self.assertEqual([r["value"]["sample_count"] for r in a if r["record_type"] == "state_interval"], [2, 2])
-        self.assertEqual([r["value"]["sample_count"] for r in b if r["record_type"] == "state_interval"], [1, 1, 1, 1])
 
-    def test_one_sample_contact_interrupts_absence_without_debounce(self):
-        sample = episode((1, 2, 3, 4, 5))
-        markers = track([0, 0, 1, 0, 0])
-        self.assertEqual(not_observed(sample, markers, 0, 5), "false")
-        records = compose_track(sample, markers)
-        events = [r["value"] for r in records if r["record_type"] == "event"]
-        self.assertEqual([(e["step"], e["before"], e["after"]) for e in events], [(3, False, True), (4, True, False)])
-        self.assertTrue(all(e["physical_event_range_s"] is None for e in events))
-        off = [r["value"] for r in records if r["record_type"] == "state_interval" and r["value"]["state"] == "false"]
-        self.assertEqual([r["steps_half_open"] for r in off], [[1, 3], [4, 6]])
 
-    def test_unknown_and_step_gap_split_runs_without_invented_transitions(self):
-        sample = episode((1, 2, 3, 5, 6))
-        evidence = track([1, -1, 1, 1, 0])
-        rows = interval_rows(sample, evidence)
-        self.assertEqual([r["state"] for r in rows], ["true", "unknown", "true", "true", "false"])
-        self.assertEqual(rows[0]["right_boundary"], "unknown_sample")
-        self.assertEqual(rows[2]["left_boundary"], "unknown_sample")
-        self.assertEqual(rows[2]["right_boundary"], "step_gap")
-        self.assertEqual(rows[3]["left_boundary"], "step_gap")
-        self.assertIsNone(rows[2]["onset_range_s"])
-        self.assertIsNone(rows[2]["end_range_s"])
-        self.assertIsNone(rows[3]["onset_range_s"])
-        events = [r["value"]["step"] for r in compose_track(sample, evidence) if r["record_type"] == "event"]
-        self.assertEqual(events, [6])
-        self.assertEqual(contiguous_slices(sample.steps, evidence.values >= 0), [(0, 1), (2, 3), (3, 5)])
 
-    def test_absence_is_three_valued_and_counterevidence_is_decisive(self):
-        sample = episode()
-        self.assertEqual(not_observed(sample, track([0, 0, 0, 0]), 0, 4), "true")
-        self.assertEqual(not_observed(sample, track([0, -1, 0, 0]), 0, 4), "unknown")
-        self.assertEqual(not_observed(sample, track([0, -1, 1, 0]), 0, 4), "false")
-        self.assertEqual(not_observed(episode((1, 2, 4, 5)), track([0, 0, 0, 0]), 0, 4), "unknown")
-        self.assertEqual(not_observed(episode((1, 2, 4, 5)), track([0, 0, 0, 0]), 0, 2), "true")
-        with self.assertRaises(ValueError):
-            not_observed(sample, track([0, 0, 0, 0]), 0, 5)
 
-    def test_same_foot_and_alternating_feet_cannot_be_merged(self):
-        sample = episode()
-        alternating_left = track([1, 0, 1, 0], entity=FL, key="off")
-        alternating_right = track([0, 1, 0, 1], entity=FR, key="off")
-        with self.assertRaisesRegex(ValueError, "identical entities"):
-            conjoin_same_entity(alternating_left, alternating_right, "continuous_off")
-        left_true = [r for r in interval_rows(sample, alternating_left) if r["state"] == "true"]
-        self.assertEqual([r["sample_count"] for r in left_true], [1, 1])
-        same_foot = interval_rows(sample, track([1, 1, 1, 1], entity=FL, key="off"))
-        self.assertEqual(same_foot[0]["sample_count"], 4)
-        self.assertTrue(same_foot[0]["left_censored"] and same_foot[0]["right_censored"])
 
-    def test_conjunction_uses_three_valued_logic_and_preserves_operands(self):
-        left = track([1, 0, -1, 1], key="off")
-        right = track([1, 1, 0, -1], key="low_speed", channels=("velocity",))
-        result = conjoin_same_entity(left, right, "low_speed_off")
-        np.testing.assert_array_equal(result.values, [1, 0, 0, -1])
-        self.assertEqual(result.entity_ids, (FL,))
-        self.assertEqual(result.channels, ("force", "velocity"))
-        self.assertEqual(result.config["operands"], [left.config, right.config])
 
-    def test_event_brackets_overlap_or_touch_without_definite_before(self):
-        cases = (
-            ([0.02, 0.04], [0.06, 0.08], "true"),
-            ([0.06, 0.08], [0.02, 0.04], "false"),
-            ([0.02, 0.04], [0.02, 0.04], "unknown"),
-            ([0.02, 0.04], [0.04, 0.06], "unknown"),
-            ([0.02, 0.06], [0.04, 0.08], "unknown"),
-            (None, [0.04, 0.06], "unknown"),
-        )
-        for left, right, expected in cases:
-            with self.subTest(left=left, right=right):
-                self.assertEqual(before_ranges(left, right), expected)
 
-    def test_conjunction_retains_window_operands_for_state_and_transition(self):
-        sample = episode(tuple(range(1, 33)))
-        window = track([-1] * 25 + [1] * 7, config={"lookback_samples": 25})
-        other = track([1] * 25 + [0] + [1] * 6, channels=("velocity",))
-        combined = conjoin_same_entity(window, other, "window_and_marker")
-        nested = conjoin_same_entity(combined, track([1] * 32), "nested")
-        records = compose_track(sample, nested)
-        active = next(r for r in records if r["record_type"] == "state_interval"
-                      and r["value"]["state"] == "true")
-        event = next(r for r in records if r["record_type"] == "event")
-        self.assertEqual(active["value"]["steps_half_open"], [27, 33])
-        # The event compares step 26 with 27: the earlier window needs step 1.
-        self.assertEqual(active["evidence_ref"]["steps_half_open"], [1, 33])
-        self.assertEqual(event["value"]["step"], 27)
-        self.assertEqual(event["evidence_ref"]["steps_half_open"], [1, 28])
 
-    def test_nearest_onset_equal_distance_chooses_earlier_without_deleting_events(self):
-        sample = episode(tuple(range(1, 8)))
-        left = track([0, 0, 0, 1, 0, 0, 0], entity=FL)
-        right = track([0, 1, 0, 0, 0, 1, 0], entity=FR)
-        pairs = pair_onsets(sample, left, right)
-        self.assertEqual(len(pairs), 1)
-        value = pairs[0]["value"]
-        self.assertEqual((value["reference_step"], value["target_step"]), (4, 2))
-        self.assertAlmostEqual(value["delta_confirmation_s"], -0.04)
-        np.testing.assert_allclose(value["delta_range_s"], [-0.06, -0.02])
-        self.assertEqual(value["physical_order"], "unknown")
-        self.assertEqual(pairs[0]["entity_ids"], [FL, FR])
-        right_events = [r["value"]["step"] for r in compose_track(sample, right)
-                        if r["record_type"] == "event" and r["value"]["after"]]
-        self.assertEqual(right_events, [2, 6])
 
-    def test_onset_pairing_can_reuse_target_and_keep_unpaired_reference(self):
-        sample = episode(tuple(range(1, 8)))
-        left = track([0, 1, 0, 1, 0, 0, 0], entity=FL)
-        right = track([0, 0, 0, 0, 0, 1, 0], entity=FR)
-        paired = pair_onsets(sample, left, right)
-        self.assertEqual([(r["value"]["reference_step"], r["value"]["target_step"]) for r in paired], [(2, 6), (4, 6)])
-        self.assertEqual(len({r["record_id"] for r in paired}), 2)
-        unpaired = pair_onsets(sample, left, track([0] * 7, entity=FR))
-        self.assertEqual(len(unpaired), 2)
-        for item in unpaired:
-            value = item["value"]
-            self.assertIsNone(value["target_step"])
-            self.assertIsNone(value["delta_range_s"])
-            self.assertEqual(value["before"], "unknown")
-            self.assertEqual(value["status"], "unpaired_no_target_in_joint_coverage")
 
-    def test_onset_pairing_does_not_cross_unknown_or_missing_steps(self):
-        for sample, left_values, right_values in (
-            (episode((1, 2, 3, 4, 5)), [0, 1, 0, 0, 0], [0, 0, -1, 0, 1]),
-            (episode((1, 2, 4, 5)), [0, 1, 0, 0], [0, 0, 0, 1]),
-        ):
-            with self.subTest(steps=sample.steps.tolist()):
-                pairs = pair_onsets(sample, track(left_values, entity=FL), track(right_values, entity=FR))
-                self.assertEqual(len(pairs), 1)
-                self.assertEqual(pairs[0]["value"]["reference_step"], 2)
-                self.assertIsNone(pairs[0]["value"]["target_step"])
 
-    def test_pair_reference_covers_excluded_earlier_tie_candidate(self):
-        sample = episode(tuple(range(1, 8)))
-        left = track([0, 0, 0, 1, 0, 0, 0], entity=FL)
-        right = track([0, 0, 0, 0, 0, 1, 0], entity=FR)
-        original = pair_onsets(sample, left, right)[0]
-        changed = track([0, 1, 0, 0, 0, 1, 0], entity=FR)
-        modified = pair_onsets(sample, left, changed)[0]
-        # The old [3,7) reference was identical, yet target 6 became target 2.
-        np.testing.assert_array_equal(right.values[2:6], changed.values[2:6])
-        self.assertEqual(original["value"]["target_step"], 6)
-        self.assertEqual(modified["value"]["target_step"], 2)
-        self.assertEqual(original["evidence_ref"]["steps_half_open"], [1, 8])
-        self.assertEqual(original["value"]["search_island"]["steps_half_open"], [1, 8])
-        self.assertEqual(original["value"]["candidate_count"], 1)
-        self.assertEqual(modified["value"]["candidate_count"], 2)
-        further = track([0, 1, 0, 0, 0, 1, 0], entity=FR)
-        winner = pair_onsets(sample, track([0, 1, 0, 0, 0, 0, 0]), further)[0]
-        no_later = pair_onsets(sample, track([0, 1, 0, 0, 0, 0, 0]),
-                               track([0, 1, 0, 0, 0, 0, 0], entity=FR))[0]
-        self.assertEqual(winner["value"]["target_step"], no_later["value"]["target_step"])
-        self.assertEqual((winner["value"]["candidate_count"], no_later["value"]["candidate_count"]), (2, 1))
-        self.assertEqual(no_later["evidence_ref"]["steps_half_open"], [1, 8])
 
-    def test_unpaired_reference_covers_entire_negative_search(self):
-        sample = episode(tuple(range(1, 8)))
-        left = track([0, 1, 0, 0, 0, 0, 0], entity=FL)
-        right = track([0] * 7, entity=FR)
-        original = pair_onsets(sample, left, right)[0]
-        changed = pair_onsets(sample, left, track([0] * 6 + [1], entity=FR))[0]
-        self.assertIsNone(original["value"]["target_step"])
-        self.assertEqual(changed["value"]["target_step"], 7)
-        self.assertEqual(original["evidence_ref"]["steps_half_open"], [1, 8])
-        self.assertEqual(original["value"]["candidate_count"], 0)
 
-    def test_pair_search_includes_unknown_boundary_rows_but_not_other_islands(self):
-        sample = episode(tuple(range(1, 13)))
-        left = track([0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], entity=FL)
-        right = track([0, 1, -1, 0, 0, 0, 0, -1, 0, 1, 0, 0], entity=FR)
-        original = pair_onsets(sample, left, right)[0]
-        self.assertEqual(original["evidence_ref"]["steps_half_open"], [3, 9])
-        self.assertEqual(original["value"]["search_island"]["steps_half_open"], [4, 8])
-        self.assertIsNone(original["value"]["target_step"])
-        opened = right.values.copy()
-        opened[2] = 0
-        self.assertEqual(pair_onsets(sample, left, track(opened, entity=FR))[0]["value"]["target_step"], 2)
-        opened = right.values.copy()
-        opened[7] = 0
-        self.assertEqual(pair_onsets(sample, left, track(opened, entity=FR))[0]["value"]["target_step"], 10)
-        # Changing any unreferenced predicate row cannot alter the ref-step-5 result.
-        for side in ("left", "right"):
-            for index in (0, 1, 8, 9, 10, 11):
-                for value in (-1, 0, 1):
-                    operands = {"left": left, "right": right}
-                    values = operands[side].values.copy()
-                    values[index] = value
-                    operands[side] = track(values, entity=FL if side == "left" else FR)
-                    result = next(r for r in pair_onsets(sample, **operands)
-                                  if r["value"]["reference_step"] == 5)
-                    self.assertEqual(result["value"], original["value"])
 
-    def test_left_track_unknown_also_bounds_candidate_search(self):
-        sample = episode(tuple(range(1, 9)))
-        left = track([0, 0, -1, 0, 1, 0, 0, 0], entity=FL)
-        right = track([0, 1, 0, 0, 0, 0, 0, 0], entity=FR)
-        result = pair_onsets(sample, left, right)[0]
-        self.assertIsNone(result["value"]["target_step"])
-        self.assertEqual(result["evidence_ref"]["steps_half_open"], [3, 9])
-        opened = pair_onsets(sample, track([0, 0, 0, 0, 1, 0, 0, 0], entity=FL), right)[0]
-        self.assertEqual(opened["value"]["target_step"], 2)
 
-    def test_pair_search_gap_reference_includes_both_sides_of_gap(self):
-        sample = episode((1, 2, 3, 7, 8, 9, 10))
-        pairs = pair_onsets(sample, track([0, 0, 0, 0, 1, 0, 0], entity=FL),
-                            track([0, 1, 0, 0, 0, 0, 1], entity=FR))
-        self.assertEqual(pairs[0]["value"]["target_step"], 10)
-        self.assertEqual(pairs[0]["value"]["search_island"]["steps_half_open"], [7, 11])
-        self.assertEqual(pairs[0]["evidence_ref"]["steps_half_open"], [3, 11])
 
-    def test_pair_search_covers_real_window_dependencies_for_either_operand(self):
-        from true_rl_agent.evaluation.trajectory_translation.measurement import low_progress_track
-        sample = episode(tuple(range(1, 29)), entities={"root": (FL,)},
-                         task={"progress_direction_world": [1.0, 0.0, 0.0]})
-        progress = np.array([0.0] + [0.02] * 27)
-        window = low_progress_track(sample, progress)
-        marker = track([0] * 26 + [1, 0], entity=FR)
-        for left, right in ((window, marker), (marker, window)):
-            result = pair_onsets(sample, left, right)[0]
-            self.assertEqual(result["value"]["reference_step"], 27)
-            self.assertEqual(result["value"]["target_step"], 27)
-            self.assertEqual(result["evidence_ref"]["steps_half_open"], [1, 29])
-            self.assertEqual(result["value"]["search_island"]["steps_half_open"], [26, 29])
-        changed_progress = progress.copy()
-        changed_progress[0] = 0.02
-        # Raw rows in the old reference [26,28) remain identical. Step 1 still
-        # changes whether the window track has an observed onset at step 27.
-        np.testing.assert_array_equal(progress[25:27], changed_progress[25:27])
-        changed_window = low_progress_track(sample, changed_progress)
-        self.assertIsNone(pair_onsets(sample, marker, changed_window)[0]["value"]["target_step"])
 
-    def test_unpaired_without_joint_reference_coverage_keeps_local_unknown_proof(self):
-        sample = episode(tuple(range(1, 7)))
-        left = track([0, 0, 0, 1, 0, 0], entity=FL)
-        for unknown_at in (2, 3):
-            values = np.zeros(6, dtype=np.int8)
-            values[unknown_at] = -1
-            right = track(values, entity=FR, config={"lookback_samples": 2})
-            result = pair_onsets(sample, left, right)[0]
-            self.assertIsNone(result["value"]["target_step"])
-            self.assertIsNone(result["value"]["search_island"])
-            self.assertEqual(result["evidence_ref"]["steps_half_open"], [1, 5])
 
-    def test_same_step_onsets_do_not_claim_physical_or_strict_readout_order(self):
-        sample = episode((1, 2, 3))
-        pair = pair_onsets(sample, track([0, 1, 0], entity=FL), track([0, 1, 0], entity=FR))[0]
-        self.assertEqual(pair["value"]["delta_confirmation_s"], 0)
-        self.assertEqual(pair["value"]["before"], "unknown")
-        self.assertEqual(pair["value"]["physical_order"], "unknown")
-        np.testing.assert_allclose(pair["value"]["delta_range_s"], [-0.02, 0.02])
 
-    def test_two_sample_state_records_have_unique_ids_despite_shared_brackets(self):
-        sample = episode((1, 2))
-        records = compose_track(sample, track([0, 1]))
-        self.assertEqual(len(records), 3)
-        self.assertEqual(len({r["record_id"] for r in records}), 3)
-        states = [r for r in records if r["record_type"] == "state_interval"]
-        self.assertEqual([r["value"]["steps_half_open"] for r in states], [[1, 2], [2, 3]])
-        self.assertEqual([r["evidence_ref"]["steps_half_open"] for r in states], [[1, 3], [1, 3]])
-        self.assertEqual(records, compose_track(sample, track([0, 1])))
 
-    def test_track_length_mismatch_is_rejected_by_public_operators(self):
-        sample = episode()
-        short = track([0, 0])
-        with self.assertRaises(ValueError):
-            interval_rows(sample, short)
-        with self.assertRaises(ValueError):
-            not_observed(sample, short, 0, 4)
-        with self.assertRaises(ValueError):
-            pair_onsets(sample, short, track([0, 0], entity=FR))
 
-    def test_same_named_tracks_from_another_source_cannot_be_composed(self):
-        sample = episode()
-        other = episode(source={**sample.source, "manifest_sha256": "f" * 64})
-        local = track([0, 1, 1, 0], episode_id=sample.episode_id)
-        foreign = track([0, 1, 1, 0], episode_id=other.episode_id)
-        operations = (
-            lambda: interval_rows(sample, foreign),
-            lambda: compose_track(sample, foreign),
-            lambda: not_observed(sample, foreign, 0, 4),
-            lambda: pair_onsets(sample, local, foreign),
-            lambda: conjoin_same_entity(local, foreign, "same_foot"),
-        )
-        for operation in operations:
-            with self.subTest(operation=operation), self.assertRaises(ValueError):
-                operation()
 
-    def test_state_relations_keep_operand_ids_and_readout_limits(self):
-        sample = episode(tuple(range(1, 7)))
-        def active(values, key):
-            return next(r for r in compose_track(sample, track(values, key=key))
-                        if r["record_type"] == "state_interval" and r["value"]["state"] == "true")
-        earlier = active([0, 1, 1, 0, 0, 0], "earlier")
-        later = active([0, 0, 0, 1, 1, 0], "later")
-        outer = active([0, 1, 1, 1, 1, 0], "outer")
-        same_boundary = active([0, 1, 0, 0, 0, 0], "same_boundary")
-        first = relate_states(sample, earlier, later, "onset_before")
-        self.assertEqual(first["value"]["status"], "true")
-        self.assertEqual(first["value"]["operand_record_ids"], [earlier["record_id"], later["record_id"]])
-        self.assertEqual(first["value"]["physical_relation"], "unknown")
-        self.assertEqual(relate_states(sample, earlier, same_boundary, "onset_before")["value"]["status"], "unknown")
-        self.assertEqual(relate_states(sample, earlier, later, "overlap")["value"]["status"], "false")
-        self.assertEqual(relate_states(sample, earlier, outer, "overlap")["value"]["status"], "true")
-        self.assertEqual(relate_states(sample, earlier, outer, "during_observed_records")["value"]["status"], "true")
-        self.assertEqual(relate_states(sample, outer, earlier, "during_observed_records")["value"]["status"], "false")
-        with self.assertRaisesRegex(ValueError, "unsupported"):
-            relate_states(sample, earlier, later, "causes")
 
-    def test_state_relations_reject_foreign_episode_nonstate_or_false_interval(self):
-        sample = episode()
-        records = compose_track(sample, track([0, 1, 1, 0]))
-        active = next(r for r in records if r["record_type"] == "state_interval" and r["value"]["state"] == "true")
-        inactive = next(r for r in records if r["record_type"] == "state_interval" and r["value"]["state"] == "false")
-        event = next(r for r in records if r["record_type"] == "event")
-        other = episode(source={**sample.source, "manifest_sha256": "f" * 64})
-        foreign = next(r for r in compose_track(other, track([0, 1, 1, 0], episode_id=other.episode_id))
-                       if r["record_type"] == "state_interval" and r["value"]["state"] == "true")
-        for invalid in (inactive, event, foreign):
-            with self.subTest(record_type=invalid["record_type"]), self.assertRaises(ValueError):
-                relate_states(sample, active, invalid, "overlap")
 
 
 if __name__ == "__main__":

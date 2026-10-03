@@ -17,7 +17,8 @@ def measure_joint_limits(episode: NumericEpisode, bounds: dict, *, q_unit: str, 
     if q_unit != "rad":
         raise ValueError("joint q must use qualified rad coordinates")
     names = episode.entities["joints"]
-    q = np.asarray(episode.arrays.get("joint_pos", np.full((len(episode.steps), len(names)), np.nan)), dtype=float)
+    raw = np.asarray(episode.arrays.get("joint_pos", np.full((len(episode.steps), len(names)), np.nan)))
+    q = raw.astype(float)
     if q.shape != (len(episode.steps), len(names)):
         raise ValueError("joint_pos shape differs from named joint columns")
     records = []
@@ -36,7 +37,9 @@ def measure_joint_limits(episode: NumericEpisode, bounds: dict, *, q_unit: str, 
         value = {"status": "measured" if known else "unknown",
                  "unknown_reason": None if known else ("no_finite_q" if qualified else "unproven_coordinate_mapping"),
                  "counts": {"total_rows": total, "finite_rows": known, "unknown_rows": total-known,
-                            "inside_edge_band_rows": 0, "outside_rows": 0},
+                            "inside_edge_band_rows": 0, "outside_rows": 0,
+                            "lower_edge_rows": 0, "upper_edge_rows": 0,
+                            "lower_outside_rows": 0, "upper_outside_rows": 0, "roundoff_boundary_rows": 0},
                  "missing_steps": int(episode.steps[-1]-episode.steps[0]+1-total),
                  "nominal_bounds_rad": [lower, upper] if qualified else None,
                  "q_range_rad": None, "position_fraction_range": None, "range_occupancy_fraction": None,
@@ -50,15 +53,25 @@ def measure_joint_limits(episode: NumericEpisode, bounds: dict, *, q_unit: str, 
             margin = np.minimum(low_distance, high_distance)
             position = low_distance/width
             band = CONFIG["inside_edge_band_fraction"]*width
-            near = (values >= lower) & (values <= upper) & ((values <= lower+band) | (values >= upper-band))
-            outside = margin < 0
+            # Only representational error at the two exact nominal boundaries.
+            lo_tol = abs(float(np.asarray(lower, dtype=raw.dtype))-lower)
+            hi_tol = abs(float(np.asarray(upper, dtype=raw.dtype))-upper)
+            inside = (values >= lower-lo_tol) & (values <= upper+hi_tol)
+            lower_near = inside & (values <= lower+band)
+            upper_near = inside & (values >= upper-band)
+            near = lower_near | upper_near
+            outside = ~inside
             near_n, outside_n = int(near.sum()), int(outside.sum())
             value.update(q_range_rad=[float(values.min()), float(values.max())],
                          position_fraction_range=[float(position.min()), float(position.max())],
                          range_occupancy_fraction=float((values.max()-values.min())/width),
                          minimum_signed_margin_rad=float(margin.min()),
                          inside_edge_band_fraction=near_n/known, outside_fraction=outside_n/known)
-            value["counts"].update(inside_edge_band_rows=near_n, outside_rows=outside_n)
+            value["boundary_roundoff_tolerance_rad"] = [lo_tol, hi_tol]
+            value["counts"].update(inside_edge_band_rows=near_n, outside_rows=outside_n,
+                lower_edge_rows=int(lower_near.sum()), upper_edge_rows=int(upper_near.sum()),
+                lower_outside_rows=int((values < lower-lo_tol).sum()), upper_outside_rows=int((values > upper+hi_tol).sum()),
+                roundoff_boundary_rows=int(((margin < 0) & inside).sum()))
             value["sample_cell_seconds"].update(inside_edge_band=near_n*episode.dt_s, outside=outside_n*episode.dt_s)
             for label, index in (("q_min", int(values.argmin())), ("q_max", int(values.argmax())),
                                  ("minimum_margin", int(margin.argmin()))):

@@ -1,6 +1,7 @@
 """Prompt-visible Stair semantics derived only from validated public records."""
 
 from __future__ import annotations
+from .trajectory_production import PUBLIC_SCHEMA as TRAJECTORY_PUBLIC_SCHEMA, FULL_SCHEMA as TRAJECTORY_FULL_SCHEMA
 
 import copy
 import math
@@ -373,9 +374,14 @@ class StairClimbingPromptAdapter:
         if behavior is None and not safe_records:
             behavior = reference_behavior
         if behavior is not None:
-            if behavior["profile"].get("schema_version") in {"true_rl_agent.stair.behavior.public.v5", "true_rl_agent.stair.behavior.public.v6"}:
+            if _mapping(behavior.get("profile")).get("schema_version") in {TRAJECTORY_PUBLIC_SCHEMA}:
                 if behavior["profile"]["domain"]["task_protocol_hash"] != self.config.task_protocol_hash:
                     raise ValueError("Stair trajectory prompt task domain mismatch")
+            if _mapping(behavior.get("profile")).get("schema_version") == TRAJECTORY_PUBLIC_SCHEMA:
+                # Binding was checked above and remains in phase artifacts. The
+                # author needs the selected facts and source job, not digests.
+                behavior = {**behavior, "profile": {"kind": "numeric_behavior",
+                    "report": behavior["profile"]["report"]}}
             sections["public_feedback_summary"]["behavior"] = behavior
         sections = _compact_public_feedback_to_fit_task_sections(
             sections,
@@ -3135,9 +3141,11 @@ def _project_unified_prompt_generation(
     # Preserve the task-owned evidence before PublicContextBuilder sanitizes
     # history. The parent checkpoint remains independently bound by the ledger.
     parent = _mapping(generation.get("parent_public_dev"))
-    if isinstance(parent.get("behavior"), Mapping):
-        from true_rl_agent.tasks.stair_climbing.behavior import project_stair_behavior
-        projected["parent_public_dev"] = {"behavior": project_stair_behavior(parent["behavior"])}
+    if parent:
+        projected["parent_public_dev"] = {key:parent[key] for key in ("behavior_comparison","description_status") if key in parent}
+        if isinstance(parent.get("behavior"), Mapping):
+            from true_rl_agent.tasks.stair_climbing.behavior import project_stair_behavior
+            projected["parent_public_dev"]["behavior"] = project_stair_behavior(parent["behavior"])
     best = _mapping(generation.get("parent_current_best"))
     if best.get("checkpoint_hash"):
         projected["parent_current_best"] = {"checkpoint_hash": best["checkpoint_hash"]}
@@ -3250,7 +3258,7 @@ def _validated_unified_prompt_feedback(
     expected = build_unified_stair_prompt_feedback(
         suite=config.ordered_evaluation_suite,
         semantics=config.evaluation_semantics,
-        summary={key: value for key, value in public_dev.items() if key != "behavior"},
+        summary={key: value for key, value in public_dev.items() if key not in {"behavior", "behavior_comparison", "description_status"}},
         objective_family_mask=mask,
     )
     # Prompt feedback is a derived view, not a second scientific authority.
@@ -3277,7 +3285,7 @@ def _reference_behavior_feedback(public_context: Mapping[str, Any]) -> dict[str,
     if result.get("status") != "pass" or not isinstance(behavior, Mapping):
         return None
     profile = project_stair_behavior(behavior)
-    if profile.get("schema_version") in {"true_rl_agent.stair.behavior.public.v5", "true_rl_agent.stair.behavior.public.v6"}:
+    if profile.get("schema_version") in {TRAJECTORY_PUBLIC_SCHEMA}:
         from true_rl_agent.evaluation.binding import canonical_json_hash
         from .trajectory_report import require_trajectory_phase_binding
         if anchor.get("public_result_hash") != canonical_json_hash(result):
@@ -3310,20 +3318,20 @@ def _latest_behavior_feedback(public_records: Sequence[Mapping[str, Any]]) -> di
         if trials:
             _validate_trajectory_trial_reports(trials)
             trial = trials[-1]
-            if not isinstance(trial["public_dev"]["public_summary"].get("behavior"), Mapping):
+            phase_summary = trial["public_dev"]["public_summary"]
+            if not isinstance(phase_summary.get("behavior"), Mapping):
+                if "description_status" in phase_summary:
+                    return {"source_trial_id":trial.get("trial_id"),"source_lane_id":trial.get("lane_id"),
+                            "description_status":phase_summary["description_status"]}
                 return None
             behavior = project_stair_behavior(trial["public_dev"]["public_summary"]["behavior"])
             parent = _mapping(generation.get("parent_public_dev")).get("behavior")
             difference = compare_stair_behavior(parent, behavior,
-                expected_parent_checkpoint_hash=_mapping(generation.get("parent_current_best")).get("checkpoint_hash"))
-            if behavior.get("schema_version") == "true_rl_agent.stair.behavior.public.v4":
-                from .process_report import attach_stair_process_difference
-                behavior = attach_stair_process_difference(behavior, difference)
-                if "rows" in difference:
-                    difference = {**{key: value for key, value in difference.items() if key != "rows"},
-                                  "omitted_stratum_diff_rows": len(difference["rows"])}
+                expected_parent_checkpoint_hash=_mapping(generation.get("parent_current_best")).get("checkpoint_hash"),
+                parent_comparison=_mapping(generation.get("parent_public_dev")).get("behavior_comparison"),
+                candidate_comparison=phase_summary.get("behavior_comparison"))
             trajectory_selection = {}
-            if behavior.get("schema_version") in {"true_rl_agent.stair.behavior.public.v5", "true_rl_agent.stair.behavior.public.v6"}:
+            if behavior.get("schema_version") in {TRAJECTORY_PUBLIC_SCHEMA}:
                 formal = _mapping(generation.get("formal"))
                 trajectory_selection = {"source_evaluation_job_id": behavior["domain"]["evaluation_job_id"],
                     "accepted_best_relationship": ("accepted_in_this_generation" if formal.get("accepted") is True
@@ -3337,8 +3345,7 @@ def _latest_behavior_feedback(public_records: Sequence[Mapping[str, Any]]) -> di
         metrics = _mapping(_mapping(record.get("public_result")).get("metrics"))
         behavior = metrics.get("behavior", _mapping(metrics.get("public_dev")).get("behavior"))
         if isinstance(behavior, Mapping):
-            if behavior.get("schema_version") in {"true_rl_agent.stair.behavior.full.v4", "true_rl_agent.stair.behavior.public.v5",
-                "true_rl_agent.stair.behavior.full.v5", "true_rl_agent.stair.behavior.public.v6"}:
+            if behavior.get("schema_version") in {TRAJECTORY_FULL_SCHEMA, TRAJECTORY_PUBLIC_SCHEMA}:
                 raise ValueError("Stair trajectory round feedback requires an explicit phase or generation trial binding")
             return {"source_trial_id": record.get("round_id"), "omitted_measured_trials": 0,
                     "selection": "latest measured round with behavior", "profile": project_stair_behavior(behavior),
@@ -3354,8 +3361,7 @@ def _validate_trajectory_trial_reports(trials: Sequence[Mapping[str, Any]]) -> N
         if not isinstance(trial, Mapping):
             continue
         behavior = _mapping(_mapping(_mapping(trial.get("public_dev")).get("public_summary")).get("behavior"))
-        if behavior.get("schema_version") in {"true_rl_agent.stair.behavior.full.v4", "true_rl_agent.stair.behavior.public.v5",
-                "true_rl_agent.stair.behavior.full.v5", "true_rl_agent.stair.behavior.public.v6"}:
+        if behavior.get("schema_version") in {TRAJECTORY_FULL_SCHEMA, TRAJECTORY_PUBLIC_SCHEMA}:
             require_trajectory_trial_binding(project_stair_behavior(behavior), trial)
 
 
@@ -3379,7 +3385,7 @@ def _feedback_trial_records(
                 continue
             feedback = build_unified_stair_prompt_feedback(
                 suite=config.ordered_evaluation_suite, semantics=config.evaluation_semantics,
-                summary={key: value for key, value in summary.items() if key != "behavior"}, objective_family_mask=objective_family_mask_provider()
+                summary={key: value for key, value in summary.items() if key not in {"behavior", "behavior_comparison", "description_status"}}, objective_family_mask=objective_family_mask_provider()
                 if objective_family_mask_provider else None,
             )
             candidate = _mapping(trial.get("candidate"))

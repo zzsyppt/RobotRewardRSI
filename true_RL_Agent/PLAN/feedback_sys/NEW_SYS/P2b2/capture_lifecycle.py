@@ -29,7 +29,7 @@ from true_rl_agent.agent_core.ledger import load_ledger
 from true_rl_agent.agent_core.public_safety import assert_public_only_prompt_payload
 from true_rl_agent.evaluation.binding import canonical_json_hash
 from true_rl_agent.evaluation.phases import EvaluationPhase
-from true_rl_agent.evaluation.trajectory_translation.report import file_sha256
+from true_rl_agent.runner.numeric_evidence import file_sha256
 from true_rl_agent.json_contract import canonical_json_bytes
 from true_rl_agent.memory.context_builder import PublicContextBuilder
 from true_rl_agent.prompting.task_sections import validate_provider_task_prompt_receipt
@@ -178,7 +178,7 @@ def main():
     sources = [ROOT / s["manifest_path"] for s in group["sources"]]
     for path, expected in zip(sources, group["sources"]):
         assert file_sha256(path) == expected["manifest_sha256"]
-    capture = load_module("p2b2_http", ROOT / "PLAN/feedback_sys/NEW_SYS/P1c/capture_delivery.py").capture
+    capture = load_module("p2b2_http", ROOT / "PLAN/feedback_sys/NEW_SYS/B/capture_lifecycle.py").capture
     requests, config_rejections, frames = [], [], []
     last_prompt = {}
     original_build = PublicContextBuilder.build_prompt

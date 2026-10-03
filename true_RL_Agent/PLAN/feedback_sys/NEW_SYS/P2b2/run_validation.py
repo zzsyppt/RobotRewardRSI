@@ -44,7 +44,7 @@ if __name__ == "__main__":
     modules = sorted("tests.unit." + p.stem for p in (ROOT / "tests/unit").glob("test_push*.py"))
     modules += ["tests.unit." + name for name in (
         "test_stair_trajectory_pipeline", "test_stair_trajectory_report", "test_stair_numeric_dev_replay",
-        "test_stair_phased_evaluation", "test_stair_process_report", "test_gpu_binding_projection_contract",
+        "test_stair_phased_evaluation", "test_stair_trajectory_production", "test_gpu_binding_projection_contract",
         "test_phase_postprocessing", "test_composition")]
     modules += ["tests.integration.test_generation_session"]
     jobs = [("targeted", ["-m", "unittest", "tests.unit.test_push_trajectory_pipeline", "tests.unit.test_push_numeric_replay", "tests.unit.test_push_phased_evaluation", "-v"]),

@@ -11,7 +11,7 @@ from unittest.mock import patch
 from true_rl_agent.composition.base import TaskCompositionContext, resolve_task_composition
 from true_rl_agent.evaluation.binding import canonical_json_hash
 from true_rl_agent.evaluation.process_report import SENTENCE_SECTIONS, report_bytes
-from true_rl_agent.evaluation.trajectory_translation.report import file_sha256
+from true_rl_agent.runner.numeric_evidence import file_sha256
 from true_rl_agent.runner.numeric_evidence import NUMERIC_EVIDENCE_REF_SCHEMA, NumericEvidenceError, load_numeric_evidence_manifest
 from true_rl_agent.tasks.push_recovery.composition import PushRecoveryCompositionProvider
 from true_rl_agent.tasks.push_recovery.trajectory_pipeline import (
@@ -103,6 +103,32 @@ class PushTrajectoryPipelineTests(unittest.TestCase):
     def build(self, **kwargs):
         return build_phase_trajectory(kwargs.pop("seeds", self.seeds), expected_identity=kwargs.pop("identity", self.identity),
             context=self.context, expected_seed_count=3, output_dir=self.root / "phase", **kwargs)
+
+    def test_budget_degradation_keeps_push_results_and_visible_reason(self):
+        from types import SimpleNamespace
+        from true_rl_agent.evaluation.phases import EvaluationPhase
+        from true_rl_agent.tasks.push_recovery.phased_evaluation import finalize_push_eval_phase_summary
+        from true_rl_agent.tasks.push_recovery.prompt_adapter import _v2_dev_summary
+        identity = self.identity
+        spec = SimpleNamespace(phase=EvaluationPhase.PUBLIC_DEV,
+            job_identity=lambda:SimpleNamespace(to_public_dict=lambda:identity),
+            execution_checkpoint=lambda:SimpleNamespace(checksum=identity["checkpoint_hash"]),
+            evaluation_plan_hash=identity["evaluation_plan_hash"],
+            program_source_checksum=identity["program_source_checksum"],
+            training_binding_hash=identity["training_binding_hash"],
+            evaluation_binding=SimpleNamespace(to_public_dict=lambda:identity["evaluation_binding"]))
+        context = {**self.context, **{k:identity[k] for k in ("checkpoint_hash","evaluation_plan_hash","program_source_checksum","runtime_dynamics_hash")}}
+        summary = {"status":"postprocessing", "task_evidence":{"seed_summaries":self.seeds,"behavior_context":context},
+            "environment_source_preflight":{"runtime_dynamics_hash":identity["runtime_dynamics_hash"]},
+            "evaluation_execution_cost":{"splits":{"public_dev":{}}}}
+        final = finalize_push_eval_phase_summary(spec,summary,output_dir=self.root/"small",
+            behavior_feedback_profile=TRAJECTORY_PROFILE,trajectory_report_max_bytes=128,expected_seed_count=3)
+        self.assertEqual(final["status"],"pass")
+        evidence = final["task_evidence"]
+        self.assertEqual(evidence["seed_summaries"],self.seeds)
+        self.assertNotIn("behavior",evidence)
+        self.assertNotIn("trajectory_build",evidence)
+        self.assertEqual(_v2_dev_summary({"description_status":evidence["description_status"]})["description_status"]["reason"],"budget_exceeded")
 
     def test_complete_three_archive_group_and_public_replay_without_raw_io(self):
         full, public, receipt = self.build()

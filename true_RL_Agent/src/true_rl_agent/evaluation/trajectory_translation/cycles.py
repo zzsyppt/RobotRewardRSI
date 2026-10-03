@@ -130,75 +130,27 @@ def _foot(values: np.ndarray, episode: NumericEpisode, entity: str) -> dict:
             "scope": "local readout windows only; uncovered spans are not evidence of nonperiodic physical motion"}
 
 
-def _phase(reference: dict, target: dict, target_values: np.ndarray, episode: NumericEpisode) -> dict:
-    rv, tv = reference["value"], target["value"]
-    qualifying = {}
-    for window in tv["windows"]:
-        if not window["reasons"]:
-            for c in window["cycle_indices"]:
-                qualifying.setdefault(tv["complete_cycles"][c]["onset_steps"][0], (c, window["window_id"]))
-    rows = []
-    for window in rv["windows"]:
-        if window["reasons"]:
-            continue
-        refs = window["onset_steps"]
-        selections = [[o for o in tv["onsets"] if a <= o["step"] < b] for a, b in zip(refs, refs[1:])]
-        reasons = []
-        lo = int(np.searchsorted(episode.steps, refs[0]))
-        hi = int(np.searchsorted(episode.steps, refs[-1]))
-        # The first bin's possible onset also depends on the preceding readout.
-        if np.any(target_values[lo-1:hi+1] < 0):
-            reasons.append("target_coverage_unknown")
-        if any(len(items) != 1 for items in selections):
-            reasons.append("zero_or_multiple_target_onsets")
-        chosen = [items[0] for items in selections] if not any(len(items) != 1 for items in selections) else []
-        if chosen and any(o["step"] not in qualifying for o in chosen):
-            reasons.append("target_cycle_not_qualified")
-        phases = [(o["step"]-a)/(b-a) for o, a, b in zip(chosen, refs, refs[1:])]
-        resultant = mean = None
-        if not reasons:
-            z = np.mean(np.exp(2j * np.pi * np.asarray(phases)))
-            resultant = float(abs(z))
-            if resultant + CYCLE_CONFIG["roundoff_tolerance"] < CYCLE_CONFIG["phase_resultant_min"]:
-                reasons.append("phase_concentration")
-            else:
-                mean = float((np.angle(z) / (2*np.pi)) % 1.0)
-                if abs(mean - 1) < CYCLE_CONFIG["roundoff_tolerance"]:
-                    mean = 0.0
-        rows.append({"reference_window_id": window["window_id"], "reference_onset_steps": refs,
-                     "target_onset_steps_by_cycle": [[o["step"] for o in items] for items in selections],
-                     "target_cycle_indices": [qualifying[o["step"]][0] if o["step"] in qualifying else None for o in chosen],
-                     "target_qualification_window_ids": [qualifying[o["step"]][1] if o["step"] in qualifying else None for o in chosen],
-                     "raw_phase_samples": phases, "circular_resultant": resultant,
-                     "mean_phase_turns": mean, "qualification": "qualified" if not reasons else "unknown_phase",
-                     "reasons": reasons})
-    return {"windows": rows, "reference_record_id": reference["record_id"], "target_record_id": target["record_id"],
-            "candidate_windows": len(rows), "qualified_windows": sum(not r["reasons"] for r in rows),
-            "rejected_window_reasons": dict(Counter(r for row in rows for r in row["reasons"])),
-            "scope": "directional readout phase; zero-crossing jitter may give ambiguous bins; no physical synchrony"}
-
-
 def measure_contact_cycles(episode: NumericEpisode) -> list[dict[str, Any]]:
     """Current-only source-linked extension; v1/v2 archives have equal capability."""
-    if episode.task.get("contact_threshold_n") != CYCLE_CONFIG["contact_threshold_n"]:
-        raise ValueError("cycle catalog v3 requires the source-bound 1 N marker threshold")
+    threshold = float(episode.task["contact_threshold_n"])
+    if not np.isfinite(threshold) or threshold < 0:
+        raise ValueError("contact threshold must be finite and nonnegative")
+    config = {**CYCLE_CONFIG, "contact_threshold_n": threshold}
     entities = episode.entities["support"]
     forces = np.asarray(episode.arrays.get("support_contact_forces_w",
                         np.full((len(episode.steps), len(entities), 3), np.nan)), dtype=np.float64)
     if forces.shape != (len(episode.steps), len(entities), 3):
         raise ValueError("cycle force dimensions differ from source entity binding")
-    markers = np.where(np.isfinite(forces).all(axis=2), (np.linalg.norm(forces, axis=2) > 1).astype(np.int8), -1)
+    markers = np.where(np.isfinite(forces).all(axis=2), (np.linalg.norm(forces, axis=2) > threshold).astype(np.int8), -1)
 
     def record(key, bound, value):
         ref = episode.reference(("support_contact_forces_w",))
         return {"record_type": "measurement", "key": key, "entity_ids": list(bound),
-                "record_id": stable_id("cycle-evidence", episode.episode_id, CYCLE_CONFIG, key, bound, value),
+                "record_id": stable_id("cycle-evidence", episode.episode_id, config, key, bound, value),
                 "episode_id": episode.episode_id, "catalog_version": CATALOG_VERSION,
                 "base_catalog_version": BASE_CATALOG_VERSION, "extractor_version": EXTRACTOR_VERSION,
-                "measurement_config": CYCLE_CONFIG, "unit": "s; phase turns", "frame": "recorder_readout",
+                "measurement_config": config, "unit": "s", "frame": "recorder_readout",
                 "evidence_ref": ref, "value": value}
 
     feet = [record("contact_cycles", (entity,), _foot(markers[:, i], episode, entity)) for i, entity in enumerate(entities)]
-    pairs = [record("contact_phase", (entities[i], entities[j]), _phase(feet[i], feet[j], markers[:, j], episode))
-             for i in range(len(entities)) for j in range(i+1, len(entities))]
-    return feet + pairs
+    return feet

@@ -28,7 +28,7 @@ def _json_bytes(value: Any) -> bytes:
     return json.dumps(value, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode("utf-8")
 
 
-def _sha256(path: Path) -> str:
+def file_sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as stream:
         for block in iter(lambda: stream.read(1024 * 1024), b""):
@@ -71,7 +71,7 @@ class NumericEvidenceWriter:
         destination = self.root / name
         temporary.replace(destination)
         self._chunks.append({
-            "file": name, "sha256": _sha256(destination), "stored_bytes": size,
+            "file": name, "sha256": file_sha256(destination), "stored_bytes": size,
             "raw_bytes": raw_bytes, "metadata": chunk_metadata,
             "arrays": {key: {"shape": list(value.shape), "dtype": value.dtype.str} for key, value in values.items()},
         })
@@ -134,7 +134,7 @@ def iter_numeric_evidence(reference: Mapping[str, Any]) -> Iterator[tuple[dict[s
         if chunk["file"] != f"chunk_{index:06d}.npz":
             raise NumericEvidenceError("numeric evidence chunk order mismatch")
         path = root / chunk["file"]
-        if not path.is_file() or path.stat().st_size != chunk["stored_bytes"] or _sha256(path) != chunk["sha256"]:
+        if not path.is_file() or path.stat().st_size != chunk["stored_bytes"] or file_sha256(path) != chunk["sha256"]:
             raise NumericEvidenceError("numeric evidence chunk hash or size mismatch")
         with np.load(path, allow_pickle=False) as archive:
             if set(archive.files) != set(chunk["arrays"]):

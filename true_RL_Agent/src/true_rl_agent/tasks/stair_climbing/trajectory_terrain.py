@@ -8,7 +8,6 @@ from __future__ import annotations
 import numpy as np
 
 from true_rl_agent.evaluation.binding import canonical_json_hash
-from true_rl_agent.evaluation.trajectory_translation.cohort import distribution
 from true_rl_agent.evaluation.trajectory_translation.contracts import stable_id
 from true_rl_agent.tasks.stair_climbing.rough_surface import normalize_stair_surface_profile, rough_surface_offset_m
 
@@ -148,41 +147,3 @@ def measure_terrain(episode, geometry, *, geometry_digest, terrain_type, regime)
         records.append(record)
         heights.append(h); relatives.append(relative); statuses.append(status)
     return records, tuple(np.stack(a, axis=1) for a in (heights, relatives, statuses))
-
-
-def summarize(episodes):
-    groups = {}
-    for episode in episodes:
-        for r in episode['records']:
-            key = r['value']['geometry_binding']['regime']+'/'+r['entity_ids'][0]
-            groups.setdefault(key, []).append(r)
-    result = {}
-    for key, records in groups.items():
-        values = [r['value'] for r in records]
-        counts = {k: sum(v['counts'][k] for v in values) for k in values[0]['counts']}
-        seconds = {k: sum(v['sample_cell_seconds'][k] for v in values) for k in counts}
-        result[key] = {'entity_id': records[0]['entity_ids'][0],
-                      'regime': values[0]['geometry_binding']['regime'],
-                      'episodes': len(values), 'known_episodes': sum(v['counts']['known'] > 0 for v in values),
-                      'counts': counts, 'sample_cell_seconds': seconds,
-                      'episode_equal': {name: distribution([v['statistics']['relative_z_m'][name]
-                           for v in values if v['statistics']['relative_z_m'] is not None]) for name in ('min', 'max', 'mean')},
-                      'pooled_known_fraction': counts['known']/counts['total'],
-                      'pooled_known_time_fraction': seconds['known']/seconds['total']}
-    return {'episodes': len(episodes), 'groups': result,
-            'scope': 'all public-dev first-episode rows; terminal included; padding excluded'}
-
-
-def statements(binding, summary):
-    result = []
-    for key, group in summary['groups'].items():
-        counts = group['counts']
-        median = group['episode_equal']['mean']['median']
-        text = (f"{group['regime']} / {group['entity_id']}: nominal terrain height qualified at "
-                f"{counts['known']}/{counts['total']} recorded reference-point samples; "
-                + (f"episode-equal median mean vertical difference {median:.6g}m. "
-                   if median is not None else 'Vertical difference unknown. ')
-                + f"Unknown samples {counts['unknown']}. Reconstructed nominal surface only; runtime surface unknown. "
-                  'Not sole clearance, contact distance, or a cause claim.')
-        result.append({'id': stable_id('nominal-terrain-claim', binding, CONFIG, key, group), 'text': text})
-    return result

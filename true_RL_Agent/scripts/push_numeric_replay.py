@@ -50,9 +50,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--eval-base-seed", type=int, default=1500000000)
     parser.add_argument("--timeout-s", type=int, default=1800)
     parser.add_argument("--numeric-evidence-max-bytes", type=int, default=2 * 1024**3)
-    from true_rl_agent.tasks.push_recovery.trajectory_pipeline import PROFILES, LEGACY_PROFILE
-    parser.add_argument("--behavior-feedback-profile", choices=PROFILES, default=LEGACY_PROFILE)
-    parser.add_argument("--trajectory-report-max-bytes", type=int, default=12288)
+    from true_rl_agent.tasks.push_recovery.trajectory_pipeline import PROFILES, DEFAULT_PROFILE
+    parser.add_argument("--behavior-feedback-profile", choices=PROFILES, default=DEFAULT_PROFILE)
+    from true_rl_agent.tasks.push_recovery.trajectory_card import MAX_PUBLIC_BYTES
+    parser.add_argument("--trajectory-report-max-bytes", type=int, default=MAX_PUBLIC_BYTES)
     add_native_video_arguments(parser)
     return parser
 

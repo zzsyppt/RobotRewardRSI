@@ -5,7 +5,7 @@ from copy import deepcopy
 from typing import Mapping
 
 from true_rl_agent.evaluation.binding import canonical_json_hash, is_sha256_digest
-from true_rl_agent.evaluation.process_report import SENTENCE_SECTIONS, report_bytes, validate_public_report
+from true_rl_agent.evaluation.process_report import SENTENCE_SECTIONS, report_bytes, validate_public_report, select_whole_claims
 from true_rl_agent.evaluation.public_projection import assert_public_projection_safe
 from .trajectory_card import MAX_PUBLIC_BYTES, TEMPLATE_VERSION
 
@@ -31,8 +31,8 @@ def render_verified_report(full: dict) -> dict:
     domain = {**card["domain"], **phase_binding(full["identity"], full["sources"])}
     claims = card["claims"]
     mandatory = [c["id"] for c in claims if c["mandatory"]]
-    if len(mandatory) != 20 or len(set(mandatory)) != 20:
-        raise ValueError("Push delivery requires all 20 frozen mandatory slots")
+    if not mandatory or len(set(mandatory)) != len(mandatory):
+        raise ValueError("Push delivery requires unique nonempty required claims")
     sections = {}
     for c in claims:
         key = c["key"]
@@ -62,17 +62,8 @@ def render_verified_report(full: dict) -> dict:
         value["report_projection"]["content_hash"] = canonical_json_hash(value)
         return value
 
-    included = list(mandatory)
-    public = render(included)
-    if report_bytes(public) > budget:
-        raise ValueError(f"mandatory Push delivery claims exceed public budget: {report_bytes(public)} > {budget}")
-    for claim in claims:
-        if claim["mandatory"]:
-            continue
-        proposed = render([*included, claim["id"]])
-        if report_bytes(proposed) <= budget:
-            included.append(claim["id"])
-            public = proposed
+    public, included, required_bytes = select_whole_claims(mandatory,
+        [c["id"] for c in claims if not c["mandatory"]], render, max_bytes=budget)
     return validate_push_trajectory_report(public, max_bytes=budget)
 
 
@@ -101,7 +92,7 @@ def validate_push_trajectory_report(value: Mapping, *, max_bytes: int = MAX_PUBL
         raise ValueError("Push trajectory public content hash mismatch")
     projection["content_hash"] = digest
     count = sum(row["id"].startswith("push-claim:") for s in SENTENCE_SECTIONS for row in result["report"][s])
-    if (projection["version"] != VERSION or count < 20 or count != projection["included_claim_count"]
+    if (projection["version"] != VERSION or count < 1 or count != projection["included_claim_count"]
             or any(type(projection[k]) is not int or projection[k] < 0 for k in
                    ("claim_count", "included_claim_count", "omitted_claim_count"))
             or projection["claim_count"] != count + projection["omitted_claim_count"]

@@ -11,12 +11,10 @@ from .numeric_capture import POSE_FIELDS, PLANAR_MOTION_FIELDS, CONDITIONS
 
 CATALOG_VERSION = "push.root_measurements.v1"
 ROOT_METRICS = {
-    "height_m": (0, "根部高度", "m"),
-    "roll_rad": (1, "根部roll", "rad"),
-    "pitch_rad": (2, "根部pitch", "rad"),
-    "planar_speed_mps": (3, "根部平面速度模", "m/s"),
-    "angular_speed_radps": (4, "根部角速度模", "rad/s"),
-    "xy_drift_m": (5, "根部相对重置点距离模", "m"),
+    key: (POSE_FIELDS.index(key), label, unit) for key, label, unit in (
+        ("height_m", "根部高度", "m"), ("roll_rad", "根部横滚主值", "rad"),
+        ("pitch_rad", "根部俯仰主值", "rad"), ("planar_speed_mps", "根部平面速度模", "m/s"),
+        ("angular_speed_radps", "根部角速度模", "rad/s"), ("xy_drift_m", "根部相对重置点距离模", "m"))
 }
 DISTURBANCES = {
     "world_planar_external_force": ("force_world_n", "N"),
@@ -73,7 +71,7 @@ def _window(episode: NumericEpisode, stable: np.ndarray, start: int, end: int) -
             "stable_samples": int((stable[mask] == 1).sum()),
             "known_stability_samples": int((stable[mask] >= 0).sum()),
             "unknown_stability_samples": expected - int((stable[mask] >= 0).sum()),
-            "pose": {key: _scalar(pose[:, spec[0]], expected) for key, spec in ROOT_METRICS.items()},
+            "pose": {key: {**_scalar(pose[:, spec[0]], expected), "label": spec[1], "unit": spec[2]} for key, spec in ROOT_METRICS.items()},
             "evidence_ref": _reference(episode, mask, ("pose", "control_step"))}
 
 
@@ -212,7 +210,7 @@ def measure_push_episode(episode: NumericEpisode) -> dict:
         raise ValueError("Push sample extends past declared episode")
     conditions, stable = stability(episode)
     track = PredicateTrack(episode.episode_id, "root_stability", ("root",), ("pose",), stable, CONFIG)
-    pose = {key: _scalar(a["pose"][:, spec[0]], expected) for key, spec in ROOT_METRICS.items()}
+    pose = {key: {**_scalar(a["pose"][:, spec[0]], expected), "label": spec[1], "unit": spec[2]} for key, spec in ROOT_METRICS.items()}
     final_available = bool(task["closed"] and episode.steps[-1] == expected)
     final_values = {key: float(a["pose"][-1, i]) if final_available and np.isfinite(a["pose"][-1, i]) else None
                     for i, key in enumerate(POSE_FIELDS)}

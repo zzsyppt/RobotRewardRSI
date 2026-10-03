@@ -40,7 +40,7 @@ from true_rl_agent.tasks.stair_climbing.config import (
     STAIR_TASK_ID,
     StairClimbingTaskConfig,
 )
-from true_rl_agent.tasks.stair_climbing.trajectory_production import VERSIONS as PRODUCTION_VERSIONS, DEFAULT_PUBLIC_BYTES
+from true_rl_agent.tasks.stair_climbing.trajectory_production import VERSIONS as PRODUCTION_VERSIONS, DEFAULT_PUBLIC_BYTES, PROFILE
 from true_rl_agent.tasks.stair_climbing.final_confirmation import (
     STAIR_FINAL_CONFIRMATION_FORMAL_SESSION_MODE,
     STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS,
@@ -108,8 +108,8 @@ class StairClimbingCompositionConfig:
     eval_num_envs: int
     runner_timeout_s: int
     cell_variant_id: str
-    behavior_feedback_profile: str = "legacy_process_v1"
-    trajectory_report_max_bytes: int = 8192
+    behavior_feedback_profile: str = PROFILE
+    trajectory_report_max_bytes: int = DEFAULT_PUBLIC_BYTES
 
     def __post_init__(self) -> None:
         from .trajectory_pipeline import validate_feedback_profile
@@ -215,8 +215,7 @@ class StairClimbingCompositionConfig:
             raise ValueError("stair composition values missing: " + ", ".join(missing))
         normalized = {name: values[name] for name in names if name in values}
         if normalized.get("trajectory_report_max_bytes") is None:
-            normalized["trajectory_report_max_bytes"] = (
-                DEFAULT_PUBLIC_BYTES if normalized.get("behavior_feedback_profile") == "trajectory_numeric_v2" else 8192)
+            normalized["trajectory_report_max_bytes"] = DEFAULT_PUBLIC_BYTES
         normalized["runtime_config"] = stair_robot_row(
             str(normalized["cell_variant_id"])
         ).protocol_relative_path
@@ -279,10 +278,6 @@ class StairClimbingCompositionConfig:
 
     def to_task_defaults(self) -> dict[str, Any]:
         result = {item.name: getattr(self, item.name) for item in fields(self)}
-        if self.behavior_feedback_profile == "legacy_process_v1":
-            # Keep historical genesis/resume identities byte-for-byte stable.
-            result.pop("behavior_feedback_profile")
-            result.pop("trajectory_report_max_bytes")
         return result
 
     def to_resolved_task_defaults(
@@ -329,11 +324,11 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
         return defaults
 
     def add_cli_arguments(self, parser: Any) -> None:
-        parser.add_argument("--behavior-feedback-profile", choices=("legacy_process_v1", "trajectory_numeric_v1", "trajectory_numeric_v2"),
-                            default="legacy_process_v1",
-                            help="Automatic per-archive CPU trajectory cards; v2 unifies base/cycle/qualified nominal measurements.")
+        parser.add_argument("--behavior-feedback-profile", choices=(PROFILE,),
+                            default=PROFILE,
+                            help="Direct CPU behavior summary from the evaluation archive.")
         parser.add_argument("--trajectory-report-max-bytes", type=int, default=None,
-                            help="UTF-8 bytes: default 10240 for trajectory_numeric_v2, 8192 for older profiles.")
+                            help="UTF-8 byte capacity; defaults to the current description profile.")
         parser.add_argument(
             "--cell-variant-id",
             choices=active_unified_stair_cell_variant_ids(),
@@ -554,11 +549,9 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
             scientific_parameters={
                 "training_agent_configuration_hash": backend.training_agent_configuration.agent_configuration_hash,
                 "session_start_profile": start_profile.to_public_dict(),
-                **({"behavior_feedback_profile": composition_config.behavior_feedback_profile,
-                    "trajectory_report_max_bytes": composition_config.trajectory_report_max_bytes}
-                   if composition_config.behavior_feedback_profile != "legacy_process_v1" else {}),
-                **({"trajectory_production_versions": PRODUCTION_VERSIONS}
-                   if composition_config.behavior_feedback_profile == "trajectory_numeric_v2" else {}),
+                "behavior_feedback_profile": composition_config.behavior_feedback_profile,
+                "trajectory_report_max_bytes": composition_config.trajectory_report_max_bytes,
+                "trajectory_production_versions": PRODUCTION_VERSIONS,
                 **({"final_confirmation_precommit": dict(legacy_live_confirmation_commitment)}
                    if legacy_live_confirmation_commitment is not None else {}),
             },

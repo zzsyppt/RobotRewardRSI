@@ -1,6 +1,8 @@
 """Push-recovery-owned application composition."""
 
 from __future__ import annotations
+from .trajectory_pipeline import DEFAULT_PROFILE
+from .trajectory_card import MAX_PUBLIC_BYTES
 
 from dataclasses import dataclass, fields, replace
 from functools import partial
@@ -90,8 +92,8 @@ class PushRecoveryCompositionConfig:
     push_protocol: PushRecoveryProtocol | None = None
     push_evaluation_protocol: ForceEvaluationProtocol | None = None
     reference_admission_policy: str | None = OBSERVED_REFERENCE_ADMISSION
-    behavior_feedback_profile: str = "legacy_process_v1"
-    trajectory_report_max_bytes: int = 12288
+    behavior_feedback_profile: str = DEFAULT_PROFILE
+    trajectory_report_max_bytes: int = MAX_PUBLIC_BYTES
 
     def __post_init__(self) -> None:
         from .trajectory_pipeline import validate_feedback_profile
@@ -234,9 +236,9 @@ class PushRecoveryCompositionProvider(TaskCompositionProvider):
         from true_rl_agent.tasks.push_recovery.reference_program import PUSH_REFERENCE_IDS
         from .trajectory_pipeline import PROFILES, LEGACY_PROFILE
 
-        parser.add_argument("--behavior-feedback-profile", choices=PROFILES, default=LEGACY_PROFILE,
+        parser.add_argument("--behavior-feedback-profile", choices=PROFILES, default=DEFAULT_PROFILE,
                             help="Automatic CPU root cards for physical Push public-dev numeric archives.")
-        parser.add_argument("--trajectory-report-max-bytes", type=int, default=12288)
+        parser.add_argument("--trajectory-report-max-bytes", type=int, default=MAX_PUBLIC_BYTES)
         parser.add_argument("--eval-base-seed", type=int, default=None)
         parser.add_argument("--reference-program-id", choices=PUSH_REFERENCE_IDS, default=None)
         parser.add_argument("--push-protocol-path", type=Path, default=None,
