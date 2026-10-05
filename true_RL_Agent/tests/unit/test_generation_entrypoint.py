@@ -24,6 +24,53 @@ from true_rl_agent.runner.source_checkout import SourceCheckout
 
 
 class GenerationEntrypointTests(unittest.TestCase):
+    def test_external_author_prepares_two_generations_with_normal_g1_pause_without_credentials(self):
+        from dataclasses import replace
+        from true_rl_agent.agent_core.external_file_provider import ExternalFileCandidateProvider
+        from true_rl_agent.agent_core.generation_runtime import generation_provider
+        with tempfile.TemporaryDirectory() as directory, use_test_isaac_lab_execution_environment():
+            root = Path(directory).resolve()
+            registry = build_application_composition_registry()
+            provider = registry.get("unitree_stair_climbing")
+            cell = "stair.go2_12dof.unified_v3"
+            composition = resolve_task_composition(provider=provider,
+                values={**provider.cli_defaults(), "cell_variant_id": cell},
+                context=TaskCompositionContext(project_root=entrypoint.PROJECT_ROOT, output_dir=root / "cost-source"))
+            cost = fixture_cost(composition.task_plugin.phased_evaluation_adapter().generation_workload(
+                cell_manifest=composition.resolved_cell_manifest), max_generations=2, imports_reference=True)
+            cost = replace(cost, imported_reference_timeout_envelope=(10800, 16))
+            (root / "cost.json").write_text(json.dumps(cost.to_dict()), encoding="utf-8")
+            policy = {"backend": "external_file", "model": "gpt-6.1-sol", "usage_policy": "unknown_full_reserve",
+                      "max_attempts_per_lane": 3, "max_output_tokens": 2000,
+                      "input_units_per_attempt_reserve": 10000, "timeout_s": 30}
+            (root / "provider.json").write_text(json.dumps(policy), encoding="utf-8")
+            argv = ["--task-id", provider.task_id, "--cell-variant-id", cell,
+                "--output-dir", str(root / "session"), "--session-id", "external-fixture",
+                "--lease-root", str(root / "leases"), "--cost-contract", str(root / "cost.json"),
+                "--provider-policy", str(root / "provider.json"), "--machine-id", "fixture",
+                "--gpu0-uuid", GPU_UUIDS[0], "--gpu1-uuid", GPU_UUIDS[1], "--expected-source-commit", "a" * 40,
+                "--max-allocated-active-gpu-hours", str(cost.max_allocated_active_gpu_hours),
+                "--max-simulated-control-steps", str(cost.max_simulated_control_steps),
+                "--max-output-bytes", str(cost.max_output_bytes), "--max-generations", "2", "--pause-after-generation", "1",
+                "--source-reference-genesis-dir", str(root / "qualified-reference"),
+                "--source-reference-session-id", "audit3_go2_full_train"]
+            with patch.object(entrypoint, "require_source_checkout", return_value=SourceCheckout("a" * 40, False, ())), \
+                    patch.object(entrypoint, "discover_gpu_inventory", return_value=dict(enumerate(GPU_UUIDS))):
+                foundation = entrypoint.prepare_from_args(entrypoint.parse_args(argv))
+            guarded = generation_provider(foundation, generation_id="external-fixture-generation-001", lane_id="lane-a")
+            self.assertIsInstance(guarded.delegate, ExternalFileCandidateProvider)
+            self.assertEqual(guarded.external_unknown_usage_model, "gpt-6.1-sol")
+            self.assertIsNone(foundation.config.provider_env_file)
+            self.assertEqual(foundation.continuation_policy.operator_pause_generation_boundaries, (1,))
+            with patch.object(entrypoint, "prepare_from_args", return_value=foundation), \
+                    patch.object(entrypoint, "isolate_orchestrator_process_group"), \
+                    patch.object(entrypoint, "run_generation_session", return_value={"status": "CPU fixture"}) as run, \
+                    patch("true_rl_agent.agent_core.openai_compatible_provider.OpenAICompatibleCandidateProvider.validate_credential",
+                          side_effect=AssertionError("external author has no API credential")), \
+                    contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(entrypoint.main(argv), 0)
+                run.assert_called_once_with(foundation)
+
     def test_fresh_and_resumed_cli_require_credentials_until_the_report_exists(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory).resolve()

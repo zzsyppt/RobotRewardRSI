@@ -56,6 +56,7 @@ from true_rl_agent.memory import (
 from true_rl_agent.prompt_artifacts import (
     AUTHORING_EVIDENCE_KIND,
     AuthoringEvidenceRef,
+    AuthoringAttemptHandle,
     RoundAuthoringJournal,
     authoring_outcome_from_evidence,
     validate_authoring_budget_usage,
@@ -409,7 +410,20 @@ class CandidateAuthoringLoop:
                     static_failure=continuation.static_failure,
                 )
 
-        if snapshot.reserved_attempt_count >= max_provider_attempts:
+        pending_handle = None
+        pending_build = None
+        resume = getattr(self.provider, "resume_authoring_attempt", None)
+        if (resume is not None and snapshot.attempts
+                and snapshot.attempts[-1]["status"] == "interrupted_after_prompt"):
+            pending = snapshot.attempts[-1]
+            ref = PromptPayloadRef.from_mapping(pending["prompt_payload"])
+            handle = AuthoringAttemptHandle(round_id=round_id, attempt_id=pending["attempt_id"],
+                sequence=pending["sequence"], prompt_payload_ref=ref,
+                result_path=str(Path(ref.path).with_name("attempt_result.json")))
+            pending_build = resume(handle)
+            if pending_build is not None:
+                pending_handle = handle
+        if pending_handle is None and snapshot.reserved_attempt_count >= max_provider_attempts:
             raise AuthoringBudgetExhaustedError(
                 "authoring provider budget was consumed by durable attempts: "
                 f"round={round_id} reserved={snapshot.reserved_attempt_count} "
@@ -417,34 +431,41 @@ class CandidateAuthoringLoop:
             )
 
         for attempt in range(
-            snapshot.reserved_attempt_count + 1,
+            pending_handle.sequence if pending_handle is not None else snapshot.reserved_attempt_count + 1,
             max_provider_attempts + 1,
         ):
-            prompt_build = build_authoring_prompt(
-                context_builder=self.context_builder,
-                recoverable_sources=tuple((source_repository_payload or {}).get("source_payloads", ())),
-                records=records,
-                repair_feedback=_authoring_feedback_for_prompt(
-                    repair_feedback, response_feedback,
-                    reasoning_exhausted=any(
-                        record.get("provider_failure", {}).get("category") == "reasoning_output_exhausted"
-                        for record in attempt_records
+            if pending_handle is not None and attempt == pending_handle.sequence:
+                prompt_build = pending_build
+                attempt_handle = pending_handle
+            else:
+                prompt_build = build_authoring_prompt(
+                    context_builder=self.context_builder,
+                    recoverable_sources=tuple((source_repository_payload or {}).get("source_payloads", ())),
+                    records=records,
+                    repair_feedback=_authoring_feedback_for_prompt(
+                        repair_feedback, response_feedback,
+                        reasoning_exhausted=any(
+                            record.get("provider_failure", {}).get("category") == "reasoning_output_exhausted"
+                            for record in attempt_records
+                        ),
                     ),
-                ),
-                latest_failed_candidate=latest_failed_candidate,
-                frame_kind=frame_kind,
-                source_payloads=(
-                    source_payloads if frame_kind == "source_followup" else None
-                ),
-                authoring_capability_readiness=(
-                    self.authoring_capability_readiness
-                ),
-                candidate_verifier_prompt_rules=(
-                    self.candidate_verifier_prompt_rules
-                ),
-            )
-            prompt_payload = prompt_build.provider_payload
-            attempt_handle = journal.begin_attempt(prompt_payload)
+                    latest_failed_candidate=latest_failed_candidate,
+                    frame_kind=frame_kind,
+                    source_payloads=(
+                        source_payloads if frame_kind == "source_followup" else None
+                    ),
+                    authoring_capability_readiness=(
+                        self.authoring_capability_readiness
+                    ),
+                    candidate_verifier_prompt_rules=(
+                        self.candidate_verifier_prompt_rules
+                    ),
+                )
+                attempt_handle = journal.begin_attempt(prompt_build.provider_payload)
+                bind = getattr(self.provider, "bind_authoring_attempt", None)
+                if bind is not None:
+                    bind(attempt_handle, prompt_build)
+                attempt_prompt_payload_refs.append(attempt_handle.prompt_payload_ref)
             if attempt_handle.sequence != attempt:
                 raise RuntimeError("authoring journal sequence changed while leased")
             prompt_payload_ref = attempt_handle.prompt_payload_ref
@@ -467,7 +488,6 @@ class CandidateAuthoringLoop:
                 source_repository_prompt_ref = prompt_payload_ref
                 source_payloads = None
             frame_kind = None
-            attempt_prompt_payload_refs.append(prompt_payload_ref)
 
             if (
                 selected_prompt_payload_ref is not None

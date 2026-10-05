@@ -129,6 +129,8 @@ def read_operation_slot(
     allowed_retries = frozenset({0})
     retry_class: str | None = None
     if logical_job_id == f"{session_id}-train":
+        if "reference_train" not in reserves:
+            raise ValueError("historical reference training has no current attempt entitlement")
         if (
             not isinstance(scope, PreGenesisExecutionScope)
             or scope.session_id != session_id
@@ -362,7 +364,8 @@ def _strict_success_operation_slots(
         cost_contract.scientific_cost_basis.reuses_reference_public_dev_receipt
     )
     if not cost_contract.imports_reference_evidence:
-        slots["reference_train"] = reserves["reference_train"]
+        if "reference_train" in reserves:
+            slots["reference_train"] = reserves["reference_train"]
         if reuses_reference_public_dev:
             slots.update(
                 {

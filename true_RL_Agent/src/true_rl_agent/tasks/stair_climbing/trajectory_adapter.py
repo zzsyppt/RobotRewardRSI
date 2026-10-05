@@ -105,6 +105,14 @@ def _load_contract(reference: dict) -> _Archive:
     _positive_float(signals["slip"]["contact_force_threshold"], "contact force threshold")
     training = StairUnifiedTrainingProfile.from_mapping(context["training_profile"])
     suite = StairUnifiedEvaluationSuite.from_mapping(context["evaluation_suite"], training_profile=training)
+    bound_environment = resolved.environment["payload"]
+    for key, expected in (("training_profile_hash", training.profile_hash),
+                          ("evaluation_suite_hash", suite.suite_hash),
+                          ("ordered_cell_set_hash", suite.cell_set_hash)):
+        _require(bound_environment.get(key) == expected and resolved.contract_hashes.get(key) == expected,
+                 f"resolved {key} mismatch")
+    _require(bound_environment.get("cohort_hashes") == suite.to_dict()["cohort_hashes"],
+             "resolved cohort hashes mismatch")
     cells = suite.private_cell_assignment("public_dev")
     coordinates = {"positions": "world_m", "forces": "world_N", "velocities": "world_m_per_s",
                    "base_quat_w": "wxyz", "support_position": "bound_rigid_body_reference_point"}

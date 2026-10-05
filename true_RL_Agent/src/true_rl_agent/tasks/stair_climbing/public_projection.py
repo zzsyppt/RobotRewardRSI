@@ -126,7 +126,7 @@ def _project_unified_stair_public_result(
         set(incoming)
         - _TASK_DERIVED_INPUT_KEYS
         - RUNNER_OWNED_PUBLIC_EVAL_METRIC_KEYS
-        - {"unified_score", "behavior", "trajectory_phase_binding"}
+        - {"unified_score", "behavior", "description_status", "trajectory_phase_binding"}
     )
     if unsupported:
         raise ValueError(
@@ -273,29 +273,29 @@ def _project_unified_stair_public_result(
             "acceptance": acceptance,
         }
     )
-    if "behavior" in incoming:
-        from true_rl_agent.tasks.stair_climbing.behavior import project_stair_behavior
-        behavior = project_stair_behavior(incoming["behavior"])
-        trajectory = behavior["schema_version"] in {TRAJECTORY_PUBLIC_SCHEMA}
-        expected_protocol = config.task_protocol_hash if trajectory else config.evaluation_semantics.to_dict()["task_protocol_hash"]
-        if (behavior["domain"]["task_protocol_hash"] != expected_protocol
-                or behavior["domain"]["checkpoint_hash"] != _mapping(
-                    incoming.get(SEALED_VALIDATION_EVIDENCE_KEY), "Stair behavior checkpoint binding").get("checkpoint_hash")):
-            raise ValueError("Stair behavior differs from evaluated checkpoint or protocol")
-        if trajectory:
+    if "behavior" in incoming or "description_status" in incoming:
+        binding = incoming.get("trajectory_phase_binding")
+        if (not isinstance(binding, Mapping)
+                or binding["checkpoint_hash"] != incoming[SEALED_VALIDATION_EVIDENCE_KEY]["checkpoint_hash"]
+                or binding["evaluation_binding_hash"] != incoming["evaluation_binding"]["evaluation_binding_hash"]):
+            raise ValueError("Stair description phase/checkpoint/evaluation binding mismatch")
+        metrics["trajectory_phase_binding"] = dict(binding)
+        if "behavior" in incoming:
+            from .behavior import project_stair_behavior
             from .trajectory_report import require_trajectory_phase_binding
-            binding = incoming.get("trajectory_phase_binding")
-            if not isinstance(binding, Mapping):
-                raise ValueError("Stair trajectory result requires producer phase binding")
+            behavior = project_stair_behavior(incoming["behavior"])
+            if "description_status" in incoming or behavior["domain"]["task_protocol_hash"] != config.task_protocol_hash:
+                raise ValueError("Stair behavior differs from evaluated protocol or description status")
             require_trajectory_phase_binding(behavior, **binding)
-            if binding["evaluation_binding_hash"] != incoming["evaluation_binding"]["evaluation_binding_hash"]:
-                raise ValueError("Stair trajectory phase differs from runner evaluation binding")
-            metrics["trajectory_phase_binding"] = dict(binding)
-        elif "trajectory_phase_binding" in incoming:
-            raise ValueError("legacy Stair behavior cannot carry trajectory phase binding")
-        metrics["behavior"] = behavior
+            metrics["behavior"] = behavior
+        else:
+            status = incoming["description_status"]
+            if (status.get("status") != "unavailable"
+                    or status.get("reason") not in {"budget_exceeded", "unsupported_capture_contract", "description_computation_failed"}):
+                raise ValueError("Stair description degradation status mismatch")
+            metrics["description_status"] = dict(status)
     elif "trajectory_phase_binding" in incoming:
-        raise ValueError("Stair trajectory binding requires behavior")
+        raise ValueError("Stair trajectory binding requires a description or its status")
     return PublicEvalResult(
         status=public_result.status,
         public_score=canonical_score,

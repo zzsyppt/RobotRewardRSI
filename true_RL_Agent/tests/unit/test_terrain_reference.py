@@ -1,5 +1,4 @@
 """Frozen geometry domain, semantic counterexamples, historical mesh checks."""
-import copy
 import json
 from pathlib import Path
 import unittest
@@ -7,8 +6,8 @@ import unittest
 import numpy as np
 
 from true_rl_agent.evaluation.binding import canonical_json_hash
-from true_rl_agent.tasks.stair_climbing.trajectory_terrain import sample_reference_height, measure_terrain, CONFIG, FRAME
-from tests.unit.terrain_mesh_oracle import mesh_height, check_record, check_first_extrema
+from true_rl_agent.tasks.stair_climbing.trajectory_terrain import sample_reference_height, prepare_terrain_inputs, measure_terrain, BOUNDARY_GUARD_M, FRAME
+from tests.unit.terrain_mesh_oracle import mesh_height
 from tests.unit.trajectory_fixtures import sample_episode
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -39,7 +38,8 @@ def episode(n=2, dt=.02):
 
 def measure(ep):
     g = geometry()
-    return measure_terrain(ep, g, geometry_digest=canonical_json_hash(g), terrain_type=0, regime='flat')
+    inputs = prepare_terrain_inputs(ep, g, geometry_digest=canonical_json_hash(g))
+    return measure_terrain(ep, g, inputs)
 
 
 class TerrainReferenceTests(unittest.TestCase):
@@ -69,7 +69,7 @@ class TerrainReferenceTests(unittest.TestCase):
 
     def test_boundary_band_closed_and_adjacent(self):
         g = geometry()
-        edge, guard = 2., CONFIG['boundary_guard_m']
+        edge, guard = 2., BOUNDARY_GUARD_M
         values = [edge-guard, edge+guard, np.nextafter(edge-guard, -np.inf), np.nextafter(edge+guard, np.inf)]
         _, _, status = sample([[x, 0, 1] for x in values], origin=(.75, 0, 0), g=g)
         self.assertEqual(status.tolist(), [5, 5, 0, 0])
@@ -103,20 +103,20 @@ class TerrainReferenceTests(unittest.TestCase):
             g = geometry(); g[key] = value
             with self.subTest(key=key), self.assertRaises(ValueError): sample([[0, 0, 1]], g=g)
 
-    def test_measurement_nan_inf_missing_origin_json_and_gaps(self):
+    def test_measurement_nan_inf_missing_origin_and_gaps(self):
         ep = episode(3); ep.steps = np.array([1, 3, 5])
         ep.arrays['support_pos_w'][0, 0, 0] = np.nan
         ep.arrays['support_pos_w'][1, 0, 0] = np.inf
-        records, arrays = measure(ep)
-        json.dumps(records, allow_nan=False)
-        self.assertEqual(records[1]['value']['counts']['unknown'], 2)
-        self.assertEqual(records[1]['value']['sample_cell_seconds']['total'], .06)
-        self.assertIsNone(records[1]['value']['first_by_status']['nonfinite_position']['position_world_m'][0])
+        height, relative, status = measure(ep)
+        self.assertEqual(height.shape, (3, 5))
+        self.assertEqual(status[:, 1].tolist(), [1, 1, 0])
+        self.assertTrue(np.isnan(height[:2, 1]).all() and np.isnan(relative[:2, 1]).all())
+        np.testing.assert_allclose(relative[:, 0], ep.arrays['base_pos_w'][:, 2]-height[:, 0])
         for origin in (None, [np.nan, 0, 0]):
             ep.task['origin_world'] = origin
-            r, a = measure(ep); json.dumps(r, allow_nan=False)
-            self.assertEqual(r[0]['value']['counts']['unknown'], 3)
-            self.assertIsNone(r[0]['value']['statistics']['relative_z_m'])
+            height, relative, status = measure(ep)
+            self.assertTrue(np.isnan(height).all() and np.isnan(relative).all())
+            np.testing.assert_array_equal(status, np.full((3, 5), 2))
 
     def test_measurement_entity_unit_and_axis_mismatch(self):
         for kind in ('entity', 'unit', 'axis', 'base'):
@@ -126,20 +126,6 @@ class TerrainReferenceTests(unittest.TestCase):
             elif kind == 'axis': ep.task['progress_direction_world'] = [0, 1, 0]
             else: ep.source['runtime_projection']['kinematic_base_source'] = 'body_role'
             with self.subTest(kind=kind), self.assertRaises(ValueError): measure(ep)
-
-    def test_independent_record_oracle_rejects_resigned_semantics(self):
-        ep = episode(); r, (h, z, s) = measure(ep)
-        for key, value in [('entity_ids', ['other']), ('unit', 'cm'), ('frame', 'body')]:
-            bad = copy.deepcopy(r[0]); bad[key] = value; bad['record_id'] = 'resigned'
-            with self.subTest(key=key), self.assertRaises(AssertionError):
-                check_record(bad, ep.arrays['base_pos_w'], h[:, 0], z[:, 0], s[:, 0], .02, ep.entities['root'][0])
-
-    def test_first_extremum_witness_tamper_rejected_on_flat_tie(self):
-        ep = episode(); records, (h, z, s) = measure(ep)
-        check_first_extrema(records[0], h[:, 0], z[:, 0], ep.steps)
-        bad = copy.deepcopy(records[0]); bad['record_id'] = 'resigned'
-        bad['value']['witnesses']['height_min']['step'] = 2
-        with self.assertRaises(AssertionError): check_first_extrema(bad, h[:, 0], z[:, 0], ep.steps)
 
     @unittest.skipUnless(HISTORY.is_file(), 'historical mesh artifact not installed; required by P2c3 acceptance runner')
     def test_historical_all_cells_triangles_and_boundaries(self):

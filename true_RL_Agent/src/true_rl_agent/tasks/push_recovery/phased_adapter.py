@@ -196,7 +196,8 @@ class PushPhasedEvaluationAdapter:
             raise ValueError("Push behavior evidence is public_dev-only")
         if "description_status" in evidence:
             status = evidence["description_status"]
-            if result.phase is not EvaluationPhase.PUBLIC_DEV or status.get("reason") != "budget_exceeded" or status.get("status") != "unavailable":
+            if (result.phase is not EvaluationPhase.PUBLIC_DEV or status.get("status") != "unavailable"
+                    or status.get("reason") not in {"budget_exceeded", "description_computation_failed"}):
                 raise ValueError("invalid Push description degradation")
         if "behavior_full" in evidence:
             full = evidence["behavior_full"]
@@ -209,10 +210,10 @@ class PushPhasedEvaluationAdapter:
                     or not isinstance(full.get("size_bytes"), int) or isinstance(full.get("size_bytes"), bool)
                     or full["size_bytes"] <= 0
                     or public.get("schema_version") not in {"true_rl_agent.push_recovery.behavior.public.v3",
-                                                           "true_rl_agent.push_recovery.behavior.public.v4"}
+                                                           "true_rl_agent.push_recovery.behavior.public.v5"}
                     or public.get("full_derivation_sha256") != full.get("sha256")):
                 raise ValueError("Push process report differs from sealed full derivation")
-        trajectory = evidence.get("behavior", {}).get("schema_version") == "true_rl_agent.push_recovery.behavior.public.v4"
+        trajectory = evidence.get("behavior", {}).get("schema_version") == "true_rl_agent.push_recovery.behavior.public.v5"
         if trajectory != ("trajectory_build" in evidence) or (trajectory and "behavior_full" not in evidence):
             raise ValueError("Push trajectory requires its full and CPU build receipts")
         summaries = evidence["seed_summaries"]
@@ -384,7 +385,7 @@ class PushPhasedEvaluationAdapter:
         public_metrics = dict(projected.metrics)
         if "behavior" in first.task_evidence or "description_status" in first.task_evidence:
             public_metrics["public_dev"] = self.project_public_phase_summary(phase_result=first)
-            if first.task_evidence.get("behavior", {}).get("schema_version") == "true_rl_agent.push_recovery.behavior.public.v4":
+            if first.task_evidence.get("behavior", {}).get("schema_version") == "true_rl_agent.push_recovery.behavior.public.v5":
                 public_metrics["trajectory_phase_binding"] = self._trajectory_phase_binding(first)
         sealed = build_push_sealed_rollout_evidence(
             summaries=summaries[EvaluationPhase.SEALED_VALIDATION],

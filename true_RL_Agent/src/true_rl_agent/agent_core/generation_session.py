@@ -9,6 +9,7 @@ from collections.abc import Callable
 from true_rl_agent.agent_core.generation_cost_journal import (
     GenerationActualCostJournal, GenerationActualCostReceiptRef,
     replay_generation_combined_cost_chain, assert_actual_cost_receipt_matches_usage,
+    generation_cost_receipt_projection,
 )
 
 from collections.abc import Mapping
@@ -29,6 +30,7 @@ from true_rl_agent.agent_core.generation_attempt_scopes import (
 from true_rl_agent.agent_core.generation_closure import load_existing_generation_execution, publish_or_validate_generation_closure
 from true_rl_agent.agent_core.generation_accounting import settle_generation_cost
 from true_rl_agent.agent_core.generation_guard import replay_generation_guard_chain, run_genesis_parent_public_dev
+from true_rl_agent.agent_core.external_file_provider import ExternalAuthorWaiting
 
 
 def run_bounded_generation_session(
@@ -425,6 +427,10 @@ def run_bounded_generation_session(
     except BaseException as exc:
         if not segment_closed:
             try:
+                waiting = (isinstance(exc, ExternalAuthorWaiting)
+                    and "external_author_waiting" in foundation.continuation_policy.allowed_continuation_reasons)
+                exit_status = "paused" if waiting else "failed"
+                exit_reason = "external_author_waiting" if waiting else "exception"
                 failed_ledger = load_ledger(ledger_path)
                 usage, conservative_charges, open_reservations = (
                     collect_actual_cost_usage(
@@ -435,7 +441,7 @@ def run_bounded_generation_session(
                 )
                 failed_cost = cost_journal.publish_snapshot(
                     event_id=(
-                        f"segment-{segment.segment_id}-failed-"
+                        f"segment-{segment.segment_id}-{exit_status}-"
                         f"generation-{len(failed_ledger):03d}"
                     ),
                     previous_cost_chain_head_hash=segment_cost_chain_head,
@@ -443,13 +449,16 @@ def run_bounded_generation_session(
                     conservative_charges=conservative_charges,
                 )
                 segment.finish(
-                    status="failed",
-                    reason="exception",
+                    status=exit_status,
+                    reason=exit_reason,
                     closed_generation_count=len(failed_ledger),
                     cost_chain_head_hash=failed_cost.payload_hash,
                     unclosed_attempt_reservations=open_reservations,
-                    exception=exc,
+                    exception=None if waiting else exc,
                 )
+                if waiting:
+                    return {"status":"paused", "reason":exit_reason, "segment_id":segment.segment_id,
+                        "request_dir":str(exc.request_dir), "actual_cost_receipt":generation_cost_receipt_projection(failed_cost)}
             except Exception as lifecycle_error:  # noqa: BLE001
                 add_note = getattr(exc, "add_note", None)
                 if callable(add_note):

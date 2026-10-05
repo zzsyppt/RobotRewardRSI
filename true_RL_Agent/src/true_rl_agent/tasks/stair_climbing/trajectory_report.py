@@ -13,41 +13,44 @@ _DOMAIN_KEYS = {"evaluation_job_id", "evaluation_plan_hash", "checkpoint_hash", 
 validate_stair_trajectory_report = validate_production_report
 project_stair_trajectory_report = replay_production_report
 
-def _validate_trajectory_public(value, *, max_bytes, public_schema, derivation_version,
+def _validate_trajectory_public(value, *, public_schema, derivation_version,
                                 lexicon_version, catalog_version, max_public_bytes):
     expected = {"schema_version", "domain", "derivation_version", "lexicon_version", "card_id", "report", "report_projection"}
     if (set(value) != expected or value.get("schema_version") != public_schema
             or value["derivation_version"] != derivation_version or value["lexicon_version"] != lexicon_version):
         raise ValueError("Stair trajectory public version/fields mismatch")
     domain = value["domain"]
-    if (set(domain) != _DOMAIN_KEYS or domain["task_id"] != "unitree_stair_climbing"
-            or domain["acceptance_split"] != "public_dev" or domain["catalog_version"] != catalog_version
-            or any(not isinstance(v, str) or not v for v in domain.values())):
-        raise ValueError("Stair trajectory public domain mismatch")
+    validate_trajectory_domain(domain, catalog_version=catalog_version)
     result = deepcopy(dict(value))
     projection = result["report_projection"]
-    if set(projection) != {"selection_version", "claim_count", "included_claim_count", "omitted_claim_count",
-                           "omitted_claim_ids_hash", "required_claim_ids_hash", "content_hash"}:
+    if set(projection) != {"max_bytes", "optional_claim_ids", "required_claim_ids", "content_hash"}:
         raise ValueError("Stair trajectory projection receipt mismatch")
-    if (any(type(projection[k]) is not int or projection[k] < 0 for k in
-            ("claim_count", "included_claim_count", "omitted_claim_count"))
-            or any(not isinstance(projection[k], str) or not re.fullmatch(r"[0-9a-f]{64}", projection[k]) for k in
-                   ("content_hash", "omitted_claim_ids_hash", "required_claim_ids_hash"))
+    if (type(projection["max_bytes"]) is not int or not 0 < projection["max_bytes"] <= max_public_bytes
+            or not isinstance(projection["content_hash"], str) or not re.fullmatch(r"[0-9a-f]{64}", projection["content_hash"])
             or not isinstance(result["card_id"], str) or not re.fullmatch(r"card:[0-9a-f]{64}", result["card_id"])):
-        raise ValueError("Stair trajectory projection receipt counts/digests invalid")
+        raise ValueError("Stair trajectory projection budget/digests invalid")
     digest = projection.pop("content_hash")
     if digest != canonical_json_hash(result):
         raise ValueError("Stair trajectory public content hash mismatch")
     projection["content_hash"] = digest
-    count = sum(row["id"].startswith("claim:") for section in SENTENCE_SECTIONS for row in result["report"][section])
-    if (count != projection["included_claim_count"] or projection["claim_count"] != count + projection["omitted_claim_count"]
-            or projection["selection_version"] != derivation_version):
-        raise ValueError("Stair trajectory claim counts mismatch")
-    validate_public_report(result, max_bytes=min(max_bytes, max_public_bytes))
+    ids = [row["id"] for section in SENTENCE_SECTIONS for row in result["report"][section] if row["id"].startswith("claim:")]
+    ordered = projection["required_claim_ids"] + projection["optional_claim_ids"]
+    if len(ordered) != len(set(ordered)) or set(ordered) != set(ids):
+        raise ValueError("Stair trajectory claim selection membership mismatch")
+    # This is the unselected storage form; only the final author object has a capacity.
+    validate_public_report({"kind":"numeric_behavior", "report":result["report"]}, max_bytes=None)
     assert_public_projection_safe(result)
     if "sealed_validation" in json.dumps(result, ensure_ascii=False).casefold():
         raise ValueError("Stair trajectory public report contains non-public split content")
     return result
+
+
+def validate_trajectory_domain(domain, *, catalog_version):
+    """Validate source identity independently of newly rendered report content."""
+    if (set(domain) != _DOMAIN_KEYS or domain["task_id"] != "unitree_stair_climbing"
+            or domain["acceptance_split"] != "public_dev" or domain["catalog_version"] != catalog_version
+            or any(not isinstance(v, str) or not v for v in domain.values())):
+        raise ValueError("Stair trajectory public domain mismatch")
 
 
 def require_trajectory_phase_binding(report: Mapping[str, Any], *, job_id: str, checkpoint_hash: str,

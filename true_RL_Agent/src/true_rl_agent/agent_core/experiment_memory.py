@@ -463,14 +463,16 @@ def _trial_outcome(trial: Mapping[str, Any]) -> list[Any]:
     delta = _mapping(trial.get("mechanism_operation_delta"))
     component = _mapping(delta.get("after_component") or delta.get("before_component"))
     outcome = _mapping(trial.get("prompt_outcome"))
+    reason = project_public_trial_reason(trial.get("status_reason"))
+    incomplete = isinstance(reason,str) and (reason.startswith("train_incomplete") or reason.startswith("eval_incomplete"))
     return [
         str(trial.get("lane_id", "")).removeprefix("lane-"),
         _optional_text(_mapping(trial.get("candidate")).get("candidate_id")),
         _optional_text(delta.get("operation")),
         _optional_text(component.get("mechanism_id")),
-        _optional_text(trial.get("trial_status")),
+        "execution_incomplete" if incomplete else _optional_text(trial.get("trial_status")),
         outcome.get("objective_delta"), outcome.get("guard_delta"),
-        outcome.get("runtime_effect"), project_public_trial_reason(trial.get("status_reason")),
+        outcome.get("runtime_effect"), reason,
         RuntimeActivationEvidence.from_mapping(
             trial.get("runtime_activation_summary")
         ).reward_execution_state(),
@@ -578,6 +580,8 @@ def _compact_candidate_component_records(
             ("weight", ("weight", "effective_weight")),
             ("last_mean", ("last_mean", "last_weighted_mean")),
             ("max_abs", ("max_abs", "max_abs_weighted_contribution")),
+            ("last_sample_common_step", ("last_sample_common_step",)),
+            ("sampled_env_count", ("sampled_env_count",)),
             ("max_abs_parent_delta", ("max_abs_parent_delta",)),
         ):
             numeric = _first_present(
@@ -683,6 +687,8 @@ def compact_component_activation_records(
             ("weight", ("weight", "effective_weight")),
             ("last_mean", ("last_mean", "last_weighted_mean")),
             ("max_abs", ("max_abs", "max_abs_weighted_contribution")),
+            ("last_sample_common_step", ("last_sample_common_step",)),
+            ("sampled_env_count", ("sampled_env_count",)),
         ):
             numeric = _first_present(
                 *(_optional_number(item.get(key)) for key in source_keys)

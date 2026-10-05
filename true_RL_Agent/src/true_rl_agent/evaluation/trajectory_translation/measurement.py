@@ -14,12 +14,49 @@ from .contracts import CATALOG_VERSION, NumericEpisode, PredicateTrack, predicat
 from .temporal import contiguous_slices, interval_rows
 
 NUMERIC_CONFIG = {"version": CATALOG_VERSION, "quaternion_norm_tolerance": 1e-4,
+                  "terminal_window_s": .5,
                   "motion_proxy": "adjacent_recorded_position.v2",
                   "low_horizontal_speed_mps": 0.05, "progress_window_s": 0.5,
                   "progress_increment_m": 0.02, "share_zero_tolerance": 1e-12,
                   "low_speed_and_progress_threshold_source": "development_calibration",
                   "up_z_negative_threshold": 0.0, "up_z_threshold_source": "robot_scale_rule",
                   "combination_encoding": "role_index_lsb.v1"}
+
+# Recorded quaternions are float32. This only resolves numerical degeneracy.
+DIRECTION_EPS = float(8 * np.finfo(np.float32).eps)
+
+
+def terminal_window_steps(dt_s):
+    return math.floor(NUMERIC_CONFIG["terminal_window_s"] / dt_s + 1e-9)
+
+
+def terminal_window_mask(episode):
+    return episode.steps >= episode.steps[-1] - terminal_window_steps(episode.dt_s)
+
+
+def axis_azimuth(axis, forward):
+    lateral = np.cross([0., 0., 1.], forward)
+    x, y = axis @ forward, axis @ lateral
+    degenerate = np.isfinite(x) & np.isfinite(y) & (np.hypot(x, y) <= DIRECTION_EPS)
+    angle = np.where(degenerate, np.nan, np.degrees(np.arctan2(y, x)))
+    return angle, degenerate
+
+
+def _low_progress_facet(steps, low, up, moving):
+    selected = low.values == 1
+    counts = {}
+    for name, posture in (("up_negative", up < 0), ("up_nonnegative", up >= 0),
+                          ("posture_unknown", ~np.isfinite(up))):
+        mask = selected & posture
+        counts[name] = {"active": int(np.count_nonzero(mask & (moving == 1))),
+                       "quiet": int(np.count_nonzero(mask & (moving == 0))),
+                       "unknown": int(np.count_nonzero(mask & ~np.isfinite(moving)))}
+    positive = np.flatnonzero(selected)
+    na = int(np.count_nonzero(steps < 1 + low.config["lookback_samples"]))
+    return {"label": "低进度确认点的姿态×足相对活动", "unit": "记录点",
+        "counts": counts, "positive": len(positive), "negative": int(np.count_nonzero(low.values == 0)),
+        "not_applicable": na, "unknown": int(np.count_nonzero(low.values < 0))-na,
+        "first_confirmed_step": int(steps[positive[0]]) if len(positive) else None}
 
 
 def _channel(episode: NumericEpisode, name: str, tail: tuple[int, ...]) -> np.ndarray:
@@ -109,14 +146,21 @@ def force_readouts(episode, prefix, entities, threshold):
 
 
 def measure_behavior(episode: NumericEpisode) -> dict:
-    """Behavior operands for the current card, sharing the point/clock definitions."""
+    """Stair-shaped behavior operands sharing the point/clock definitions."""
     motion = position_motion(episode)
     p, q = motion["root"], motion["quaternion"]
     steps, dt = episode.steps, episode.dt_s
     expected_end = int(episode.task["outcome"].get("episode_steps", steps[-1]))
-    progress = (p - episode.task["origin_world"]) @ np.asarray(episode.task["progress_direction_world"])
+    forward = np.asarray(episode.task["progress_direction_world"])
+    lateral = np.cross([0., 0., 1.], forward)
+    progress = (p - episode.task["origin_world"]) @ forward
     low = low_progress_track(episode, progress)
     up = 1 - 2*(q[:, 1]**2 + q[:, 2]**2)
+    w, x, y, z = q.T
+    up_axis = np.column_stack((2*(x*z+w*y), 2*(y*z-w*x), up))
+    forward_axis = np.column_stack((1-2*(y*y+z*z), 2*(x*y+w*z), 2*(x*z-w*y)))
+    heading, heading_na = axis_azimuth(forward_axis, forward)
+    up_direction, up_direction_na = axis_azimuth(up_axis, forward)
     tilt = np.degrees(np.arccos(np.clip(up, -1, 1)))
     rotation = np.full(len(steps), np.nan)
     rotation[1:] = np.where(episode.adjacent,
@@ -146,23 +190,28 @@ def measure_behavior(episode: NumericEpisode) -> dict:
                        "valid": int(valid.sum()), "unknown": int((~valid).sum())-na,
                        "not_applicable": na}
 
+    width = terminal_window_steps(dt)
+    complete_history = (steps[-1]-1)*dt + 1e-9 >= NUMERIC_CONFIG["terminal_window_s"]
     for window, mask in (("all", np.ones(len(steps), dtype=bool)),
-                         ("terminal", steps >= steps[-1] - math.floor(.5/dt + 1e-9))):
+                         ("terminal", terminal_window_mask(episode))):
         f = facts[window] = {}
         rows = np.flatnonzero(mask)
         edge_mask = mask if window == "all" else mask & (steps > steps[rows[0]])
         scalar(f, "progress", "终点任务位置", "m", progress, steps == steps[-1])
         scalar(f, "speed", "根部位置差分水平速度", "m/s", root_speed, edge_mask, applicable=steps>1)
         scalar(f, "forward_speed", "正向差分速度", "m/s", motion["root_velocity"] @ np.asarray(episode.task["progress_direction_world"]), edge_mask, applicable=steps>1)
+        scalar(f, "lateral_speed", "横向差分速度", "m/s", motion["root_velocity"] @ lateral, edge_mask, applicable=steps>1)
         scalar(f, "time", "记录结束时刻", "s", steps*dt, steps==steps[-1])
         scalar(f, "tilt", "身体上轴最大倾角", "°", tilt, mask, "max")
         scalar(f, "tilt_end", "末端倾角", "°", tilt, steps == steps[-1])
+        scalar(f, "heading_end", "身体前轴投影朝向", "°", heading, steps == steps[-1], applicable=~heading_na)
+        scalar(f, "up_direction_end", "上轴投影方位", "°", up_direction, steps == steps[-1], applicable=~up_direction_na)
         scalar(f, "forward_elevation", "身体前轴最大仰角", "°", elevation, mask, "max")
         scalar(f, "forward_elevation_min", "身体前轴最小仰角", "°", elevation, mask, "min")
         scalar(f, "height", "根部相对场景原点z", "m", p[:,2]-episode.task["origin_world"][2], mask)
         scalar(f, "rotation", "相邻姿态短弧转角总和", "°", rotation, edge_mask, "sum", applicable=steps>1)
         scalar(f, "inverted", "上轴向下记录占比", "%", np.where(np.isfinite(up), 100*(up < 0), np.nan), mask)
-        expected = expected_end if window == "all" else min(expected_end, math.floor(.5/dt + 1e-9)+1)
+        expected = expected_end if window == "all" else min(expected_end, width+1)
         f["inverted"]["presence"] = (True if np.any(up[mask] < 0) else
             False if np.isfinite(up[mask]).all() and len(rows) == expected and steps[-1] == expected_end else None)
         applicable = steps >= 1 + low.config["lookback_samples"]
@@ -175,6 +224,9 @@ def measure_behavior(episode: NumericEpisode) -> dict:
         delta = progress[rows[-1]] - progress[rows[0]]
         f["net"] = {"label": "净正向位移", "unit": "m", "value": float(delta) if np.isfinite(delta) else None,
                     "valid": int(np.isfinite(delta)), "unknown": int(not np.isfinite(delta)), "not_applicable": 0}
+        delta = (p[rows[-1]] - p[rows[0]]) @ lateral
+        f["net_lateral"] = {"label": "净横向位移", "unit": "m", "value": float(delta) if np.isfinite(delta) else None,
+                            "valid": int(np.isfinite(delta)), "unknown": int(not np.isfinite(delta)), "not_applicable": 0}
         f["duration"] = {"label": "观测跨度", "unit": "s", "value": float((steps[rows[-1]]-steps[rows[0]])*dt),
                          "valid": len(rows), "unknown": int(steps[rows[-1]]-steps[rows[0]]+1-len(rows)), "not_applicable": 0}
         for i, name in enumerate(episode.entities["support"]):
@@ -188,10 +240,17 @@ def measure_behavior(episode: NumericEpisode) -> dict:
         for code in range(1 << len(episode.entities["support"])):
             scalar(f, "contact."+str(code), "+".join(e for i,e in enumerate(episode.entities["support"]) if code & (1<<i)) or "全部未触发",
                    "%", np.where(joint_valid, 100*(codes == code), np.nan), mask)
+            if window == "terminal":
+                contact = f["contact."+str(code)]
+                if not complete_history:
+                    contact.update(value=None, valid=0, unknown=0, not_applicable=len(rows))
+                else:
+                    contact["unknown"] += width+1-len(rows)
     events = []
     drawdown = _drawdown(episode, progress)
     if (episode.task["outcome"]["primary_reason"] == "success" and
-            (drawdown["max_drawdown_m"] or 0) > 0 and drawdown["return_step"] is not None):
+            (drawdown["max_drawdown_m"] or 0) >= NUMERIC_CONFIG["progress_increment_m"]
+            and drawdown["return_step"] is not None):
         indices = [int(np.searchsorted(steps, drawdown[k])) for k in ("peak_step", "trough_step", "return_step")]
         events.append({"kind": "success_drawdown_return", **drawdown,
             "progress_m": progress[indices].tolist(),
@@ -215,6 +274,22 @@ def measure_behavior(episode: NumericEpisode) -> dict:
                 "source": episode.reference(("forbidden_contact_forces_w", "forbidden_contact_forces_w_history",
                     *("termination_"+str(j) for j in range(len(episode.task["termination_term_order"])))) )})
     first_down = np.flatnonzero(up < 0)
+    first_observation = None
+    if len(first_down):
+        first = int(first_down[0])
+        def observed(index):
+            return {"step": int(steps[index]), "time_s": float(steps[index]*dt),
+                    "tilt_deg": float(tilt[index]),
+                    "up_direction_deg": float(up_direction[index]) if np.isfinite(up_direction[index]) else None}
+        prior = (observed(first-1) if first and episode.adjacent[first-1]
+                 and np.isfinite(up[first-1]) and up[first-1] >= 0 else None)
+        first_observation = {**observed(first), "previous": prior,
+            "source": episode.reference(("base_quat_w",), first-1 if prior else first, first+1)}
+    presence = facts["all"]["inverted"]["presence"]
+    facts["all"]["first_down_time"] = {"label":"首次观察上轴向下时刻", "unit":"s",
+        "value": first_observation["time_s"] if first_observation else None,
+        "valid": int(first_observation is not None), "unknown": int(presence is None),
+        "not_applicable": int(presence is False)}
     if len(first_down):
         first = int(first_down[0])
         speed = np.linalg.norm(motion["world_velocity"][:, :, :2], axis=2)
@@ -223,9 +298,11 @@ def measure_behavior(episode: NumericEpisode) -> dict:
             off = predicate((np.linalg.norm(force[:, i], axis=1) <= threshold) &
                             (speed[:, i] < NUMERIC_CONFIG["low_horizontal_speed_mps"]), valid)
             track = PredicateTrack(episode.episode_id, "low_speed_off", (entity,), (), off, {})
-            longest = max((r for r in interval_rows(episode, track) if r["state"] == "true"),
+            longest = max((r for r in interval_rows(episode, track) if r["state"] == "true"
+                           and r["steps_half_open"][0] > steps[first]
+                           and (r["sample_count"]-1)*dt >= NUMERIC_CONFIG["progress_window_s"]),
                           key=lambda r:r["sample_count"], default=None)
-            if longest and longest["steps_half_open"][0] > steps[first]:
+            if longest:
                 a, b = longest["index_half_open"]
                 events.append({"kind": "down_before_low_off", "entity": entity,
                     "first_observed_down_step": int(steps[first]), "start_step": int(steps[a]),
@@ -237,9 +314,10 @@ def measure_behavior(episode: NumericEpisode) -> dict:
     return {"episode_id": episode.episode_id, "run_index": episode.run_index, "env_index": episode.env_index,
             "outcome": episode.task["outcome"], "stratum": episode.task["stratum_id"], "cell": episode.task["cell_id"],
             "support": list(episode.entities["support"]), "contact_threshold_n": episode.task["contact_threshold_n"],
-            "facts": facts, "events": events,
-            "terminal_motion_complete": bool(steps[-1] == expected_end and math.floor(.5/dt+1e-9) > 0 and steps[-1] >= 1+math.floor(.5/dt+1e-9)
-                and facts["terminal"]["forward_speed"]["valid"] == math.floor(.5/dt+1e-9)),
+            "facts": facts, "events": events, "first_down_observation": first_observation,
+            "low_progress_facet": _low_progress_facet(steps, low, up, moving),
+            "terminal_motion_complete": bool(steps[-1] == expected_end and width > 0 and complete_history
+                and facts["terminal"]["forward_speed"]["valid"] == width),
             "source": episode.reference(("base_pos_w", "base_quat_w", "support_pos_w", "support_contact_forces_w")),
-            "window": {"terminal_s": .5, "edge_assignment": "both_adjacent_endpoints_inside_window",
+            "window": {"terminal_s": NUMERIC_CONFIG["terminal_window_s"], "edge_assignment": "both_adjacent_endpoints_inside_window",
                        "low_progress_support_samples": low.config["lookback_samples"], "confirmation_not_onset": True}}

@@ -307,7 +307,9 @@ class StairClimbingPromptAdapter:
         policy = self.prompt_public_record_scrub_policy()
         # Bind the new reference view before projection/scrubbing removes its
         # private phase receipt. Only the verified public profile is delivered.
-        reference_behavior = _reference_behavior_feedback(public_context) if not public_records else None
+        best = _mapping(public_context.get("current_best_identity"))
+        reference_behavior = (_reference_behavior_feedback(public_context)
+            if best.get("anchor_kind") == "reference" or not public_records else None)
         prompt_projection = self.project_prompt_public_history(
             public_records=public_records,
             initial_anchor_public_evidence=(
@@ -358,7 +360,8 @@ class StairClimbingPromptAdapter:
         )
         if not isinstance(safe_comparisons, list):
             safe_comparisons = []
-        runtime_feedback = _latest_runtime_feedback(safe_records)
+        runtime_feedback = _latest_runtime_feedback(safe_records, public_context=public_context)
+        latest_nonaccepted = latest_nonaccepted_trial(safe_records, include_failed_training_sampling=True)
         sections = self._prompt_sections(
             public_feedback=_public_feedback_summary(
                 _feedback_trial_records(safe_records, config=self.config,
@@ -366,23 +369,42 @@ class StairClimbingPromptAdapter:
                 safe_context,
                 latest_generation_trial_comparisons=safe_comparisons,
                 use_public_dev_objective=self.config.is_unified_protocol,
-                latest_nonaccepted_trial_id=runtime_feedback.get("source_round_id"),
+                latest_nonaccepted_trial_id=(latest_nonaccepted[1].get("trial_id", latest_nonaccepted[1].get("round_id"))
+                                            if latest_nonaccepted else None),
             ),
             runtime_feedback=runtime_feedback,
         )
-        behavior = _latest_behavior_feedback(safe_records)
-        if behavior is None and not safe_records:
-            behavior = reference_behavior
+        behavior = _latest_behavior_feedback(safe_records, current_best=best)
+        if reference_behavior is not None and (behavior is None or "profile" not in behavior):
+            behavior = {**reference_behavior, "secondary": _mapping(behavior).get("secondary", [])}
         if behavior is not None:
             if _mapping(behavior.get("profile")).get("schema_version") in {TRAJECTORY_PUBLIC_SCHEMA}:
                 if behavior["profile"]["domain"]["task_protocol_hash"] != self.config.task_protocol_hash:
                     raise ValueError("Stair trajectory prompt task domain mismatch")
             if _mapping(behavior.get("profile")).get("schema_version") == TRAJECTORY_PUBLIC_SCHEMA:
-                # Binding was checked above and remains in phase artifacts. The
-                # author needs the selected facts and source job, not digests.
-                behavior = {**behavior, "profile": {"kind": "numeric_behavior",
-                    "report": behavior["profile"]["report"]}}
+                from .trajectory_production import author_behavior_payload
+                from true_rl_agent.evaluation.process_report import ReportBudgetExceeded, description_error_details
+                # Source, task domain and parent/trial binding are checked above.
+                # This call only selects and renders the admitted author prose.
+                try:
+                    behavior = author_behavior_payload(behavior)
+                except ReportBudgetExceeded as exc:
+                    behavior = {"source":behavior["source"], "description_status":{
+                        "status":"unavailable", "reason":"budget_exceeded",
+                        **description_error_details(exc, stage="author_rendering"),
+                        "required_bytes":exc.required_bytes, "max_bytes":exc.max_bytes,
+                        "text":"编辑基准的必需事实与来源、对照超出本次作者片段预算。"}}
+                except Exception as exc:
+                    behavior = {"source":behavior["source"], "description_status":{
+                        "status":"unavailable", "reason":"description_computation_failed",
+                        **description_error_details(exc, stage="author_rendering"),
+                        "text":"来源已验证；作者行为描述生成失败，评估数值与训练统计保留。"}}
             sections["public_feedback_summary"]["behavior"] = behavior
+            if "profile" in behavior or behavior.get("secondary"):
+                sections["selection_guidance"].append(
+                    "行为主卡描述当前编辑基准；最近各 lane 的变化相对该代冻结父代。"
+                    "分数、行为与奖励统计按 generation_index/lane_id 及注明的来源对应。"
+                    "执行未完成意味着尚无策略效果结论，不是机制失败证据。")
         sections = _compact_public_feedback_to_fit_task_sections(
             sections,
             evaluation_profile=self.config.evaluation_profile_config,
@@ -489,9 +511,8 @@ class StairClimbingPromptAdapter:
             raise ValueError("unsupported Stair completion mode")
         if self.config.is_unified_protocol:
             guidance.append(
-                "Optimize J_primary=(2*J_OOD+J_ID)/3 while all three runner-owned "
-                "named guards J_OOD, C0-ID, and C1-ID remain within their paired "
-                "non-regression tolerances; no score can compensate for a failed guard."
+                "Use the objective and named guards in public_eval_contract as the "
+                "scoring authority; no objective gain compensates for a failed guard."
             )
         else:
             guidance.append(
@@ -2562,10 +2583,12 @@ def _compact_unified_factor_diagnostics(
         return copy.deepcopy(dict(value))
 
     rows: list[list[Any]] = []
-    for raw_factor, raw_levels in value.items():
+    # Factor/level mappings have no sequence semantics. Canonicalize when they
+    # become table rows, so JSON object ordering cannot change row identities.
+    for raw_factor, raw_levels in sorted(value.items(), key=lambda item: str(item[0])):
         if not isinstance(raw_levels, Mapping):
             raise ValueError("Stair factor diagnostics levels must be an object")
-        for raw_level, raw_item in raw_levels.items():
+        for raw_level, raw_item in sorted(raw_levels.items(), key=lambda item: str(item[0])):
             if not isinstance(raw_item, Mapping):
                 raise ValueError("Stair factor diagnostic row must be an object")
             cell_count = raw_item.get("cell_count")
@@ -3142,13 +3165,16 @@ def _project_unified_prompt_generation(
     # history. The parent checkpoint remains independently bound by the ledger.
     parent = _mapping(generation.get("parent_public_dev"))
     if parent:
-        projected["parent_public_dev"] = {key:parent[key] for key in ("behavior_comparison","description_status") if key in parent}
+        parent_projection = {key:parent[key] for key in ("behavior_comparison","description_status") if key in parent}
         if isinstance(parent.get("behavior"), Mapping):
             from true_rl_agent.tasks.stair_climbing.behavior import project_stair_behavior
-            projected["parent_public_dev"]["behavior"] = project_stair_behavior(parent["behavior"])
+            parent_projection["behavior"] = project_stair_behavior(parent["behavior"])
+        if parent_projection:
+            projected["parent_public_dev"] = parent_projection
     best = _mapping(generation.get("parent_current_best"))
     if best.get("checkpoint_hash"):
-        projected["parent_current_best"] = {"checkpoint_hash": best["checkpoint_hash"]}
+        projected["parent_current_best"] = {key:best[key] for key in
+            ("mode","checkpoint_hash","anchor_id","anchor_kind","accepted_round_id","program_source_checksum") if key in best}
     projector = StairExplorationProjector(
         config,
         objective_family_mask=(
@@ -3274,83 +3300,168 @@ def _prompt_feedback_objective_score(
 
 
 def _reference_behavior_feedback(public_context: Mapping[str, Any]) -> dict[str, Any] | None:
-    """The qualified initial reference is evidence, without a candidate trial."""
+    """Use the qualified reference only when its own subject/checkpoint is the baseline."""
     from true_rl_agent.tasks.stair_climbing.behavior import project_stair_behavior
+    from true_rl_agent.evaluation.binding import canonical_json_hash
+    from .trajectory_report import require_trajectory_phase_binding
+
     anchor = _mapping(public_context.get("initial_anchor_public_evidence"))
     if anchor.get("anchor_kind") != "reference_program":
         return None
     result = _mapping(anchor.get("public_result"))
     metrics = _mapping(result.get("metrics"))
-    behavior = metrics.get("behavior", _mapping(metrics.get("public_dev")).get("behavior"))
-    if result.get("status") != "pass" or not isinstance(behavior, Mapping):
+    if result.get("status") != "pass":
         return None
-    profile = project_stair_behavior(behavior)
-    if profile.get("schema_version") in {TRAJECTORY_PUBLIC_SCHEMA}:
-        from true_rl_agent.evaluation.binding import canonical_json_hash
-        from .trajectory_report import require_trajectory_phase_binding
-        if anchor.get("public_result_hash") != canonical_json_hash(result):
-            raise ValueError("Stair trajectory reference public result hash mismatch")
-        binding = metrics.get("trajectory_phase_binding", anchor.get("trajectory_phase_binding"))
-        if not isinstance(binding, Mapping):
-            raise ValueError("Stair trajectory reference requires explicit phase binding")
+    behavior = metrics.get("behavior", _mapping(metrics.get("public_dev")).get("behavior"))
+    if not isinstance(behavior, Mapping) and "description_status" not in metrics:
+        return None
+    if anchor.get("public_result_hash") != canonical_json_hash(result):
+        raise ValueError("Stair trajectory reference public result hash mismatch")
+    binding = metrics.get("trajectory_phase_binding", anchor.get("trajectory_phase_binding"))
+    if not isinstance(binding, Mapping):
+        raise ValueError("Stair trajectory reference requires explicit phase binding")
+    profile = project_stair_behavior(behavior) if isinstance(behavior, Mapping) else None
+    if profile is not None:
         require_trajectory_phase_binding(profile, **binding)
-        return {"source_kind": "bound_public_dev_observation", "source_public_result_hash": anchor.get("public_result_hash"),
-                "selection": "explicit source observation; no generation trial or accepted-best inference",
-                "source_evaluation_job_id": profile["domain"]["evaluation_job_id"],
-                "accepted_best_relationship": "not_established_by_behavior_card",
-                "author_code_relationship": "not_established_by_behavior_card",
-                "omitted_measured_trials": 0, "profile": profile,
-                "diff": {"status": "not_available", "reason": "missing_bound_parent_or_behavior"}}
-    return {"source_kind": "reference_anchor", "source_public_result_hash": anchor.get("public_result_hash"),
-            "selection": "initial reference with no candidate history", "omitted_measured_trials": 0,
-            "profile": project_stair_behavior(behavior),
-            "diff": {"status": "not_available", "reason": "reference_anchor_has_no_candidate_pair"}}
+    best = _mapping(public_context.get("current_best_identity"))
+    if best:
+        subject = _mapping(metrics.get("evaluation_subject"))
+        identity = {"anchor_kind":subject.get("kind"), "anchor_id":subject.get("id"),
+                    "checkpoint_hash":binding.get("checkpoint_hash"),
+                    "program_source_checksum":metrics.get("program_source_checksum")}
+        if not _same_behavior_baseline(identity, best):
+            return None
+    source = {"role":"当前编辑基准" if best else "初始参考观测",
+              "anchor_kind":"reference", "observation":"初始已资格参考公开评估"}
+    if profile is None:
+        return {"source":source,"description_status":metrics["description_status"]}
+    return {"source":source,"profile":profile,
+            "diff":{"status":"not_available","reason":"reference_anchor_has_no_candidate_pair"}}
 
 
-def _latest_behavior_feedback(public_records: Sequence[Mapping[str, Any]]) -> dict[str, Any] | None:
-    """One measured trial, bound parent comparison, and explicit omitted lanes."""
+def _same_behavior_baseline(observed: Mapping[str, Any], best: Mapping[str, Any]) -> bool:
+    keys = ["anchor_kind", "anchor_id", "checkpoint_hash"]
+    if best.get("anchor_kind") == "candidate":
+        keys.append("accepted_round_id")
+    if not all(best.get(key) and observed.get(key) == best[key] for key in keys):
+        return False
+    return not (best.get("program_source_checksum") and observed.get("program_source_checksum")
+                and best["program_source_checksum"] != observed["program_source_checksum"])
+
+
+def _secondary_behavior_evidence(generation):
+    """Each recent trial compares to its own frozen generation parent."""
+    from .behavior import compare_stair_behavior
+
+    rows = []
+    parent = _mapping(generation.get("parent_public_dev"))
+    parent_identity = _mapping(generation.get("parent_current_best"))
+    for trial in generation.get("trials", ()):
+        phase = _mapping(_mapping(trial.get("public_dev")).get("public_summary"))
+        reason = project_public_trial_reason(trial.get("status_reason"))
+        row = {"generation_index":generation.get("generation_index"), "lane_id":trial.get("lane_id"),
+               "trial_status":trial.get("trial_status")}
+        if reason:
+            row["reason"] = reason
+        if isinstance(phase.get("behavior"), Mapping):
+            diff = compare_stair_behavior(parent.get("behavior"), phase["behavior"],
+                expected_parent_checkpoint_hash=parent_identity.get("checkpoint_hash"),
+                parent_comparison=parent.get("behavior_comparison"), candidate_comparison=phase.get("behavior_comparison"))
+            row.update(comparison_status=diff["status"], text=diff.get("core_text",diff.get("text")))
+            row["detail_rows"] = diff.get("rows", [])
+        elif phase:
+            row.update(comparison_status="description_unavailable",text="公开评测已记录，行为描述不可用。")
+        else:
+            row.update(comparison_status="not_evaluated",text="执行未完成或未获得公开评测；尚无策略效果结论，不能判定机制失败。")
+        outcome = _mapping(trial.get("prompt_outcome"))
+        if "objective_delta" in outcome:
+            row["public_dev_objective_delta"] = outcome["objective_delta"]
+        rows.append(row)
+    return rows
+
+
+def _latest_behavior_feedback(public_records: Sequence[Mapping[str, Any]], *,
+                              current_best: Mapping[str, Any] | None = None) -> dict[str, Any] | None:
+    """Find the actual editing checkpoint across validated parent observations/trials."""
     from true_rl_agent.tasks.stair_climbing.behavior import compare_stair_behavior, project_stair_behavior
 
-    for record in reversed(public_records):
-        generation = _mapping(record.get("generation"))
-        trials = [trial for trial in generation.get("trials", ())
-                  if isinstance(trial, Mapping) and isinstance(_mapping(trial.get("public_dev")).get("public_summary"), Mapping)]
-        if trials:
-            _validate_trajectory_trial_reports(trials)
-            trial = trials[-1]
-            phase_summary = trial["public_dev"]["public_summary"]
-            if not isinstance(phase_summary.get("behavior"), Mapping):
-                if "description_status" in phase_summary:
-                    return {"source_trial_id":trial.get("trial_id"),"source_lane_id":trial.get("lane_id"),
-                            "description_status":phase_summary["description_status"]}
-                return None
-            behavior = project_stair_behavior(trial["public_dev"]["public_summary"]["behavior"])
-            parent = _mapping(generation.get("parent_public_dev")).get("behavior")
-            difference = compare_stair_behavior(parent, behavior,
-                expected_parent_checkpoint_hash=_mapping(generation.get("parent_current_best")).get("checkpoint_hash"),
-                parent_comparison=_mapping(generation.get("parent_public_dev")).get("behavior_comparison"),
-                candidate_comparison=phase_summary.get("behavior_comparison"))
-            trajectory_selection = {}
-            if behavior.get("schema_version") in {TRAJECTORY_PUBLIC_SCHEMA}:
-                formal = _mapping(generation.get("formal"))
-                trajectory_selection = {"source_evaluation_job_id": behavior["domain"]["evaluation_job_id"],
-                    "accepted_best_relationship": ("accepted_in_this_generation" if formal.get("accepted") is True
-                        and formal.get("selected_trial_id") == trial.get("trial_id") else "not_established_for_selected_trial"),
-                    "author_code_relationship": "not_established_by_behavior_card"}
-            return {"source_trial_id": trial.get("trial_id"), "source_lane_id": trial.get("lane_id"),
-                    **trajectory_selection,
-                    "selection": "last measured lane in latest generation; independent of acceptance",
-                    "omitted_measured_trials": len(trials)-1, "profile": behavior,
-                    "diff": difference}
+    best = _mapping(current_best)
+    generations = [_mapping(record.get("generation")) for record in reversed(public_records)]
+    for generation in generations:
+        _validate_trajectory_trial_reports(generation.get("trials", ()))
+    latest = next((g for g in generations if g), {})
+    source = {"role":"当前编辑基准", "anchor_kind":best.get("anchor_kind")}
+    secondary = _secondary_behavior_evidence(latest)
+    predecessor = None
+    accepted_source = None
+    # Acceptance lineage is stable even when a later generation refreshes the
+    # incumbent's public observation. Never compare that observation to itself.
+    if best.get("anchor_kind") == "candidate":
+        for generation in generations:
+            for trial in generation.get("trials", ()):
+                if trial.get("trial_id") != best.get("accepted_round_id"):
+                    continue
+                candidate = _mapping(trial.get("candidate"))
+                dev = _mapping(trial.get("public_dev"))
+                identity = {"anchor_kind":"candidate", "anchor_id":candidate.get("candidate_id"),
+                    "accepted_round_id":trial.get("trial_id"), "checkpoint_hash":dev.get("checkpoint_hash"),
+                    "program_source_checksum":candidate.get("program_source_checksum")}
+                if not _same_behavior_baseline(identity,best):
+                    raise ValueError("accepted behavior predecessor identity mismatch")
+                phase = _mapping(dev.get("public_summary"))
+                parent = _mapping(generation.get("parent_public_dev"))
+                if isinstance(phase.get("behavior"), Mapping):
+                    predecessor = compare_stair_behavior(parent.get("behavior"),phase["behavior"],
+                        expected_parent_checkpoint_hash=_mapping(generation.get("parent_current_best")).get("checkpoint_hash"),
+                        parent_comparison=parent.get("behavior_comparison"),candidate_comparison=phase.get("behavior_comparison"))
+                    accepted_source = {"generation_index":generation.get("generation_index"),"lane_id":trial.get("lane_id")}
+                    predecessor["source"] = accepted_source
+    for generation in generations:
+        parent_identity = _mapping(generation.get("parent_current_best"))
+        phase = _mapping(generation.get("parent_public_dev"))
+        if _same_behavior_baseline(parent_identity, best):
+            if isinstance(phase.get("behavior"), Mapping):
+                profile = project_stair_behavior(phase["behavior"])
+                if profile["domain"]["checkpoint_hash"] != best["checkpoint_hash"]:
+                    raise ValueError("Stair editing baseline parent checkpoint mismatch")
+                return {"source":{**source,**(accepted_source or {}),"observation_generation":generation.get("generation_index"),
+                                  "observation":"与当前编辑检查点绑定的公开评测"},
+                        "profile":profile, "secondary":secondary,
+                        "diff":predecessor or {"status":"not_available","reason":"baseline_observation_has_no_bound_predecessor",
+                                "text":"该基准观测未附其前代配对，不与自身计算差分。"}}
+            if "description_status" in phase:
+                return {"source":source,"secondary":secondary,"description_status":phase["description_status"]}
+        for trial in generation.get("trials", ()):
+            candidate = _mapping(trial.get("candidate"))
+            public_dev = _mapping(trial.get("public_dev"))
+            identity = {"anchor_kind":"candidate", "anchor_id":candidate.get("candidate_id"),
+                        "accepted_round_id":trial.get("trial_id"), "checkpoint_hash":public_dev.get("checkpoint_hash"),
+                        "program_source_checksum":candidate.get("program_source_checksum")}
+            if not _same_behavior_baseline(identity, best):
+                continue
+            source = {**source,"generation_index":generation.get("generation_index"),"lane_id":trial.get("lane_id")}
+            phase = _mapping(public_dev.get("public_summary"))
+            if not isinstance(phase.get("behavior"), Mapping):
+                return {"source":source,"secondary":secondary,"description_status":phase.get("description_status",
+                    {"status":"not_available","reason":"editing_baseline_description_missing"})}
+            profile = project_stair_behavior(phase["behavior"])
+            parent = _mapping(generation.get("parent_public_dev"))
+            difference = predecessor or compare_stair_behavior(parent.get("behavior"), profile,
+                expected_parent_checkpoint_hash=parent_identity.get("checkpoint_hash"),
+                parent_comparison=parent.get("behavior_comparison"),
+                candidate_comparison=phase.get("behavior_comparison"))
+            return {"source":source,"source_trial_id":trial.get("trial_id"),
+                    "profile":profile,"diff":difference,"secondary":secondary}
+    for record in public_records:
         metrics = _mapping(_mapping(record.get("public_result")).get("metrics"))
         behavior = metrics.get("behavior", _mapping(metrics.get("public_dev")).get("behavior"))
-        if isinstance(behavior, Mapping):
-            if behavior.get("schema_version") in {TRAJECTORY_FULL_SCHEMA, TRAJECTORY_PUBLIC_SCHEMA}:
-                raise ValueError("Stair trajectory round feedback requires an explicit phase or generation trial binding")
-            return {"source_trial_id": record.get("round_id"), "omitted_measured_trials": 0,
-                    "selection": "latest measured round with behavior", "profile": project_stair_behavior(behavior),
-                    "diff": {"status": "not_available", "reason": "missing_bound_parent_or_behavior"}}
-    return None
+        if isinstance(behavior, Mapping) and behavior.get("schema_version") in {TRAJECTORY_FULL_SCHEMA, TRAJECTORY_PUBLIC_SCHEMA}:
+            raise ValueError("Stair trajectory round feedback requires an explicit phase or generation trial binding")
+    if not public_records:
+        return None
+    return {"source":source,"secondary":secondary,"description_status":{
+        "status":"not_available","reason":"editing_baseline_observation_missing",
+        "text":"未找到与当前编辑基准身份一致的行为卡；旁证仅描述标明的其他候选。"}}
 
 
 def _validate_trajectory_trial_reports(trials: Sequence[Mapping[str, Any]]) -> None:
@@ -3391,6 +3502,7 @@ def _feedback_trial_records(
             candidate = _mapping(trial.get("candidate"))
             records.append({
                 "round_id": trial["trial_id"], "candidate": candidate,
+                "generation_index":generation.get("generation_index"), "lane_id":trial.get("lane_id"),
                 "train_result": {"program_source_checksum": candidate.get("program_source_checksum")},
                 "decision": {"accepted": trial["trial_status"] == "accepted"},
                 "public_result": {"status": "pass", "metrics": {"prompt_feedback": feedback}},
@@ -3437,6 +3549,7 @@ def _candidate_feedback_entries(
             {
                 "_index": index,
                 "round_id": record.get("round_id"),
+                **{key:record[key] for key in ("generation_index","lane_id") if key in record},
                 "candidate_id": candidate.get("candidate_id"),
                 "program_source_checksum": train_result.get(
                     "program_source_checksum"
@@ -3579,12 +3692,61 @@ def _feedback_from_metrics(
 
 def _latest_runtime_feedback(
     public_records: Sequence[Mapping[str, Any]],
+    *, public_context: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
+    best = _mapping(_mapping(public_context).get("current_best_identity"))
+    if best:
+        generations = [_mapping(r.get("generation")) for r in reversed(public_records)]
+        latest = next((g for g in generations if g), {})
+        primary = None
+        for generation in generations:
+            for trial in generation.get("trials", ()):
+                dev = _mapping(trial.get("public_dev"))
+                candidate = _mapping(trial.get("candidate"))
+                identity = {"anchor_kind":"candidate", "anchor_id":candidate.get("candidate_id"),
+                    "accepted_round_id":trial.get("trial_id"), "checkpoint_hash":dev.get("checkpoint_hash"),
+                    "program_source_checksum":candidate.get("program_source_checksum")}
+                if _same_behavior_baseline(identity,best):
+                    primary = _trial_runtime_feedback(trial, generation.get("generation_index"))
+                    break
+            if primary is not None:
+                break
+        if best.get("anchor_kind") == "reference":
+            anchor = _mapping(_mapping(public_context).get("initial_anchor_public_evidence"))
+            result = _mapping(anchor.get("public_result"))
+            metrics = _mapping(result.get("metrics"))
+            subject = _mapping(metrics.get("evaluation_subject"))
+            binding = _mapping(metrics.get("trajectory_phase_binding",anchor.get("trajectory_phase_binding")))
+            identity = {"anchor_kind":subject.get("kind"),"anchor_id":subject.get("id"),
+                "checkpoint_hash":binding.get("checkpoint_hash"),"program_source_checksum":metrics.get("program_source_checksum")}
+            from true_rl_agent.evaluation.binding import canonical_json_hash
+            if (anchor.get("anchor_kind") == "reference_program" and result.get("status") == "pass"
+                    and anchor.get("public_result_hash") == canonical_json_hash(result)
+                    and _same_behavior_baseline(identity,best)):
+                trained = _mapping(anchor.get("training_runtime"))
+                subject = _mapping(trained.get("evaluation_subject"))
+                training_identity = {"anchor_kind":subject.get("kind"),"anchor_id":subject.get("id"),
+                    "checkpoint_hash":trained.get("checkpoint_hash"),"program_source_checksum":trained.get("program_source_checksum")}
+                runtime = trained.get("runtime_activation_summary") if _same_behavior_baseline(training_identity,best) else None
+                primary = _trial_runtime_feedback({"runtime_activation_summary":runtime,
+                    "candidate":{"candidate_id":best["anchor_id"],"program_source_checksum":best.get("program_source_checksum")}},None)
+                primary["source_kind"] = "reference_anchor"
+        primary = primary or {"schema_version":"true_rl_agent.runtime_feedback_summary.stair.v2",
+            "status":"not_available","reason":"editing_baseline_training_statistics_not_recorded"}
+        primary["role"] = "当前编辑基准的训练奖励统计"
+        primary["scope"] = ("last_mean为最后采样控制步跨环境的加权reward rate均值；max_abs为运行采样点中跨环境绝对最大值。"
+            "不是训练全程均值，也不是公开评测队列的奖励。采样控制步/环境数仅在原记录提供时显示。")
+        primary["recent_trials"] = [_trial_runtime_feedback(t,latest.get("generation_index"))
+            for t in latest.get("trials", ()) if t.get("trial_id") != primary.get("source_round_id")]
+        return primary
     selected = latest_nonaccepted_trial(public_records, include_failed_training_sampling=True)
     if selected is None:
         return {"schema_version": "true_rl_agent.runtime_feedback_summary.stair.v2",
                 "status": "not_available", "reason": "no_latest_nonaccepted_trial"}
-    trial = selected[1]
+    return _trial_runtime_feedback(selected[1],_mapping(public_records[selected[0]].get("generation")).get("generation_index"))
+
+
+def _trial_runtime_feedback(trial, generation_index):
     candidate = _mapping(trial.get("candidate"))
     runtime = _mapping(trial.get("runtime_activation_summary"))
     measured = RuntimeActivationEvidence.from_mapping(runtime).measurement_summary()
@@ -3598,6 +3760,7 @@ def _latest_runtime_feedback(
         "source_candidate_id": candidate.get("candidate_id"),
         "program_source_checksum": candidate.get("program_source_checksum"),
         "source_trial_status": trial.get("trial_status"),
+        "generation_index":generation_index,"lane_id":trial.get("lane_id"),
         "latest_runtime_activation": {**measured,
                                       "capability_activation_records": runtime.get("capability_activation_records", []),
                                       "component_count": len(runtime.get("component_activation_records", [])),

@@ -1102,6 +1102,8 @@ class StairCompleteRewardContractTests(unittest.TestCase):
         )
 
         self.assertEqual(evidence.reward_term_calls, len(program.term_names))
+        self.assertTrue(all(record["last_sample_common_step"] == 1 and record["sampled_env_count"] == 2
+                            for record in evidence.component_activation_records))
         self.assertTrue(evidence.nonzero_reward_contribution)
         self.assertEqual(decision.status, "pass")
         self.assertEqual(

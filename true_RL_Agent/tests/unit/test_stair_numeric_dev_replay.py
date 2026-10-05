@@ -180,6 +180,7 @@ class StairNumericDevReplayTests(unittest.TestCase):
         self.assertEqual(legacy.task_defaults["behavior_feedback_profile"], "trajectory_numeric_v2")
         self.assertEqual(legacy.task_defaults["trajectory_report_max_bytes"], 10240)
         for composition, profile, budget in [(legacy, "trajectory_numeric_v2", 10240), (trajectory, "trajectory_numeric_v2", 8000)]:
+            self.assertFalse(composition.backend_adapter.config.capture_training_numeric)
             keywords = composition.runner.eval_phase_summary_finalizer.keywords
             self.assertEqual(keywords["behavior_feedback_profile"], profile)
             self.assertEqual(keywords["trajectory_report_max_bytes"], budget)

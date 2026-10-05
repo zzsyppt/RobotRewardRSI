@@ -99,4 +99,6 @@ def project_stair_public_dev_diagnostic(
         from true_rl_agent.tasks.stair_climbing.behavior import project_stair_behavior
 
         summary = {**summary, "behavior": project_stair_behavior(phase_result.task_evidence["behavior"])}
+    elif "description_status" in phase_result.task_evidence:
+        summary = {**summary, "description_status": dict(phase_result.task_evidence["description_status"])}
     return summary

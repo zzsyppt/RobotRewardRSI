@@ -11,6 +11,7 @@ from true_rl_agent.agent_core.generation_contract import (
     GenerationSessionContract, GenerationSessionContractRef,
 )
 from true_rl_agent.agent_core.generation_cost import GenerationCostContract
+from true_rl_agent.agent_core.completed_reference_training import VerifiedCompletedReferenceTraining
 from true_rl_agent.agent_core.generation_lifecycle import GenerationContinuationPolicy
 from true_rl_agent.composition import ResolvedTaskComposition
 from true_rl_agent.evaluation.phased_adapter import PhasedEvaluationAdapter
@@ -46,3 +47,4 @@ class GenerationSessionFoundation:
     # The task assembles and interprets its final experiment. The execution
     # foundation carries it without interpreting terrain, scores or seed sets.
     final_confirmation_plan: Any | None
+    completed_reference_training: VerifiedCompletedReferenceTraining | None = None

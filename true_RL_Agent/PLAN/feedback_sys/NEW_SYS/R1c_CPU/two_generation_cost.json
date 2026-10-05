@@ -1,0 +1,141 @@
+{
+  "schema_version": "true_rl_agent.generation_cost_contract.v2",
+  "max_generations": 2,
+  "scientific_cost_basis": {
+    "schema_version": "true_rl_agent.generation_workload.v1",
+    "topology": "two_dev_selected_accept_selected_sealed",
+    "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+    "phased_evaluation_cost_contract_hash": "45ddae20e44c2ed28691df1b5eb96814832e867f3fc082426232962d78b1ca59",
+    "train_steps_per_job": 196608000,
+    "public_dev_seed_units_per_job": 3,
+    "public_accept_seed_units_per_job": 5,
+    "sealed_validation_seed_units_per_job": 7,
+    "max_eval_control_steps_per_seed_unit": 185760,
+    "train_jobs_per_generation": 2,
+    "reference_eval_seed_units": 15,
+    "eval_seed_units_per_generation": 18
+  },
+  "provider": {
+    "attempts_per_lane_per_generation": 3,
+    "input_units_per_attempt_reserve": 300000,
+    "output_units_per_attempt_cap": 32768,
+    "generation_width": 2,
+    "attempt_cap": 12,
+    "input_unit_cap": 3600000,
+    "output_unit_cap": 393216,
+    "total_unit_cap": 3993216
+  },
+  "imported_reference_timeout_envelope": null,
+  "final_confirmation_seed_units": 14,
+  "finalization_output_reserve_bytes": 268435456,
+  "session_output_reserve_bytes": 2147483648,
+  "operation_reserves": {
+    "derivation": {
+      "headroom_numerator": 5,
+      "headroom_denominator": 4,
+      "reference_phase_reserve_rule": "apportion_frozen_totals"
+    },
+    "entries": [
+      {
+        "operation_class": "lane_a_public_dev",
+        "budget_class": "successful_session",
+        "multiplicity": 2,
+        "source_allocated_gpu_capacity_ns_per_attempt": 299577849278,
+        "source_output_bytes_per_attempt": 85131515,
+        "allocated_gpu_capacity_ns_per_attempt": 374472311598,
+        "output_bytes_per_attempt": 106414394,
+        "allocated_gpu_capacity_ns": 748944623196,
+        "output_bytes": 212828788
+      },
+      {
+        "operation_class": "lane_a_train",
+        "budget_class": "successful_session",
+        "multiplicity": 2,
+        "source_allocated_gpu_capacity_ns_per_attempt": 8472390263615,
+        "source_output_bytes_per_attempt": 18860360,
+        "allocated_gpu_capacity_ns_per_attempt": 10816000000000,
+        "output_bytes_per_attempt": 23575450,
+        "allocated_gpu_capacity_ns": 21632000000000,
+        "output_bytes": 47150900,
+        "allocated_gpu_capacity_authority": "runner_timeout_plus_cleanup"
+      },
+      {
+        "operation_class": "lane_b_public_dev",
+        "budget_class": "successful_session",
+        "multiplicity": 2,
+        "source_allocated_gpu_capacity_ns_per_attempt": 299577849278,
+        "source_output_bytes_per_attempt": 85131515,
+        "allocated_gpu_capacity_ns_per_attempt": 374472311598,
+        "output_bytes_per_attempt": 106414394,
+        "allocated_gpu_capacity_ns": 748944623196,
+        "output_bytes": 212828788
+      },
+      {
+        "operation_class": "lane_b_train",
+        "budget_class": "successful_session",
+        "multiplicity": 2,
+        "source_allocated_gpu_capacity_ns_per_attempt": 8472390263615,
+        "source_output_bytes_per_attempt": 18860360,
+        "allocated_gpu_capacity_ns_per_attempt": 10816000000000,
+        "output_bytes_per_attempt": 23575450,
+        "allocated_gpu_capacity_ns": 21632000000000,
+        "output_bytes": 47150900,
+        "allocated_gpu_capacity_authority": "runner_timeout_plus_cleanup"
+      },
+      {
+        "operation_class": "reference_qualification",
+        "budget_class": "successful_session",
+        "multiplicity": 1,
+        "source_allocated_gpu_capacity_ns_per_attempt": 1497889246390,
+        "source_output_bytes_per_attempt": 425657575,
+        "allocated_gpu_capacity_ns_per_attempt": 1872361557988,
+        "output_bytes_per_attempt": 532071969,
+        "allocated_gpu_capacity_ns": 1872361557988,
+        "output_bytes": 532071969
+      },
+      {
+        "operation_class": "sealed_validation",
+        "budget_class": "successful_session",
+        "multiplicity": 4,
+        "source_allocated_gpu_capacity_ns_per_attempt": 699014981649,
+        "source_output_bytes_per_attempt": 198640202,
+        "allocated_gpu_capacity_ns_per_attempt": 873768727062,
+        "output_bytes_per_attempt": 248300253,
+        "allocated_gpu_capacity_ns": 3495074908248,
+        "output_bytes": 993201012
+      },
+      {
+        "operation_class": "sealed_validation_retry",
+        "budget_class": "retry_reserve",
+        "multiplicity": 1,
+        "source_allocated_gpu_capacity_ns_per_attempt": 699014981649,
+        "source_output_bytes_per_attempt": 198640202,
+        "allocated_gpu_capacity_ns_per_attempt": 873768727062,
+        "output_bytes_per_attempt": 248300253,
+        "allocated_gpu_capacity_ns": 873768727062,
+        "output_bytes": 248300253
+      },
+      {
+        "operation_class": "selected_public_accept",
+        "budget_class": "successful_session",
+        "multiplicity": 2,
+        "source_allocated_gpu_capacity_ns_per_attempt": 499296415464,
+        "source_output_bytes_per_attempt": 141885859,
+        "allocated_gpu_capacity_ns_per_attempt": 624120519330,
+        "output_bytes_per_attempt": 177357324,
+        "allocated_gpu_capacity_ns": 1248241038660,
+        "output_bytes": 354714648
+      }
+    ]
+  },
+  "physical_cap": {
+    "train_jobs": 4,
+    "train_steps": 786432000,
+    "eval_seed_units": 72,
+    "simulated_control_steps": 799806720,
+    "allocated_active_gpu_hours": 14.514259855097222,
+    "output_bytes": 5064166362
+  },
+  "reference_mode": "imports_training_only",
+  "contract_hash": "90efcc12ec82b1c0550c3ba70073cdbc24a4370d2b44c8a4f49404cb9557ae03"
+}

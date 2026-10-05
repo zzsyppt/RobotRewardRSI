@@ -1,4 +1,4 @@
-"""Bounded delivery of the frozen Push root card. Public replay performs no IO."""
+"""Bound internal Push facts and select prose against the actual author view."""
 from __future__ import annotations
 
 from copy import deepcopy
@@ -9,9 +9,9 @@ from true_rl_agent.evaluation.process_report import SENTENCE_SECTIONS, report_by
 from true_rl_agent.evaluation.public_projection import assert_public_projection_safe
 from .trajectory_card import MAX_PUBLIC_BYTES, TEMPLATE_VERSION
 
-FULL_SCHEMA = "true_rl_agent.push_recovery.behavior.full.v4"
-PUBLIC_SCHEMA = "true_rl_agent.push_recovery.behavior.public.v4"
-VERSION = "push.trajectory_delivery.v1"
+FULL_SCHEMA = "true_rl_agent.push_recovery.behavior.full.v5"
+PUBLIC_SCHEMA = "true_rl_agent.push_recovery.behavior.public.v5"
+VERSION = "push.trajectory_delivery.v3"
 IDENTITY_FIELDS = ("job_id", "task_id", "subject_kind", "subject_id", "subject_manifest_hash",
                    "program_source_checksum", "training_binding_hash",
                    "checkpoint_hash", "evaluation_plan_hash")
@@ -44,9 +44,9 @@ def render_verified_report(full: dict) -> dict:
         selected = set(included)
         report = {s: [{"id": c["id"], "text": c["text"]} for c in claims
                        if c["id"] in selected and sections[c["id"]] == s] for s in SENTENCE_SECTIONS}
+        if not report["counterexample"]:
+            report["counterexample"] = [{"id":"push.delivery.counterexample", "text":"本批未找到已定义恢复状态的合格见证。"}]
         report["visual"] = [{"id": "push.delivery.visual", "text": "本报告仅依据数值轨迹；未提供视觉判读。"}]
-        report["gaps"].append({"id": "push.delivery.scope", "text":
-            "本报告已由正常CPU finalizer接入作者公开上下文。冻结原卡中“尚未接入”描述P2b1历史交付状态；原句和ID保持不变。"})
         omitted = [c["id"] for c in claims if c["id"] not in selected]
         report["gaps"].append({"id": "push.delivery.omissions", "text":
             f"保留{len(included)}/{len(claims)}条原卡事实；省略{len(omitted)}条可选整句。完整证据及省略ID在私有收据中，作者无原档路径。"})
@@ -57,14 +57,17 @@ def render_verified_report(full: dict) -> dict:
                  "full_derivation_sha256": canonical_json_hash(full),
                  "report_projection": {"version": VERSION, "claim_count": len(claims),
                      "included_claim_count": len(included), "omitted_claim_count": len(omitted),
+                      "required_claim_ids": mandatory, "max_bytes": budget,
                      "required_claim_ids_hash": canonical_json_hash(mandatory),
                      "omitted_claim_ids_hash": canonical_json_hash(omitted)}}
         value["report_projection"]["content_hash"] = canonical_json_hash(value)
         return value
 
-    public, included, required_bytes = select_whole_claims(mandatory,
-        [c["id"] for c in claims if not c["mandatory"]], render, max_bytes=budget)
-    return validate_push_trajectory_report(public, max_bytes=budget)
+    # Keep every candidate fact internally. Only the final author view spends
+    # the configured bytes, after selected/parent/sibling source roles are known.
+    public = validate_push_trajectory_report(render([c["id"] for c in claims]), max_bytes=budget)
+    author_behavior_payload(public)
+    return public
 
 
 def validate_push_trajectory_report(value: Mapping, *, max_bytes: int = MAX_PUBLIC_BYTES) -> dict:
@@ -85,7 +88,7 @@ def validate_push_trajectory_report(value: Mapping, *, max_bytes: int = MAX_PUBL
     result = deepcopy(dict(value))
     projection = result["report_projection"]
     if set(projection) != {"version", "claim_count", "included_claim_count", "omitted_claim_count",
-                            "required_claim_ids_hash", "omitted_claim_ids_hash", "content_hash"}:
+                            "required_claim_ids_hash", "omitted_claim_ids_hash", "content_hash", "required_claim_ids", "max_bytes"}:
         raise ValueError("Push trajectory projection receipt fields mismatch")
     digest = projection.pop("content_hash")
     if digest != canonical_json_hash(result):
@@ -102,9 +105,59 @@ def validate_push_trajectory_report(value: Mapping, *, max_bytes: int = MAX_PUBL
             or not isinstance(result["card_id"], str) or not result["card_id"].startswith("push-card:")
             or not is_sha256_digest(result["card_id"][10:])):
         raise ValueError("Push trajectory projection counts/digests mismatch")
-    validate_public_report(result, max_bytes=min(max_bytes, MAX_PUBLIC_BYTES))
+    required = projection["required_claim_ids"]
+    ids = {row["id"] for section in SENTENCE_SECTIONS for row in result["report"][section]}
+    if (not isinstance(required, list) or not required or len(set(required)) != len(required)
+            or not set(required) <= ids or canonical_json_hash(required) != projection["required_claim_ids_hash"]
+            or type(projection["max_bytes"]) is not int or not 0 < projection["max_bytes"] <= min(max_bytes, MAX_PUBLIC_BYTES)):
+        raise ValueError("Push trajectory required facts/budget mismatch")
+    # Structural replay of the internal envelope; its hashes are not author prose.
+    validate_public_report(result, max_bytes=report_bytes(result))
     assert_public_projection_safe(result)
     return result
+
+
+def _author_source(source: Mapping) -> dict:
+    if "card_id" not in source:
+        return {k: source[k] for k in ("status", "reason") if k in source}
+    return {"card_id": "card:" + source["card_id"].split(":", 1)[1][:12],
+            **{k: source[k] for k in ("subject_kind", "subject_id") if k in source}}
+
+
+def author_behavior_payload(public: Mapping, *, sources: Mapping | None = None) -> dict:
+    """Called after identity validation; compact IDs never replace internal binding."""
+    projection = public["report_projection"]
+    required = projection["required_claim_ids"]
+    report = public["report"]
+    rows = [row for section in SENTENCE_SECTIONS for row in report[section]
+            if row["id"].startswith("push-claim:")]
+    short_ids = {row["id"]: f"p{i+1}" for i,row in enumerate(rows)}
+    supplied = sources or {}
+    visible_sources = {"selected_feedback": _author_source({"card_id": public["card_id"], **public["domain"]})}
+    if supplied.get("generation_id") is not None:
+        visible_sources["generation_id"] = supplied["generation_id"]
+    for role in ("parent", "current_best"):
+        if role in supplied:
+            visible_sources[role] = _author_source(supplied[role])
+    if supplied.get("siblings"):
+        visible_sources["siblings"] = [{**{k:item[k] for k in ("trial_id","lane_id","trial_status") if k in item},
+            "source":_author_source(item["source"])} for item in supplied["siblings"]]
+    def render(included):
+        selected = set(included)
+        visible = {}
+        for section in SENTENCE_SECTIONS:
+            visible[section] = [{"id":short_ids.get(row["id"], row["id"]), "text":row["text"]}
+                for row in report[section] if row["id"] in selected or row["id"] not in short_ids]
+        omitted = len(rows)-len(included)
+        visible["gaps"] = [r for r in visible["gaps"] if r["id"] != "push.delivery.omissions"]
+        if omitted:
+            visible["gaps"].append({"id":"omissions", "text":f"容量内省略{omitted}条可选整句；必需事实保留。"})
+        visible["actionability"] = deepcopy(report["actionability"])
+        return {"kind":"numeric_behavior", "sources":visible_sources, "report":visible}
+    # Optional rows retain task order, never hash order or fixed slot counts.
+    value, _, _ = select_whole_claims(required, [r["id"] for r in rows if r["id"] not in required],
+        render, max_bytes=projection["max_bytes"])
+    return value
 
 
 def require_phase_binding(report: Mapping, expected: Mapping) -> None:

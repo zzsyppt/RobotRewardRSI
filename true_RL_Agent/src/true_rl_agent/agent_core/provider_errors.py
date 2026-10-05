@@ -56,6 +56,7 @@ _PROVIDER_RECEIPT_SCHEMA_V1 = "true_rl_agent.provider_response_receipt.v1"
 _PROVIDER_RECEIPT_SCHEMA_V2 = "true_rl_agent.provider_response_receipt.v2"
 _PROVIDER_RECEIPT_SCHEMA_VERSION = "true_rl_agent.provider_response_receipt.v3"
 _PROVIDER_RECEIPT_SCHEMA_V4 = "true_rl_agent.provider_response_receipt.v4"
+EXTERNAL_RECEIPT_SCHEMA = "true_rl_agent.external_author_receipt.v1"
 _PROVIDER_RECEIPT_OPTIONAL_STRINGS = (
     "requested_model",
     "response_model",
@@ -208,6 +209,29 @@ def normalize_provider_usage(value: Any) -> dict[str, int]:
 def normalize_provider_receipt(value: Any) -> dict[str, Any]:
     """Retain bounded response identity and hashes without response content."""
 
+    if isinstance(value, Mapping) and value.get("schema_version") == EXTERNAL_RECEIPT_SCHEMA:
+        if value.get("backend") != "external_file" or value.get("usage_status") != "unknown_full_reserve":
+            return {}
+        model = value.get("requested_model")
+        if not isinstance(model, str) or not model:
+            return {}
+        capture = value.get("response_capture")
+        if capture not in {"complete", "byte_limit_prefix"}:
+            return {}
+        receipt = {"schema_version": EXTERNAL_RECEIPT_SCHEMA, "backend": "external_file",
+                   "usage_status": "unknown_full_reserve", "requested_model": _public_string(model),
+                   "response_capture": capture}
+        for name in ("system_sha256", "user_sha256", "response_text_sha256"):
+            item = value.get(name)
+            if not isinstance(item, str) or not re.fullmatch(r"sha256:[0-9a-f]{64}", item):
+                return {}
+            receipt[name] = item
+        for name in ("response_text_utf8_bytes", "requested_output_units"):
+            item = value.get(name)
+            if type(item) is not int or not 0 <= item <= _MAX_PROVIDER_USAGE_COUNT:
+                return {}
+            receipt[name] = item
+        return receipt
     if (
         not isinstance(value, Mapping)
         or value.get("schema_version")

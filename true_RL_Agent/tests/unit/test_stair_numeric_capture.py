@@ -26,6 +26,22 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class StairNumericCaptureTests(unittest.TestCase):
+    def test_runtime_limit_snapshot_preserves_environment_joint_and_bound_axes(self):
+        from true_rl_agent.tasks.stair_climbing.numeric_capture import runtime_joint_position_limits
+
+        hard = torch.tensor([[[-1., 1.], [-2., 2.], [-3., 3.]],
+                             [[-4., 4.], [-5., 5.], [-6., 6.]]])
+        robot = SimpleNamespace(joint_names=["unused", "calf", "hip"],
+            data=SimpleNamespace(joint_pos_limits=hard, soft_joint_pos_limits=hard * .5))
+        result = runtime_joint_position_limits(robot, (2, 1))
+        self.assertEqual(result["joint_names"], ["hip", "calf"])
+        self.assertEqual(result["values"]["joint_pos_limits"],
+                         [[[-3., 3.], [-2., 2.]], [[-6., 6.], [-5., 5.]]])
+        self.assertEqual(result["values"]["soft_joint_pos_limits"],
+                         [[[-1.5, 1.5], [-1., 1.]], [[-3., 3.], [-2.5, 2.5]]])
+        hard.zero_()
+        self.assertEqual(result["values"]["joint_pos_limits"][0][0], [-3., 3.])
+
     def test_actual_recorder_skips_history_snapshot_when_capture_is_off(self):
         # Run the actual method body with tensor fixtures, without importing Kit.
         # This proves the collection gate, not a live sensor/GPU execution.
@@ -44,14 +60,16 @@ class StairNumericCaptureTests(unittest.TestCase):
         }
         exec(compile(ast.Module(body=[method], type_ignores=[]), str(source), "exec"), namespace)
         projection = SimpleNamespace(contact_sensor_name="contact_forces", legacy_reward_adapter_id=None,
-            projection_hash="fixture", reward_input_schema_hash_vnext="fixture", support_count=2, forbidden_contact_count=1)
+            projection_hash="fixture", reward_input_schema_hash_vnext="fixture", support_count=2, forbidden_contact_count=1,
+            joint_names=("hip","calf"))
         env = SimpleNamespace(scene={
-            "robot": SimpleNamespace(data=SimpleNamespace(joint_pos=torch.zeros(1, 2), body_pos_w=torch.zeros(1, 3, 3), body_lin_vel_w=torch.zeros(1, 3, 3))),
+            "robot": SimpleNamespace(joint_names=["unused","calf","unused2","hip"],
+                data=SimpleNamespace(joint_pos=torch.tensor([[10.,20.,30.,40.]]), body_pos_w=torch.zeros(1, 3, 3), body_lin_vel_w=torch.zeros(1, 3, 3))),
             "contact_forces": SimpleNamespace(data=SimpleNamespace(net_forces_w=torch.zeros(1, 3, 3)))},
             episode_length_buf=torch.ones(1), extras={}, physics_dt=.005, step_dt=.02,
             cfg=SimpleNamespace(scene=SimpleNamespace(lazy_sensor_update=True)))
         recorder = SimpleNamespace(_env=env, runtime_projection=projection, _capture_contact_history=False,
-            _resolved_projection=SimpleNamespace(joint_ids=(0, 1), support_body_ids=(1, 2), contact_support_body_ids=(1, 2), contact_forbidden_body_ids=(0,)),
+            _resolved_projection=SimpleNamespace(joint_ids=(3, 1), support_body_ids=(1, 2), contact_support_body_ids=(1, 2), contact_forbidden_body_ids=(0,)),
             _terrain_env_origins_w=torch.zeros(1, 3), _terrain_types=torch.zeros(1))
         namespace["record_post_step"](recorder)
         snapshot.assert_not_called()
@@ -60,6 +78,25 @@ class StairNumericCaptureTests(unittest.TestCase):
         namespace["record_post_step"](recorder)
         snapshot.assert_called_once()
         self.assertIn("contact_force_history", env.extras[STAIR_EVAL_TRANSITION_EXTRAS_KEY])
+        self.assertEqual(env.extras[STAIR_EVAL_TRANSITION_EXTRAS_KEY]["joint_pos"].tolist(),[[40.,20.]])
+        # Execute the production contract expression against the same native
+        # order. This is CPU mapping evidence, not an Isaac rollout.
+        from true_rl_agent.tasks.stair_climbing.trajectory_capabilities import (
+            CONTRACT_VERSION, cell_bindings, geometry_sources, validate_measurement_contract)
+        from true_rl_agent.runner.numeric_evidence import file_sha256
+        execution = source.with_name("isaaclab_execution.py")
+        tree = ast.parse(execution.read_text("utf-8"))
+        assignment = next(n for n in ast.walk(tree) if isinstance(n,ast.Assign)
+            and any(isinstance(t,ast.Name) and t.id=="measurement_contract" for t in n.targets))
+        namespace.update(CONTRACT_VERSION=CONTRACT_VERSION,cell_bindings=cell_bindings,
+            geometry_sources=geometry_sources,Path=Path,file_sha256=file_sha256,__file__=str(execution),
+            runtime_projection=projection,robot=env.scene["robot"],resolved=recorder._resolved_projection,
+            config=SimpleNamespace(ordered_evaluation_suite=SimpleNamespace(private_cell_assignment=lambda split:[])))
+        exec(compile(ast.Module(body=[assignment],type_ignores=[]),str(execution),"exec"),namespace)
+        contract = namespace["measurement_contract"]
+        validate_measurement_contract(contract,projection)
+        self.assertEqual(contract["joint_position"]["resolved_joint_ids"],[3,1])
+        self.assertEqual(contract["joint_position"]["joint_names"],["hip","calf"])
 
     def test_live_to_archive_recomputes_all_outcomes_and_ignores_reset_padding(self):
         self._assert_capture("stair_go2_12dof_unified_protocol_v3.json")

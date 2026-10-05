@@ -240,7 +240,7 @@ class CandidateRuntimeAdapter:
     def bind_training_numeric_capture(self, capture) -> None:
         if self.training_numeric_capture is not None:
             raise ValueError("Push training numeric capture already bound")
-        if capture.source_step_offset != self.runtime.step_calls or capture.num_envs != self.num_envs:
+        if capture.recorder.source_step_offset != self.runtime.step_calls or capture.recorder.num_envs != self.num_envs:
             raise ValueError("Push training capture offset or environment count differs")
         self.training_numeric_capture = capture
 
@@ -333,7 +333,7 @@ class CandidateRuntimeAdapter:
         reward_summaries: list[dict[str, Any]] = []
         weighted_terms: list[Any] = []
         capture = self.training_numeric_capture
-        capture_this_step = capture is not None and capture.wants_step(self.runtime.step_calls)
+        capture_active = capture is not None and capture.active
         raw_terms: list[Any] = []
         for term in self.components.reward_terms:
             try:
@@ -356,7 +356,7 @@ class CandidateRuntimeAdapter:
             effective_weight = float(term.weight) * reward_weight_scale
             weighted = _scale_like(value, rewards, effective_weight)
             weighted_terms.append(weighted)
-            if capture_this_step:
+            if capture_active:
                 raw_terms.append(value)
             candidate_reward = (
                 weighted
@@ -398,10 +398,10 @@ class CandidateRuntimeAdapter:
 
         if candidate_reward is None:
             self.runtime.last_candidate_reward_mean = 0.0
-            if capture is not None:
-                capture.observe(self.runtime.step_calls,
-                    {"input_reward": rewards, "returned_reward": rewards} if capture_this_step else None,
-                    metadata={"reward_weight_scale": reward_weight_scale, "reward_term_count": 0})
+            if capture_active:
+                capture.observe(self.runtime.step_calls, lambda: (
+                    {"input_reward": rewards, "returned_reward": rewards},
+                    {"reward_weight_scale": reward_weight_scale, "reward_term_count": 0}))
             return rewards
         self.runtime.last_candidate_reward_mean = _vector_mean(candidate_reward)
         step_abs_max = _vector_abs_max(candidate_reward)
@@ -414,16 +414,15 @@ class CandidateRuntimeAdapter:
             step_abs_max,
         )
         returned_reward = _add_like(rewards, candidate_reward)
-        if capture is not None:
-            arrays = None
-            if capture_this_step:
+        if capture_active:
+            def sample():
                 arrays = {"input_reward": rewards, "candidate_total": candidate_reward,
                           "returned_reward": returned_reward}
                 for index, (raw, weighted) in enumerate(zip(raw_terms, weighted_terms, strict=True)):
                     arrays[f"raw_term_{index:03d}"] = raw
                     arrays[f"weighted_term_{index:03d}"] = weighted
-            capture.observe(self.runtime.step_calls, arrays,
-                            metadata={"reward_weight_scale": reward_weight_scale})
+                return arrays, {"reward_weight_scale": reward_weight_scale}
+            capture.observe(self.runtime.step_calls, sample)
         return returned_reward
 
     def _reward_peak_frame(

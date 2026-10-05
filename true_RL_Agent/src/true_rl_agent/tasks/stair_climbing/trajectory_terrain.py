@@ -1,21 +1,17 @@
-"""M10: recorded reference points relative to qualified nominal Stair surfaces.
+"""Recorded reference points relative to qualified nominal Stair surfaces.
 
-This has no physical collision/sole interpretation and does not alter the legacy
-terrain query. Historical source qualification belongs to the offline caller.
+Source bindings and geometry are checked before description computation;
+these vertical differences are not physical sole clearance.
 """
 from __future__ import annotations
 
 import numpy as np
 
 from true_rl_agent.evaluation.binding import canonical_json_hash
-from true_rl_agent.evaluation.trajectory_translation.contracts import stable_id
 from true_rl_agent.tasks.stair_climbing.rough_surface import normalize_stair_surface_profile, rough_surface_offset_m
 
-CATALOG_VERSION = 'trajectory.p0.measurements.v5'
 FRAME = 'world_z_up_translation_only'
-CONFIG = {'boundary_guard_m': 1e-4, 'surface': 'reconstructed_nominal_exterior_top',
-          'boundary_rule': 'closed_float_constructed_coordinate_intervals',
-          'runtime_surface': 'unknown_not_recorded'}
+BOUNDARY_GUARD_M = 1e-4
 STATUS = ('known', 'nonfinite_position', 'missing_origin', 'unqualified_geometry',
           'outside_patch', 'boundary_band')
 
@@ -23,7 +19,7 @@ STATUS = ('known', 'nonfinite_position', 'missing_origin', 'unqualified_geometry
 def sample_reference_height(points, origin, geometry, *, geometry_digest, unit, frame):
     """Return world nominal heights, signed vertical differences, status codes.
 
-Unknown samples stay NaN in numeric traces and become null in JSON evidence.
+Unknown samples stay NaN in numeric traces.
 The only supported transform is the explicitly qualified world-axis translation.
 """
     if unit != 'm' or frame != FRAME:
@@ -31,11 +27,13 @@ The only supported transform is the explicitly qualified world-axis translation.
     points = np.asarray(points, dtype=np.float64)
     if points.ndim != 2 or points.shape[1] != 3:
         raise ValueError('terrain reference points require [sample, xyz]')
-    height = np.full(len(points), np.nan)
-    status = np.zeros(len(points), dtype=np.uint8)
+    profile = _qualified_geometry(geometry, geometry_digest)
+    return _sample_reference_height(points, origin, geometry, profile)
+
+
+def _qualified_geometry(geometry, geometry_digest):
     if geometry is None or geometry.get('surface_profile', {}).get('kind') not in ('flat', 'bounded_piecewise_linear_v1'):
-        status[:] = STATUS.index('unqualified_geometry')
-        return height, height.copy(), status
+        return None
     if canonical_json_hash(geometry) != geometry_digest:
         raise ValueError('terrain geometry digest mismatch')
     risers, treads = geometry['riser_heights_m'], geometry['tread_depths_m']
@@ -49,6 +47,16 @@ The only supported transform is the explicitly qualified world-axis translation.
     profile = normalize_stair_surface_profile(geometry['surface_profile'])
     if 2*profile.get('amplitude_m', 0) >= min(risers):
         raise ValueError('roughness does not preserve separate positive risers')
+    return profile
+
+
+def _sample_reference_height(points, origin, geometry, profile):
+    """Compute only after coordinate/geometry qualification."""
+    height = np.full(len(points), np.nan)
+    status = np.zeros(len(points), dtype=np.uint8)
+    if profile is None:
+        status[:] = STATUS.index('unqualified_geometry')
+        return height, height.copy(), status
     if origin is None or np.shape(origin) != (3,) or not np.isfinite(origin).all():
         status[:] = STATUS.index('missing_origin')
         return height, height.copy(), status
@@ -62,12 +70,12 @@ The only supported transform is the explicitly qualified world-axis translation.
     outside = finite & ((x < 0) | (x > sx) | (y < 0) | (y > sy))
     status[outside] = STATUS.index('outside_patch')
     # Follow the generator's sequential float additions, not rounded cell helpers.
-    edges = np.empty(len(treads)+1)
+    edges = np.empty(len(geometry['tread_depths_m'])+1)
     edges[0] = geometry['start_platform_length_m']
     for i, depth in enumerate(geometry['tread_depths_m']):
         edges[i+1] = edges[i] + depth
     levels = np.r_[0., np.cumsum(geometry['riser_heights_m'], dtype=np.float64)]
-    guard = CONFIG['boundary_guard_m']
+    guard = BOUNDARY_GUARD_M
     boundary = (x <= guard) | (x >= sx-guard) | (y <= guard) | (y >= sy-guard)
     for edge in edges:
         boundary |= (x >= edge-guard) & (x <= edge+guard)
@@ -85,8 +93,8 @@ The only supported transform is the explicitly qualified world-axis translation.
     return height, points[:, 2]-height, status
 
 
-def measure_terrain(episode, geometry, *, geometry_digest, terrain_type, regime):
-    """Measure each recorded base/support point at its own XY; no contact operand."""
+def prepare_terrain_inputs(episode, geometry, *, geometry_digest):
+    """Qualify source bindings before entering description computation."""
     ep = episode
     if ep.source['coordinates']['positions'] != 'world_m':
         raise ValueError('terrain episode coordinates must be world_m')
@@ -104,46 +112,16 @@ def measure_terrain(episode, geometry, *, geometry_digest, terrain_type, regime)
     positions = np.concatenate([base[:, None, :], support], axis=1)
     if positions.shape != (len(ep.steps), len(entities), 3):
         raise ValueError('terrain reference-point entity shape mismatch')
-    origin = ep.task.get('origin_world')
-    geometry_binding = {'cell_id': ep.task['cell_id'], 'terrain_type': terrain_type,
-                        'geometry_digest': geometry_digest, 'geometry': geometry,
-                        'regime': regime, 'origin_world_m': ([float(v) if np.isfinite(v) else None for v in origin]
-                                                            if origin is not None else None),
-                        'static_refs': {**ep.task['static_refs'], 'terrain_types': {
-                            **ep.task['static_refs']['terrain_env_origins_w'], 'array': 'terrain_types'}}}
-    records, heights, relatives, statuses = [], [], [], []
-    for column, entity in enumerate(entities):
-        channel = 'base_pos_w' if column == 0 else 'support_pos_w'
-        h, relative, status = sample_reference_height(positions[:, column], origin, geometry,
-            geometry_digest=geometry_digest, unit='m', frame=FRAME)
-        counts = {'total': len(status), **{name: int(np.count_nonzero(status == i)) for i, name in enumerate(STATUS)}}
-        counts['unknown'] = counts['total']-counts['known']
-        indices = np.flatnonzero(status == 0)
+    profile = _qualified_geometry(geometry, geometry_digest)
+    return entities, positions, profile
 
-        def witness(row):
-            return {'step': int(ep.steps[row]), 'position_world_m': [float(v) if np.isfinite(v) else None
-                                                                  for v in positions[row, column]],
-                    'height_world_m': float(h[row]) if status[row] == 0 else None,
-                    'relative_z_m': float(relative[row]) if status[row] == 0 else None,
-                    'status': STATUS[int(status[row])], 'column': None if column == 0 else column-1,
-                    'source_ref': ep.reference((channel,), row, row+1)}
 
-        extrema = {key: witness(int(indices[op(values[indices])])) if len(indices) else None
-                   for key, values, op in [('height_min', h, np.argmin), ('height_max', h, np.argmax),
-                       ('relative_min', relative, np.argmin), ('relative_max', relative, np.argmax)]}
-        stats = {key: {'min': float(values[indices].min()), 'max': float(values[indices].max()),
-                       'mean': float(values[indices].mean())} if len(indices) else None
-                 for key, values in [('height_world_m', h), ('relative_z_m', relative)]}
-        value = {'counts': counts, 'sample_cell_seconds': {k: v*ep.dt_s for k, v in counts.items()},
-                 'statistics': stats, 'witnesses': extrema,
-                 'first_by_status': {name: witness(int(np.flatnonzero(status == i)[0]))
-                                     for i, name in enumerate(STATUS) if (status == i).any()},
-                 'geometry_binding': geometry_binding, 'runtime_surface': 'unknown_not_recorded'}
-        record = ep.record('M10.nominal_reference_height', 'measurement', (entity,), (channel,), value,
-                           unit='m', frame=FRAME, config=CONFIG)
-        record['catalog_version'] = CATALOG_VERSION
-        record.pop('record_id')
-        record['record_id'] = stable_id('nominal-terrain', record)
-        records.append(record)
+def measure_terrain(episode, geometry, inputs):
+    """Return height, signed relative z and status arrays after prepare_terrain_inputs."""
+    entities, positions, profile = inputs
+    origin = episode.task.get('origin_world')
+    heights, relatives, statuses = [], [], []
+    for column in range(len(entities)):
+        h, relative, status = _sample_reference_height(positions[:, column], origin, geometry, profile)
         heights.append(h); relatives.append(relative); statuses.append(status)
-    return records, tuple(np.stack(a, axis=1) for a in (heights, relatives, statuses))
+    return tuple(np.stack(a, axis=1) for a in (heights, relatives, statuses))

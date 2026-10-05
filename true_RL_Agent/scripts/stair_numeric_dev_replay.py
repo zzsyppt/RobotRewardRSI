@@ -147,7 +147,8 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--timeout-s", type=int, default=36000)
     parser.add_argument("--behavior-feedback-profile", choices=PROFILES, default=PROFILE,
                         help="Automatic per-archive CPU trajectory cards for supported Stair Go2 numeric inputs.")
-    parser.add_argument("--trajectory-report-max-bytes", type=int, default=None)
+    parser.add_argument("--trajectory-report-max-bytes", type=int, default=None,
+                        help="Final author behavior payload byte limit (default: shared task setting); stored public/full/diagnostic JSON retains all candidate statements.")
     add_native_video_arguments(parser)
     return parser
 

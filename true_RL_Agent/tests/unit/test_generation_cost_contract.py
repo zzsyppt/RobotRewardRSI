@@ -58,8 +58,9 @@ def fixture_provider_policy():
                 "specification_source": "fixture model contract"}}
 
 
-def fixture_cost(workload, *, imports_reference=False, max_generations=15):
-    layout = generation_operation_layout(max_generations=max_generations, imports_reference=imports_reference, final_jobs=2)
+def fixture_cost(workload, *, imports_reference=None, max_generations=15, reference_mode=None):
+    layout = generation_operation_layout(max_generations=max_generations, imports_reference=imports_reference,
+                                         reference_mode=reference_mode, final_jobs=2)
     sources = {
         name: OperationCostReserve.from_source(
             operation_class=name, budget_class=kind, multiplicity=1,
@@ -72,6 +73,7 @@ def fixture_cost(workload, *, imports_reference=False, max_generations=15):
         max_generations=max_generations, workload=workload,
         provider_budget=GenerationProviderBudget(3, 10000, 2000),
         operation_sources=sources, imports_reference=imports_reference,
+        reference_mode=reference_mode,
         final_confirmation=True, finalization_output_reserve_bytes=1_000_000,
         session_output_reserve_bytes=20_000_000,
         headroom_numerator=5, headroom_denominator=4,
@@ -79,6 +81,22 @@ def fixture_cost(workload, *, imports_reference=False, max_generations=15):
 
 
 class GenerationCostContractTests(unittest.TestCase):
+    def test_training_only_import_reserves_current_q_without_reference_train_or_retry(self):
+        work = dict(cell_workloads())["stair.go2_12dof.unified_v3"]
+        cost = fixture_cost(work, max_generations=2, reference_mode="imports_training_only")
+        slots = _strict_success_operation_slots(cost)
+        self.assertEqual(cost.physical_train_job_cap, 4)
+        self.assertEqual(cost.retry_train_jobs, 0)
+        self.assertEqual(cost.physical_eval_seed_unit_cap, 72)
+        self.assertEqual(cost.max_simulated_control_steps, 799806720)
+        self.assertEqual(len(slots), 17)
+        self.assertNotIn("reference_train", slots)
+        self.assertEqual(len([key for key in slots if key.startswith("reference_qualification:")]), 3)
+        self.assertEqual(FrozenGenerationCostContract.from_mapping(cost.to_dict()), cost)
+        # A retained v1 keeps its original representation and hash on read.
+        old = replace(fixture_cost(work), schema_version="true_rl_agent.generation_cost_contract.v1")
+        self.assertEqual(FrozenGenerationCostContract.from_mapping(old.to_dict()).to_dict(), old.to_dict())
+
     def test_three_cells_use_the_same_foundation_without_changing_their_scientific_identity(self):
         cases = (
             (StairClimbingCompositionProvider(), "stair.g1_37dof.unified_v3"),

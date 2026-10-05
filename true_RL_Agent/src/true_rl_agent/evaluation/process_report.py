@@ -38,20 +38,38 @@ class ReportBudgetExceeded(ValueError):
         super().__init__(f"mandatory facts exceed byte budget: {required_bytes} > {max_bytes}")
 
 
+def description_error_details(error: Exception, *, stage: str) -> dict[str, str]:
+    """Bound diagnostics after the caller isolates pure description computation."""
+    root = error
+    while root.__cause__ is not None:
+        root = root.__cause__
+    return {"stage": stage, "error_type": type(root).__name__[:64],
+            "error_message": str(root)[:512]}
+
+
 def format_number(value, precision: int = 3) -> str:
     return "未知" if value is None else format(value, f".{precision}g")
 
 
-def select_whole_claims(required, optional, render, *, max_bytes):
+def format_quantity(value, unit: str = "") -> str:
+    """Stable display resolution, rather than signed float noise or exponents."""
+    if value is None:
+        return "未知"
+    places = {"%": 1, "°": 1, "N": 2, "rad": 4}.get(unit, 3)
+    value = round(float(value), places)
+    return "0" if value == 0 else f"{value:.{places}f}".rstrip("0").rstrip(".")
+
+
+def select_whole_claims(required, optional, render, *, max_bytes, measure=report_bytes):
     """Tasks order facts; this shared boundary only fits complete statements."""
     included = list(required)
     public = render(included)
-    required_bytes = report_bytes(public)
+    required_bytes = measure(public)
     if required_bytes > max_bytes:
         raise ReportBudgetExceeded(required_bytes, max_bytes)
     for claim_id in optional:
         proposed = render([*included, claim_id])
-        if report_bytes(proposed) <= max_bytes:
+        if measure(proposed) <= max_bytes:
             included.append(claim_id)
             public = proposed
     return public, included, required_bytes
@@ -160,7 +178,7 @@ def validate_sentence(row: Mapping[str, Any]) -> None:
         raise ValueError("priority must be an integer")
 
 
-def validate_public_report(value: Mapping[str, Any], *, max_bytes: int) -> None:
+def validate_public_report(value: Mapping[str, Any], *, max_bytes: int | None) -> None:
     """Structural replay check; full-slot/truth checks run before projection."""
     report = value.get("report")
     if not isinstance(report, Mapping) or set(report) != set(REPORT_SECTIONS):
@@ -181,7 +199,7 @@ def validate_public_report(value: Mapping[str, Any], *, max_bytes: int) -> None:
                 raise ValueError("unqualified normality statement is not evidence")
     if not isinstance(report["actionability"], Mapping) or not report["actionability"]:
         raise ValueError("actionability requires task-owned content")
-    if report_bytes(value) > max_bytes:
+    if max_bytes is not None and report_bytes(value) > max_bytes:
         raise ValueError("process report exceeds its byte budget")
 
 

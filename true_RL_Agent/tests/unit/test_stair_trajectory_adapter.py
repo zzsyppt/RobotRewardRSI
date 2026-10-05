@@ -9,18 +9,18 @@ import numpy as np
 
 # Reuse only the archive builder, by composition. Inheriting its TestCase would
 # silently run the old inspector tests again without exercising this adapter.
-from tests.unit import test_stair_trajectory_input_inspection as fixture
+from tests.unit import stair_archive_fixture as fixture
 from true_rl_agent.runner.numeric_evidence import NumericEvidenceError, load_numeric_evidence_manifest
-from true_rl_agent.tasks.stair_climbing.trajectory_adapter import iter_stair_episodes
+from true_rl_agent.tasks.stair_climbing.trajectory_adapter import _load_contract, iter_stair_episodes
 
 
 class StairTrajectoryAdapterTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        fixture.StairTrajectoryInputInspectionTests.setUpClass()
+        fixture.StairArchiveFixture.setUpClass()
 
     def setUp(self):
-        self.fixture = fixture.StairTrajectoryInputInspectionTests()
+        self.fixture = fixture.StairArchiveFixture()
         self.fixture.setUp()
         self.addCleanup(self.fixture.doCleanups)
 
@@ -65,6 +65,23 @@ class StairTrajectoryAdapterTests(unittest.TestCase):
         self.assertEqual(static["array_index"], [0])
         self.assertEqual(static["file"], "chunk_000000.npz")
         self.assertEqual(static["sha256"], episode.source_chunks[0]["sha256"])
+
+    def test_self_consistent_suite_must_match_resolved_binding(self):
+        from true_rl_agent.tasks.stair_climbing.unified_evaluation import (
+            compute_unified_suite_declarations, resolve_stair_suite_cells,
+        )
+        from true_rl_agent.tasks.stair_climbing.unified_training import StairUnifiedTrainingProfile
+
+        self.assertEqual(len(_load_contract(self.fixture._archive()).cells), len(self.fixture.cells))
+        def mutate(identity, context, chunks):
+            training = StairUnifiedTrainingProfile.from_mapping(context["training_profile"])
+            suite = context["evaluation_suite"]
+            cell = next(c for c in suite["cell_templates"] if c["template_id"] == "c1_conditional_frontier_level_5")
+            cell["geometry"]["riser_base_m"] += .001
+            suite.update(compute_unified_suite_declarations(suite,
+                cells=resolve_stair_suite_cells(suite, training_profile=training)))
+        with self.assertRaisesRegex(NumericEvidenceError, "resolved evaluation_suite_hash mismatch"):
+            _load_contract(self.fixture._archive(mutate))
 
     def test_history_and_historical_reference_limitations_are_preserved(self):
         episode = self._episodes()[0]

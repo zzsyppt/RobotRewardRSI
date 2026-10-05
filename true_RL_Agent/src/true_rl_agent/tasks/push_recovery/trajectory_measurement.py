@@ -9,7 +9,7 @@ from true_rl_agent.evaluation.trajectory_translation.contracts import NumericEpi
 from true_rl_agent.evaluation.trajectory_translation.temporal import interval_rows
 from .numeric_capture import POSE_FIELDS, PLANAR_MOTION_FIELDS, CONDITIONS
 
-CATALOG_VERSION = "push.root_measurements.v1"
+CATALOG_VERSION = "push.root_measurements.v2"
 ROOT_METRICS = {
     key: (POSE_FIELDS.index(key), label, unit) for key, label, unit in (
         ("height_m", "根部高度", "m"), ("roll_rad", "根部横滚主值", "rad"),
@@ -20,7 +20,9 @@ DISTURBANCES = {
     "world_planar_external_force": ("force_world_n", "N"),
     "world_planar_velocity_increment": ("observed_delta_v_world_mps", "m/s"),
 }
+FIRST_POST_METRICS = ("height_m", "planar_speed_mps", "angular_speed_radps")
 CONFIG = {"catalog_version": CATALOG_VERSION, "pre_window_s": 0.5,
+          "first_post_window_s": 0.3, "early_terminal_s": 1.0,
           "threshold_source": "archive.parameters_native_pose_dtype",
           "sample_clock": "after_physics_before_reset_and_interval_write",
           "integral": "finite_control_sample_cells_sum_speed_times_dt_not_exact_path",
@@ -201,6 +203,52 @@ def _events(episode: NumericEpisode, stable: np.ndarray) -> list[dict]:
     return events
 
 
+def _first_push(episode: NumericEpisode, final_available: bool) -> dict:
+    """One fixed post window; short/missing windows never contribute a zero mean."""
+    task, steps = episode.task, episode.steps
+    terminal = {"label": "首推开始至实际终止", "unit": "s", "value": None}
+    result = {"terminal_latency": terminal, "post_window": {"status": "not_applicable", "pose": {}}}
+    if not task["planned_push_count"]:
+        terminal["status"] = "not_applicable"
+        return result
+    first = next((e for e in task["events"] if e["event_index"] == 0), None)
+    status = "event_not_observed" if first is None else "invalid_injection" if not first["injection_verified"] else None
+    if status:
+        terminal["status"] = result["post_window"]["status"] = status
+        return result
+    start = first["start_control_step" if task["force"] else "control_step"]
+    end = first["end_control_step"] if task["force"] else start
+    terminal["status"] = "observed" if final_available else "terminal_not_observed"
+    if final_available:
+        terminal["value"] = (int(steps[-1]) - start) * episode.dt_s
+    width = math.ceil(CONFIG["first_post_window_s"] / episode.dt_s)
+    last = end + width
+    mask = (steps > end) & (steps <= last)
+    pose = episode.arrays["pose"][mask][:, [ROOT_METRICS[k][0] for k in FIRST_POST_METRICS]].astype(float)
+    observed_end = min(last, int(steps[-1]))
+    missing_inside = not np.array_equal(steps[mask], np.arange(end + 1, observed_end + 1))
+    complete_pulse = (not task["force"] or
+        (end-start == task["force"]["pulse_steps"] and
+         episode.arrays["actual_substeps"][-1, 0] == task["force"]["expected_substeps"]))
+    if not complete_pulse:
+        status = "pulse_incomplete"
+    elif missing_inside or not np.isfinite(pose).all():
+        status = "unknown_samples"
+    elif int(steps[-1]) < last:
+        status = "terminal_before_window_end" if final_available else "rollout_truncated"
+    elif task["planned_push_count"] > 1 and task["time"]["event_scheduled_steps"][1] < last:
+        status = "next_push_in_window"
+    else:
+        status = "complete"
+    result["post_window"] = {"status": status, "anchor_step": end,
+        "steps_inclusive": [end + 1, last], "duration_s": width * episode.dt_s,
+        "expected_samples": width, "observed_samples": int(mask.sum()),
+        "pose": {key: {"label": ROOT_METRICS[key][1], "unit": ROOT_METRICS[key][2],
+                       "mean": float(pose[:, i].mean()) if status == "complete" else None}
+                 for i, key in enumerate(FIRST_POST_METRICS)}}
+    return result
+
+
 def measure_push_episode(episode: NumericEpisode) -> dict:
     """Full observed episode, including unsuccessful and censored episodes."""
     a, task = episode.arrays, episode.task
@@ -245,6 +293,7 @@ def measure_push_episode(episode: NumericEpisode) -> dict:
                   "timeout_flag": bool(a["timeout"][-1]) if final_available else None,
                   "evidence_ref": episode.reference(("pose", "failure", "timeout"), n - 1) if final_available else None},
         "recoveries": recoveries, "events": _events(episode, stable),
+        "first_push": _first_push(episode, final_available),
         "any_recovered": True if any_recovered else False if recovery_known_absent else None,
         "final_unstable_after_recovery": (not final_stable) if any_recovered and final_stable is not None else None,
         "parameters": deepcopy(task["parameters"]), "timing": deepcopy(task["time"])}

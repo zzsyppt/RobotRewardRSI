@@ -1,5 +1,6 @@
 """Independent observable-behavior requirements, not a template-count gate."""
 from copy import deepcopy
+import re
 import unittest
 from unittest.mock import patch
 
@@ -19,16 +20,70 @@ def behavior(ep):
     return measure_behavior(ep)
 
 
-def final_text(ep):
+def final_claims(ep):
     measured = behavior(ep)
     summary = {"behavior": aggregate_behavior([measured], motion_bands=PROCESS_BANDS),
         "cycle": summarize_periods([episode_periods(measure_contact_cycles(ep))]),
         "joint": None, "terrain": None, "capabilities": {}}
     rows, _, required = _behavior_claims(summary)
-    return "\n".join(rows[cid][1]["text"] for cid in required)
+    return {cid:rows[cid][1]["text"] for cid in required}
+
+
+def final_text(ep):
+    return "\n".join(final_claims(ep).values())
 
 
 class BehaviorRequirements(unittest.TestCase):
+    def test_post_inversion_quiet_interval_is_not_hidden_by_longer_earlier_interval(self):
+        ep = sample_episode(130)
+        ep.arrays["base_quat_w"][79:] = [0.,1.,0.,0.]
+        ep.arrays["support_contact_forces_w"][:] = 0.
+        ep.arrays["support_pos_w"][65:90,:,0] = np.arange(1,26)[:,None]*.01
+        ep.arrays["support_pos_w"][90:,:,0] = .25
+        events = [r for r in behavior(ep)["events"] if r["kind"]=="down_before_low_off"]
+        self.assertEqual(len(events),4)
+        self.assertTrue(all(r["first_observed_down_step"]==80 and r["start_step"]==91
+                            and r["end_step"]==130 and abs(r["span_s"]-.78)<1e-10 for r in events))
+
+    def test_joint_same_side_outside_occupancy_controls_text_and_optional_order(self):
+        ep = sample_episode(80,joints=("aa","bb","yy","zz"))
+        for i,count in enumerate((16,32,48,80)):
+            ep.arrays["joint_pos"][:count,i] = 1.0002 if i==3 else .95
+        bounds = {name:{"lower":-1.,"upper":1.,"unit":"rad","coordinate_status":"qualified_nominal"} for name in ep.entities["joints"]}
+        measured = measure_joint_limits(ep,bounds,q_unit="rad")
+        joint = {"groups":{name:{"counts":value["counts"],
+            "episode_equal":{"minimum_signed_margin_rad":{"minimum":value["minimum_signed_margin_rad"]}}} for name,value in measured.items()}}
+        summary = {"behavior":aggregate_behavior([behavior(ep)],motion_bands=PROCESS_BANDS),
+            "cycle":summarize_periods([episode_periods(measure_contact_cycles(ep))]),"joint":joint,"capabilities":{}}
+        rows,trace,required = _behavior_claims(summary)
+        self.assertEqual([key for key in required if key.startswith("claim:joint.")],["claim:joint.zz","claim:joint.yy"])
+        text = rows["claim:joint.zz"][1]["text"]
+        self.assertEqual(float(re.search(r"上侧([\d.]+)%",text)[1]),100.)
+        self.assertEqual(float(re.search(r"最小有符号余量(-?[\d.]+)rad",text)[1]),-.0002)
+        self.assertLess(trace["claim:joint.bb"]["priority"],trace["claim:joint.aa"]["priority"])
+
+    def test_condition_concentration_keeps_full_concentration_and_ignores_speed_ratio(self):
+        for sparse_failures in (0,1):
+            rows = []
+            for i in range(30):
+                ep = sample_episode(40)
+                condition = ("concentrated","sparse","other")[i//10]
+                failure = i<8 or (i==10 and sparse_failures)
+                ep.env_index=i
+                ep.task.update(stratum_id=condition,cell_id=condition)
+                ep.task["outcome"].update(primary_reason="forbidden_contact" if failure else "success",success=not failure)
+                if i==10:
+                    ep.arrays["base_pos_w"][:,0] = ep.times*100
+                rows.append(measure_behavior(ep))
+            summary = {"behavior":aggregate_behavior(rows,motion_bands=PROCESS_BANDS),
+                "cycle":summarize_periods([episode_periods(measure_contact_cycles(ep))]),"joint":None,"capabilities":{}}
+            claims,trace,_ = _behavior_claims(summary)
+            text = claims["claim:conditions.forbidden_contact"][1]["text"]
+            self.assertEqual(summary["behavior"]["groups"]["outcome:forbidden_contact"]["episodes"],8+sparse_failures)
+            self.assertEqual(int(re.search(r"concentrated (?:末前速近零)?(\d+)/10",text)[1]),8)
+            self.assertNotIn("sparse ",text)
+            self.assertEqual(list(trace["claim:conditions.forbidden_contact"]["operands"]["cells"]),["concentrated"])
+
     def test_static_translation_leg_motion_and_high_foot_reach_text(self):
         ep = sample_episode(80)
         ep.arrays["support_lin_vel_w"][:] = .08  # Deliberately biased independent channel.
@@ -42,7 +97,11 @@ class BehaviorRequirements(unittest.TestCase):
         self.assertIn("相对点速0m/s", translating)
         ep.arrays["support_pos_w"][:, 0, 2] = .5
         raised = final_text(ep)
-        self.assertIn("(x,y,z)=0/0/0.5m", raised)
+        foot = final_claims(ep)["claim:foot.0"]
+        self.assertTrue(foot.startswith("FL："))
+        xyz = re.search(r"相对\(x,y,z\)均值=([^m]+)m", foot)
+        self.assertIsNotNone(xyz)
+        self.assertEqual(tuple(map(float, xyz[1].split("/"))), (0.,0.,.5))
         self.assertNotEqual(raised, translating)
         ep.arrays["support_pos_w"][:, 0, 2] = .1*np.sin(ep.times*12)
         self.assertNotEqual(final_text(ep), translating)
@@ -78,7 +137,12 @@ class BehaviorRequirements(unittest.TestCase):
         ep.arrays["base_quat_w"]=np.column_stack((np.cos(angle/2),np.zeros(3),np.sin(angle/2),np.zeros(3)))
         self.assertAlmostEqual(behavior(ep)["facts"]["all"]["rotation"]["value"],2,places=7)
         ep.arrays["base_quat_w"][:]=[0.,1.,0.,0.]
-        self.assertIn("已观察到上轴向下1/1回合",final_text(ep))
+        claims = final_claims(ep)
+        presence = re.search(r"上轴向下(\d+)/(\d+)回合",claims["claim:motion"])
+        self.assertIsNotNone(presence)
+        self.assertEqual(tuple(map(int,presence.groups())), (1,1))
+        self.assertEqual(claims["claim:outcome.success"],"成功1回合。")
+        self.assertEqual(behavior(ep)["facts"]["terminal"]["tilt_end"]["value"],180.)
         ep.steps=np.array([1,2,4])
         self.assertTrue(np.isnan(position_motion(ep)["world_velocity"][2]).all())
 
@@ -89,13 +153,13 @@ class BehaviorRequirements(unittest.TestCase):
         text=final_text(ep)
         self.assertIn("力模>5N",text)
         self.assertIn("全部未触发100%",text)
-        self.assertTrue(all(r["measurement_config"]["contact_threshold_n"]==5 for r in measure_contact_cycles(ep)))
+        self.assertEqual(measure_contact_cycles(ep), {name: [] for name in ep.entities["support"]})
 
     def test_nominal_roundoff_and_real_outside_are_separate(self):
         lower,upper=np.radians([-155.9992218,-48.0001068])
         ep=sample_episode(3,joints=("calf",))
         ep.arrays["joint_pos"]=np.array([[lower],[upper],[lower-.0856]],dtype=np.float32)
-        r=measure_joint_limits(ep,{"calf":{"lower":lower,"upper":upper,"unit":"rad","coordinate_status":"qualified_nominal"}},q_unit="rad",asset_id="fixture")[0]["value"]
+        r=measure_joint_limits(ep,{"calf":{"lower":lower,"upper":upper,"unit":"rad","coordinate_status":"qualified_nominal"}},q_unit="rad")["calf"]
         self.assertEqual((r["counts"]["lower_edge_rows"],r["counts"]["upper_edge_rows"],r["counts"]["outside_rows"]),(1,1,1))
         self.assertLess(r["minimum_signed_margin_rad"],-.0855)
 

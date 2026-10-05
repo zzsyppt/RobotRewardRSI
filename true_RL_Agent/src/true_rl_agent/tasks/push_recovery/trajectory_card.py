@@ -6,16 +6,18 @@ from collections import Counter, defaultdict
 import hashlib
 import json
 from pathlib import Path
+from statistics import fmean, median
+import math
 import time
 
 from true_rl_agent.evaluation.trajectory_translation.cohort import distribution
 from true_rl_agent.evaluation.trajectory_translation.contracts import NumericEpisode, stable_id
 from .trajectory_adapter import ADAPTER_VERSION, iter_push_episodes
-from .trajectory_measurement import CATALOG_VERSION, CONFIG, DISTURBANCES, ROOT_METRICS, measure_push_episode
+from .trajectory_measurement import CATALOG_VERSION, CONFIG, DISTURBANCES, ROOT_METRICS, FIRST_POST_METRICS, measure_push_episode
 
 CARD_VERSION = "push.root_behavior.card.v1"
 PUBLIC_VERSION = "push.root_behavior.public.v1"
-TEMPLATE_VERSION = "push.root_zh.v1"
+TEMPLATE_VERSION = "push.root_zh.v3"
 MAX_PUBLIC_BYTES = 12288
 WITNESS_ORDER = ("recovered", "full_window_without_dwell", "terminal_before_window_end", "final_unstable_after_recovery")
 STATUSES_ZH = {"recovered": "已锁存恢复", "full_window_without_dwell": "完整窗未达dwell",
@@ -82,7 +84,21 @@ def aggregate_push(records: list[dict]) -> dict:
                     "latency_s_recovered_only": distribution([r["latency_s"] for r in recoveries if r["latency_s"] is not None])}}
     facets = {"all": cohort(values)}
     for outcome in ("success", "failure", "unknown"):
-        facets["outcome:" + outcome] = cohort([v for v in values if v["outcome_class"] == outcome])
+        selected = [v for v in values if v["outcome_class"] == outcome]
+        facet = facets["outcome:" + outcome] = cohort(selected)
+        latencies = [v["first_push"]["terminal_latency"]["value"] for v in selected
+                     if v["first_push"]["terminal_latency"]["value"] is not None]
+        windows = [v["first_push"]["post_window"] for v in selected]
+        complete = [w for w in windows if w["status"] == "complete"]
+        facet["first_push"] = {
+            "terminal_latency": {"label": "首推开始至实际终止", "unit": "s", "valid": len(latencies),
+                "status_counts": dict(Counter(v["first_push"]["terminal_latency"]["status"] for v in selected)),
+                "median": median(latencies) if latencies else None,
+                "within_early": sum(t <= CONFIG["early_terminal_s"] for t in latencies)},
+            "post_window": {"valid": len(complete), "status_counts": dict(Counter(w["status"] for w in windows)),
+                "pose": {key: {"label": ROOT_METRICS[key][1], "unit": ROOT_METRICS[key][2],
+                    "mean": fmean(w["pose"][key]["mean"] for w in complete) if complete else None}
+                    for key in FIRST_POST_METRICS}}}
     for stratum in sorted({v["stratum"] for v in values}):
         facets["stratum:" + stratum] = cohort([v for v in values if v["stratum"] == stratum])
     return facets
@@ -128,7 +144,8 @@ def _render_claims(domain: dict, facets: dict, examples: list[dict], selection: 
     all_ = facets["all"]
     n, refs = all_["total_episodes"], all_["record_ids"]
     counts = all_["outcomes"]
-    claim("scope", f"本卡仅描述同一权重、{domain['mechanism']}协议的{n}个公开历史回合，来自{len(domain['manifest_sha256'])}份档案；任务成功{counts.get('success', 0)}、失败{counts.get('failure', 0)}、结果未知{counts.get('unknown', 0)}回合。", refs)
+    mechanism = "世界平面外力" if domain["mechanism"] == "world_planar_external_force" else "世界平面速度增量"
+    claim("scope", f"本卡仅描述同一权重、{mechanism}协议的{n}个公开历史回合，来自{len(domain['manifest_sha256'])}份档案；任务成功{counts.get('success', 0)}、失败{counts.get('failure', 0)}、结果未知{counts.get('unknown', 0)}回合。", refs)
     anchor = "最后一个计划脉冲结束后，完整且验证的序列" if domain["mechanism"] == "world_planar_external_force" else "每次已验证速度写入事件后"
     claim("protocol", f"控制记录dt={_fmt(timing['step_dt_s'])}s；{anchor}的恢复窗为其后{timing['recovery_window_steps']}格，连续≥{timing['required_dwell_steps']}格满足五条件才锁存恢复：速度模≤{_fmt(parameters['recovery_velocity_mps'])}m/s、角速度模≤{_fmt(parameters['recovery_angular_velocity_radps'])}rad/s、|roll|与|pitch|≤{_fmt(parameters['recovery_tilt_rad'])}rad、高度≥{_fmt(parameters['recovery_height_m'])}m。终点稳定与任务结局另判。", refs)
     for key in ("planar_speed_mps", "xy_drift_m", "height_m"):
@@ -139,25 +156,42 @@ def _render_claims(domain: dict, facets: dict, examples: list[dict], selection: 
     claim("stable", f"五条件稳定记录占比：回合等权平均{_fmt(s['episode_equal']['mean'])}（有效{s['valid_episodes']}/{n}回合，未知{s['unknown_episodes']}）；另按记录格池化为{s['pooled_true_samples']}/{s['pooled_known_samples']}={_fmt(s['pooled_fraction'])}，未知{s['unknown_samples']}格。两种加权分别报告，稳定不等于任务成功。", refs)
     recovery = all_["recovery_units"]
     status_text = "、".join(f"{STATUSES_ZH[k]}{v}" for k, v in recovery["status_counts"].items()) or "无适用单位"
-    claim("recovery", f"恢复按{recovery['unit']}计，共{recovery['total']}单位：{status_text}；截尾或未知不算完整窗未恢复，velocity重复扰动可每回合贡献两个单位。", refs)
+    recovery_unit = "扰动序列" if recovery["unit"] == "sequence" else "扰动事件"
+    repeated_note = "速度增量的重复扰动回合可贡献两个事件。" if recovery["unit"] == "event" else ""
+    claim("recovery", f"恢复按{recovery_unit}计，共{recovery['total']}个：{status_text}；截尾或未知不算完整窗未恢复。{repeated_note}", refs)
     final = all_["final_stable"]
     unstable = all_["final_unstable_after_recovery"]
     claim("final", f"真实任务终点满足五条件为{final['true']}/{final['valid']}回合，终点未知{final['unknown']}/{n}；已观测锁存恢复且终点可判断者中，终点再次不稳定{unstable['true']}/{unstable['valid']}回合，其余{unstable['unknown']}/{n}回合不适用或未知。锁存恢复不保证其后一直稳定。", refs)
-    facet_order = ["outcome:success", "outcome:failure", "outcome:unknown", *sorted(k for k in facets if k.startswith("stratum:"))]
+    duration = math.ceil(CONFIG["first_post_window_s"] / timing["step_dt_s"]) * timing["step_dt_s"]
+    post_anchor = "首个完整且已验证力脉冲结束" if domain["mechanism"] == "world_planar_external_force" else "首次已验证速度写入"
+    claim("first_push_window", f"同窗描述取{post_anchor}后的{_fmt(duration)}s控制记录（不含锚点格）；只纳入连续完整且高度、速度模、角速度模均有限的窗口，先窗内平均再回合等权。提前终止、采样截尾、缺测及窗内计划后续扰动分别排除；不是补零。各结局完整子集的扰动强度构成可不同，此为描述而非配对或因果比较。", refs)
+    window_names = {"pulse_incomplete":"首脉冲不完整", "terminal_before_window_end":"提前终止", "rollout_truncated":"采样截尾",
+        "unknown_samples":"内部缺步或非有限值", "next_push_in_window":"窗内计划后续扰动", "not_applicable":"无适用扰动",
+        "event_not_observed":"首推未观测", "invalid_injection":"扰动验证无效"}
+    for outcome, label in (("success","成功"),("failure","失败"),("unknown","结果未知")):
+        facet = facets["outcome:"+outcome]
+        if not facet["total_episodes"]:
+            continue
+        process = facet["first_push"]
+        t, w = process["terminal_latency"], process["post_window"]
+        excluded = "、".join(f"{window_names[k]}{v}" for k,v in sorted(w["status_counts"].items()) if k != "complete") or "无"
+        measurements = "、".join(f"{m['label']}均值{_fmt(m['mean'])}{m['unit']}" for m in w["pose"].values()) if w["valid"] else "无完整窗数值"
+        claim("first_push:"+outcome, f"{label}{facet['total_episodes']}回合：{t['label']}可判{t['valid']}回合，中位数{_fmt(t['median'])}{t['unit']}，其中≤{_fmt(CONFIG['early_terminal_s'])}s终止{t['within_early']}/{t['valid']}；其余{facet['total_episodes']-t['valid']}回合无合格首推或实际终点。相同首推后窗完整{w['valid']}/{facet['total_episodes']}回合，{measurements}；排除：{excluded}。", facet["record_ids"])
+    facet_order = sorted(k for k in facets if k.startswith("stratum:"))
     for name in facet_order:
         facet = facets[name]
         r = facet["recovery_units"]
         m = facet["pose"]["planar_speed_mps"]
-        claim(name, f"分面{name}：总{facet['total_episodes']}回合；根部速度模回合均值等权平均{_fmt(m['episode_means']['mean'])}m/s，有效{m['valid_episodes']}、未知{m['unknown_episodes']}回合；观测锁存恢复{r['status_counts'].get('recovered', 0)}/{r['total']}{r['unit']}单位（其余保留各自截尾/未恢复状态）。", facet["record_ids"], name != "outcome:unknown")
+        label = {"stratum:low":"低强度", "stratum:medium":"中强度", "stratum:high":"高强度", "stratum:repeated":"重复扰动"}.get(name,name)
+        claim(name, f"{label}组：总{facet['total_episodes']}回合；根部速度模回合均值等权平均{_fmt(m['episode_means']['mean'])}m/s，有效{m['valid_episodes']}、未知{m['unknown_episodes']}回合；观测锁存恢复{r['status_counts'].get('recovered', 0)}/{r['total']}个{recovery_unit}（其余保留各自截尾/未恢复状态）。", facet["record_ids"], False)
     capability = domain["root_signed_xy"]
     claim("capability", f"根部方向能力={capability}；扰动向量与根部运动是不同证据，世界XY不是机器人前后左右。pre是事件前固定窗，可能含此前扰动；零分母不构成阴性结论。速度×dt仅是控制记录格积分代理，不是精确路径；无足接触、支撑、步态、动作力矩和逐步奖励证据。", [])
-    claim("reward_parent", "父代对照不可用：未提供合格父代档案。评测reward=0来自评测stub，不能代表训练奖励；本卡未重算训练分项，也不主张奖励、根部运动或外扰造成某足部机制。未调用视觉或模型，尚未接入正常runner和最终作者payload。", [])
+    claim("reward_parent", "本卡未计算父代配对差分。评测reward=0来自评测stub，不能代表训练奖励；本卡未重算训练分项，也不主张奖励、根部运动或外扰造成某足部机制。未调用视觉或模型。", [])
     by_id = {r["record_id"]: r for r in examples}
     for status in WITNESS_ORDER:
         witness = selection["witnesses"][status]
         label = STATUSES_ZH.get(status, "恢复后终点不稳定")
         if witness is None:
-            claim("witness:" + status, f"全队列{n}回合扫描：{label}的预声明见证为no_witness（仅表示本批未找到符合该观测定义的例子）。", refs)
             continue
         v = by_id[witness["record_id"]]["value"]
         if "slot" in witness:
@@ -181,15 +215,24 @@ def _render_claims(domain: dict, facets: dict, examples: list[dict], selection: 
             for name in ("pre", "during", "post"):
                 window = event["windows"][name]
                 if window is None:
-                    parts.append(f"{name}=瞬时写入无持续控制格")
+                    parts.append("瞬时速度写入，无持续施力窗")
                 else:
                     metric = window["pose"]["planar_speed_mps"]
-                    parts.append(f"{name}[{window['steps_inclusive'][0]},{window['steps_inclusive'][1]}]速度模均值{_fmt(metric['mean'])}m/s（有效{metric['valid_samples']}/{window['expected_samples']}格，未知{metric['unknown_samples']}）")
+                    lo, hi = window["steps_inclusive"]
+                    after = max(0, hi-max(lo-1, v["coverage"]["last_step"]))
+                    internal = window["unobserved_samples"]-after
+                    nonfinite = window["observed_samples"]-metric["valid_samples"]
+                    tail = "终止后不适用" if v["coverage"]["terminal_observed"] else "采样截止后未观测"
+                    label = {"pre":"推前", "during":"施力中", "post":"推后"}[name]
+                    parts.append(f"{label}[{lo},{hi}]已观测有限格速度模均值{_fmt(metric['mean'])}m/s（有效{metric['valid_samples']}/{window['expected_samples']}格，内部缺步{internal}、非有限{nonfinite}、{tail}{after}格）")
             along = event["root_along_disturbance"]
             vector = ",".join(_fmt(x) for x in event["vector_world"])
             vector_unit = DISTURBANCES[domain["mechanism"]][1]
-            claim(f"event:{v['episode_id']}:{event['slot']}", f"r{v['run_index']}.e{v['env_index']}扰动{event['slot']}：记录世界向量[{vector}]{vector_unit}，验证={event['injection_verified']}；" + "；".join(parts)
-                  + f"；post根部速度在记录扰动世界XY方向的投影均值{_fmt(along['mean_velocity_mps'])}m/s（{along['status']}，有效{along['valid_samples']}、未知{along['unknown_samples']}格），不归因为足部补偿。", [record["record_id"]], False)
+            direction = (f"推后有效格根部速度沿扰动世界XY方向的投影均值{_fmt(along['mean_velocity_mps'])}m/s（{along['valid_samples']}格）"
+                         if along["status"] == "world_xy_projection" else "根部带符号XY方向投影未取得")
+            verified = "已验证" if event["injection_verified"] else "未验证"
+            claim(f"event:{v['episode_id']}:{event['slot']}", f"r{v['run_index']}.e{v['env_index']}扰动{event['slot']}：记录世界向量[{vector}]{vector_unit}，{verified}；" + "；".join(parts)
+                  + f"；{direction}。", [record["record_id"]], False)
     return claims
 
 
@@ -247,19 +290,29 @@ def _card_core(records: list[dict], source_id: str) -> dict:
             "adapter_version": ADAPTER_VERSION, "template_version": TEMPLATE_VERSION,
             "parameters": v["parameters"], "timing": v["timing"],
             "cohorts": cohorts, "selection": selection, "examples": examples, "claims": claims,
-            "parent_comparison": {"status": "unavailable", "reason": "no_qualified_parent_archive"}}
+            "parent_comparison": {"status": "unavailable", "reason": "not_computed_for_single_policy_card"}}
 
 
 def build_push_card(records: list[dict], source_id: str, *, episodes: list[NumericEpisode]) -> dict:
-    """Measured fields retain their raw channel/column, episode and time role."""
+    """Validate externally supplied records against their qualified raw episodes."""
     if len(records) != len(episodes):
         raise ValueError("Push measurement/raw episode count mismatch")
     for record, episode in zip(records, episodes):
         expected = measure_push_episode(episode)
         if record != expected:
             raise ValueError(f"Push measurement operands differ from raw episode {episode.episode_id}")
+    return _offline_card(_build_measured_card(records, source_id))
+
+
+def _build_measured_card(records: list[dict], source_id: str) -> dict:
+    """Construct from measurements just produced by the current CPU caller."""
     card = _card_core(records, source_id)
     card["card_id"] = stable_id("push-card", card)
+    return card
+
+
+def _offline_card(card: dict) -> dict:
+    """Only the offline artifact API consumes this second projection."""
     card["public_report"] = _project_bound_card(card)
     selected = {c["id"] for c in card["public_report"]["claims"]}
     card["projection_audit"] = {"max_bytes": MAX_PUBLIC_BYTES, "bytes": len(json_bytes(card["public_report"])),
@@ -272,7 +325,7 @@ def build_push_artifacts(sources: list[dict], *, source_id: str, output: Path) -
     started = time.perf_counter()
     episodes = [e for s in sources for e in iter_push_episodes(s["reference"], expected_identity=s["identity"])]
     records = [measure_push_episode(e) for e in episodes]
-    card = build_push_card(records, source_id, episodes=episodes)
+    card = _offline_card(_build_measured_card(records, source_id))
     output.mkdir(parents=True, exist_ok=False)
     def write(name, value):
         (output / name).write_bytes(json_bytes(value) + b"\n")
@@ -285,7 +338,7 @@ def build_push_artifacts(sources: list[dict], *, source_id: str, output: Path) -
              Path(__file__).with_name("trajectory_measurement.py")]
     manifest = {"schema_version": "push.root_artifacts.v1", "complete": True, "source_id": source_id,
         "sources": sources, "config": CONFIG, "card_id": card["card_id"], "episodes": len(records),
-        "processing_scope": "all_valid_control_rows_root_only", "integration": "offline_only_P2b2_pending",
+        "processing_scope": "all_valid_control_rows_root_only",
         "code_sha256": {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in paths},
         "artifacts": {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(output.iterdir())},
         "wall_seconds": time.perf_counter() - started, "model_calls": 0, "gpu_runs": 0}

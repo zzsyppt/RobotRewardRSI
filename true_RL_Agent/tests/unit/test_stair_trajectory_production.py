@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import patch
 import numpy as np
 
-from tests.unit import test_stair_trajectory_input_inspection as fixture
+from tests.unit import stair_archive_fixture as fixture
 from true_rl_agent.runner.numeric_evidence import file_sha256
 from true_rl_agent.tasks.stair_climbing import trajectory_production as production
 from true_rl_agent.tasks.stair_climbing.trajectory_adapter import _load_contract
@@ -35,8 +35,8 @@ def cpu_contract(projection, cells):
 class ProductionTrajectoryTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        fixture.StairTrajectoryInputInspectionTests.setUpClass()
-        cls.fixture = fixture.StairTrajectoryInputInspectionTests()
+        fixture.StairArchiveFixture.setUpClass()
+        cls.fixture = fixture.StairArchiveFixture()
         cls.fixture.setUp()
         cls.root = cls.fixture.root
         def mutate(identity, context, chunks):
@@ -57,7 +57,6 @@ class ProductionTrajectoryTests(unittest.TestCase):
         from tests.unit.trajectory_fixtures import sample_episode
         from true_rl_agent.evaluation.trajectory_translation.measurement import measure_behavior
         from true_rl_agent.evaluation.trajectory_translation.cohort import aggregate_behavior
-        from true_rl_agent.evaluation.trajectory_translation.cycles import measure_contact_cycles
         episodes = []
         for index, (outcome, speed) in enumerate((("forbidden_contact",-.4),("forbidden_contact",.6),
                 ("forbidden_contact",.1),("timeout",0),("timeout",.7),("success",0),("timeout",0))):
@@ -90,12 +89,14 @@ class ProductionTrajectoryTests(unittest.TestCase):
         public = production.validate_production_report(full["public_report"])
         self.assertEqual(production.replay_production_report(json.loads(json.dumps(full,sort_keys=True))),public)
         text = "\n".join(row["text"] for section in ("process","counterexample") for row in public["report"][section])
-        for expected in ("已见上轴向下2回合（结束1.6s，末速-0.4m/s，末速有效1/2回合）", "末速>0.2m/s的1回合（结束1.6s，末速0.6m/s）",
-                         "其余已知1回合", "|有向速度|<0.01m/s的", "速度中位0.7m/s",
+        for expected in ("已见上轴向下2回合（结束1.6s，末速-0.4m/s，末速有效1/2回合）", "末前速>0.2m/s1回合（结束1.6s，末速0.6m/s）",
+                         "其余已知1回合", "|前向速度|<0.01m/s的", "速度中位0.7m/s",
                          "1回合因缺测不能判全程阴性", "history ANY仅终点1拍", "回撤0.3m", "首次观察到上轴向下"):
             self.assertIn(expected,text)
         self.assertNotIn("全程曾上轴向下0回合",text)
-        self.assertLessEqual(full["audit"]["report_bytes"],10240)
+        from true_rl_agent.evaluation.process_report import report_bytes
+        shown = production.author_behavior_payload({"source":{},"profile":public})
+        self.assertLessEqual(report_bytes(shown),10240)
 
     def test_new_hash_v3_contract_and_short_unequal_episodes(self):
         self.assertNotIn(self.reference["manifest_sha256"], __import__(
@@ -163,8 +164,10 @@ class ProductionTrajectoryTests(unittest.TestCase):
     def test_selection_covers_motion_all_feet_and_available_facts(self):
         audit = self.full["audit"]
         self.assertNotIn("base_semantic_mapping",audit)
-        required = set(audit["required_claim_ids"])
-        self.assertTrue(required <= set(audit["included_claim_ids"]))
+        public = self.full["public_report"]
+        required = set(public["report_projection"]["required_claim_ids"])
+        shown = production.author_behavior_payload({"source":{},"profile":public})
+        self.assertTrue(required <= {r['id'] for v in shown['profile']['report'].values() if isinstance(v,list) for r in v})
         self.assertTrue({"claim:motion", "claim:foot.0", "claim:foot.1", "claim:foot.2", "claim:foot.3", "claim:terrain"} <= required)
         text = json.dumps(self.full["public_report"], ensure_ascii=False)
         self.assertNotIn("周期资格、有效/名义限位绑定、逐类地形几何资格", text)
@@ -172,11 +175,15 @@ class ProductionTrajectoryTests(unittest.TestCase):
         production.replay_production_report(self.full)
 
     def test_budget_never_silently_drops_required_facts(self):
-        minimum = self.full["audit"]["required_report_bytes"]
+        from true_rl_agent.evaluation.process_report import ReportBudgetExceeded, report_bytes
+        feedback = {"source":{},"profile":self.full["public_report"]}
+        with self.assertRaises(ReportBudgetExceeded) as caught:
+            production.author_behavior_payload(feedback,max_bytes=1)
+        minimum = caught.exception.required_bytes
         with self.assertRaisesRegex(ValueError, "mandatory facts exceed"):
-            production.project_production_report(self.domain, self.summary, max_bytes=minimum - 1)
-        exact = production.project_production_report(self.domain, self.summary, max_bytes=minimum)
-        self.assertEqual(exact["audit"]["required_claim_ids"], exact["audit"]["included_claim_ids"])
+            production.author_behavior_payload(feedback,max_bytes=minimum-1)
+        exact = production.author_behavior_payload(feedback,max_bytes=minimum)
+        self.assertEqual(report_bytes(exact),minimum)
 
     def test_full_replay_detects_resigned_sentence_or_entity(self):
         from true_rl_agent.evaluation.binding import canonical_json_hash

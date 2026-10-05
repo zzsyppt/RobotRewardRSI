@@ -2,47 +2,6 @@
 import numpy as np
 
 
-def close(a, b):
-    if isinstance(b, dict):
-        assert isinstance(a, dict) and set(a) == set(b), (a, b)
-        for k in b: close(a[k], b[k])
-    elif isinstance(b, list):
-        assert isinstance(a, list) and len(a) == len(b)
-        for x, y in zip(a, b, strict=True): close(x, y)
-    elif isinstance(b, float):
-        assert isinstance(a, (int, float)) and abs(a-b) <= 1e-10, (a, b)
-    else:
-        assert a == b, (a, b)
-
-
-def check_record(record, points, height, relative, status, dt, entity):
-    assert record['unit'] == 'm' and record['frame'] == 'world_z_up_translation_only'
-    assert record['entity_ids'] == [entity]
-    assert record['catalog_version'] == 'trajectory.p0.measurements.v5'
-    assert record['key'] == 'M10.nominal_reference_height' and record['record_type'] == 'measurement'
-    names = ('known', 'nonfinite_position', 'missing_origin', 'unqualified_geometry', 'outside_patch', 'boundary_band')
-    count = {'total': len(points), **{name: int(sum(status == i)) for i, name in enumerate(names)}}
-    count['unknown'] = count['total']-count['known']
-    expected = {'counts': count, 'sample_cell_seconds': {k: v*dt for k, v in count.items()}}
-    known = status == 0
-    expected['statistics'] = {k: {'min': float(min(v[known])), 'max': float(max(v[known])),
-                                 'mean': float(sum(v[known])/sum(known))} if known.any() else None
-                              for k, v in [('height_world_m', height), ('relative_z_m', relative)]}
-    for k, v in expected.items(): close(record['value'][k], v)
-    assert record['value']['runtime_surface'] == 'unknown_not_recorded'
-    return expected
-
-
-def check_first_extrema(record, height, relative, steps):
-    """Check first-index sorting on traces already independently mesh-validated."""
-    for key, values, op in [('height_min', height, np.argmin), ('height_max', height, np.argmax),
-                            ('relative_min', relative, np.argmin), ('relative_max', relative, np.argmax)]:
-        known = np.flatnonzero(np.isfinite(values))
-        witness = record['value']['witnesses'][key]
-        if len(known): assert witness['step'] == int(steps[known[op(values[known])]])
-        else: assert witness is None
-
-
 def mesh_height(points, origin, cell):
     points = np.asarray(points, dtype=np.float64)
     heights = np.full(len(points), np.nan)

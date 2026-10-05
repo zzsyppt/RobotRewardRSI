@@ -601,10 +601,10 @@ def _process_transcript(row: Mapping[str, Any], *, index: bool) -> dict[str, Any
 
 def project_push_behavior(behavior: Mapping[str, Any], *, max_bytes: int = MAX_PUSH_BEHAVIOR_BYTES) -> dict[str, Any]:
     """No archive IO: historical v1 stays v1; v2 prioritizes all strata + process."""
-    if behavior.get("schema_version") == "true_rl_agent.push_recovery.behavior.public.v4":
+    if behavior.get("schema_version") == "true_rl_agent.push_recovery.behavior.public.v5":
         from .trajectory_report import validate_push_trajectory_report
         return validate_push_trajectory_report(behavior, max_bytes=max_bytes)
-    if behavior.get("schema_version") == "true_rl_agent.push_recovery.behavior.full.v4":
+    if behavior.get("schema_version") == "true_rl_agent.push_recovery.behavior.full.v5":
         raise ValueError("Push trajectory full replay requires explicit CPU source validation; deliver the sealed public report")
     if behavior.get("schema_version") in {"true_rl_agent.push_recovery.behavior.v3", "true_rl_agent.push_recovery.behavior.public.v3"}:
         from true_rl_agent.tasks.push_recovery.process_report import project_push_process_behavior

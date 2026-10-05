@@ -37,7 +37,7 @@ def parse_args(argv=None, *, registry=None):
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--session-id", required=True)
     parser.add_argument("--lease-root", type=Path, required=True)
-    parser.add_argument("--provider-env-file", type=Path, required=True)
+    parser.add_argument("--provider-env-file", type=Path)
     parser.add_argument("--provider-policy", type=Path, required=True)
     parser.add_argument("--cost-contract", type=Path, required=True,
                         help="Frozen per-operation cost contract for this exact cell and workload.")
@@ -55,6 +55,8 @@ def parse_args(argv=None, *, registry=None):
     parser.add_argument("--source-reference-training-genesis-dir", type=Path,
                         help="Reuse this Genesis' original reference training and rerun all evaluation phases.")
     parser.add_argument("--source-reference-training-session-id")
+    parser.add_argument("--completed-reference-training-source", type=Path,
+                        help="Verified original launch descriptor; import only training and run current Q in this session.")
     parser.add_argument("--resume-existing", action="store_true")
     parser.add_argument("--terminal-audit-only", action="store_true")
     parser.add_argument("--prepare-only", action="store_true")
@@ -101,7 +103,7 @@ def prepare_from_args(args):
         if tuple(inventory[index] for index in range(2)) != expected:
             raise ValueError("selected GPU indices do not match their frozen UUIDs")
     launch = GenerationLaunchConfig(project_root=PROJECT_ROOT, output_dir=output,
-        lease_root=args.lease_root.resolve(), provider_env_file=args.provider_env_file.resolve(),
+        lease_root=args.lease_root.resolve(), provider_env_file=(args.provider_env_file.resolve() if args.provider_env_file else None),
         session_id=args.session_id, cell_variant_id=composition.resolved_cell_manifest.cell_variant_id,
         machine_id=args.machine_id, gpu0_uuid=args.gpu0_uuid, gpu1_uuid=args.gpu1_uuid,
         max_allocated_active_gpu_hours=args.max_allocated_active_gpu_hours,
@@ -112,6 +114,8 @@ def prepare_from_args(args):
         source_reference_training_genesis_dir=(args.source_reference_training_genesis_dir.resolve()
             if args.source_reference_training_genesis_dir else None),
         source_reference_training_session_id=args.source_reference_training_session_id,
+        completed_reference_training_source=(args.completed_reference_training_source.resolve()
+            if args.completed_reference_training_source else None),
         resume_existing=args.resume_existing, terminal_audit_only=args.terminal_audit_only,
         pause_after_generation=args.pause_after_generation, max_generations=args.max_generations,
         nvidia_smi_executable=args.nvidia_smi_executable)
@@ -128,7 +132,8 @@ def main(argv=None, *, registry=None):
         result = {"status": "prepared", "session_contract_hash": foundation.session_contract.contract_hash,
                   "output_dir": str(foundation.config.output_dir)}
     else:
-        if not args.terminal_audit_only and not (foundation.config.output_dir / REPORT_FILENAME).exists():
+        if (not args.terminal_audit_only and not (foundation.config.output_dir / REPORT_FILENAME).exists()
+                and foundation.provider_policy.get("backend", "openai_compatible_chat") != "external_file"):
             from true_rl_agent.agent_core.generation_runtime import generation_provider_config
             from true_rl_agent.agent_core.openai_compatible_provider import OpenAICompatibleCandidateProvider
 

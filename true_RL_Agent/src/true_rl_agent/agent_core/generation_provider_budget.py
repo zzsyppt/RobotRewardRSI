@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Any
 from true_rl_agent.agent_core.generation_contract import GENERATION_LANE_IDS
 from true_rl_agent.agent_core.generation_foundation import GenerationSessionFoundation
-from true_rl_agent.agent_core.openai_compatible_provider import OpenAICompatibleCandidateProvider
-from true_rl_agent.agent_core.provider_errors import provider_failure_requires_service_recovery
+from true_rl_agent.agent_core.provider import AuthoringCandidateProvider
+from true_rl_agent.agent_core.provider_errors import EXTERNAL_RECEIPT_SCHEMA, normalize_provider_receipt, provider_failure_requires_service_recovery
 from true_rl_agent.prompt_artifacts import (
     AuthoringEvidenceRef, PromptPayloadRef, RoundAuthoringJournal,
     verify_authoring_evidence, verify_prompt_payload,
@@ -17,13 +17,23 @@ from true_rl_agent.prompt_artifacts import (
 class CostGuardedProvider:
     """Apply the frozen session provider cap immediately before transport."""
 
-    delegate: OpenAICompatibleCandidateProvider
+    delegate: AuthoringCandidateProvider
     output_dir: Path
     generation_id: str
     lane_id: str
     provider_caps: Mapping[str, Any]
     max_generations: int = 1
     allow_conservative_interrupted_recovery: bool = False
+    external_unknown_usage_model: str | None = None
+
+    def bind_authoring_attempt(self, handle, prompt_build):
+        bind = getattr(self.delegate, "bind_authoring_attempt", None)
+        if bind is not None:
+            bind(handle, prompt_build)
+
+    def resume_authoring_attempt(self, handle):
+        resume = getattr(self.delegate, "resume_authoring_attempt", None)
+        return resume(handle) if resume is not None else None
 
     def next_authoring_response(
         self,
@@ -37,6 +47,7 @@ class CostGuardedProvider:
             current_prompt_payload=prompt_payload,
             provider_caps=self.provider_caps,
             max_generations=self.max_generations,
+            external_unknown_usage_model=self.external_unknown_usage_model,
             allow_conservative_interrupted_recovery=(
                 self.allow_conservative_interrupted_recovery
             ),
@@ -55,6 +66,7 @@ class CostGuardedProvider:
             current_prompt_payload=prompt_payload,
             provider_caps=self.provider_caps,
             max_generations=self.max_generations,
+            external_unknown_usage_model=self.external_unknown_usage_model,
             allow_conservative_interrupted_recovery=(
                 self.allow_conservative_interrupted_recovery
             ),
@@ -72,6 +84,7 @@ def _assert_provider_request_budget(
     provider_caps: Mapping[str, Any],
     max_generations: int = 1,
     allow_conservative_interrupted_recovery: bool = False,
+    external_unknown_usage_model: str | None = None,
 ) -> None:
     if not isinstance(allow_conservative_interrupted_recovery, bool):
         raise TypeError("provider interrupted recovery policy must be boolean")
@@ -178,10 +191,14 @@ def _assert_provider_request_budget(
                         "total_units",
                     )
                 ):
-                    if provider_failure_requires_service_recovery(
-                        provider_attempt.get("provider_failure")
-                    ):
-                        # A recorded service rejection can resume after recovery.
+                    receipt = normalize_provider_receipt(provider_attempt.get("provider_response_receipt"))
+                    external_unknown = (external_unknown_usage_model is not None
+                        and receipt.get("schema_version") == EXTERNAL_RECEIPT_SCHEMA
+                        and receipt.get("requested_model") == external_unknown_usage_model
+                        and receipt.get("requested_output_units") == provider_caps["output_units_per_attempt_cap"])
+                    if external_unknown or provider_failure_requires_service_recovery(provider_attempt.get("provider_failure")):
+                        # External responses and recoverable service rejections
+                        # can proceed under their explicit accounting policy.
                         # Keep its attempt and reserve the full unknown usage;
                         # never replace the durable receipt with invented zeros.
                         request_units += provider_caps["input_units_per_attempt_reserve"]

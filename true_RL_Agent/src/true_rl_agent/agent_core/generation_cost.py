@@ -136,9 +136,27 @@ class GenerationProviderBudget:
         }
 
 
+REFERENCE_MODES = frozenset({"train_and_qualify", "imports_training_only", "import_qualified_genesis"})
+
+
+def _reference_mode(reference_mode: str | None, imports_reference: bool | None) -> str:
+    if imports_reference is not None and type(imports_reference) is not bool:
+        raise TypeError("legacy reference import mode must be boolean")
+    legacy = "import_qualified_genesis" if imports_reference else "train_and_qualify"
+    if reference_mode is None:
+        return legacy
+    if reference_mode not in REFERENCE_MODES:
+        raise ValueError("unsupported reference cost mode")
+    if imports_reference is not None and reference_mode != legacy:
+        raise ValueError("explicit reference mode conflicts with legacy import flag")
+    return reference_mode
+
+
 def generation_operation_layout(
-    *, max_generations: int, imports_reference: bool, final_jobs: int,
+    *, max_generations: int, final_jobs: int,
+    reference_mode: str | None = None, imports_reference: bool | None = None,
 ) -> dict[str, tuple[str, int]]:
+    mode = _reference_mode(reference_mode, imports_reference)
     layout = {
         "lane_a_train": ("successful_session", max_generations),
         "lane_b_train": ("successful_session", max_generations),
@@ -148,10 +166,11 @@ def generation_operation_layout(
         "sealed_validation": ("successful_session", max_generations + final_jobs),
         "sealed_validation_retry": ("retry_reserve", 1),
     }
-    if not imports_reference:
+    if mode != "import_qualified_genesis":
+        layout["reference_qualification"] = ("successful_session", 1)
+    if mode == "train_and_qualify":
         layout.update({
             "reference_train": ("successful_session", 1),
-            "reference_qualification": ("successful_session", 1),
             "reference_train_retry": ("retry_reserve", 1),
         })
     return layout
@@ -170,13 +189,14 @@ class FrozenGenerationCostContract:
     scientific_cost_basis: GenerationWorkload
     provider_budget: GenerationProviderBudget
     operation_reserves: tuple[OperationCostReserve, ...]
-    imports_reference_evidence: bool
+    reference_mode: str
     final_confirmation_seed_units: int
     finalization_output_reserve_bytes: int
     session_output_reserve_bytes: int
     headroom_numerator: int
     headroom_denominator: int
     imported_reference_timeout_envelope: tuple[int, int] | None = None
+    schema_version: str = "true_rl_agent.generation_cost_contract.v2"
 
     uses_operation_reserves = True
     reference_phase_reserve_rule = "apportion_frozen_totals"
@@ -195,11 +215,14 @@ class FrozenGenerationCostContract:
         expected_final = 2 * self.scientific_cost_basis.sealed_validation_seed_units_per_job
         if self.final_confirmation_seed_units not in (0, expected_final):
             raise ValueError("final work must match the paired phase jobs")
-        if not isinstance(self.imports_reference_evidence, bool):
-            raise TypeError("reference import mode must be boolean")
+        _reference_mode(self.reference_mode, None)
+        if self.schema_version not in {"true_rl_agent.generation_cost_contract.v1", "true_rl_agent.generation_cost_contract.v2"}:
+            raise ValueError("unsupported generation cost schema")
+        if self.schema_version.endswith(".v1") and self.reference_mode == "imports_training_only":
+            raise ValueError("training-only import requires the explicit-mode cost schema")
         expected = generation_operation_layout(
             max_generations=self.max_generations,
-            imports_reference=self.imports_reference_evidence,
+            reference_mode=self.reference_mode,
             final_jobs=2 if self.final_confirmation_seed_units else 0,
         )
         actual = {entry.operation_class: (entry.budget_class, entry.multiplicity)
@@ -216,14 +239,16 @@ class FrozenGenerationCostContract:
         cls, *, max_generations: int, workload: GenerationWorkload,
         provider_budget: GenerationProviderBudget,
         operation_sources: Mapping[str, OperationCostReserve],
-        imports_reference: bool, final_confirmation: bool,
+        final_confirmation: bool,
         finalization_output_reserve_bytes: int,
         session_output_reserve_bytes: int,
         headroom_numerator: int, headroom_denominator: int,
         imported_reference_timeout_envelope: tuple[int, int] | None = None,
+        reference_mode: str | None = None, imports_reference: bool | None = None,
     ) -> "FrozenGenerationCostContract":
+        mode = _reference_mode(reference_mode, imports_reference)
         layout = generation_operation_layout(
-            max_generations=max_generations, imports_reference=imports_reference,
+            max_generations=max_generations, reference_mode=mode,
             final_jobs=2 if final_confirmation else 0,
         )
         if set(operation_sources) != set(layout):
@@ -236,7 +261,7 @@ class FrozenGenerationCostContract:
                         budget_class=budget_class, multiplicity=count)
                 for name, (budget_class, count) in sorted(layout.items())
             ),
-            imports_reference_evidence=imports_reference,
+            reference_mode=mode,
             final_confirmation_seed_units=(
                 2 * workload.sealed_validation_seed_units_per_job
                 if final_confirmation else 0
@@ -249,8 +274,12 @@ class FrozenGenerationCostContract:
         )
 
     @property
+    def imports_reference_evidence(self) -> bool:
+        return self.reference_mode == "import_qualified_genesis"
+
+    @property
     def retry_train_jobs(self) -> int:
-        return int(not self.imports_reference_evidence)
+        return int(self.reference_mode == "train_and_qualify")
 
     @property
     def retry_eval_seed_units(self) -> int:
@@ -258,7 +287,7 @@ class FrozenGenerationCostContract:
 
     @property
     def physical_train_job_cap(self) -> int:
-        return 2 * self.max_generations + 2 * int(not self.imports_reference_evidence)
+        return 2 * self.max_generations + 2 * self.retry_train_jobs
 
     @property
     def physical_train_step_cap(self) -> int:
@@ -294,12 +323,11 @@ class FrozenGenerationCostContract:
         return canonical_json_hash(self._hash_payload())
 
     def _hash_payload(self) -> dict[str, Any]:
-        return {
-            "schema_version": "true_rl_agent.generation_cost_contract.v1",
+        payload = {
+            "schema_version": self.schema_version,
             "max_generations": self.max_generations,
             "scientific_cost_basis": self.scientific_cost_basis.to_dict(),
             "provider": self.provider_budget.for_generations(self.max_generations),
-            "imports_reference_evidence": self.imports_reference_evidence,
             "imported_reference_timeout_envelope": (
                 list(self.imported_reference_timeout_envelope)
                 if self.imported_reference_timeout_envelope is not None else None
@@ -324,6 +352,11 @@ class FrozenGenerationCostContract:
                 "output_bytes": self.max_output_bytes,
             },
         }
+        if self.schema_version.endswith(".v1"):
+            payload["imports_reference_evidence"] = self.imports_reference_evidence
+        else:
+            payload["reference_mode"] = self.reference_mode
+        return payload
 
     def to_dict(self) -> dict[str, Any]:
         payload = self._hash_payload()
@@ -344,7 +377,10 @@ class FrozenGenerationCostContract:
             }),
             operation_reserves=tuple(OperationCostReserve.from_mapping(entry)
                                      for entry in sources["entries"]),
-            imports_reference_evidence=value["imports_reference_evidence"],
+            reference_mode=(_reference_mode(None, value["imports_reference_evidence"])
+                if value["schema_version"] == "true_rl_agent.generation_cost_contract.v1"
+                else value["reference_mode"]),
+            schema_version=value["schema_version"],
             final_confirmation_seed_units=value["final_confirmation_seed_units"],
             finalization_output_reserve_bytes=value["finalization_output_reserve_bytes"],
             session_output_reserve_bytes=value["session_output_reserve_bytes"],

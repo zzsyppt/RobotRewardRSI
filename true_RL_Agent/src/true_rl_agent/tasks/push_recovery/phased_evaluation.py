@@ -7,6 +7,7 @@ from .trajectory_card import MAX_PUBLIC_BYTES
 from collections.abc import Mapping, Sequence
 from copy import deepcopy
 from pathlib import Path
+import logging
 import time
 from typing import Any
 
@@ -151,9 +152,10 @@ def finalize_push_eval_phase_summary(
     if expected_identity["backend_execution_environment_verification"] is None:
         expected_identity.pop("backend_execution_environment_verification")
     wall_started, cpu_started = time.perf_counter(), time.process_time()
-    from .trajectory_pipeline import TRAJECTORY_PROFILE, validate_feedback_profile, build_phase_trajectory
+    from .trajectory_pipeline import (TRAJECTORY_PROFILE, validate_feedback_profile, build_phase_trajectory,
+                                     DescriptionComputationError)
     validate_feedback_profile(behavior_feedback_profile, trajectory_report_max_bytes, context["cell_variant_id"])
-    from true_rl_agent.evaluation.process_report import ReportBudgetExceeded
+    from true_rl_agent.evaluation.process_report import ReportBudgetExceeded, description_error_details
     full = None
     if behavior_feedback_profile == TRAJECTORY_PROFILE:
         # Capture records training lineage; capability is bound by the outer
@@ -164,11 +166,18 @@ def finalize_push_eval_phase_summary(
         try:
             full, evidence["behavior"], evidence["trajectory_build"] = build_phase_trajectory(
                 evidence["seed_summaries"], expected_identity=expected_identity, context=context,
-                expected_seed_count=expected_seed_count, output_dir=output_dir, max_bytes=trajectory_report_max_bytes)
+                expected_seed_count=expected_seed_count, max_bytes=trajectory_report_max_bytes)
         except ReportBudgetExceeded as exc:
             evidence["description_status"] = {"status":"unavailable","reason":"budget_exceeded",
+                **description_error_details(exc, stage="reporting"),
                 "required_bytes":exc.required_bytes,"max_bytes":exc.max_bytes,
                 "text":"必需行为描述超出配置容量，本次保留评估数值，描述不可用。"}
+        except DescriptionComputationError as exc:
+            logging.getLogger(__name__).warning("Push description unavailable: job=%s stage=%s",
+                expected_identity["job_id"], exc.stage, exc_info=True)
+            evidence["description_status"] = {"status":"unavailable","reason":"description_computation_failed",
+                **description_error_details(exc, stage=exc.stage),
+                "text":"档案完整性已检查；行为描述计算失败，本次保留评估数值，描述不可用。"}
     else:
         for seed in evidence["seed_summaries"]:
             validate_push_numeric_reference(seed["numeric_evidence_ref"], seed, expected_identity=expected_identity)

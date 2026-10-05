@@ -6,7 +6,7 @@ import unittest
 
 import numpy as np
 
-from tests.unit import test_stair_trajectory_input_inspection as fixture
+from tests.unit import stair_archive_fixture as fixture
 from true_rl_agent.runner.numeric_evidence import file_sha256
 from true_rl_agent.evaluation.process_report import report_bytes
 from true_rl_agent.runner.numeric_evidence import NumericEvidenceError
@@ -27,10 +27,10 @@ def as_v1(identity, context, chunks):
 class StairTrajectoryV1Tests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        fixture.StairTrajectoryInputInspectionTests.setUpClass()
+        fixture.StairArchiveFixture.setUpClass()
 
     def setUp(self):
-        self.fixture = fixture.StairTrajectoryInputInspectionTests()
+        self.fixture = fixture.StairArchiveFixture()
         self.fixture.setUp()
         self.addCleanup(self.fixture.doCleanups)
 

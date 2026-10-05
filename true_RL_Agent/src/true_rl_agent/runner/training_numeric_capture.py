@@ -1,6 +1,7 @@
 """Dispersed training-step samples with fixed budgets; tasks own meanings."""
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Any, Callable, Mapping
 
@@ -143,15 +144,55 @@ class TrainingNumericCapture:
         return self._reference
 
 
-def finish_training_numeric_capture(capture: TrainingNumericCapture | None,
+class TrainingNumericAttachment:
+    """Keep optional capture failures outside the reward/training result."""
+
+    def __init__(self, create: Callable[[], TrainingNumericCapture],
+                 bind: Callable[[TrainingNumericAttachment], None]) -> None:
+        self.recorder: TrainingNumericCapture | None = None
+        self._result: dict[str, Any] | None = None
+        self._run("initialization", lambda: self._initialize(create, bind))
+
+    @property
+    def active(self) -> bool:
+        return self.recorder is not None and self._result is None
+
+    def _initialize(self, create, bind) -> None:
+        self.recorder = create()
+        bind(self)
+
+    def _run(self, stage: str, operation: Callable[[], Any]) -> Any:
+        if self._result is not None:
+            return None
+        try:
+            return operation()
+        except Exception as exc:
+            root = exc
+            while root.__cause__ is not None:
+                root = root.__cause__
+            self._result = {"status": "incomplete", "stage": stage,
+                            "error_type": type(root).__name__[:64],
+                            "error_message": str(root)[:512]}
+            logging.getLogger(__name__).warning(
+                "Training numeric attachment failed during %s: %s: %s", stage,
+                self._result["error_type"], self._result["error_message"])
+            return None
+
+    def observe(self, source_step: int, sample: Callable[[], tuple[Mapping[str, Any], Mapping[str, Any]]]) -> None:
+        def record():
+            arrays, metadata = sample() if self.recorder.wants_step(source_step) else (None, None)
+            self.recorder.observe(source_step, arrays, metadata=metadata)
+        self._run("sampling", record)
+
+    def finish(self, *, training_status: str) -> dict[str, Any]:
+        result = self._run("finalization", lambda: self.recorder.finish(training_status=training_status))
+        if result is not None:
+            self._result = result
+        return self._result
+
+
+def finish_training_numeric_capture(capture: TrainingNumericAttachment | None,
                                     *, training_status: str, requested: bool = False) -> dict[str, Any]:
     if capture is None:
         return {"status": "not_started" if requested else "not_enabled"}
-    try:
-        return capture.finish(training_status=training_status)
-    except Exception as exc:
-        if training_status == "pass":
-            raise
-        # Retain the original training failure if finalizing partial evidence
-        # also fails; absence of a published reference cannot look complete.
-        return {"status": "incomplete", "reason": type(exc).__name__ + ": " + str(exc)}
+    return capture.finish(training_status=training_status)

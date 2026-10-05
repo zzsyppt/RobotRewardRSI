@@ -17,7 +17,7 @@ from true_rl_agent.tasks.push_recovery.composition import PushRecoveryCompositio
 from true_rl_agent.tasks.push_recovery.trajectory_pipeline import (
     build_phase_trajectory, replay_full_report, validate_build_receipt, validate_feedback_profile, TRAJECTORY_PROFILE,
 )
-from true_rl_agent.tasks.push_recovery.trajectory_report import require_trial_binding, validate_push_trajectory_report
+from true_rl_agent.tasks.push_recovery.trajectory_report import require_trial_binding, validate_push_trajectory_report, author_behavior_payload
 from true_rl_agent.tasks.push_recovery.trajectory_card import json_bytes
 from true_rl_agent.tasks.push_recovery.rollout import aggregate_recovery_episodes
 
@@ -102,13 +102,13 @@ class PushTrajectoryPipelineTests(unittest.TestCase):
 
     def build(self, **kwargs):
         return build_phase_trajectory(kwargs.pop("seeds", self.seeds), expected_identity=kwargs.pop("identity", self.identity),
-            context=self.context, expected_seed_count=3, output_dir=self.root / "phase", **kwargs)
+            context=self.context, expected_seed_count=3, **kwargs)
 
-    def test_budget_degradation_keeps_push_results_and_visible_reason(self):
+    def finalization(self, *, max_bytes=12288, output_name="phase"):
         from types import SimpleNamespace
         from true_rl_agent.evaluation.phases import EvaluationPhase
-        from true_rl_agent.tasks.push_recovery.phased_evaluation import finalize_push_eval_phase_summary
-        from true_rl_agent.tasks.push_recovery.prompt_adapter import _v2_dev_summary
+        from true_rl_agent.tasks.push_recovery.phased_evaluation import (finalize_push_eval_phase_summary,
+            PUSH_PHASE_EVIDENCE_SCHEMA)
         identity = self.identity
         spec = SimpleNamespace(phase=EvaluationPhase.PUBLIC_DEV,
             job_identity=lambda:SimpleNamespace(to_public_dict=lambda:identity),
@@ -118,24 +118,104 @@ class PushTrajectoryPipelineTests(unittest.TestCase):
             training_binding_hash=identity["training_binding_hash"],
             evaluation_binding=SimpleNamespace(to_public_dict=lambda:identity["evaluation_binding"]))
         context = {**self.context, **{k:identity[k] for k in ("checkpoint_hash","evaluation_plan_hash","program_source_checksum","runtime_dynamics_hash")}}
-        summary = {"status":"postprocessing", "task_evidence":{"seed_summaries":self.seeds,"behavior_context":context},
+        summary = {"status":"postprocessing", "task_evidence":{"schema_version":PUSH_PHASE_EVIDENCE_SCHEMA,
+            "phase":"public_dev", "seed_summaries":self.seeds,"behavior_context":context},
             "environment_source_preflight":{"runtime_dynamics_hash":identity["runtime_dynamics_hash"]},
             "evaluation_execution_cost":{"splits":{"public_dev":{}}}}
-        final = finalize_push_eval_phase_summary(spec,summary,output_dir=self.root/"small",
-            behavior_feedback_profile=TRAJECTORY_PROFILE,trajectory_report_max_bytes=128,expected_seed_count=3)
+        return finalize_push_eval_phase_summary(spec,summary,output_dir=self.root/output_name,
+            behavior_feedback_profile=TRAJECTORY_PROFILE,trajectory_report_max_bytes=max_bytes,expected_seed_count=3)
+
+    def test_budget_degradation_keeps_push_results_and_visible_reason(self):
+        from true_rl_agent.tasks.push_recovery.prompt_adapter import _v2_dev_summary
+        final = self.finalization(max_bytes=128)
         self.assertEqual(final["status"],"pass")
         evidence = final["task_evidence"]
         self.assertEqual(evidence["seed_summaries"],self.seeds)
         self.assertNotIn("behavior",evidence)
         self.assertNotIn("trajectory_build",evidence)
         self.assertEqual(_v2_dev_summary({"description_status":evidence["description_status"]})["description_status"]["reason"],"budget_exceeded")
+        self.assertEqual(evidence["description_status"]["max_bytes"],128)
+        self.assertGreater(evidence["description_status"]["required_bytes"],128)
+        self.assertEqual(evidence["description_status"]["error_type"],"ReportBudgetExceeded")
+
+    def test_computation_failures_keep_science_and_reach_final_payload(self):
+        from types import SimpleNamespace
+        from true_rl_agent.evaluation.phases import EvaluationPhase
+        from true_rl_agent.memory import PublicContextBuilder
+        from true_rl_agent.prompting.payload import serialize_prompt_payload
+        from true_rl_agent.tasks.push_recovery.config import PushRecoveryTaskConfig
+        from true_rl_agent.tasks.push_recovery.phased_adapter import PushPhasedEvaluationAdapter
+        from true_rl_agent.tasks.push_recovery.prompt_adapter import PushRecoveryPromptAdapter
+        from true_rl_agent.tasks.push_recovery import trajectory_pipeline as pipeline
+        from tests.fakes.decision_records import (valid_accepted_ledger_record, TEST_ACCEPTANCE_PROTOCOL,
+            TEST_SESSION_GENESIS_HASH, make_bootstrap_current_best)
+        config = PushRecoveryTaskConfig.for_cell(self.context["cell_variant_id"])
+        adapter = PushPhasedEvaluationAdapter(config, "unused-by-public-projection")
+        def project(final):
+            return adapter.project_public_phase_summary(phase_result=SimpleNamespace(**{
+                **self.identity, "phase":EvaluationPhase.PUBLIC_DEV,
+                "subject":SimpleNamespace(kind=self.identity["subject_kind"], subject_id=self.identity["subject_id"]),
+                "evaluation_binding_hash":self.identity["evaluation_binding"]["evaluation_binding_hash"],
+                "eval_protocol_hash":config.evaluation_protocol().protocol_hash,
+                "task_evidence":final["task_evidence"]}))
+        normal = project(self.finalization(output_name="normal"))
+        normal.pop("behavior")
+        original = pipeline.iter_push_episodes
+        for stage, target in (("measurement", "trajectory_pipeline.measure_push_episode"),
+                              ("reporting", "trajectory_card._render_claims")):
+            consumed = []
+            def episodes(*args, **kwargs):
+                for ep in original(*args, **kwargs):
+                    consumed.append((ep.run_index, ep.env_index))
+                    yield ep
+            with self.subTest(stage=stage), patch.object(pipeline, "iter_push_episodes", side_effect=episodes), \
+                 patch("true_rl_agent.tasks.push_recovery."+target, side_effect=ArithmeticError("descriptor failed")), \
+                 self.assertLogs("true_rl_agent.tasks.push_recovery.phased_evaluation", level="WARNING") as logged:
+                final = self.finalization(output_name=stage)
+            self.assertEqual(len(consumed), 12)
+            self.assertIn("ArithmeticError: descriptor failed", "\n".join(logged.output))
+            self.assertEqual(final["status"], "pass")
+            evidence = final["task_evidence"]
+            self.assertEqual(evidence["seed_summaries"], self.seeds)
+            self.assertTrue({"behavior", "behavior_full", "trajectory_build"}.isdisjoint(evidence))
+            self.assertFalse((self.root/stage/"behavior_full.json").exists())
+            visible = project(final)
+            status = visible.pop("description_status")
+            self.assertEqual(visible, normal)
+            self.assertEqual(status["reason"], "description_computation_failed")
+            self.assertEqual(status["stage"], stage)
+            self.assertEqual(status["error_type"], "ArithmeticError")
+            self.assertEqual(status["error_message"], "descriptor failed")
+            closed = valid_accepted_ledger_record(round_id="trial-a", candidate_id="candidate-a", public_score=.7)
+            closed["public_result"]["metrics"]["public_dev"]["description_status"] = status
+            builder = PublicContextBuilder(task_prompt_adapter=PushRecoveryPromptAdapter(config),
+                acceptance_protocol=TEST_ACCEPTANCE_PROTOCOL, initial_current_best=make_bootstrap_current_best(),
+                session_genesis_hash=TEST_SESSION_GENESIS_HASH)
+            payload = json.loads(serialize_prompt_payload(builder.build_prompt_payload([closed])))
+            self.assertEqual(payload["public_feedback_summary"]["public_dev"]["behavior"], status)
+
+    def test_archive_corruption_and_output_io_still_block_finalization(self):
+        with patch("true_rl_agent.tasks.push_recovery.phased_evaluation.atomic_replace_bytes",
+                   side_effect=OSError("output unavailable")), self.assertRaisesRegex(OSError, "output unavailable"):
+            self.finalization()
+        manifest_path = Path(self.seeds[-1]["numeric_evidence_ref"]["manifest_path"])
+        manifest = json.loads(manifest_path.read_bytes())
+        chunk = manifest_path.parent/manifest["chunks"][-1]["file"]
+        with chunk.open("ab") as stream:
+            stream.write(b"corrupt last archive")
+        with patch("true_rl_agent.tasks.push_recovery.trajectory_pipeline.measure_push_episode",
+                   side_effect=ArithmeticError("must not measure before admission")) as measured:
+            with self.assertRaises(NumericEvidenceError):
+                self.finalization()
+            measured.assert_not_called()
 
     def test_complete_three_archive_group_and_public_replay_without_raw_io(self):
         full, public, receipt = self.build()
         self.assertEqual(receipt["episodes"], 12)
         self.assertEqual(len(public["domain"]["manifest_sha256"]), 3)
-        self.assertEqual(len(receipt["required_claim_ids"]), 20)
-        self.assertLessEqual(report_bytes(public), 12288)
+        required = {c["key"] for c in full["card"]["claims"] if c["id"] in receipt["required_claim_ids"]}
+        self.assertTrue({"scope", "protocol", "first_push_window", "first_push:success"} <= required)
+        self.assertLessEqual(report_bytes(author_behavior_payload(public)), 12288)
         self.assertEqual(public["domain"]["root_signed_xy"], "recorded_world_xy")
         self.assertEqual(public["domain"]["mechanism"], "world_planar_external_force")
         with patch("true_rl_agent.runner.numeric_evidence.load_numeric_evidence_manifest", side_effect=AssertionError("prompt opened raw")):
@@ -143,19 +223,18 @@ class PushTrajectoryPipelineTests(unittest.TestCase):
             validate_build_receipt(receipt, public)
         self.assertEqual(public, replay_full_report(full, expected_sources=full["sources"], expected_identity=self.identity))
 
-    def test_retry_reuses_bytes_but_checks_raw_and_configuration(self):
-        first = self.build()
-        marker = Path(first[2]["artifact_manifest"]["manifest_path"])
-        before = marker.read_bytes(), marker.stat().st_mtime_ns
-        again = self.build()
-        self.assertEqual(first[:2], again[:2])
-        self.assertTrue(again[2]["artifacts_reused"])
-        self.assertEqual(before, (marker.read_bytes(), marker.stat().st_mtime_ns))
-        smaller = self.build(max_bytes=12287)
-        self.assertNotEqual(first[2]["cache_key"], smaller[2]["cache_key"])
-        marker.with_name("policy_card.json").write_bytes(b"{}")
-        with self.assertRaisesRegex(ValueError, "artifact changed"):
-            self.build()
+    def test_build_and_retry_measure_each_episode_once_without_cache(self):
+        from true_rl_agent.tasks.push_recovery.trajectory_measurement import measure_push_episode
+        with patch("true_rl_agent.tasks.push_recovery.trajectory_pipeline.measure_push_episode", wraps=measure_push_episode) as measured, \
+             patch("true_rl_agent.tasks.push_recovery.trajectory_card.measure_push_episode", side_effect=AssertionError("fresh records remeasured")):
+            first = self.build()
+            self.assertEqual(measured.call_count, first[2]["episodes"])
+            again = self.build()
+            self.assertEqual(measured.call_count, 2*first[2]["episodes"])
+        self.assertEqual(first, again)
+        self.assertNotIn("artifact_manifest", first[2])
+        self.assertNotIn("artifacts_reused", first[2])
+        self.assertFalse((self.root / "phase").exists())
 
     def test_missing_duplicate_or_foreign_seed_cannot_claim_complete_group(self):
         for seeds in (self.seeds[:-1], [self.seeds[0]] * 3,
@@ -235,8 +314,20 @@ class PushTrajectoryPipelineTests(unittest.TestCase):
         record = {"decision": {"accepted": True}, "generation": {"generation_id": "g1",
             "trials": [trial(a, "a", "accepted"), trial(b, "b", "not_selected")],
             "selection": {"selected_trial_id": "trial-a"}, "formal": {"accepted": True, "selected_trial_id": "trial-a"}}}
+        record["generation"].update(parent_public_dev={"behavior":a}, parent_current_best={
+            "anchor_kind":"candidate", "anchor_id":"candidate-a",
+            **{k:self.identity[k] for k in ("checkpoint_hash","program_source_checksum","subject_manifest_hash","training_binding_hash")},
+            "evaluation_binding_hash":"7"*64})
         projected = _v2_prompt_record(record)
         feedback = _v2_feedback_summary([projected, {"generation": {"generation_id": "g2", "trials": []}}])
+        text = json.dumps(feedback, ensure_ascii=False)
+        for obsolete in ("尚未接入", "已由正常CPU finalizer接入", "push.delivery.scope"):
+            self.assertNotIn(obsolete, text)
+        self.assertEqual(feedback["trajectory_sources"]["parent"]["card_id"], a["card_id"])
+        self.assertNotIn("未提供合格父代档案", text)
+        self.assertIn("本卡未计算父代配对差分", text)
+        self.assertIn("不能代表训练奖励", text)
+        self.assertIn("无足接触、支撑、步态", text)
         self.assertEqual(feedback["source_round_id"], "trial-b")
         self.assertEqual(feedback["trajectory_sources"]["generation_id"], "g1")
         self.assertEqual(feedback["current_best"]["source_round_id"], "trial-a")
@@ -244,10 +335,55 @@ class PushTrajectoryPipelineTests(unittest.TestCase):
         self.assertEqual(len(feedback["trajectory_sources"]["siblings"]), 2)
         minimum = _minimum_core_push_prompt_sections({"public_feedback_summary": feedback})
         self.assertEqual(minimum["public_feedback_summary"]["trajectory_sources"], feedback["trajectory_sources"])
+        from true_rl_agent.tasks.push_recovery.config import PushRecoveryTaskConfig
+        from true_rl_agent.tasks.push_recovery.prompt_adapter import PushRecoveryPromptAdapter
+        from true_rl_agent.prompting.payload import build_prompt_payload, serialize_prompt_payload
+        adapter = PushRecoveryPromptAdapter(PushRecoveryTaskConfig.for_cell(self.context["cell_variant_id"]))
+        sections = adapter.build_prompt_sections(public_records=[record], public_context={})
+        payload = json.loads(serialize_prompt_payload(build_prompt_payload(public_context={"task_prompt_sections":sections})))
+        visible = payload["public_feedback_summary"]["public_dev"]["behavior"]
+        self.assertLessEqual(report_bytes(visible), 12288)
+        self.assertNotRegex(json.dumps(visible), r"[a-f0-9]{64}")
+        self.assertNotIn("trajectory_sources", payload["public_feedback_summary"])
+        self.assertEqual(visible["sources"]["parent"]["subject_id"], "candidate-a")
+        self.assertEqual(visible["sources"]["selected_feedback"]["subject_id"], "candidate-b")
+        self.assertIn("相同首推后窗完整", json.dumps(visible,ensure_ascii=False))
+        with patch("true_rl_agent.tasks.push_recovery.trajectory_report.select_whole_claims",
+                   side_effect=ArithmeticError("final author renderer failed")):
+            failed_sections = adapter.build_prompt_sections(public_records=[record], public_context={})
+            failed_payload = json.loads(serialize_prompt_payload(build_prompt_payload(public_context={"task_prompt_sections":failed_sections})))
+        failed_feedback = failed_payload["public_feedback_summary"]
+        failed_behavior = failed_feedback["public_dev"]["behavior"]
+        self.assertEqual(failed_behavior["source"], visible["sources"]["selected_feedback"])
+        self.assertEqual(failed_behavior["description_status"]["error_type"], "ArithmeticError")
+        self.assertEqual(failed_behavior["description_status"]["error_message"], "final author renderer failed")
+        self.assertEqual(failed_behavior["description_status"]["stage"], "author_rendering")
+        self.assertEqual(failed_payload["runtime_feedback_summary"], payload["runtime_feedback_summary"])
+        self.assertEqual({k:v for k,v in failed_feedback["public_dev"].items() if k != "behavior"},
+                         {k:v for k,v in payload["public_feedback_summary"]["public_dev"].items() if k != "behavior"})
+        from tests.fakes.decision_records import (valid_accepted_ledger_record, TEST_ACCEPTANCE_PROTOCOL,
+            TEST_SESSION_GENESIS_HASH, make_bootstrap_current_best)
+        from true_rl_agent.memory import PublicContextBuilder
+        closed = valid_accepted_ledger_record(round_id="trial-a", candidate_id="candidate-a", public_score=.7)
+        closed["public_result"]["metrics"]["public_dev"]["behavior"] = a
+        from true_rl_agent.tasks.push_recovery.trajectory_report import phase_binding
+        closed["public_result"]["metrics"]["trajectory_phase_binding"] = phase_binding(full["identity"], full["sources"])
+        builder = PublicContextBuilder(task_prompt_adapter=adapter, acceptance_protocol=TEST_ACCEPTANCE_PROTOCOL,
+            initial_current_best=make_bootstrap_current_best(), session_genesis_hash=TEST_SESSION_GENESIS_HASH)
+        serialized = serialize_prompt_payload(builder.build_prompt_payload([closed]))
+        delivered = json.loads(serialized)["public_feedback_summary"]["public_dev"]["behavior"]
+        self.assertLessEqual(len(json.dumps(delivered,ensure_ascii=False,separators=(",",":")).encode()),12288)
+        self.assertNotRegex(json.dumps(delivered),r"[a-f0-9]{64}")
+        self.assertNotIn("push-card:",serialized)
+        self.assertNotIn("push-claim:",serialized)
         bad = deepcopy(record)
         bad["generation"]["trials"][0]["public_dev"]["public_summary"]["behavior"] = b
         with self.assertRaisesRegex(ValueError, "sibling/trial/role"):
             _v2_prompt_record(bad)
+        with patch("true_rl_agent.tasks.push_recovery.trajectory_report.select_whole_claims") as render:
+            with self.assertRaisesRegex(ValueError, "sibling/trial/role"):
+                adapter.build_prompt_sections(public_records=[bad], public_context={})
+            render.assert_not_called()
 
     def test_reference_and_parent_role_cannot_be_changed_at_same_checkpoint(self):
         from true_rl_agent.tasks.push_recovery.prompt_adapter import _v2_reference_feedback, _v2_prompt_record

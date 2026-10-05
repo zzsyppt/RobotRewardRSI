@@ -457,7 +457,6 @@ def _build_push_backend_config(
         resolved_cell_manifest_path=str(resolved_cell_manifest_path),
         resolved_cell_manifest_hash=resolved_cell_manifest.manifest_hash,
         capture_public_dev_numeric=task_config.push_protocol is not None,
-        capture_training_numeric=task_config.push_protocol is not None,
     )
 
 

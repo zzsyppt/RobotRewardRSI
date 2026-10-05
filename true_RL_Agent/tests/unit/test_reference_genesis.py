@@ -2115,6 +2115,14 @@ class ReferenceGenesisContractTests(unittest.TestCase):
                 canonical_json_hash(anchor_evidence["public_result"]),
                 anchor_evidence["public_result_hash"],
             )
+            builder = PublicContextBuilder(
+                acceptance_protocol=FAKE_ACCEPTANCE_PROTOCOL,
+                initial_current_best=genesis.initial_current_best,
+                initial_anchor_public_evidence=anchor_evidence,
+            )
+            self.assertEqual(builder.initial_anchor_public_evidence, anchor_evidence)
+            self.assertEqual(anchor_evidence["training_runtime"]["checkpoint_hash"],
+                             genesis.initial_current_best.checkpoint_hash)
             tampered = json.loads(json.dumps(anchor_evidence))
             tampered["public_result"]["public_score"] = 0.99
             with self.assertRaisesRegex(ValueError, "hash mismatch"):

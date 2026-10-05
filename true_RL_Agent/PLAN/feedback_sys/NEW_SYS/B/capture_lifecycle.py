@@ -1,7 +1,8 @@
-"""Current CPU integration: normal composition and generation with archived phase inputs.
+"""Historical R4/K1 lifecycle replay; main is not a current validation entry.
 
 Only process/training/provider boundaries are fixtures. Numeric arrays are original
 R4/K1 bytes; fixture manifest identity is explicitly rebound, never new-policy data.
+The offline capture() helper still serves provider tests and the P2b2 replay.
 """
 from __future__ import annotations
 

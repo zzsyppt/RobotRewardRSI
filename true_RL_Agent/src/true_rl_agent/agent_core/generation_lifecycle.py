@@ -71,6 +71,7 @@ _EXIT_REASONS = frozenset(
         "exception",
         "budget_exhausted",
         "contract_incomplete",
+        "external_author_waiting",
     }
 )
 
@@ -542,6 +543,9 @@ class GenerationSegmentJournal:
                 raise ValueError("completed generation segment must exit normally")
             if status != "completed" and reason == "normal":
                 raise ValueError("non-completed generation segment cannot exit normally")
+            if reason == "external_author_waiting" and (
+                    status != "paused" or reason not in self.policy.allowed_continuation_reasons):
+                raise ValueError("external author wait requires the frozen pause policy")
             if (reason == "exception") != (exception is not None):
                 raise ValueError(
                     "generation segment exception detail does not match exit reason"
@@ -1309,6 +1313,9 @@ def _validate_exit(
         raise ValueError("generation segment continuation eligibility mismatch")
     if (mapping["status"] == "completed") != (mapping["reason"] == "normal"):
         raise ValueError("generation segment completion reason mismatch")
+    if mapping["reason"] == "external_author_waiting" and (
+            mapping["status"] != "paused" or mapping["reason"] not in policy.allowed_continuation_reasons):
+        raise ValueError("external author wait requires the frozen pause policy")
     if schema_version == GENERATION_SEGMENT_EXIT_SCHEMA_VERSION:
         exception_type = mapping["exception_type"]
         exception_message = mapping["exception_message"]

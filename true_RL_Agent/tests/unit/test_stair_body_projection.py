@@ -6,7 +6,7 @@ from pathlib import Path
 import struct
 import unittest
 
-from test_body_projection import snapshot_fixture
+from tests.unit.test_body_projection import snapshot_fixture
 from true_rl_agent.evaluation.visual_observer import MediaImage, MediaWindow, prepare_observer_request
 from true_rl_agent.tasks.stair_climbing.visual_observation import bind_stair_root_frame, stair_body_image_points
 

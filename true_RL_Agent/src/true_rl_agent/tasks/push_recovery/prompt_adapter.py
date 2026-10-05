@@ -329,6 +329,7 @@ class PushRecoveryPromptAdapter:
             sections["selection_guidance"][-1] = (
                 "success_recovered requires every planned force pulse to complete and be verified, followed by a fresh stable dwell after the last pulse and a stable final state without a fall; reward shaping cannot change that definition."
             )
+        _project_author_trajectory(sections["public_feedback_summary"])
         try:
             return sanitize_task_prompt_sections(sections)
         except ValueError as exc:
@@ -629,7 +630,7 @@ def _v2_prompt_record(record: Mapping[str, Any]) -> dict[str, Any]:
                 behavior = item["public_dev"]["public_summary"].get("behavior")
                 # Consume trusted parent evidence before this task's compact
                 # history drops it. Reprojecting a view preserves the bound diff.
-                if (behavior is not None and behavior.get("schema_version") != "true_rl_agent.push_recovery.behavior.public.v4"
+                if (behavior is not None and behavior.get("schema_version") != "true_rl_agent.push_recovery.behavior.public.v5"
                         and ("parent_current_best" in generation or "parent_public_dev" in generation)):
                     behavior["parent_diff"] = compare_push_behavior(behavior,
                         _mapping(generation.get("parent_public_dev")).get("behavior"),
@@ -644,7 +645,7 @@ def _v2_prompt_record(record: Mapping[str, Any]) -> dict[str, Any]:
                 item["public_result"] = projected["public_result"]
             visible["trials"].append(item)
         parent = _mapping(_mapping(generation.get("parent_public_dev")).get("behavior"))
-        if parent.get("schema_version") == "true_rl_agent.push_recovery.behavior.public.v4":
+        if parent.get("schema_version") == "true_rl_agent.push_recovery.behavior.public.v5":
             best = _mapping(generation.get("parent_current_best"))
             expected = {"subject_kind": best.get("anchor_kind"), "subject_id": best.get("anchor_id"),
                 **{k: best.get(k) for k in ("checkpoint_hash", "subject_manifest_hash", "program_source_checksum",
@@ -685,12 +686,12 @@ def _v2_feedback_summary(
                 if "behavior" in current_feedback["public_dev"]:
                     prior = current_feedback["public_dev"]["behavior"]
                     current_feedback["public_dev"]["behavior"] = {"status": "omitted", "reason": "behavior_budget_reserved_for_selected_feedback_trial",
-                        **({"source": _trajectory_source(prior)} if prior.get("schema_version") == "true_rl_agent.push_recovery.behavior.public.v4" else {})}
+                        **({"source": _trajectory_source(prior)} if prior.get("schema_version") == "true_rl_agent.push_recovery.behavior.public.v5" else {})}
                 feedback["current_best"] = current_feedback
     dev = feedback.get("public_dev")
     if isinstance(dev, dict) and "behavior" not in dev:
         dev["behavior"] = dev.pop("description_status", {"status":"missing","reason":"not_recorded_in_source_phase"})
-    if records and isinstance(dev, dict) and _mapping(dev.get("behavior")).get("schema_version") == "true_rl_agent.push_recovery.behavior.public.v4":
+    if records and isinstance(dev, dict) and _mapping(dev.get("behavior")).get("schema_version") == "true_rl_agent.push_recovery.behavior.public.v5":
         generation = next((_mapping(r.get("generation")) for r in reversed(records)
             if any(t.get("trial_id") == _mapping(source).get("trial_id")
                    for t in _mapping(r.get("generation")).get("trials", ()))), {})
@@ -700,7 +701,7 @@ def _v2_feedback_summary(
                            "trial_status": t.get("trial_status"), "source": _trajectory_source(b)}
                          for t in generation.get("trials", ())
                          if (b := _mapping(_mapping(_mapping(t.get("public_dev")).get("public_summary")).get("behavior"))).get("schema_version")
-                         == "true_rl_agent.push_recovery.behavior.public.v4"],
+                         == "true_rl_agent.push_recovery.behavior.public.v5"],
             "parent": generation.get("parent_trajectory_source", {"status": "unavailable"})}
     return {"schema_version": "true_rl_agent.public_feedback_summary.push_recovery.v2", **feedback}
 
@@ -708,7 +709,7 @@ def _v2_feedback_summary(
 def _v2_reference_feedback(initial_anchor: Mapping[str, Any] | None) -> dict[str, Any]:
     anchor = _mapping(initial_anchor)
     dev = _v2_dev_summary(_metrics(anchor).get("public_dev")) if anchor.get("anchor_kind") == "reference_program" else {}
-    if _mapping(dev.get("behavior")).get("schema_version") == "true_rl_agent.push_recovery.behavior.public.v4":
+    if _mapping(dev.get("behavior")).get("schema_version") == "true_rl_agent.push_recovery.behavior.public.v5":
         from true_rl_agent.evaluation.binding import canonical_json_hash
         if anchor.get("public_result_hash") != canonical_json_hash(anchor.get("public_result")):
             raise ValueError("Push trajectory reference public result hash mismatch")
@@ -733,6 +734,33 @@ def _v2_trial_feedback(selection: str, source: Mapping[str, Any]) -> dict[str, A
         "latest_public_score": _mapping(dev.get("score_stats")).get("mean"),
         "latest_failure_mode": classify_push_prompt_failure({"public_dev": dev}),
         "public_dev": dev}
+
+
+def _project_author_trajectory(feedback: dict) -> None:
+    from .trajectory_report import PUBLIC_SCHEMA, author_behavior_payload, _author_source
+    from true_rl_agent.evaluation.process_report import ReportBudgetExceeded, description_error_details
+    dev = feedback.get("public_dev", {})
+    public = dev.get("behavior", {})
+    if public.get("schema_version") != PUBLIC_SCHEMA:
+        return
+    sources = feedback.pop("trajectory_sources", {})
+    current = _mapping(_mapping(feedback.get("current_best")).get("public_dev")).get("behavior", {})
+    if "source" in current:
+        sources["current_best"] = current.pop("source")
+    # All selected/parent/trial sources were validated before this pure render.
+    try:
+        dev["behavior"] = author_behavior_payload(public, sources=sources)
+    except ReportBudgetExceeded as exc:
+        dev["behavior"] = {"source":_author_source({"card_id":public["card_id"], **public["domain"]}),
+            "description_status":{"status":"unavailable", "reason":"budget_exceeded",
+                **description_error_details(exc, stage="author_rendering"),
+                "required_bytes":exc.required_bytes, "max_bytes":exc.max_bytes,
+                "text":"必需行为事实与来源超出作者片段容量，本次保留评估数值。"}}
+    except Exception as exc:
+        dev["behavior"] = {"source":_author_source({"card_id":public["card_id"], **public["domain"]}),
+            "description_status":{"status":"unavailable", "reason":"description_computation_failed",
+                **description_error_details(exc, stage="author_rendering"),
+                "text":"来源已验证；作者行为描述生成失败，评估数值与训练统计保留。"}}
 
 
 def _trajectory_source(behavior: Mapping[str, Any]) -> dict[str, Any]:

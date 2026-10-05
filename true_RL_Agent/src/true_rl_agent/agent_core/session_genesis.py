@@ -13,6 +13,9 @@ from types import MappingProxyType
 from typing import Any, Mapping
 
 from true_rl_agent.evaluation.phased_adapter import ReferencePhasedEvaluationAdapter
+from true_rl_agent.agent_core.completed_reference_training import (
+    VerifiedCompletedReferenceTraining, validate_training_reuse,
+)
 
 from true_rl_agent.agent_core.generation_contract import (
     GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION,
@@ -1007,6 +1010,7 @@ class VerifiedSessionGenesis:
 
     __slots__ = (
         "_artifact", "_artifact_path", "_initial_current_best", "_checkpoint_path_override",
+        "_reference_training_runtime",
     )
     _TOKEN = object()
 
@@ -1018,6 +1022,7 @@ class VerifiedSessionGenesis:
         initial_current_best: CurrentBestEvalStats,
         _token: object,
         checkpoint_path_override: Path | None = None,
+        reference_training_runtime: Mapping[str, Any] | None = None,
     ) -> None:
         if _token is not self._TOKEN:
             raise TypeError("VerifiedSessionGenesis must come from the Genesis validator")
@@ -1025,6 +1030,7 @@ class VerifiedSessionGenesis:
         object.__setattr__(self, "_artifact_path", artifact_path)
         object.__setattr__(self, "_initial_current_best", initial_current_best)
         object.__setattr__(self, "_checkpoint_path_override", checkpoint_path_override)
+        object.__setattr__(self, "_reference_training_runtime", _freeze_json_value(reference_training_runtime))
 
     def __setattr__(self, name: str, value: object) -> None:
         _ = name, value
@@ -1038,12 +1044,14 @@ class VerifiedSessionGenesis:
         artifact_path: Path,
         initial_current_best: CurrentBestEvalStats,
         checkpoint_path_override: Path | None = None,
+        reference_training_runtime: Mapping[str, Any] | None = None,
     ) -> "VerifiedSessionGenesis":
         return cls(
             artifact=artifact,
             artifact_path=artifact_path,
             initial_current_best=initial_current_best,
             checkpoint_path_override=checkpoint_path_override,
+            reference_training_runtime=reference_training_runtime,
             _token=cls._TOKEN,
         )
 
@@ -1170,11 +1178,14 @@ class VerifiedSessionGenesis:
             anchor_kind = "reference_program"
         else:
             return None
-        return {
+        evidence = {
             "anchor_kind": anchor_kind,
             "public_result": _json_copy(anchor.public_result),
             "public_result_hash": anchor.public_result_hash,
         }
+        if self._reference_training_runtime is not None:
+            evidence["training_runtime"] = _json_copy(self._reference_training_runtime)
+        return evidence
 
     def reference_program_source(self) -> str | None:
         anchor = self._artifact.anchor
@@ -1338,6 +1349,7 @@ def prepare_session_genesis(
     baseline_manifest: BaselineManifest | None = None,
     reference_program_artifact: VerifiedReferenceProgramArtifact | None = None,
     completed_reference_training: tuple[TrainJobSpec, TrainJobResult] | None = None,
+    completed_reference_training_source: VerifiedCompletedReferenceTraining | None = None,
     bootstrap_initial_best_score: float | None = None,
     bootstrap_initial_policy_state_hash: str | None = None,
     require_existing: bool = False,
@@ -1374,6 +1386,14 @@ def prepare_session_genesis(
         or source_reference_session_id is not None
     )
     training_reuse_requested = source_reference_training_genesis_dir is not None
+    if completed_reference_training_source is not None:
+        if not isinstance(completed_reference_training_source, VerifiedCompletedReferenceTraining):
+            raise TypeError("completed training source must be verified against its original launch")
+        if training_reuse_requested or completed_reference_training is not None or import_requested:
+            raise ValueError("completed training requires exactly one source")
+        completed_reference_training_source.validate()
+        completed_reference_training = (completed_reference_training_source.train_spec,
+                                        completed_reference_training_source.train_result)
     if training_reuse_requested != (source_reference_training_session_id is not None):
         raise ValueError("reference training reuse requires source directory and session identity")
     if training_reuse_requested and (
@@ -1636,6 +1656,8 @@ def prepare_session_genesis(
         genesis_identity_snapshot
     )
     training_source_ref = None
+    if completed_reference_training_source is not None:
+        training_source_ref = completed_reference_training_source.source_ref()
     if training_reuse_requested:
         source_dir = Path(source_reference_training_genesis_dir).resolve()
         if source_dir == output_dir:
@@ -1646,6 +1668,7 @@ def prepare_session_genesis(
             policy_initialization=policy_initialization,
             genesis_identity_hash=genesis_identity_hash, reference=reference_program_artifact,
         )
+    if training_source_ref is not None:
         genesis_identity_snapshot = _json_copy(genesis_identity_snapshot)
         genesis_identity_snapshot["execution_placement"]["reference_training_source"] = training_source_ref
     for field_name, scope in (
@@ -2327,14 +2350,9 @@ def _create_reference_genesis(
     _validate_reference_job_bundle(context=context, jobs=jobs)
     if context.completed_reference_training is not None:
         original_spec, train_result = context.completed_reference_training
-        original_identity = original_spec.to_public_dict()
-        requested_identity = jobs.train_spec.to_public_dict()
         if context.completed_reference_training_source is not None:
-            # These describe where the original job ran, not what was trained.
-            for field in ("job_id", "execution_device", "gpu_process_binding"):
-                original_identity.pop(field, None)
-                requested_identity.pop(field, None)
-        if original_identity != requested_identity:
+            validate_training_reuse(original_spec, jobs.train_spec)
+        elif original_spec.to_public_dict() != jobs.train_spec.to_public_dict():
             raise ValueError("completed reference training does not match the requested training job")
         # Keep the original training paths and execution environment as evidence.
         # Only the newly materialized evaluation uses this context's environment.
@@ -2794,6 +2812,7 @@ def _load_verified_session_genesis(
         artifact.anchor,
     )
 
+    reference_training_runtime = None
     if isinstance(artifact.anchor, BootstrapGenesisAnchor):
         if context.baseline_manifest is not None:
             raise ValueError("bootstrap Genesis cannot replace a baseline manifest")
@@ -2900,6 +2919,15 @@ def _load_verified_session_genesis(
                 expected_path=path.parent / REFERENCE_EVAL_ARTIFACT_FILENAME,
                 context=context,
             )
+            from true_rl_agent.candidates.mechanism import RuntimeActivationEvidence
+            trained = private_payload["train_result"]
+            reference_training_runtime = {
+                "checkpoint_hash": private_payload["checkpoint_hash"],
+                "evaluation_subject": trained["subject"],
+                "program_source_checksum": trained["program_source_checksum"],
+                "runtime_activation_summary": RuntimeActivationEvidence.from_train_summary(
+                    trained["summary"]).to_public_dict(),
+            }
             eval_spec = _reference_eval_spec_from_private_artifact(
                 private_payload,
                 anchor=anchor,
@@ -2935,6 +2963,7 @@ def _load_verified_session_genesis(
                 raise ValueError("source reference Genesis import ref drift")
             if anchor != source.artifact.anchor:
                 raise ValueError("imported reference Genesis anchor drift")
+            reference_training_runtime = source.initial_anchor_public_evidence().get("training_runtime")
             eval_spec = source.reference_eval_plan()
             if eval_spec is None:
                 raise ValueError("source reference Genesis has no evaluation plan")
@@ -2963,6 +2992,7 @@ def _load_verified_session_genesis(
         artifact_path=path.resolve(),
         initial_current_best=initial_current_best,
         checkpoint_path_override=context.reference_checkpoint_path_override,
+        reference_training_runtime=reference_training_runtime,
     )
 
 
@@ -3533,7 +3563,7 @@ def _validate_private_reference_artifact(
             or train_spec.metadata != original_spec.metadata
             or train_result != original_result
         ):
-            raise ValueError("reference private training differs from its source Genesis")
+            raise ValueError("reference private training differs from its verified source")
     checkpoint_payload = _exact_mapping(
         payload.get("checkpoint_artifact"),
         {"path", "checksum"},

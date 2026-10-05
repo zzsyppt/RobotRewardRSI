@@ -890,12 +890,40 @@ class StairPhasedEvaluationTests(unittest.TestCase):
                 plan=reference_plan,
                 phase_results=phase_results,
             )
-            reference = assemble_stair_reference_eval_phase_results(
+            assembled_reference = assemble_stair_reference_eval_phase_results(
                 config=self.config,
                 eval_plan=reference_plan,
                 phase_results=phase_results,
                 phase_receipt_refs=phase_receipts,
-            ).summary
+            )
+            reference = assembled_reference.summary
+            public_reference = SubprocessRunner(allowed_executables=("python",)).project_assembled_eval_summary(
+                reference_plan, assembled_reference)
+
+        # A description gap must also pass the normal unified public projector.
+        from copy import deepcopy
+        from true_rl_agent.evaluation.public_result import PublicEvalResult
+        from true_rl_agent.runner.budget import build_budget_accounting
+        from true_rl_agent.tasks.stair_climbing.public_projection import project_stair_public_result
+        metrics = deepcopy(public_reference.metrics)
+        status = {"status":"unavailable", "reason":"description_computation_failed",
+                  "stage":"measurement", "text":"行为描述不可用，评估数值保留。"}
+        first = phase_results[0]
+        metrics.update(description_status=status, trajectory_phase_binding={
+            "job_id":first.job_id, "checkpoint_hash":first.checkpoint_hash,
+            "evaluation_plan_hash":first.evaluation_plan_hash,
+            "evaluation_binding_hash":first.evaluation_binding_hash,
+            "archive_hash":"a"*64, "seed_namespace":STAIR_FORMAL_EVAL_NAMESPACE})
+        projected = project_stair_public_result(config=self.config,
+            public_result=PublicEvalResult(status="pass", public_score=reference["public_score"], metrics=metrics),
+            train_summary={"environment_source_preflight":metrics["environment_source_preflight"],
+                "training":{"budget_accounting":build_budget_accounting(
+                    budget_steps=self.config.budget_steps, num_envs=self.config.train_num_envs,
+                    num_steps_per_env=self.config.train_steps_per_iteration,
+                    max_iterations=self.config.train_max_iterations)}})
+        self.assertEqual(projected.metrics["description_status"], status)
+        self.assertEqual(projected.public_score, reference["public_score"])
+        self.assertNotIn("behavior", projected.metrics)
 
         reference_evidence = reference["sealed_validation_evidence"]
         self.assertEqual(reference_evidence["status"], "pass")

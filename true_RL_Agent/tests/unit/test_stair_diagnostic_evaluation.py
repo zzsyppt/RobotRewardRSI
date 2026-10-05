@@ -5,6 +5,7 @@ from dataclasses import replace
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from tests.unit import test_stair_entrypoint_materialization as entry_fixtures
 from tests.unit import test_stair_phased_evaluation as phase_fixtures
@@ -83,6 +84,7 @@ class StairDiagnosticEvaluationTests(unittest.TestCase):
             seed_cohort_hash=config.seed_resolver().namespace_cohort_hash(namespace)))
         base = fixture._execution({EvaluationPhase.PUBLIC_DEV: [0] * config.public_seed_count}, seed_namespace=namespace)
         identity = {**plan.job_identity().to_public_dict(), "checkpoint_hash": base.checkpoint_hash,
+            "resolved_cell_manifest_hash": manifest.manifest_hash,
             "evaluation_plan_hash": canonical_json_hash(plan.to_public_dict()),
             "evaluation_binding": plan.evaluation_binding.to_public_dict(), "seed_namespace": namespace,
             "splits": ["public_dev"], "environment_source_preflight": dict(base.source_manifest_preflight),
@@ -110,8 +112,23 @@ class StairDiagnosticEvaluationTests(unittest.TestCase):
             self.assertEqual(finished["status"], "pass")
             result = fixture._phase_result(plan=plan, phase=EvaluationPhase.PUBLIC_DEV,
                                           job_id=plan.job_id, summary=finished)
+            with patch("true_rl_agent.tasks.stair_climbing.trajectory_production.measure_behavior",
+                       side_effect=ArithmeticError("synthetic description failure")), self.assertLogs(
+                       "true_rl_agent.tasks.stair_climbing.phased_evaluation", level="WARNING"):
+                degraded = finalize_stair_eval_phase_summary(EvalPhaseJobSpec(job_id=plan.job_id,
+                    evaluation_plan=plan, phase=EvaluationPhase.PUBLIC_DEV), raw, config=config,
+                    output_dir=Path(temporary) / "unavailable")
+            self.assertEqual(degraded["status"], "pass")
+            self.assertEqual(degraded["task_evidence"]["summary"], raw["task_evidence"]["summary"])
+            degraded_result = fixture._phase_result(plan=plan, phase=EvaluationPhase.PUBLIC_DEV,
+                                                   job_id=plan.job_id, summary=degraded)
         public = project_stair_public_dev_diagnostic(config=config, eval_plan=plan, phase_result=result)
         self.assertEqual(public["behavior"], finished["task_evidence"]["behavior"])
+        unavailable = project_stair_public_dev_diagnostic(config=config, eval_plan=plan, phase_result=degraded_result)
+        self.assertEqual(unavailable["description_status"]["reason"], "description_computation_failed")
+        self.assertNotIn("behavior", unavailable)
+        self.assertEqual({k:v for k,v in unavailable.items() if k != "description_status"},
+                         {k:v for k,v in public.items() if k != "behavior"})
 
     def test_old_outputs_unchanged_and_new_cohort_is_disjoint_public_dev_only(self):
         for name, expected in HISTORICAL_SEED_OUTPUTS.items():

@@ -175,7 +175,8 @@ class PushCandidateProvider(_FormalFixtureProvider):
             metadata={}), provider_usage=_provider_usage())
 
 
-def build_fixture_foundation(root, *, provider, cell, resume=False, pause=None, audit=False, max_generations=15):
+def build_fixture_foundation(root, *, provider, cell, resume=False, pause=None, audit=False, max_generations=15,
+                             completed_training_source=None, provider_policy=None):
     context = TaskCompositionContext(project_root=ROOT, output_dir=root / "session", read_only=resume)
     values = {**provider.cli_defaults(), "cell_variant_id": cell}
     composition = resolve_task_composition(provider=provider, values=values, context=context)
@@ -187,13 +188,17 @@ def build_fixture_foundation(root, *, provider, cell, resume=False, pause=None, 
     composition = resolve_task_composition(provider=provider, values=values, context=context)
     work = composition.task_plugin.phased_evaluation_adapter().generation_workload(
         cell_manifest=composition.resolved_cell_manifest)
-    cost = fixture_cost(work, max_generations=max_generations)
+    cost = fixture_cost(work, max_generations=max_generations,
+                        reference_mode="imports_training_only" if completed_training_source else "train_and_qualify")
     cost = replace(cost, operation_reserves=tuple(replace(item,
         source_allocated_gpu_capacity_ns=50_000_000_000_000,
         source_output_bytes=100_000_000,
         allocated_gpu_capacity_ns_per_attempt=62_500_000_000_000,
         output_bytes_per_attempt=125_000_000) for item in cost.operation_reserves),
         finalization_output_reserve_bytes=10_000_000)
+    if provider_policy is not None:
+        cost = replace(cost, provider_budget=replace(cost.provider_budget,
+            attempts_per_lane_per_generation=provider_policy["max_attempts_per_lane"]))
     executable = root / _nvidia_smi_name()
     if not executable.exists():
         _write_fake_nvidia_smi(executable)
@@ -204,10 +209,11 @@ def build_fixture_foundation(root, *, provider, cell, resume=False, pause=None, 
         max_allocated_active_gpu_hours=cost.max_allocated_active_gpu_hours,
         max_simulated_control_steps=cost.max_simulated_control_steps, max_output_bytes=cost.max_output_bytes,
         nvidia_smi_executable=str(executable), resume_existing=resume,
-        pause_after_generation=pause, terminal_audit_only=audit, max_generations=max_generations)
+        pause_after_generation=pause, terminal_audit_only=audit, max_generations=max_generations,
+        completed_reference_training_source=completed_training_source)
     return prepare_generation_foundation(launch, composition=composition, source_commit="a" * 40,
         inventory=GPU_UUIDS, cost=cost, final_plan=final_plan,
-        provider_policy={"max_attempts_per_lane": 3, "max_output_tokens": 2000,
+        provider_policy=provider_policy or {"max_attempts_per_lane": 3, "max_output_tokens": 2000,
             "input_units_per_attempt_reserve": 10000, "api_key_env": "FIXTURE_KEY",
             "base_url": "https://fixture.invalid", "endpoint": "/chat/completions",
             "model": "fixture", "timeout_s": 30, "temperature": 0.6,

@@ -46,6 +46,7 @@ from true_rl_agent.tasks.stair_climbing.reward_inputs import (
 from true_rl_agent.tasks.stair_climbing.reward_source_semantics import (
     audit_stair_reward_source_semantics,
 )
+from true_rl_agent.tasks.stair_climbing.vnext_reward_contract import STAIR_COMPLETE_REWARD_RUNTIME_VNEXT_SCHEMA_VERSION
 from true_rl_agent.training_programs import (
     CANONICAL_TRAINING_COMPONENTS_PATH,
     VerifiedReferenceProgramArtifact,
@@ -464,7 +465,7 @@ class StairCompleteRewardDispatcher:
     def bind_training_numeric_capture(self, capture) -> None:
         if self.training_numeric_capture is not None:
             raise ValueError("Stair training numeric capture already bound")
-        if capture.source_step_offset != self.step_calls or capture.num_envs != self.num_envs:
+        if capture.recorder.source_step_offset != self.step_calls or capture.recorder.num_envs != self.num_envs:
             raise ValueError("Stair training capture offset or environment count differs")
         self.training_numeric_capture = capture
 
@@ -507,14 +508,14 @@ class StairCompleteRewardDispatcher:
         if self._runtime_comparison is not None:
             self._record_operation_effect(inputs, evaluation)
         capture = self.training_numeric_capture
-        if capture is not None:
-            arrays = None
-            if capture.wants_step(self.step_calls):
+        if capture is not None and capture.active:
+            def sample():
                 arrays = {"total_rate": evaluation.total_rate}
                 for index, name in enumerate(self.program.term_names):
                     arrays[f"raw_term_{index:03d}"] = evaluation.raw_terms[name]
                     arrays[f"weighted_term_{index:03d}"] = evaluation.weighted_terms[name]
-            capture.observe(self.step_calls, arrays, metadata={"common_step": common_step})
+                return arrays, {"common_step": common_step}
+            capture.observe(self.step_calls, sample)
         return evaluation.total_rate
 
     def _record_operation_effect(self, inputs, evaluation):
@@ -546,6 +547,8 @@ class StairCompleteRewardDispatcher:
                     "call_count": self.step_calls,
                     "sample_count": int(stats["sample_count"]) if stats else 0,
                     "sampled_env_transitions": int(stats["sample_count"]) * self.num_envs if stats else 0,
+                    "last_sample_common_step": stats["last_sample_common_step"] if stats else None,
+                    "sampled_env_count": self.num_envs,
                     "nonzero_env_transitions": int(_tensor_scalar(stats["nonzero_count"])) if stats else 0,
                     "last_raw_mean": _tensor_scalar(stats["last_raw_mean"])
                     if stats
@@ -573,6 +576,8 @@ class StairCompleteRewardDispatcher:
                 "sampled_env_transitions": record["sampled_env_transitions"],
                 "nonzero_env_transitions": record["nonzero_env_transitions"],
                 "last_weighted_mean": record["last_weighted_mean"],
+                "last_sample_common_step": record["last_sample_common_step"],
+                "sampled_env_count": record["sampled_env_count"],
                 "max_abs_weighted_contribution": record[
                     "max_abs_weighted_rate"
                 ],
@@ -654,6 +659,7 @@ class StairCompleteRewardDispatcher:
                     + (current["nonzero_count"] if current else 0),
                 "last_raw_mean": raw_mean,
                 "last_weighted_mean": weighted_mean,
+                "last_sample_common_step": self.last_common_step,
                 "max_abs_weighted_rate": torch.maximum(
                     current["max_abs_weighted_rate"],
                     weighted_max,

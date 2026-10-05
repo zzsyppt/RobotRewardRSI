@@ -81,6 +81,30 @@ class PushTrajectoryMeasurementTests(unittest.TestCase):
         e.arrays["pose"][4, 3] = .1
         self.assertEqual(self.measured(e)["recoveries"][0]["recovery_step"], 7)
 
+    def test_first_post_window_excludes_short_missing_and_nonfinite_samples(self):
+        complete = episode(n=5)
+        complete.arrays["pose"][2:5, 3] = [1., 2., 3.]
+        first = self.measured(complete)["first_push"]
+        self.assertEqual(first["post_window"]["steps_inclusive"], [3,5])
+        self.assertEqual(first["post_window"]["pose"]["planar_speed_mps"]["mean"], 2.)
+        self.assertAlmostEqual(first["terminal_latency"]["value"], .3)
+        short, missing, nonfinite = episode(n=4), episode(n=6), episode(n=6)
+        remove_step(missing, 4)
+        nonfinite.arrays["pose"][3, 0] = np.nan
+        for e, status in ((short,"terminal_before_window_end"),(missing,"unknown_samples"),(nonfinite,"unknown_samples")):
+            window = self.measured(e)["first_push"]["post_window"]
+            self.assertEqual(window["status"], status)
+            self.assertTrue(all(m["mean"] is None for m in window["pose"].values()))
+        short.task["closed"] = False
+        first = self.measured(short)["first_push"]
+        self.assertEqual(first["post_window"]["status"], "rollout_truncated")
+        self.assertIsNone(first["terminal_latency"]["value"])
+        pulse = episode(force=True)
+        self.assertEqual(self.measured(pulse)["first_push"]["post_window"]["steps_inclusive"], [5,7])
+        pulse.task["planned_push_count"] = 2
+        pulse.task["time"]["event_scheduled_steps"][1] = 6
+        self.assertEqual(self.measured(pulse)["first_push"]["post_window"]["status"], "next_push_in_window")
+
     def test_native_dtype_threshold_is_inclusive(self):
         e = episode()
         e.arrays["pose"][:, 3] = np.float32(.2)
@@ -227,7 +251,7 @@ class PushTrajectoryCardTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "hash mismatch"):
             project_push_card(card, episodes=[e], source_id="fixture")
 
-    def test_frozen_witnesses_and_rule_definitions_are_mandatory(self):
+    def test_observed_witness_and_first_push_facts_are_mandatory(self):
         e = episode()
         e.arrays["pose"][:, 3] = 1.
         e.task["terminal_label"] = "not_recovered"
@@ -235,7 +259,10 @@ class PushTrajectoryCardTests(unittest.TestCase):
         required = {c["key"] for c in card["claims"] if c["mandatory"]}
         self.assertIn("witness:full_window_without_dwell", required)
         self.assertIn("protocol", required)
-        self.assertIn("no_witness", json.dumps(card["public_report"]))
+        self.assertIn("first_push_window", required)
+        self.assertIn("first_push:failure", required)
+        self.assertNotIn("witness:recovered", required)
+        self.assertNotIn("no_witness", json.dumps(card["public_report"]))
 
     def test_representatives_are_deterministic_and_source_bound(self):
         episodes = [episode(env=i) for i in range(4)]

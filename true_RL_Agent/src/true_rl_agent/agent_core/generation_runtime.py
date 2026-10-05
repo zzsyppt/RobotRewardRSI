@@ -15,13 +15,15 @@ from true_rl_agent.agent_core.ledger import PROVIDER_AUTHORING_MODE, load_ledger
 from true_rl_agent.agent_core.openai_compatible_provider import (
     OpenAICompatibleCandidateProvider, OpenAICompatibleProviderConfig,
 )
+from true_rl_agent.agent_core.external_file_provider import ExternalFileCandidateProvider, ExternalFileProviderConfig
 from true_rl_agent.agent_core.session_genesis import prepare_session_genesis, session_genesis_identity_hash
 from true_rl_agent.evaluation.acceptance_replay import project_public_history
 from true_rl_agent.evaluation.phases import EvaluationPhase
 from true_rl_agent.runner.job_attempts import PreGenesisExecutionScope
 
 
-def prepare_generation_genesis(foundation, *, require_existing=False):
+def generation_genesis_execution(foundation):
+    """Build the same current-session scopes for prepare-only and execution."""
     config, composition = foundation.config, foundation.composition
     snapshot = composition.genesis_identity_snapshot()
     common = dict(journal_root=config.output_dir / "job_attempts", session_id=config.session_id,
@@ -42,11 +44,20 @@ def prepare_generation_genesis(foundation, *, require_existing=False):
             reference_eval_phase_attempt_scopes={phase: PreGenesisExecutionScope(**common,
                 invocation_segment_id="session-genesis-" + phase.value.replace("_", "-"),
                 attempt_budget_units=1, max_infrastructure_retries=0) for phase in EvaluationPhase})
-        if config.reuses_reference_training:
+        if foundation.completed_reference_training is not None:
+            execution["completed_reference_training_source"] = foundation.completed_reference_training
+        elif config.reuses_reference_training:
             execution.update(
                 source_reference_training_genesis_dir=config.source_reference_training_genesis_dir,
                 source_reference_training_session_id=config.source_reference_training_session_id,
             )
+    return execution
+
+
+def prepare_generation_genesis(foundation, *, require_existing=False):
+    config, composition = foundation.config, foundation.composition
+    snapshot = composition.genesis_identity_snapshot()
+    execution = generation_genesis_execution(foundation)
     genesis = prepare_session_genesis(output_dir=config.output_dir, session_id=config.session_id,
         task_plugin=composition.task_plugin, backend_adapter=composition.backend_adapter,
         runner=foundation.runner, policy_initialization=composition.policy_initialization,
@@ -81,8 +92,16 @@ def generation_public_history(foundation, *, genesis, ledger):
         phased_evaluation_adapter=foundation.phased_adapter)
 
 
-def generation_provider_config(*, output_dir, env_file, policy):
+def generation_provider_config(*, output_dir, env_file, policy, resume_pending=False):
     """Use the same configuration validation at preparation and execution."""
+    backend = policy.get("backend", "openai_compatible_chat")
+    if backend == "external_file":
+        if policy.get("usage_policy") != "unknown_full_reserve":
+            raise ValueError("external author requires conservative unknown usage accounting")
+        return ExternalFileProviderConfig(output_dir=output_dir, model=policy["model"],
+            max_tokens=policy["max_output_tokens"], timeout_s=policy["timeout_s"], resume_pending=resume_pending)
+    if backend != "openai_compatible_chat":
+        raise ValueError("unsupported generation provider backend")
     return OpenAICompatibleProviderConfig(
         output_dir=output_dir, env_file=env_file, api_key_env=policy["api_key_env"],
         base_url=policy["base_url"], endpoint=policy["endpoint"], model=policy["model"],
@@ -94,13 +113,17 @@ def generation_provider_config(*, output_dir, env_file, policy):
 
 
 def generation_provider(foundation, *, generation_id, lane_id):
-    provider = OpenAICompatibleCandidateProvider(generation_provider_config(
+    config = generation_provider_config(
         output_dir=foundation.config.output_dir / "provider_candidates" / generation_id / lane_id,
-        env_file=foundation.config.provider_env_file, policy=foundation.provider_policy))
+        env_file=foundation.config.provider_env_file, policy=foundation.provider_policy,
+        resume_pending="external_author_waiting" in foundation.continuation_policy.allowed_continuation_reasons)
+    provider = (ExternalFileCandidateProvider(config) if isinstance(config, ExternalFileProviderConfig)
+                else OpenAICompatibleCandidateProvider(config))
     return CostGuardedProvider(delegate=provider, output_dir=foundation.config.output_dir,
         generation_id=generation_id, lane_id=lane_id,
         provider_caps=foundation.cost_contract.to_dict()["provider"],
         max_generations=foundation.session_contract.max_generations,
+        external_unknown_usage_model=(config.model if isinstance(config, ExternalFileProviderConfig) else None),
         allow_conservative_interrupted_recovery=True)
 
 

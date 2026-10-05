@@ -148,6 +148,7 @@ class CompletedReferenceTrainingTests(unittest.TestCase):
                 bootstrap_initial_policy_state_hash=None,
             )
             foundation = SimpleNamespace(config=config, composition=composition, runner=None,
+                completed_reference_training=None,
                 session_contract=SimpleNamespace(contract_hash="a" * 64), session_contract_ref=None,
                 cost_contract=SimpleNamespace(contract_hash="b" * 64, retry_train_jobs=1),
                 gpu_bindings=(GpuProcessBinding(host_execution_device="cuda:0", process_execution_device="cuda:0",

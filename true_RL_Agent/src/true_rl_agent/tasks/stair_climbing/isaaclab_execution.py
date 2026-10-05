@@ -707,6 +707,7 @@ def _execute_stair_training(
 
     from true_rl_agent.runner.training_numeric_capture import (
         TrainingNumericCapture,
+        TrainingNumericAttachment,
         finish_training_numeric_capture,
     )
 
@@ -905,7 +906,7 @@ def _execute_stair_training(
         if capture_training_numeric:
             # Bind after activation preflight and runner construction: those
             # calls are not PPO rollout steps and must not shift the windows.
-            training_capture = TrainingNumericCapture(
+            training_capture = TrainingNumericAttachment(lambda: TrainingNumericCapture(
                 run_dir / "training_numeric_evidence",
                 identity={**dict(numeric_evidence_identity or {}),
                           "task": "stair_climbing", "run_name": run_name,
@@ -915,14 +916,14 @@ def _execute_stair_training(
                           "resolved_cell_identity": resolved_cell_manifest.summary_identity() if resolved_cell_manifest else None,
                           "training_seed": config.train_seed, "run_dir": str(run_dir),
                           "initial_policy_state_hash": initial_policy_state_hash},
-                semantics=complete_term.dispatcher.training_numeric_semantics(control_dt=float(base_env.step_dt)),
+                semantics=complete_term.dispatcher.training_numeric_semantics(
+                    control_dt=float(base_env.step_dt)),
                 planned_control_steps=workload.max_iterations * workload.num_steps_per_env,
                 num_envs=workload.num_envs, steps_per_iteration=workload.num_steps_per_env,
                 source_step_offset=complete_term.dispatcher.step_calls,
                 initial_learning_iteration=int(runner.current_learning_iteration),
                 reported_iteration=lambda: int(runner.current_learning_iteration),
-            )
-            complete_term.dispatcher.bind_training_numeric_capture(training_capture)
+            ), bind=lambda capture: complete_term.dispatcher.bind_training_numeric_capture(capture))
         training_executed = True
         _execute_stair_reward_program_boundary(
             lambda: runner.learn(
@@ -1212,17 +1213,6 @@ def execute_stair_evaluation(
         )
     runtime_projection = _stair_runtime_projection_for_execution(resolved_cell_manifest)
     numeric_capture = None
-    if numeric_evidence_dir is not None:
-        from true_rl_agent.tasks.stair_climbing.numeric_capture import StairNumericCapture
-        numeric_capture = StairNumericCapture(
-            numeric_evidence_dir, config=config, resolved_cell_manifest=resolved_cell_manifest,
-            identity={**numeric_evidence_identity, "checkpoint_hash": checkpoint_hash,
-                      "resolved_cell_manifest_hash": resolved_cell_manifest.manifest_hash,
-                      "seed_namespace": seed_namespace, "splits": list(splits),
-                      "environment_source_preflight": source_manifest_preflight.to_summary_dict(),
-                      "backend_execution_environment_verification": dict(backend_execution_environment_verification)},
-            max_bytes=numeric_evidence_max_bytes,
-        )
 
     import gymnasium as gym
     from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
@@ -1254,7 +1244,7 @@ def execute_stair_evaluation(
         ordered_evaluation_suite=config.ordered_evaluation_suite_config,
         evaluation_split=(splits[0] if config.is_unified_protocol else None),
         runtime_projection=runtime_projection,
-        capture_contact_history=numeric_capture is not None,
+        capture_contact_history=numeric_evidence_dir is not None,
         unified_protocol=(
             config.unified_protocol if config.is_unified_protocol else None
         ),
@@ -1281,6 +1271,47 @@ def execute_stair_evaluation(
     env = None
     capture_hooks = ExitStack()
     try:
+        if numeric_evidence_dir is not None:
+            from .numeric_capture import StairNumericCapture, runtime_joint_position_limits
+            from .runtime_projection import resolve_stair_runtime_projection
+            from .trajectory_capabilities import CONTRACT_VERSION, cell_bindings, geometry_sources
+            scene = base_env.unwrapped.scene
+            robot = scene["robot"]
+            resolved = resolve_stair_runtime_projection(runtime_projection, robot=robot,
+                contact_sensor=scene[runtime_projection.contact_sensor_name])
+            measurement_contract = {
+                "schema_version": CONTRACT_VERSION, "sample_phase": "pre_reset_control_step_end",
+                "joint_position": {"source": "robot.data.joint_pos[:, resolved.joint_ids]", "unit": "rad",
+                    "coordinate_basis": "USD_joint_local_frames_no_added_zero_offset",
+                    "joint_names": list(runtime_projection.joint_names),
+                    "articulation_joint_names": list(robot.joint_names), "resolved_joint_ids": list(resolved.joint_ids),
+                    "runtime_projection_hash": runtime_projection.projection_hash,
+                    "recorder_source_sha256": file_sha256(Path(__file__).with_name("isaaclab_runtime_env.py"))},
+                "nominal_terrain": {"source_sha256": geometry_sources(), "frame": "world_z_up_translation_only",
+                    "placement": "nominal_expected_layout_with_recorded_origins",
+                    "cells": cell_bindings(config.ordered_evaluation_suite.private_cell_assignment("public_dev"))}}
+            numeric_capture = StairNumericCapture(
+                numeric_evidence_dir, config=config, resolved_cell_manifest=resolved_cell_manifest,
+                identity={**numeric_evidence_identity, "checkpoint_hash": checkpoint_hash,
+                    "resolved_cell_manifest_hash": resolved_cell_manifest.manifest_hash,
+                    "seed_namespace": seed_namespace, "splits": list(splits),
+                    "environment_source_preflight": source_manifest_preflight.to_summary_dict(),
+                    "backend_execution_environment_verification": dict(backend_execution_environment_verification)},
+                max_bytes=numeric_evidence_max_bytes, measurement_contract=measurement_contract)
+            numeric_capture.context["runtime_joint_position_limits"] = {
+                **runtime_joint_position_limits(robot, resolved.joint_ids),
+                "recorded_at": "after_environment_creation_before_first_seed_reset",
+            }
+            terrain = scene.terrain
+            generator = terrain.cfg.terrain_generator
+            numeric_capture.context["runtime_terrain"] = {
+                "importer_class": f"{type(terrain).__module__}.{type(terrain).__qualname__}",
+                "generator_class_spec": str(generator.class_type),
+                "terrain_type": terrain.cfg.terrain_type, "prim_path": terrain.cfg.prim_path,
+                "size_m": list(generator.size), "num_rows": generator.num_rows,
+                "num_cols": generator.num_cols, "sub_terrain_order": list(generator.sub_terrains),
+                "placement_evidence": "recorded_origins_and_types_in_numeric_chunks; mesh_world_transform_not_recorded",
+            }
         if recorders:
             capture_hooks.enter_context(_stair_pre_reset_video_capture(base_env.unwrapped, *recorders))
         if config.is_unified_protocol:
@@ -1412,6 +1443,14 @@ def execute_stair_evaluation(
         checkpoint_hash_after_execution = file_sha256(resolved_checkpoint)
         if checkpoint_hash_after_execution != checkpoint_hash:
             raise RuntimeError("Stair evaluation checkpoint bytes changed during execution")
+        if numeric_capture is not None:
+            limits = numeric_capture.context["runtime_joint_position_limits"]
+            final_limits = runtime_joint_position_limits(robot, resolved.joint_ids)
+            limits["end_values_equal"] = limits["values"] == final_limits["values"]
+            limits["end_checked_at"] = "after_last_scored_episode"
+            limits["coverage"] = "initial_and_final_snapshots_only; intermediate_changes_not_monitored"
+            if not limits["end_values_equal"]:
+                limits["end_values"] = final_limits["values"]
         result = StairEvaluationExecutionResult(
             summaries=summaries,
             per_seed_outcomes=outcomes,

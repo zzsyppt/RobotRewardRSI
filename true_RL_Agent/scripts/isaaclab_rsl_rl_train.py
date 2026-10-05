@@ -284,7 +284,7 @@ if physical_config is None:
 
 from true_rl_agent.runner.budget import build_budget_accounting  # noqa: E402
 from true_rl_agent.runner.training_numeric_capture import (  # noqa: E402
-    TrainingNumericCapture, finish_training_numeric_capture,
+    TrainingNumericCapture, TrainingNumericAttachment, finish_training_numeric_capture,
 )
 from true_rl_agent.tasks.push_recovery.isaac_config import (  # noqa: E402
     config_for_profile,
@@ -438,7 +438,7 @@ def main() -> int:
         shutil.copy(inspect.getfile(env_cfg.__class__), params_dir / Path(inspect.getfile(env_cfg.__class__)).name)
 
         if args_cli.capture_training_numeric:
-            training_capture = TrainingNumericCapture(
+            training_capture = TrainingNumericAttachment(lambda: TrainingNumericCapture(
                 run_dir / "training_numeric_evidence",
                 identity={"task": "push_recovery", "job": job_identity.to_public_dict(),
                           "train_attempt_id": train_attempt_id, "program_source_checksum": program_source_checksum,
@@ -454,8 +454,7 @@ def main() -> int:
                 steps_per_iteration=num_steps_per_env, source_step_offset=candidate_adapter.runtime.step_calls,
                 initial_learning_iteration=int(runner.current_learning_iteration),
                 reported_iteration=lambda: int(runner.current_learning_iteration),
-            )
-            candidate_adapter.bind_training_numeric_capture(training_capture)
+            ), bind=lambda capture: candidate_adapter.bind_training_numeric_capture(capture))
         runner.learn(num_learning_iterations=agent_cfg.max_iterations, init_at_random_ep_len=physical_config is None)
         latest_checkpoint = find_latest_checkpoint(log_dir)
         if latest_checkpoint is None:

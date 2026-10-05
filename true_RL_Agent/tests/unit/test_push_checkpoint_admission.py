@@ -61,7 +61,7 @@ class PushCheckpointAdmissionTests(unittest.TestCase):
         self.assertEqual(report["checkpoint_runner_admission"], "not_executed")
         self.assertIn("--numeric-evidence-dir", phase.metadata["cli_argv"])
         self.assertTrue(on.backend_adapter.config.capture_public_dev_numeric)
-        self.assertTrue(on.backend_adapter.config.capture_training_numeric)
+        self.assertFalse(on.backend_adapter.config.capture_training_numeric)
         off, phase_off, _ = prepare(self.args("off", "off"))
         self.assertNotIn("--numeric-evidence-dir", phase_off.metadata["cli_argv"])
         argv = list(phase.metadata["cli_argv"])

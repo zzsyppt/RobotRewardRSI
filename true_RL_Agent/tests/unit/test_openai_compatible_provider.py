@@ -1244,7 +1244,7 @@ class OpenAICompatibleProviderTests(unittest.TestCase):
                 transport=_FakeTransport(response),
             )
             with patch(
-                "true_rl_agent.agent_core.openai_compatible_provider."
+                "true_rl_agent.agent_core.authoring_payload."
                 "extract_training_components_rationale"
             ) as extractor, self.assertRaises(ProviderCandidateError) as caught:
                 provider.next_candidate(

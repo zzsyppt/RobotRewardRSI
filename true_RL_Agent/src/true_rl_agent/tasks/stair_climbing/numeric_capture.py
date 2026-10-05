@@ -38,6 +38,22 @@ _HEADER_FIELDS = (
 )
 
 
+def runtime_joint_position_limits(robot, joint_ids) -> dict[str, Any]:
+    """Read current per-environment limit buffers in the recorder's joint order."""
+    from true_rl_agent.backends.isaac_lab_arrays import as_torch
+
+    return {
+        "joint_names": [robot.joint_names[i] for i in joint_ids],
+        "resolved_joint_ids": list(joint_ids),
+        "axes": ["environment", "joint", "lower_upper"], "unit": "rad",
+        "sources": {name: f"robot.data.{name}[:, resolved.joint_ids, :]"
+                    for name in ("joint_pos_limits", "soft_joint_pos_limits")},
+        "values": {name: as_torch(getattr(robot.data, name))[:, joint_ids, :].detach().cpu().tolist()
+                   for name in ("joint_pos_limits", "soft_joint_pos_limits")},
+        "interpretation": "runtime_position_limit_buffers; soft limits are not simulation constraints; not effective physical limits",
+    }
+
+
 class StairNumericCapture:
     def __init__(self, root: Path, *, identity: Mapping[str, Any], config: Any,
                  resolved_cell_manifest: ResolvedCellManifestV1,
@@ -60,8 +76,8 @@ class StairNumericCapture:
             "invalid_padding": "valid=false; zero-filled numeric values are not observations",
             "media_status": "not_collected",
         }
-        # R1a exposes the contract interface only. No runtime defaults invent q
-        # coordinates, effective limits, imported meshes or collision evidence.
+        # Only an explicit producer contract enables nominal measurements;
+        # effective limits, imported meshes and collision surfaces remain unknown.
         if measurement_contract is not None:
             from copy import deepcopy
             from .trajectory_capabilities import CAPTURE_PROFILE, validate_measurement_contract

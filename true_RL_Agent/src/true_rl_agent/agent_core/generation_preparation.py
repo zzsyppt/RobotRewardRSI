@@ -16,6 +16,7 @@ from true_rl_agent.agent_core.generation_contract import (
     load_replay_generation_session_contract,
 )
 from true_rl_agent.agent_core.generation_cost import FrozenGenerationCostContract
+from true_rl_agent.agent_core.completed_reference_training import recover_completed_reference_training
 from true_rl_agent.agent_core.generation_finalization import GenerationFinalPlan, publish_final_plan
 from true_rl_agent.agent_core.generation_foundation import GenerationSessionFoundation
 from true_rl_agent.agent_core.generation_lifecycle import (
@@ -23,7 +24,7 @@ from true_rl_agent.agent_core.generation_lifecycle import (
     GenerationContinuationPolicy, publish_generation_continuation_policy,
 )
 from true_rl_agent.agent_core.generation_operations import OperationAdmission
-from true_rl_agent.agent_core.generation_runtime import generation_provider_config
+from true_rl_agent.agent_core.generation_runtime import generation_provider_config, generation_genesis_execution
 from true_rl_agent.composition import ResolvedTaskComposition
 from true_rl_agent.evaluation.binding import canonical_json_hash
 from true_rl_agent.fs_contract import create_once_bytes
@@ -38,7 +39,7 @@ class GenerationLaunchConfig:
     project_root: Path
     output_dir: Path
     lease_root: Path
-    provider_env_file: Path
+    provider_env_file: Path | None
     session_id: str
     cell_variant_id: str
     machine_id: str
@@ -51,6 +52,7 @@ class GenerationLaunchConfig:
     source_reference_session_id: str | None = None
     source_reference_training_genesis_dir: Path | None = None
     source_reference_training_session_id: str | None = None
+    completed_reference_training_source: Path | None = None
     resume_existing: bool = False
     pause_after_generation: int | None = None
     terminal_audit_only: bool = False
@@ -63,18 +65,25 @@ class GenerationLaunchConfig:
             raise ValueError("generation max_generations must be a positive integer")
         for name in ("project_root", "output_dir", "lease_root", "provider_env_file"):
             value = getattr(self, name)
+            if name == "provider_env_file" and value is None:
+                continue
             if not isinstance(value, Path) or not value.is_absolute():
                 raise ValueError(f"generation {name} must be an absolute Path")
         if (self.source_reference_genesis_dir is None) != (self.source_reference_session_id is None):
             raise ValueError("reference import requires both source directory and session identity")
         if (self.source_reference_training_genesis_dir is None) != (self.source_reference_training_session_id is None):
             raise ValueError("reference training reuse requires source directory and session identity")
-        if self.reuses_reference_training:
+        if self.source_reference_training_genesis_dir is not None:
             source = self.source_reference_training_genesis_dir
             if not isinstance(source, Path) or not source.is_absolute() or source.resolve() == self.output_dir.resolve():
                 raise ValueError("reference training source must be an absolute, different directory")
             if self.imports_reference_genesis:
                 raise ValueError("reference training reuse and full Genesis import are mutually exclusive")
+        if self.completed_reference_training_source is not None:
+            if not self.completed_reference_training_source.is_absolute():
+                raise ValueError("completed training descriptor must be an absolute Path")
+            if self.imports_reference_genesis or self.source_reference_training_genesis_dir is not None:
+                raise ValueError("reference training requires exactly one source")
         if self.pause_after_generation is not None and (
             type(self.pause_after_generation) is not int
             or not 1 <= self.pause_after_generation < self.max_generations
@@ -89,7 +98,13 @@ class GenerationLaunchConfig:
 
     @property
     def reuses_reference_training(self) -> bool:
-        return self.source_reference_training_genesis_dir is not None
+        return self.source_reference_training_genesis_dir is not None or self.completed_reference_training_source is not None
+
+    @property
+    def reference_mode(self) -> str:
+        if self.imports_reference_genesis:
+            return "import_qualified_genesis"
+        return "imports_training_only" if self.reuses_reference_training else "train_and_qualify"
 
 
 def _json_value(value):
@@ -123,7 +138,7 @@ def prepare_generation_foundation(
         raise ValueError("new sessions require phased reference evaluation")
     if cost.scientific_cost_basis != phased.generation_workload(cell_manifest=manifest):
         raise ValueError("session workload differs from the resolved task projection")
-    if cost.max_generations != config.max_generations or cost.imports_reference_evidence != config.imports_reference_genesis:
+    if cost.max_generations != config.max_generations or cost.reference_mode != config.reference_mode:
         raise ValueError("cost topology differs from the requested session")
     if (final_plan.session_id != config.session_id
             or final_plan.task_id != composition.task_id
@@ -136,10 +151,11 @@ def prepare_generation_foundation(
             or cost.max_output_bytes > config.max_output_bytes):
         raise ValueError("operator limits cannot reserve the requested session")
     budget = cost.provider_budget
-    from true_rl_agent.agent_core.provider_limits import validate_provider_model_context
-    model_context = validate_provider_model_context(provider_policy.get("model_context"))
-    if budget.input_units_per_attempt_reserve + budget.output_units_per_attempt_cap > model_context["context_window_tokens"]:
-        raise ValueError("reserved input and requested output exceed the provider context window")
+    if provider_policy.get("backend", "openai_compatible_chat") != "external_file":
+        from true_rl_agent.agent_core.provider_limits import validate_provider_model_context
+        model_context = validate_provider_model_context(provider_policy.get("model_context"))
+        if budget.input_units_per_attempt_reserve + budget.output_units_per_attempt_cap > model_context["context_window_tokens"]:
+            raise ValueError("reserved input and requested output exceed the provider context window")
     generation_provider_config(output_dir=config.output_dir / "provider_candidates",
                                env_file=config.provider_env_file, policy=provider_policy)
     if (provider_policy["max_attempts_per_lane"] != budget.attempts_per_lane_per_generation
@@ -156,17 +172,22 @@ def prepare_generation_foundation(
     bindings = tuple(GpuProcessBinding(host_execution_device=item.execution_device,
                                       process_execution_device="cuda:0", resource_binding_hash=item.identity_hash)
                      for item in identities)
-    continuation = GenerationContinuationPolicy(
-        schema_version=GENERATION_CONTINUATION_POLICY_V2_SCHEMA_VERSION, max_segments=7,
-        allowed_continuation_reasons=("operator_pause", "typed_infrastructure_failure", "exception",
-                                      "budget_exhausted", "contract_incomplete"),
-        operator_pause_generation_boundaries=tuple(range(1, config.max_generations)),
-    )
+    external_waiting = provider_policy.get("backend") == "external_file"
     if config.resume_existing:
         stored_continuation = GenerationContinuationPolicy.from_mapping(
             load_strict_json_object(config.output_dir / GENERATION_CONTINUATION_POLICY_FILENAME,
                                     require_canonical=True, trailing_newline=True)
         )
+        # Old sessions retain their frozen reasons; do not opt them into recovery.
+        external_waiting = external_waiting and "external_author_waiting" in stored_continuation.allowed_continuation_reasons
+    continuation = GenerationContinuationPolicy(
+        schema_version=GENERATION_CONTINUATION_POLICY_V2_SCHEMA_VERSION, max_segments=7,
+        allowed_continuation_reasons=("operator_pause", "typed_infrastructure_failure", "exception",
+                                      "budget_exhausted", "contract_incomplete")
+                                     + (("external_author_waiting",) if external_waiting else ()),
+        operator_pause_generation_boundaries=tuple(range(1, config.max_generations)),
+    )
+    if config.resume_existing:
         if not set(stored_continuation.operator_pause_generation_boundaries).issubset(
             continuation.operator_pause_generation_boundaries
         ):
@@ -250,11 +271,48 @@ def prepare_generation_foundation(
                          cost_contract=cost, session_contract_hash=contract.contract_hash,
                          termination_grace_s=composition.runner.termination_grace_s,
                      ))
-    return GenerationSessionFoundation(
+    completed_training = None
+    if config.completed_reference_training_source is not None:
+        backend = composition.backend_adapter
+        evaluation_binding = backend.resolve_session_evaluation_binding(
+            session_id=config.session_id, session_dir=config.output_dir,
+            task_spec=composition.task_plugin.task_spec, allow_create=not config.resume_existing)
+        jobs = backend.materialize_reference_jobs(session_id=config.session_id,
+            task_spec=composition.task_plugin.task_spec, reference=composition.reference_program_artifact,
+            artifact_root=config.output_dir / "reference_program_artifacts",
+            policy_initialization=composition.policy_initialization,
+            evaluation_binding=evaluation_binding, gpu_process_binding=bindings[0])
+        completed_training = recover_completed_reference_training(config.completed_reference_training_source,
+            requested=jobs.train_spec, runner=runner, output_dir=config.output_dir,
+            require_existing=config.resume_existing)
+    foundation = GenerationSessionFoundation(
         config=config, source_commit=source_commit, composition=composition, runner=runner,
         phased_adapter=phased, continuation_policy=continuation, cost_contract=cost,
         session_contract=contract, session_contract_ref=contract_ref,
         gpu_identities=identities, gpu_bindings=bindings, gpu_lease_manager=manager,
         provider_policy=dict(provider_policy), final_confirmation_policy=final_plan.genesis_commitment(),
         final_confirmation_plan=final_plan,
+        completed_reference_training=completed_training,
     )
+    if completed_training is not None:
+        # This is an execution plan, not a completed scientific Genesis. No
+        # environment probe, attempt reservation, training or evaluation runs here.
+        execution = generation_genesis_execution(foundation)
+        preparation = {"schema_version": "true_rl_agent.reference_genesis_preparation.v1",
+            "source_commit": source_commit, "session_id": config.session_id,
+            "session_contract_hash": contract.contract_hash, "cost_contract_hash": cost.contract_hash,
+            "reference_mode": config.reference_mode,
+            "historical_training": completed_training.source_ref(),
+            "current_reference_train_attempt": None,
+            "qualification_journal_root": str(config.output_dir / "job_attempts"),
+            "qualification_scopes": {phase.value: scope.binding_payload()
+                for phase, scope in execution["reference_eval_phase_attempt_scopes"].items()}}
+        path = config.output_dir / "reference_genesis_preparation.json"
+        if path.exists():
+            if load_strict_json_object(path) != preparation:
+                raise ValueError("reference Genesis preparation differs from the frozen session")
+        elif config.resume_existing:
+            raise FileNotFoundError("resumed session lacks reference Genesis preparation")
+        else:
+            create_once_bytes(path, canonical_json_bytes(preparation, trailing_newline=True))
+    return foundation

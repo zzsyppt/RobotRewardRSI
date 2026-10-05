@@ -2,18 +2,13 @@
 from __future__ import annotations
 
 from copy import deepcopy
-import json
-from pathlib import Path
-import time
 
 from true_rl_agent.evaluation.binding import canonical_json_hash
-from true_rl_agent.evaluation.process_report import SENTENCE_SECTIONS, report_bytes
-from true_rl_agent.fs_contract import atomic_replace_bytes
-from true_rl_agent.runner.numeric_evidence import file_sha256
-from true_rl_agent.runner.numeric_evidence import load_numeric_evidence_manifest
+from true_rl_agent.evaluation.process_report import ReportBudgetExceeded, SENTENCE_SECTIONS, report_bytes
+from true_rl_agent.runner.numeric_evidence import NumericEvidenceError, load_numeric_evidence_manifest
 from .numeric_capture import validate_push_numeric_reference, PUSH_NUMERIC_SCHEMA, PUSH_NUMERIC_V1_SCHEMA
 from .trajectory_adapter import iter_push_episodes
-from .trajectory_card import build_push_card, json_bytes, project_push_card, MAX_PUBLIC_BYTES, TEMPLATE_VERSION
+from .trajectory_card import _build_measured_card, project_push_card, MAX_PUBLIC_BYTES, TEMPLATE_VERSION
 from .trajectory_measurement import measure_push_episode
 from .trajectory_report import FULL_SCHEMA, PUBLIC_SCHEMA, VERSION, phase_binding, render_verified_report, require_phase_binding
 
@@ -23,6 +18,14 @@ PROFILES = (LEGACY_PROFILE, TRAJECTORY_PROFILE)
 DEFAULT_PROFILE = LEGACY_PROFILE
 SUPPORTED_CELLS = tuple(f"push.{robot}.recovery_{version}"
                        for robot in ("g1_37dof", "go2_12dof") for version in ("v2", "v3"))
+
+
+class DescriptionComputationError(RuntimeError):
+    """Pure Push description computation failed after complete source admission."""
+
+    def __init__(self, stage):
+        super().__init__(f"Push description {stage} failed")
+        self.stage = stage
 
 
 def validate_feedback_profile(profile: str, max_bytes: int, cell_variant_id: str) -> None:
@@ -42,9 +45,9 @@ def _source_id(sources: list[dict]) -> str:
 
 
 def build_phase_trajectory(seed_summaries, *, expected_identity: dict, context: dict,
-                           expected_seed_count: int, output_dir: Path,
+                           expected_seed_count: int,
                            max_bytes: int = MAX_PUBLIC_BYTES) -> tuple[dict, dict, dict]:
-    """CPU retries revalidate raw operands; completed runner replay never calls us."""
+    """Read admitted archives and measure once; retries rebuild from current code."""
     validate_feedback_profile(TRAJECTORY_PROFILE, max_bytes, context["cell_variant_id"])
     if len(seed_summaries) != expected_seed_count or expected_seed_count <= 0:
         raise ValueError("Push trajectory phase seed count mismatch")
@@ -72,58 +75,42 @@ def build_phase_trajectory(seed_summaries, *, expected_identity: dict, context: 
     inputs = {"profile": TRAJECTORY_PROFILE, "sources": sources, "identity": deepcopy(expected_identity),
               "context": deepcopy(context), "source_id": source_id, "semantic_versions": {"delivery":VERSION,"template":TEMPLATE_VERSION},
               "max_report_bytes": max_bytes, "expected_seed_count": expected_seed_count}
-    key = canonical_json_hash(inputs)
-    root = Path(output_dir) / "trajectory" / key
-    root.mkdir(parents=True, exist_ok=True)
-    marker = root / "complete.json"
-    started = time.perf_counter()
     episodes = [e for s in sources for e in iter_push_episodes(s["reference"], expected_identity=s["identity"])]
-    reused = marker.is_file()
-    if reused:
-        saved = json.loads(marker.read_bytes())
-        if saved.get("inputs") != inputs or saved.get("cache_key") != key:
-            raise ValueError("Push completed trajectory inputs changed")
-        for name, digest in saved["artifacts"].items():
-            if file_sha256(root / name) != digest:
-                raise ValueError("Push completed trajectory artifact changed")
-        records = [json.loads(line) for line in (root / "evidence.jsonl").read_bytes().splitlines()]
-        card = json.loads((root / "policy_card.json").read_bytes())
-        if build_push_card(records, source_id, episodes=episodes) != card:
-            raise ValueError("Push reused card differs from raw episodes")
-    else:
+    # Read every archive and check cross-run source compatibility before any
+    # fallible descriptor runs. Admission and I/O errors remain evaluation errors.
+    if not episodes:
+        raise ValueError("Push card requires episodes")
+    first = episodes[0]
+    if any(ep.source["group_identity"] != first.source["group_identity"]
+           or ep.task["parameters"] != first.task["parameters"]
+           or ep.task["time"] != first.task["time"] for ep in episodes):
+        raise ValueError("Push cohort policy/protocol/capability mismatch; no cross-condition pooling")
+    stage = "measurement"
+    try:
         records = [measure_push_episode(e) for e in episodes]
-        card = build_push_card(records, source_id, episodes=episodes)
-        atomic_replace_bytes(root / "evidence.jsonl", b"".join(json_bytes(r) + b"\n" for r in records))
-        atomic_replace_bytes(root / "policy_card.json", json_bytes(card))
-    # The frozen public API remeasures every semantic operand, including units,
-    # signed directions, event pre/post roles and original source references.
-    project_push_card(card, episodes=episodes, source_id=source_id)
-    full = {"schema_version": FULL_SCHEMA, "card": card, "sources": sources,
-            "identity": deepcopy(expected_identity), "context": deepcopy(context),
-            "max_report_bytes": max_bytes, "delivery_version": VERSION}
-    public = render_verified_report(full)
-    included = {r["id"] for s in SENTENCE_SECTIONS for r in public["report"][s]}
-    required = [c["id"] for c in card["claims"] if c["mandatory"]]
-    receipt = {"schema_version": "push.trajectory_build_receipt.v1", "complete": True,
-               "cache_key": key, "inputs": inputs, "source_id": source_id,
-               "episodes": len(episodes), "card_id": card["card_id"],
-               "phase_binding": phase_binding(expected_identity, sources),
-               "required_claim_ids": required,
-               "omitted_claims": [{"id": c["id"], "reason": "public_byte_budget"}
-                                  for c in card["claims"] if c["id"] not in included],
-               "public_content_hash": public["report_projection"]["content_hash"],
-               "full_derivation_sha256": canonical_json_hash(full), "report_bytes": report_bytes(public)}
-    validate_build_receipt(receipt, public)
-    if reused:
-        if json.loads((root / "public.json").read_bytes()) != public or saved["receipt"] != receipt:
-            raise ValueError("Push completed trajectory public/receipt differs from raw reconstruction")
-    else:
-        atomic_replace_bytes(root / "public.json", json_bytes(public))
-        atomic_replace_bytes(marker, json_bytes({"cache_key": key, "inputs": inputs, "receipt": receipt,
-            "artifacts": {name: file_sha256(root / name) for name in
-                          ("evidence.jsonl", "policy_card.json", "public.json")}}))
-    receipt.update(artifacts_reused=reused, build_wall_seconds=time.perf_counter() - started,
-                   artifact_manifest={"manifest_path": str(marker), "manifest_sha256": file_sha256(marker)})
+        stage = "reporting"
+        card = _build_measured_card(records, source_id)
+        full = {"schema_version": FULL_SCHEMA, "card": card, "sources": sources,
+                "identity": deepcopy(expected_identity), "context": deepcopy(context),
+                "max_report_bytes": max_bytes, "delivery_version": VERSION}
+        public = render_verified_report(full)
+        included = {r["id"] for s in SENTENCE_SECTIONS for r in public["report"][s]}
+        required = [c["id"] for c in card["claims"] if c["mandatory"]]
+        # Retain the receipt field name for existing phase readers; no cache is read or written.
+        receipt = {"schema_version": "push.trajectory_build_receipt.v1", "complete": True,
+                   "cache_key": canonical_json_hash(inputs), "inputs": inputs, "source_id": source_id,
+                   "episodes": len(episodes), "card_id": card["card_id"],
+                   "phase_binding": phase_binding(expected_identity, sources),
+                   "required_claim_ids": required,
+                   "omitted_claims": [{"id": c["id"], "reason": "public_byte_budget"}
+                                      for c in card["claims"] if c["id"] not in included],
+                   "public_content_hash": public["report_projection"]["content_hash"],
+                   "full_derivation_sha256": canonical_json_hash(full), "report_bytes": report_bytes(public)}
+        validate_build_receipt(receipt, public)
+    except (ReportBudgetExceeded, NumericEvidenceError, OSError):
+        raise
+    except Exception as exc:
+        raise DescriptionComputationError(stage) from exc
     return full, public, receipt
 
 
@@ -146,7 +133,8 @@ def validate_build_receipt(receipt: dict, public: dict) -> None:
             or canonical_json_hash([c["id"] for c in receipt["omitted_claims"]]) != public["report_projection"]["omitted_claim_ids_hash"]
             or receipt["public_content_hash"] != public["report_projection"]["content_hash"]
             or receipt["full_derivation_sha256"] != public["full_derivation_sha256"]
-            or receipt["report_bytes"] != report_bytes(public) or report_bytes(public) > inputs["max_report_bytes"]):
+            or receipt["report_bytes"] != report_bytes(public)
+            or public["report_projection"]["max_bytes"] != inputs["max_report_bytes"]):
         raise ValueError("Push trajectory build receipt source/card/projection mismatch")
     validate_feedback_profile(inputs["profile"], inputs["max_report_bytes"], inputs["context"]["cell_variant_id"])
 

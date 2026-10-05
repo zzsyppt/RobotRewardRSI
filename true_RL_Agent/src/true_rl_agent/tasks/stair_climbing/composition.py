@@ -13,6 +13,7 @@ from true_rl_agent.backends.isaac_lab_rsl_rl import (
     IsaacLabRslRlBackendConfig,
 )
 from true_rl_agent.backends.isaac_lab_runtime import DEFAULT_ISAAC_LAB_PYTHON
+from true_rl_agent.agent_core.generation_finalization import GenerationFinalPlan
 from true_rl_agent.candidates.capability_readiness import (
     COMPLETE_REWARD_PROGRAM_CAPABILITY_ID,
 )
@@ -403,13 +404,6 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
                     raise ValueError(
                         "live Stair final confirmation requires exactly 15 rounds"
                     )
-            elif (
-                values.get("max_generations")
-                != STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS
-            ):
-                raise ValueError(
-                    "formal Stair final confirmation requires exactly 15 generations"
-                )
             raw_plan_path = values.get("final_confirmation_plan")
             if not isinstance(raw_plan_path, Path):
                 raise ValueError(
@@ -443,6 +437,11 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
                     expected_session_id=session_id,
                     expected_config=task_config,
                 )
+                required_generations = (confirmation_plan.required_closed_generations
+                    if isinstance(confirmation_plan, GenerationFinalPlan)
+                    else STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS)
+                if values.get("max_generations") != required_generations:
+                    raise ValueError("formal Stair generation count differs from its final plan")
             # The width-one live path has no generation-session contract, so its
             # terminal plan still needs this direct Genesis commitment.  Formal
             # generation binds the plan through the generation-contract ref and
@@ -646,7 +645,6 @@ def _build_stair_backend_config(
     admission = candidate_admission_policy.admission_policy_descriptor()
     return IsaacLabRslRlBackendConfig(
         capture_public_dev_numeric=task_config.is_unified_protocol,
-        capture_training_numeric=task_config.is_unified_protocol,
         isaac_lab_python=composition_config.isaac_python,
         train_entrypoint=composition_config.train_entrypoint,
         eval_entrypoint=composition_config.eval_entrypoint,

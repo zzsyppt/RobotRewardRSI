@@ -188,6 +188,9 @@ def check_sampled_rewards(evidence: dict, *, task: str, expected_identity: dict 
     if expected_identity is not None and any(manifest["identity"].get(k) != v for k, v in expected_identity.items()):
         raise ValueError("training numeric identity differs from expected execution")
     terms = coverage["semantics"]["terms"]
+    sampled_inputs = coverage["semantics"].get("sampled_inputs", {})
+    if set(sampled_inputs) not in (set(), {"last_action", "prev_action", "joint_vel", "joint_torque"}):
+        raise ValueError("training sampled input declaration differs")
     if [term["index"] for term in terms] != list(range(len(terms))):
         raise ValueError("training term indices are not consecutive")
     windows = coverage["windows"]
@@ -229,7 +232,10 @@ def check_sampled_rewards(evidence: dict, *, task: str, expected_identity: dict 
                           "learning_iteration_from_control_steps": coverage["initial_learning_iteration"] + local_iteration}
         if any(metadata.get(k) != v for k, v in expected_clock.items()):
             raise ValueError("training sample clock differs from excluded preflight offset")
-        if not np.array_equal(arrays["env_id"], env_ids) or any(a.shape != env_ids.shape for a in arrays.values()):
+        if (not set(sampled_inputs).issubset(arrays)
+                or not np.array_equal(arrays["env_id"], env_ids)
+                or any(a.shape != (len(env_ids), *sampled_inputs.get(name, {}).get("trailing_shape", []))
+                       for name, a in arrays.items())):
             raise ValueError("training sample environment axis differs")
         ordered_steps.append(step)
         actual_steps[window["name"]].append(step)

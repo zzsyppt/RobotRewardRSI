@@ -7,6 +7,7 @@ from .trajectory_production import PROFILE, DEFAULT_PUBLIC_BYTES, PUBLIC_SCHEMA
 from collections.abc import Mapping, Sequence
 from copy import deepcopy
 from pathlib import Path
+import logging
 import time
 from typing import Any
 
@@ -169,8 +170,8 @@ def finalize_stair_eval_phase_summary(
     finalized = deepcopy(dict(summary))
     evidence = finalized["task_evidence"]
     from .trajectory_pipeline import validate_feedback_profile, build_phase_description, DescriptionCapabilityUnavailable
-    from true_rl_agent.evaluation.process_report import ReportBudgetExceeded
-    from .trajectory_production import project_production_report
+    from .trajectory_production import DescriptionComputationError, project_production_report
+    from true_rl_agent.evaluation.process_report import description_error_details
     validate_feedback_profile(behavior_feedback_profile, trajectory_report_max_bytes, config.cell_variant_id)
     if "numeric_evidence" not in evidence:
         raise ValueError("Stair behavior finalization requires this phase's numeric evidence manifest")
@@ -196,19 +197,18 @@ def finalize_stair_eval_phase_summary(
     try:
         domain, measured, comparison = build_phase_description(reference, expected_identity=expected)
         evidence["behavior_comparison"] = comparison
-        try:
-            full = project_production_report(domain, measured, max_bytes=trajectory_report_max_bytes)
-        except ReportBudgetExceeded as exc:
-            evidence["description_status"] = {"status":"unavailable","reason":"budget_exceeded",
-                "required_bytes":exc.required_bytes,"max_bytes":exc.max_bytes,
-                "text":"必需行为描述超出配置容量，本次保留评估数值，描述不可用。"}
-            full = {"schema_version":"stair.behavior_analysis.v1", "domain":domain, "summary":measured,
-                    "description_status":evidence["description_status"]}
-        else:
-            evidence["behavior"] = project_stair_behavior(full)
+        full = project_production_report(domain, measured, max_bytes=trajectory_report_max_bytes)
+        evidence["behavior"] = project_stair_behavior(full)
     except DescriptionCapabilityUnavailable:
         evidence["description_status"] = {"status":"unavailable","reason":"unsupported_capture_contract",
             "text":"当前描述器不支持此机器人或采集契约；档案完整性已检查，评估数值保留。"}
+    except DescriptionComputationError as exc:
+        logging.getLogger(__name__).warning("Stair description unavailable: job=%s stage=%s",
+            expected["job_id"], exc.stage, exc_info=True)
+        full = None
+        evidence["description_status"] = {"status":"unavailable","reason":"description_computation_failed",
+            **description_error_details(exc, stage=exc.stage),
+            "text":"档案完整性已检查；行为描述计算失败，本次保留评估数值，描述不可用。"}
     if full is not None:
         full["source"] = reference
     from true_rl_agent.json_contract import canonical_json_bytes
@@ -509,18 +509,19 @@ def _validated_complete_phase_summary(
         objective_family_mask=objective_family_mask,
     )
     if "behavior" in first.task_evidence:
-        from true_rl_agent.tasks.stair_climbing.behavior import project_stair_behavior
+        from .behavior import project_stair_behavior
         summary["metrics"]["behavior"] = project_stair_behavior(first.task_evidence["behavior"])
-        if summary["metrics"]["behavior"]["schema_version"] in {TRAJECTORY_PUBLIC_SCHEMA}:
-            # Independent producer binding, persisted in the qualified public
-            # result/Genesis hash; never inferred from the report's own domain.
-            summary["metrics"]["trajectory_phase_binding"] = {
-                "job_id": first.job_id, "checkpoint_hash": first.checkpoint_hash,
-                "evaluation_plan_hash": first.evaluation_plan_hash,
-                "evaluation_binding_hash": first.evaluation_binding_hash,
-                "archive_hash": first.task_evidence["numeric_evidence"]["manifest_sha256"],
-                "seed_namespace": first.task_evidence["execution_identity"]["seed_namespace"],
-            }
+    if "description_status" in first.task_evidence:
+        summary["metrics"]["description_status"] = deepcopy(first.task_evidence["description_status"])
+    if "behavior" in first.task_evidence or "description_status" in first.task_evidence:
+        # The producer binds both a report and an explicit description gap.
+        summary["metrics"]["trajectory_phase_binding"] = {
+            "job_id": first.job_id, "checkpoint_hash": first.checkpoint_hash,
+            "evaluation_plan_hash": first.evaluation_plan_hash,
+            "evaluation_binding_hash": first.evaluation_binding_hash,
+            "archive_hash": first.task_evidence["numeric_evidence"]["manifest_sha256"],
+            "seed_namespace": first.task_evidence["execution_identity"]["seed_namespace"],
+        }
     return by_phase, summary
 
 
@@ -858,7 +859,7 @@ def canonical_stair_phase_result_summary(
         status = evidence["description_status"]
         if ("behavior" in evidence or expected_phase is not EvaluationPhase.PUBLIC_DEV
                 or status.get("status") != "unavailable"
-                or status.get("reason") not in {"budget_exceeded","unsupported_capture_contract"}):
+                or status.get("reason") not in {"budget_exceeded","unsupported_capture_contract","description_computation_failed"}):
             raise ValueError("invalid Stair description degradation status")
     if "behavior_comparison" in evidence:
         comparison = evidence["behavior_comparison"]
