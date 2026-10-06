@@ -18,8 +18,8 @@ PROFILE = "trajectory_numeric_v2"
 CATALOG_VERSION = "stair.trajectory.production_catalog.v7"
 PUBLIC_SCHEMA = "true_rl_agent.stair.behavior.public.v8"
 FULL_SCHEMA = "true_rl_agent.stair.behavior.full.v8"
-SELECTION_VERSION = "stair.trajectory.behavior_selection.v6"
-LEXICON_VERSION = "stair.trajectory_terms.v7"
+SELECTION_VERSION = "stair.trajectory.behavior_selection.v7"
+LEXICON_VERSION = "stair.trajectory_terms.v9"
 MAX_PUBLIC_BYTES = 10240
 DEFAULT_PUBLIC_BYTES = MAX_PUBLIC_BYTES
 PROCESS_BANDS = {"near_zero_mps": .01, "forward_mps": .2,
@@ -95,6 +95,7 @@ def _aggregate_summary(reference, capabilities, behavior_rows, cycle_periods, jo
 
     from .behavior import comparison_operands
     summary["comparison"] = comparison_operands(behavior_rows)
+    summary["comparison"]["cohort"]["failure_process"] = failure_process_operands(summary["behavior"])
     return summary
 
 
@@ -127,6 +128,97 @@ def source_domain(reference, archive):
         "catalog_version":CATALOG_VERSION,"acceptance_split":"public_dev"}
 
 
+OUTCOME_NAMES = {"success":"成功", "timeout":"超时", "time_out":"超时", "forbidden_contact":"禁用部位接触标签",
+         "base_orientation_instability":"姿态失稳标签", "off_course":"偏离路线标签", "slip":"滑移标签",
+         "insufficient_clearance":"间隙不足标签", "bad_orientation":"姿态失稳标签", "orientation":"姿态失稳标签"}
+
+def _fact_text(facts, key, label=None, statistic="median"):
+    f = facts[key]
+    if "circular_mean" in f["distribution"]:
+        d = f["distribution"]
+        text = (f["label"] if label is None else label)
+        text += (_number(d["circular_mean"], "°")+"°" if d["circular_mean"] is not None else
+                 "无均向" if f["valid_episodes"] else "不适用" if f["not_applicable"] and not f["unknown"] else "未知")
+        if d["resultant"] is not None:
+            text += "(R="+_number(d["resultant"])+")"
+        if f["valid_episodes"] != f["episodes"]:
+            text += f"（有效{f['valid_episodes']}/{f['episodes']}，不适用{f['not_applicable']}、未知{f['unknown']}）"
+        return text
+    text = (f["label"] if label is None else label)+_number(f["distribution"][statistic], f["unit"])+f["unit"]
+    if f["valid_episodes"] != f["episodes"] or f["unknown"]:
+        text += f"（有效{f['valid_episodes']}/{f['episodes']}回合，缺失{f['unknown']}读数"
+        text += (f"、不适用{f['not_applicable']}读数" if f["not_applicable"] else "")+"）"
+    return text
+
+def _presence_text(facts):
+    p = facts["inverted"]["presence"]
+    text = f"上轴向下{p['observed_positive']}/{facts['inverted']['episodes']}回合"
+    if p["unknown"]:
+        text += f"；完整记录未见{p['complete_negative']}回合，{p['unknown']}回合因缺测不能判全程阴性"
+    return text
+
+def _joint_text(group, bands, *, compact=False):
+    parts = group.get("joint_process", {})
+    if process_partition(group) == "joint_process":
+        labels = {"observed_down":"已见上轴向下", "no_down_forward":f"完整未见向下且末前速>{bands['forward_mps']:g}m/s",
+                  "remaining":"其余已知", "unknown":"姿态或末窗未定"}
+        return "组内："+"；".join(labels[k]+f"{parts[k]['episodes']}回合（"+
+            ("" if compact else "结束"+_number(parts[k]["end_time_s"]["median"])+"s，")+"末速"+
+            _number(parts[k]["forward_speed_mps"]["median"])+"m/s"+
+            (f"，末速有效{parts[k]['forward_speed_mps']['count']}/{parts[k]['episodes']}回合"
+             if parts[k]['forward_speed_mps']['count'] != parts[k]['episodes'] else "")+
+            "）" for k in labels if k in parts)+"。"
+    motion = group.get("terminal_motion", {})
+    if process_partition(group) == "terminal_motion":
+        labels = {"near_zero":f"|前向速度|<{bands['near_zero_mps']:g}m/s", "forward":f"前向速度>{bands['forward_mps']:g}m/s",
+                  "backward":f"前向速度<{-bands['forward_mps']:g}m/s", "remaining":"其余已知", "unknown":"末窗未定"}
+        return "末窗分布："+"；".join(labels[k]+f"的{motion[k]['episodes']}回合（速度中位"+
+            _number(motion[k]["forward_speed_mps"]["median"])+"m/s"+
+            (f"，末速有效{motion[k]['forward_speed_mps']['count']}/{motion[k]['episodes']}回合"
+             if motion[k]["forward_speed_mps"]["count"] != motion[k]["episodes"] else "")+"）" for k in labels if k in motion)+"。"
+    return ""
+
+
+def failure_process_operands(behavior):
+    """Project existing aggregate facts, without another measurement or full card."""
+    groups = {}
+    for name, group in sorted(behavior["groups"].items()):
+        if not name.startswith("outcome:") or name == "outcome:success":
+            continue
+        partition = process_partition(group)
+        groups[name.split(":", 1)[1]] = {
+            "episodes": group["episodes"],
+            "facts": {window: {key: group["facts"][window][key] for key in keys}
+                      for window, keys in (("all", ("time", "net", "net_lateral", "inverted")),
+                                           ("terminal", ("forward_speed", "tilt_end")))},
+            **({partition: group[partition]} if partition else {}),
+        }
+    return {"motion_bands": behavior["motion_bands"], "groups": groups}
+
+
+def _outcome_text(reason, group, bands, *, compact=False):
+    whole, f = group["facts"]["all"], group["facts"]["terminal"]
+    single = group["episodes"] == 1
+    text = OUTCOME_NAMES.get(reason, reason)+("1回合（单例，不作群体推广）" if single else f"组{group['episodes']}回合")+"："
+    text += _fact_text(whole, "time", "结束")
+    text += "；"+_fact_text(whole, "net", "净前移")+"、"+_fact_text(whole, "net_lateral", "横移")
+    text += "；末窗"+_fact_text(f, "forward_speed", "前速")
+    if compact:
+        text += "；末态上轴"+_fact_text(f, "tilt_end", "倾角")
+    else:
+        text += "、"+"、".join(_fact_text(f, k, label) for k, label in (("lateral_speed", "横速"), ("height", "根部z")))
+        text += "；末态"+_fact_text(f, "heading_end", "前轴朝向")+"，上轴"+_fact_text(f, "tilt_end", "倾角")+"、"+_fact_text(f, "up_direction_end", "方位")
+    return text+"；"+_presence_text(whole)+"。"+_joint_text(group, bands, compact=compact)
+
+
+def recent_failure_process(comparison):
+    process = (comparison or {}).get("cohort", {}).get("failure_process")
+    if process is None:
+        return "候选绝对失败过程摘要未记录。"
+    return "候选自身失败过程："+("".join(_outcome_text(reason, group, process["motion_bands"], compact=True)
+        for reason, group in process["groups"].items()) or "本队列无失败标签回合。")
+
+
 def _behavior_claims(summary):
     """Semantic order and priorities never depend on archive IDs."""
     behavior = summary["behavior"]
@@ -139,30 +231,6 @@ def _behavior_claims(summary):
         trace[cid] = {"operands": operands, "priority": priority}
         if mandatory:
             required.append(cid)
-
-    def fact(facts, key, label=None, statistic="median"):
-        f = facts[key]
-        if "circular_mean" in f["distribution"]:
-            d = f["distribution"]
-            text = (f["label"] if label is None else label)
-            text += (_number(d["circular_mean"], "°")+"°" if d["circular_mean"] is not None else
-                     "无均向" if f["valid_episodes"] else "不适用" if f["not_applicable"] and not f["unknown"] else "未知")
-            if d["resultant"] is not None:
-                text += "(R="+_number(d["resultant"])+")"
-            if f["valid_episodes"] != f["episodes"]:
-                text += f"（有效{f['valid_episodes']}/{f['episodes']}，不适用{f['not_applicable']}、未知{f['unknown']}）"
-            return text
-        text = (f["label"] if label is None else label)+_number(f["distribution"][statistic], f["unit"])+f["unit"]
-        if f["valid_episodes"] != f["episodes"] or f["unknown"]:
-            text += f"（有效{f['valid_episodes']}/{f['episodes']}回合，缺失{f['unknown']}读数）"
-        return text
-
-    def presence_text(facts):
-        p = facts["inverted"]["presence"]
-        text = f"上轴向下{p['observed_positive']}/{facts['inverted']['episodes']}回合"
-        if p["unknown"]:
-            text += f"；完整记录未见{p['complete_negative']}回合，{p['unknown']}回合因缺测不能判全程阴性"
-        return text
 
     def low_process(group):
         facet = group["low_progress_facet"]
@@ -178,56 +246,27 @@ def _behavior_claims(summary):
         return text+(f"；内部未知{facet['unknown']}点" if facet['unknown'] else "")+"。"
 
     bands = behavior["motion_bands"] or PROCESS_BANDS
-    def joint_text(group):
-        parts = group.get("joint_process", {})
-        if process_partition(group) == "joint_process":
-            labels = {"observed_down":"已见上轴向下", "no_down_forward":f"完整未见向下且末前速>{bands['forward_mps']:g}m/s",
-                      "remaining":"其余已知", "unknown":"姿态或末窗未定"}
-            return "组内："+"；".join(labels[k]+f"{parts[k]['episodes']}回合（结束"+
-                _number(parts[k]["end_time_s"]["median"])+"s，末速"+
-                _number(parts[k]["forward_speed_mps"]["median"])+"m/s"+
-                (f"，末速有效{parts[k]['forward_speed_mps']['count']}/{parts[k]['episodes']}回合"
-                 if parts[k]['forward_speed_mps']['count'] != parts[k]['episodes'] else "")+
-                "）" for k in labels if k in parts)+"。"
-        motion = group.get("terminal_motion", {})
-        if process_partition(group) == "terminal_motion":
-            labels = {"near_zero":f"|前向速度|<{bands['near_zero_mps']:g}m/s", "forward":f"前向速度>{bands['forward_mps']:g}m/s",
-                      "backward":f"前向速度<{-bands['forward_mps']:g}m/s", "remaining":"其余已知", "unknown":"末窗未定"}
-            return "末窗分布："+"；".join(labels[k]+f"的{motion[k]['episodes']}回合（速度中位"+
-                _number(motion[k]["forward_speed_mps"]["median"])+"m/s）" for k in labels if k in motion)+"。"
-        return ""
-
     n = groups["all"]["episodes"]
     outcomes = groups["all"]["outcomes"]
-    names = {"success":"成功", "timeout":"超时", "time_out":"超时", "forbidden_contact":"禁用部位接触标签",
-             "base_orientation_instability":"姿态失稳标签", "off_course":"偏离路线标签", "slip":"滑移标签",
-             "insufficient_clearance":"间隙不足标签", "bad_orientation":"姿态失稳标签", "orientation":"姿态失稳标签"}
+    names = OUTCOME_NAMES
     window_s = NUMERIC_CONFIG["terminal_window_s"]
     add("scope", "results", f"本队列{n}回合，存档结局："+"、".join(f"{names.get(k,k)}{v}" for k,v in sorted(outcomes.items()))+f"。标签不等于终止触发器；量取回合中位数，方向取圆均值+集中度R；末窗为结束前{window_s:g}s，短回合仅已有末段。", outcomes)
     f = groups["all"]["facts"]["all"]
-    add("motion", "process", "总体："+"；".join(fact(f,k) for k in ("net","net_lateral","speed","backward","active","heading_end"))+"；"+presence_text(f)+"。", f)
+    add("motion", "process", "总体："+"；".join(_fact_text(f,k) for k in ("net","net_lateral","speed","backward","active","heading_end"))+"；"+_presence_text(f)+"。", f)
     for name, group in sorted(groups.items()):
         if not name.startswith("outcome:"):
             continue
         reason = name.split(":",1)[1]
-        if group["episodes"] == 1:
-            add("outcome."+reason, "counterexample" if reason=="success" else "process",
-                names.get(reason,reason)+"1回合。", {"episodes":1})
-            continue
         f = group["facts"]["terminal"]
         whole = group["facts"]["all"]
-        text = f"{names.get(reason,reason)}组{group['episodes']}回合："+fact(whole,"time","结束")
-        text += "；"+fact(whole,"net","净前移")+"、"+fact(whole,"net_lateral","横移")
-        text += "；末窗"+"、".join(fact(f,k,label) for k,label in (("forward_speed","前速"),("lateral_speed","横速"),("height","根部z")))
-        text += "；末态"+fact(f,"heading_end","前轴朝向")+"，上轴"+fact(f,"tilt_end","倾角")+"、"+fact(f,"up_direction_end","方位")
-        text += "；"+presence_text(whole)+"。"+joint_text(group)
+        text = _outcome_text(reason, group, bands)
         down = whole["first_down_time"]
         if down["valid_episodes"] >= 2:
             text += "首次观察向下时刻中位"+_number(down["distribution"]["median"])+f"s（{down['valid_episodes']}阳性回合）。"
         contacts = sorted((k for k in f if k.startswith("contact.") and (f[k]["distribution"]["mean"] or 0)>0),
                           key=lambda k:(-f[k]["distribution"]["mean"],k))[:2]
         if contacts:
-            text += "末窗力标记："+"、".join(fact(f,k,label="+".join(e.rsplit(".",1)[-1].removesuffix("_foot") for e in f[k]["label"].split("+")),statistic="mean") for k in contacts)+"。"
+            text += "末窗力标记："+"、".join(_fact_text(f,k,label="+".join(e.rsplit(".",1)[-1].removesuffix("_foot") for e in f[k]["label"].split("+")),statistic="mean") for k in contacts)+"。"
         if reason != "success" and group["low_progress_facet"]["positive"]:
             text += low_process(group)
         add("outcome."+reason, "counterexample" if reason=="success" else "process", text, group)
@@ -242,13 +281,13 @@ def _behavior_claims(summary):
                 text += "缺少相邻有效未向下前拍。"
             add("first_down."+reason,"process",text,observed,False,.05)
         if (whole["rotation"]["distribution"]["median"] or 0)>5:
-            add("attitude."+reason,"process",names.get(reason,reason)+"组：前轴仰角极小/极大值的中位数"+_number(whole["forward_elevation_min"]["distribution"]["median"])+"/"+_number(whole["forward_elevation"]["distribution"]["median"])+"°；"+fact(whole,"rotation")+"（只累计有效连续边）。",whole,False,.3)
+            add("attitude."+reason,"process",names.get(reason,reason)+"组：前轴仰角极小/极大值的中位数"+_number(whole["forward_elevation_min"]["distribution"]["median"])+"/"+_number(whole["forward_elevation"]["distribution"]["median"])+"°；"+_fact_text(whole,"rotation")+"（只累计有效连续边）。",whole,False,.3)
     f = groups["all"]["facts"]["all"]
     for i, entity in enumerate(behavior["support"]):
         short = entity.rsplit(".",1)[-1].removesuffix("_foot")
         cycle = summary["cycle"]["groups"]["contact_cycles:"+entity]
         period = cycle["episode_median_qualified_cycle_period_s"]["median"]
-        text = short+"："+"、".join(fact(f, entity+"."+key, label) for key,label in
+        text = short+"："+"、".join(_fact_text(f, entity+"."+key, label) for key,label in
             (("contact","接触占比"),("world","世界点速"),("relative","相对点速")))
         text += "；相对(x,y,z)均值="+"/".join(_number(f[entity+"."+axis]["distribution"]["median"]) for axis in "xyz")+"m"
         text += "；末窗相对点速"+_number(groups["all"]["facts"]["terminal"][entity+".relative"]["distribution"]["median"])+"m/s"
@@ -256,7 +295,7 @@ def _behavior_claims(summary):
         add("foot."+str(i), "process", text, {"facts":{k:v for k,v in f.items() if k.startswith(entity+".")},"cycle":cycle})
     contacts = sorted((k for k in f if k.startswith("contact.") and (f[k]["distribution"]["mean"] or 0)>0), key=lambda k:(-f[k]["distribution"]["mean"], k))[:3]
     if contacts:
-        add("contacts", "process", "全程接触组合："+"；".join(fact(f,k,label="+".join(e.rsplit(".",1)[-1].removesuffix("_foot") for e in f[k]["label"].split("+")),statistic="mean") for k in contacts)+"。", {k:f[k] for k in contacts})
+        add("contacts", "process", "全程接触组合："+"；".join(_fact_text(f,k,label="+".join(e.rsplit(".",1)[-1].removesuffix("_foot") for e in f[k]["label"].split("+")),statistic="mean") for k in contacts)+"。", {k:f[k] for k in contacts})
     joint = summary["joint"]
     if joint:
         def edge_counts(name):
@@ -304,7 +343,7 @@ def _behavior_claims(summary):
                 f"{kind}有效{v['valid']}、未知{v['unknown']}关节点" for kind,v in totals.items())+"。",runtime_joint)
     terrain_keys = [k for k in f if k.endswith(".terrain")]
     if terrain_keys:
-        add("terrain", "process", "参考点相对名义地形高度："+"；".join(fact(f,k,label=k.removesuffix('.terrain').rsplit('.',1)[-1]) for k in terrain_keys)+"。",{k:f[k] for k in terrain_keys})
+        add("terrain", "process", "参考点相对名义地形高度："+"；".join(_fact_text(f,k,label=k.removesuffix('.terrain').rsplit('.',1)[-1]) for k in terrain_keys)+"。",{k:f[k] for k in terrain_keys})
         for name,g in sorted(groups.items()):
             if name.startswith("outcome:") and name != "outcome:success" and g["episodes"] > 1:
                 t = g["facts"]["terminal"]
@@ -315,7 +354,7 @@ def _behavior_claims(summary):
                 contrasting = min(foot_keys, key=lambda k: (-t[k]["valid_episodes"],-abs(t[k]["distribution"]["median"]),k), default=None)
                 selected = [k for k in ("robot_0.root.terrain",contrasting) if k in known]
                 text = names.get(name.split(':',1)[1],name.split(':',1)[1])+"组末窗地形参考差："
-                text += "；".join(fact(t,k,label=k.removesuffix('.terrain').rsplit('.',1)[-1]) for k in selected)+"。"
+                text += "；".join(_fact_text(t,k,label=k.removesuffix('.terrain').rsplit('.',1)[-1]) for k in selected)+"。"
                 add("terrain."+name,"process",text,{"selected":{k:t[k] for k in selected}},False,
                     .15+1/(100+g['episodes']*abs(t[contrasting]['distribution']['median'])) if contrasting else .16)
     for outcome, parent in ((k.split(":",1)[1],g) for k,g in sorted(groups.items()) if k.startswith("outcome:") and k!="outcome:success"):
@@ -350,8 +389,9 @@ def _behavior_claims(summary):
                 continue
             process_rows = [labels[part]+f"{g[partition][part]['episodes']}/{total}" for part in sorted(chosen[cell])]
             process_count = sum(g[partition][part]["episodes"] for part in chosen[cell])
-            values = ([f"{g['episodes']}/{total}"] if cell in outcome_cells and process_count != g["episodes"] else [])
-            text = cell.removeprefix("public_dev.")+" "+"、".join(values+process_rows)
+            values = ([f"总计{g['episodes']}/{total}"] if cell in outcome_cells and process_count != g["episodes"] else [])
+            text = cell.removeprefix("public_dev.")+" "+"".join(values)
+            text += ("（其中"+"、".join(process_rows)+"）" if values and process_rows else "、".join(process_rows))
             parts.append((cell,text))
         if parts:
             text = names.get(outcome,outcome)+"条件格："+"；".join(text for _,text in sorted(parts))+"回合。"
@@ -383,7 +423,7 @@ def _behavior_claims(summary):
     if not joint and not runtime_joint: missing.append("名义关节坐标绑定")
     if not runtime_joint: missing.append("启动hard/soft缓冲区")
     if not terrain_keys: missing.append("名义地形绑定")
-    definition=(f"定义：任务+X前、+Y横；净移从首记录点起，根部z相对场景原点，足相对量用身体坐标。力模>{threshold:g}N为接触标记；点速=相邻有效位置差/时间，非迈步；差分归后端、不跨缺步。低进度=完整{NUMERIC_CONFIG['progress_window_s']:g}s窗最大新增<{NUMERIC_CONFIG['progress_increment_m']:g}m（含倒退），确认非起点；任一足相对点速≥{NUMERIC_CONFIG['low_horizontal_speed_mps']:g}m/s为活动，全低于为低活动。初窗不足不适用、内部缺测未知，比例用有效点。倾角用上轴；方位/朝向为对应轴相对+X的水平投影，非运动/翻转方向；圆均值配R（1一致、近0无均向），退化不适用、坏值未知。首次向下仅首次观察，旋转累计四元数短弧。地形差=参考点z−名义高度，非脚底净空。")
+    definition=(f"定义：主卡与最近尝试各述自身队列、共用下列量定义。任务+X前、+Y横；净移从首记录点起，根部z相对场景原点，足相对量用身体坐标。力模>{threshold:g}N为接触标记；点速=相邻有效位置差/时间，非迈步；差分归后端、不跨缺步。低进度=完整{NUMERIC_CONFIG['progress_window_s']:g}s窗最大新增<{NUMERIC_CONFIG['progress_increment_m']:g}m（含倒退），确认非起点；任一足相对点速≥{NUMERIC_CONFIG['low_horizontal_speed_mps']:g}m/s为活动，全低于为低活动。初窗不足不适用、内部缺测未知，比例用有效点。倾角用上轴；方位/朝向为对应轴相对+X的水平投影，非运动/翻转方向；圆均值配R（1一致、近0无均向），退化不适用、坏值未知。首次向下仅首次观察，旋转累计四元数短弧。地形差=参考点z−名义高度，非脚底净空。")
     if runtime_joint:
         binding = summary["capabilities"]["runtime_joint_limits"]["binding"]
         end = binding.get("end_values_equal")

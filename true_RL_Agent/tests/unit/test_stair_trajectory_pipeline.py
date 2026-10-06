@@ -172,6 +172,8 @@ class DirectDescriptionTests(unittest.TestCase):
         kwargs=dict(expected_parent_checkpoint_hash=parent["domain"]["checkpoint_hash"],parent_comparison=a,candidate_comparison=b)
         result=compare_stair_behavior(parent,candidate,**kwargs)
         self.assertEqual(result["matched_conditions"],1)
+        self.assertFalse(any(r["condition"] is None and r["metric"] in {"net", "speed"} for r in result["rows"]))
+        self.assertIn("根部位置差分水平速度1→2m/s", result["core_text"])
         self.assertTrue(any(r["unit"]=="m/s" and r["parent"][0]==1 and r["candidate"][0]==2 and r["delta"]==1 for r in result["rows"]))
         self.assertTrue(all(r["parent_n"]==r["candidate_n"]==1 for r in result["rows"]))
         self.assertEqual(compare_stair_behavior(None,candidate,**kwargs)["status"],"available")

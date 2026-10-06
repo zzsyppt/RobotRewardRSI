@@ -292,10 +292,18 @@ def check_summary(raw, saved):
     return errors
 
 
-def check_author(raw, payload):
-    report = payload["public_feedback_summary"]["behavior"]["profile"]["report"]
+def check_author(raw, payload, *, secondary_source=None):
+    behavior = payload["public_feedback_summary"]["behavior"]
+    report = behavior["profile"]["report"]
     rows = {r["id"]: r["text"] for section in report.values() if isinstance(section, list) for r in section if isinstance(r, dict) and "id" in r}
     errors = []
+    secondary_text = None
+    if secondary_source is not None:
+        generation, lane = secondary_source
+        matches = [r for r in behavior.get("secondary", []) if (r.get("generation_index"), r.get("lane_id")) == (generation, lane)]
+        if len(matches) != 1 or not isinstance(matches[0].get("process"), str):
+            return [f"secondary {generation}/{lane}: missing unique absolute failure process"]
+        secondary_text = matches[0]["process"]
     def required(key):
         if "claim:"+key not in rows:
             errors.append("claim:"+key+": missing required author fact")
@@ -315,11 +323,13 @@ def check_author(raw, payload):
     def fact(text, anchor, f, unit, where, statistic="median", denominator=True):
         number(text, anchor, f["distribution"][statistic], unit, where, .051 if unit in ("°", "%") else .00051)
         if denominator and (f["valid_episodes"] != f["episodes"] or f["unknown"]):
-            contains(text, f"（有效{f['valid_episodes']}/{f['episodes']}回合，缺失{f['unknown']}读数）", where)
+            contains(text, f"（有效{f['valid_episodes']}/{f['episodes']}回合，缺失{f['unknown']}读数"+
+                     (f"、不适用{f['not_applicable']}读数" if f["not_applicable"] else "")+"）", where)
     def posture(text, facts, where):
         p = facts["inverted"]["presence"]
         contains(text, f"上轴向下{p['observed_positive']}/{facts['inverted']['episodes']}回合", where)
         if p["unknown"]:
+            contains(text, f"完整记录未见{p['complete_negative']}回合", where)
             contains(text, f"{p['unknown']}回合因缺测不能判全程阴性", where)
     def heading(text, anchor, f, where):
         if f["distribution"]["circular_mean"] is None:
@@ -340,39 +350,51 @@ def check_author(raw, payload):
             label = "+".join(f.removesuffix("_foot") for i, f in enumerate(raw["feet"]) if code & (1 << i)) or "全部未触发"
             fact(text, label, facts[key], "%", where, "mean")
     all_group = raw["groups"]["all"]
-    scope = required("scope")
-    contains(scope, f"本队列{all_group['episodes']}回合", "scope")
-    overall = required("motion")
-    for key, anchor, unit in (("net", "净正向位移", "m"), ("net_lateral", "净横向位移", "m"), ("speed", "根部位置差分水平速度", "m/s"), ("backward", "反向位移累计", "m"), ("active", "低进度且足相对身体变化占比", "%")):
-        fact(overall, anchor, all_group["facts"]["all"][key], unit, "motion")
-    heading(overall, "身体前轴投影朝向", all_group["facts"]["all"]["heading_end"], "motion")
-    posture(overall, all_group["facts"]["all"], "motion")
+    if secondary_text is None:
+        scope = required("scope")
+        contains(scope, f"本队列{all_group['episodes']}回合", "scope")
+        overall = required("motion")
+        for key, anchor, unit in (("net", "净正向位移", "m"), ("net_lateral", "净横向位移", "m"), ("speed", "根部位置差分水平速度", "m/s"), ("backward", "反向位移累计", "m"), ("active", "低进度且足相对身体变化占比", "%")):
+            fact(overall, anchor, all_group["facts"]["all"][key], unit, "motion")
+        heading(overall, "身体前轴投影朝向", all_group["facts"]["all"]["heading_end"], "motion")
+        posture(overall, all_group["facts"]["all"], "motion")
     for name, group in raw["groups"].items():
-        if name == "all":
+        if name == "all" or secondary_text is not None and name == "outcome:success":
             continue
         reason = name.split(":", 1)[1]; label = LABELS.get(reason, reason)
-        contains(scope, label+str(group["episodes"]), "scope")
-        text = required("outcome."+reason)
+        if secondary_text is None:
+            contains(scope, label+str(group["episodes"]), "scope")
+            text = required("outcome."+reason)
+        else:
+            anchor = label+("组" if group["episodes"] > 1 else "")+str(group["episodes"])+"回合"
+            text = anchor+secondary_text.split(anchor, 1)[-1] if anchor in secondary_text else ""
+            for other in raw["groups"]:
+                if other not in ("all", name):
+                    other_reason = other.split(":", 1)[1]
+                    other_label = LABELS.get(other_reason, other_reason)
+                    text = text.split(other_label+"组", 1)[0].split(other_label+"1回合", 1)[0]
         contains(text, label+("组" if group["episodes"] > 1 else "")+str(group["episodes"])+"回合", name)
         if group["episodes"] == 1:
-            continue
+            contains(text, "单例，不作群体推广", name)
         for window, key, anchor, unit in (("all", "time", "结束", "s"), ("all", "net", "净前移", "m"), ("all", "net_lateral", "横移", "m"), ("terminal", "forward_speed", "末窗前速", "m/s"), ("terminal", "lateral_speed", "横速", "m/s"), ("terminal", "height", "根部z", "m"), ("terminal", "tilt_end", "倾角", "°")):
-            fact(text, anchor, group["facts"][window][key], unit, name)
-        heading(text, "前轴朝向", group["facts"]["terminal"]["heading_end"], name)
-        heading(text, "方位", group["facts"]["terminal"]["up_direction_end"], name)
+            if secondary_text is None or key not in {"lateral_speed", "height"}:
+                fact(text, anchor, group["facts"][window][key], unit, name)
         posture(text, group["facts"]["all"], name)
-        first = group["facts"]["all"]["first_down_time"]
-        if first["valid_episodes"] >= 2:
-            fact(text, "首次观察向下时刻中位", first, "s", name, denominator=False)
-            contains(text, f"（{first['valid_episodes']}阳性回合）", name)
-        contacts(text, group["facts"]["terminal"], 2, name)
-        low = group["low_progress_facet"]
-        if reason != "success" and low["positive"]:
-            contains(text, f"低进度{low['positive']}点", name)
-            for key, label in (("up_negative", "上轴向下"), ("up_nonnegative", "上轴z≥0"), ("posture_unknown", "姿态未知")):
-                c = low["counts"][key]
-                if sum(c.values()):
-                    contains(text, label+f"活动/低活动{c['active']}/{c['quiet']}点", name)
+        if secondary_text is None:
+            heading(text, "前轴朝向", group["facts"]["terminal"]["heading_end"], name)
+            heading(text, "方位", group["facts"]["terminal"]["up_direction_end"], name)
+            first = group["facts"]["all"]["first_down_time"]
+            if first["valid_episodes"] >= 2:
+                fact(text, "首次观察向下时刻中位", first, "s", name, denominator=False)
+                contains(text, f"（{first['valid_episodes']}阳性回合）", name)
+            contacts(text, group["facts"]["terminal"], 2, name)
+            low = group["low_progress_facet"]
+            if reason != "success" and low["positive"]:
+                contains(text, f"低进度{low['positive']}点", name)
+                for key, label in (("up_negative", "上轴向下"), ("up_nonnegative", "上轴z≥0"), ("posture_unknown", "姿态未知")):
+                    c = low["counts"][key]
+                    if sum(c.values()):
+                        contains(text, label+f"活动/低活动{c['active']}/{c['quiet']}点", name)
         partition = described_partition(group)
         labels = ({"observed_down": "已见上轴向下", "no_down_forward": "完整未见向下且末前速>0.2m/s",
                    "remaining": "其余已知", "unknown": "姿态或末窗未定"} if partition == "joint_process" else
@@ -384,9 +406,11 @@ def check_author(raw, payload):
                 contains(text, anchor, name)
                 clause = text.split(anchor, 1)[-1].split("）", 1)[0]
                 number(clause, "末速" if partition == "joint_process" else "速度中位", value["forward_speed_mps"]["median"], "m/s", name)
-                if partition == "joint_process":
+                if value["forward_speed_mps"]["count"] != value["episodes"]:
+                    contains(clause, f"末速有效{value['forward_speed_mps']['count']}/{value['episodes']}回合", name)
+                if partition == "joint_process" and secondary_text is None:
                     number(clause, "结束", value["end_time_s"]["median"], "s", name)
-        if reason != "success":
+        if reason != "success" and secondary_text is None:
             candidates = [(cell, data, data["outcomes"][reason]) for cell, data in raw["cells"].items()
                 if data["outcomes"].get(reason, {}).get("episodes", 0) >= 2]
             excess = lambda row: row[2]["episodes"]-row[1]["episodes"]*group["episodes"]/all_group["episodes"]
@@ -410,9 +434,13 @@ def check_author(raw, payload):
                     contains(condition_text, display+" ", reason)
                     data = raw["cells"][cell]; counts = data["outcomes"][reason]
                     if cell in outcome_cells and sum(counts[partition][p] for p in parts) != counts["episodes"]:
-                        contains(segment, f"{counts['episodes']}/{data['episodes']}", cell)
+                        contains(segment, f"总计{counts['episodes']}/{data['episodes']}"+("（其中" if parts else ""), cell)
                     for part in parts:
                         contains(segment, cell_labels[part]+f"{counts[partition][part]}/{data['episodes']}", cell)
+    if secondary_text is not None:
+        if not any(k not in ("all", "outcome:success") for k in raw["groups"]):
+            contains(secondary_text, "本队列无失败标签回合", "secondary")
+        return errors
     for i, foot in enumerate(raw["feet"]):
         text = required("foot."+str(i)); prefix = "robot_0.support."+foot+"."
         contains(text, foot.removesuffix("_foot")+"：", "foot."+str(i))
@@ -441,11 +469,19 @@ def check_author(raw, payload):
             def percentages(clause, facts, where):
                 for kind in ("hard", "soft"):
                     expected = facts[kind][joint]["outside_percent"]
-                    match = re.search(kind+" "+NUMBER+"/"+NUMBER+"%", clause)
+                    column = "(?:"+NUMBER+"|未知)"
+                    match = re.search(kind+" "+column+"/"+column+"%", clause)
                     # Display precision only: tiny percentages use one significant digit.
                     tolerance = lambda v: .50001*10**math.floor(math.log10(v)) if 0 < v < .05 else .051
-                    if not match or any(abs(float(match[i+1])-expected[side]) > tolerance(expected[side]) for i, side in enumerate(("lower", "upper"))):
+                    if not match:
                         errors.append(where+": wrong/missing "+kind+" lower/upper percentages")
+                        continue
+                    for i, side in enumerate(("lower", "upper")):
+                        value = expected[side]
+                        actual = None if match[i+1] is None else float(match[i+1])
+                        if (actual is not None if value is None else actual is None or abs(actual-value) > tolerance(value)):
+                            errors.append(where+": wrong/missing "+kind+" lower/upper percentages")
+                            break
             percentages(text, records, joint)
             matches = re.search(r"最小余量\(hard/soft\)"+NUMBER+"/"+NUMBER+"rad", text)
             if not matches or any(not math.isclose(float(matches[i+1]), records[k][joint]["minimum_margin"], rel_tol=.0006, abs_tol=1e-8) for i, k in enumerate(("hard", "soft"))):
@@ -485,6 +521,8 @@ def main():
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--summary", type=Path, help="Saved {domain, summary}; checks quantities and denominators")
     parser.add_argument("--user-payload", type=Path, help="Saved actual serialized author user payload")
+    parser.add_argument("--secondary-source", nargs=2, metavar=("GENERATION", "LANE"),
+                        help="Check this recent lane against its own raw manifest")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     raw = read_raw(args.manifest)  # Establish expectations before opening generated text.
@@ -492,7 +530,8 @@ def main():
     if args.summary:
         checks["summary"] = check_summary(raw, json.loads(args.summary.read_bytes()))
     if args.user_payload:
-        checks["author"] = check_author(raw, json.loads(args.user_payload.read_bytes()))
+        checks["author"] = check_author(raw, json.loads(args.user_payload.read_bytes()),
+            secondary_source=(int(args.secondary_source[0]), args.secondary_source[1]) if args.secondary_source else None)
     raw["checks"] = checks
     raw["status"] = "FAIL" if any(checks.values()) else "PASS_WITH_STATED_COVERAGE" if checks else "RAW_EXPECTATIONS_ONLY"
     args.output.write_text(json.dumps(raw, ensure_ascii=False, indent=2, allow_nan=False)+"\n", encoding="utf-8")

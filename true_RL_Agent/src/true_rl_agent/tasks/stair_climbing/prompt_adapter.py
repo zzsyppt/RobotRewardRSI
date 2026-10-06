@@ -3350,8 +3350,9 @@ def _same_behavior_baseline(observed: Mapping[str, Any], best: Mapping[str, Any]
 
 
 def _secondary_behavior_evidence(generation):
-    """Each recent trial compares to its own frozen generation parent."""
+    """Each recent trial retains its own failure process and frozen parent comparison."""
     from .behavior import compare_stair_behavior
+    from .trajectory_production import recent_failure_process
 
     rows = []
     parent = _mapping(generation.get("parent_public_dev"))
@@ -3369,6 +3370,7 @@ def _secondary_behavior_evidence(generation):
                 parent_comparison=parent.get("behavior_comparison"), candidate_comparison=phase.get("behavior_comparison"))
             row.update(comparison_status=diff["status"], text=diff.get("core_text",diff.get("text")))
             row["detail_rows"] = diff.get("rows", [])
+            row["process"] = recent_failure_process(phase.get("behavior_comparison"))
         elif phase:
             row.update(comparison_status="description_unavailable",text="公开评测已记录，行为描述不可用。")
         else:

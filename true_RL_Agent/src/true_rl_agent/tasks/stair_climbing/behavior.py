@@ -7,7 +7,7 @@ from true_rl_agent.evaluation.process_report import format_quantity
 from true_rl_agent.evaluation.trajectory_translation.measurement import NUMERIC_CONFIG
 from .trajectory_production import PUBLIC_SCHEMA, FULL_SCHEMA, replay_production_report
 
-COMPARISON_VERSION = "stair.behavior_comparison.v2"
+COMPARISON_VERSION = "stair.behavior_comparison.v3"
 COMPARISON_METRICS = {"all": ("net", "speed", "active"),
                       "terminal": ("progress", "forward_speed", "height", "tilt_end")}
 
@@ -128,7 +128,9 @@ def compare_stair_behavior(parent, candidate, *, expected_parent_checkpoint_hash
     # Rank all changes by the same evidence scale. Several foot-contact changes
     # share a single sentence rather than taking one leading slot per foot.
     feet = [r for r in ranked if r["condition"] is None and r["metric"].endswith(".contact")]
-    details = [r for r in ranked if r not in feet]
+    # Overall net/speed already appear in core_text, with their valid/missing counts.
+    details = [r for r in ranked if r not in feet and not
+               (r["condition"] is None and r["metric"] in {"net", "speed"})]
     if feet:
         contact = {"condition":None, "outcome":None, "metric":"support.contact",
             "members":[{k:v for k,v in r.items() if k != "score"} for r in feet],
@@ -161,8 +163,8 @@ def compare_stair_behavior(parent, candidate, *, expected_parent_checkpoint_hash
         av,bv=x["all"][key],y["all"][key]
         definition=a["descriptors"]["all."+key]
         core += definition["label"]+format_quantity(av[0],definition["unit"])+"→"+format_quantity(bv[0],definition["unit"])+definition["unit"]
-        if av[1] != x["n"] or bv[1] != y["n"]:
-            core += f"（有效{av[1]}/{x['n']}→{bv[1]}/{y['n']}）"
+        if av[1] != x["n"] or bv[1] != y["n"] or any(av[2:]+bv[2:]):
+            core += f"（有效{av[1]}/{x['n']}→{bv[1]}/{y['n']}，缺测{av[2]}→{bv[2]}、不适用{av[3]}→{bv[3]}读数）"
         core += "；"
     return {"status":"available","reason":"matched_explicit_parent",
         "parent_checkpoint_hash":expected_parent_checkpoint_hash,"candidate_checkpoint_hash":right["domain"]["checkpoint_hash"],

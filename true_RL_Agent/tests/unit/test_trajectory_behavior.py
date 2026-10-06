@@ -80,9 +80,17 @@ class BehaviorRequirements(unittest.TestCase):
             claims,trace,_ = _behavior_claims(summary)
             text = claims["claim:conditions.forbidden_contact"][1]["text"]
             self.assertEqual(summary["behavior"]["groups"]["outcome:forbidden_contact"]["episodes"],8+sparse_failures)
-            self.assertEqual(int(re.search(r"concentrated (?:末前速近零)?(\d+)/10",text)[1]),8)
+            match = re.search(r"concentrated (总计|末前速近零)(\d+)/10",text)
+            self.assertIsNotNone(match)
+            self.assertEqual(match.groups(),("末前速近零" if sparse_failures else "总计","8"))
+            cell = summary["behavior"]["groups"]["condition:concentrated"]
+            subset = summary["behavior"]["groups"]["condition:concentrated/forbidden_contact"]
+            self.assertEqual((cell["episodes"],subset["episodes"]),(10,8))
+            if sparse_failures:
+                self.assertEqual(subset["terminal_motion"]["near_zero"]["episodes"],8)
             self.assertNotIn("sparse ",text)
-            self.assertEqual(list(trace["claim:conditions.forbidden_contact"]["operands"]["cells"]),["concentrated"])
+            self.assertEqual(trace["claim:conditions.forbidden_contact"]["operands"]["cells"],
+                             {"concentrated":["near_zero"] if sparse_failures else []})
 
     def test_static_translation_leg_motion_and_high_foot_reach_text(self):
         ep = sample_episode(80)
@@ -141,7 +149,12 @@ class BehaviorRequirements(unittest.TestCase):
         presence = re.search(r"上轴向下(\d+)/(\d+)回合",claims["claim:motion"])
         self.assertIsNotNone(presence)
         self.assertEqual(tuple(map(int,presence.groups())), (1,1))
-        self.assertEqual(claims["claim:outcome.success"],"成功1回合。")
+        single = claims["claim:outcome.success"]
+        self.assertIn("成功1回合（单例，不作群体推广）",single)
+        self.assertIn("结束0.06s；净前移0m、横移0m；末窗前速0m/s",single)
+        self.assertIn("上轴倾角180°",single)
+        self.assertIn("方位不适用（有效0/1，不适用1、未知0）",single)
+        self.assertIn("上轴向下1/1回合",single)
         self.assertEqual(behavior(ep)["facts"]["terminal"]["tilt_end"]["value"],180.)
         ep.steps=np.array([1,2,4])
         self.assertTrue(np.isnan(position_motion(ep)["world_velocity"][2]).all())

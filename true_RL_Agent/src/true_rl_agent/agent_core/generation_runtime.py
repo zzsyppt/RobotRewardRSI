@@ -116,7 +116,8 @@ def generation_provider(foundation, *, generation_id, lane_id):
     config = generation_provider_config(
         output_dir=foundation.config.output_dir / "provider_candidates" / generation_id / lane_id,
         env_file=foundation.config.provider_env_file, policy=foundation.provider_policy,
-        resume_pending="external_author_waiting" in foundation.continuation_policy.allowed_continuation_reasons)
+        resume_pending=(foundation.provider_policy.get("backend", "openai_compatible_chat") == "external_file"
+            and "external_author_waiting" in foundation.continuation_policy.allowed_continuation_reasons))
     provider = (ExternalFileCandidateProvider(config) if isinstance(config, ExternalFileProviderConfig)
                 else OpenAICompatibleCandidateProvider(config))
     return CostGuardedProvider(delegate=provider, output_dir=foundation.config.output_dir,

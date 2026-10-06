@@ -62,7 +62,7 @@ class ProductionTrajectoryTests(unittest.TestCase):
                 ("forbidden_contact",.1),("timeout",0),("timeout",.7),("success",0),("timeout",0))):
             ep = sample_episode(80)
             ep.env_index = index
-            ep.task.update(stratum_id="fixture",cell_id="fixture")
+            ep.task.update(stratum_id="fixture",cell_id="contact_cell" if outcome in {"forbidden_contact", "success"} else "fixture")
             ep.task["outcome"].update(primary_reason=outcome,success=outcome=="success")
             ep.arrays["base_pos_w"][:,0] = ep.times*speed
             episodes.append(ep)
@@ -94,8 +94,26 @@ class ProductionTrajectoryTests(unittest.TestCase):
                          "1回合因缺测不能判全程阴性", "history ANY仅终点1拍", "回撤0.3m", "首次观察到上轴向下"):
             self.assertIn(expected,text)
         self.assertNotIn("全程曾上轴向下0回合",text)
+        self.assertIn("contact_cell 总计4/5（其中向下2/5）", text)
         from true_rl_agent.evaluation.process_report import report_bytes
         shown = production.author_behavior_payload({"source":{},"profile":public})
+        self.assertLessEqual(report_bytes(shown),10240)
+        self.assertIn("成功1回合（单例，不作群体推广）：结束1.6s；净前移0.6m", text)
+        from true_rl_agent.tasks.stair_climbing.behavior import comparison_operands
+        from true_rl_agent.tasks.stair_climbing.prompt_adapter import _secondary_behavior_evidence
+        comparison = {"domain":self.domain, **comparison_operands([measure_behavior(ep) for ep in episodes])}
+        comparison["cohort"]["failure_process"] = production.failure_process_operands(summary["behavior"])
+        phase = {"behavior":public, "behavior_comparison":comparison}
+        secondary = _secondary_behavior_evidence({"generation_index":1,
+            "parent_current_best":{"checkpoint_hash":self.domain["checkpoint_hash"]}, "parent_public_dev":phase,
+            "trials":[{"lane_id":"lane-a", "trial_status":"qualified_not_selected", "public_dev":{"public_summary":phase}}]})
+        shown = production.author_behavior_payload({"source":{}, "profile":public, "secondary":secondary})
+        process = shown["secondary"][0]["process"]
+        for expected in ("已见上轴向下2回合（末速-0.4m/s，末速有效1/2回合）",
+                         "完整未见向下且末前速>0.2m/s1回合（末速0.6m/s）", "其余已知1回合",
+                         "|前向速度|<0.01m/s的2回合（速度中位0m/s）",
+                         "1回合因缺测不能判全程阴性"):
+            self.assertIn(expected, process)
         self.assertLessEqual(report_bytes(shown),10240)
 
     def test_new_hash_v3_contract_and_short_unequal_episodes(self):

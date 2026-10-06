@@ -86,8 +86,9 @@ class RawBehaviorCheckTests(unittest.TestCase):
     def author_payload(self):
         # Literal values from the arithmetic above, not a production renderer.
         texts = {"scope": "本队列2回合，存档结局：偏离路线标签1、成功1。",
-            "motion": "净正向位移0.1m；净横向位移0.2m；根部位置差分水平速度0.447m/s；反向位移累计0m；低进度且足相对身体变化占比0%（有效1/2回合，缺失0读数）；身体前轴投影朝向0°(R=1)；上轴向下0/2回合。",
-            "outcome.off_course": "偏离路线标签1回合。", "outcome.success": "成功1回合。",
+            "motion": "净正向位移0.1m；净横向位移0.2m；根部位置差分水平速度0.447m/s；反向位移累计0m；低进度且足相对身体变化占比0%（有效1/2回合，缺失0读数、不适用4读数）；身体前轴投影朝向0°(R=1)；上轴向下0/2回合。",
+            "outcome.off_course": "偏离路线标签1回合（单例，不作群体推广）：结束0.75s；净前移0.2m、横移0.4m；末窗前速0.4m/s、横速0.8m/s、根部z0m；末态前轴朝向0°(R=1)，上轴倾角0°、方位不适用（有效0/1，不适用1、未知0）；上轴向下0/1回合。末窗力标记：L66.7%、全部未触发33.3%。",
+            "outcome.success": "成功1回合（单例，不作群体推广）：结束0.5s；净前移0m、横移0m；末窗前速0m/s、横速0m/s、根部z0m；末态前轴朝向0°(R=1)，上轴倾角0°、方位不适用（有效0/1，不适用1、未知0）；上轴向下0/1回合。",
             "foot.0": "L：接触占比33.3%、世界点速0.447m/s、相对点速0m/s；相对(x,y,z)均值=0/0.1/-0.2m；末窗相对点速0m/s。",
             "foot.1": "R：接触占比50%、世界点速0.447m/s、相对点速0m/s；相对(x,y,z)均值=0/-0.1/-0.2m；末窗相对点速0m/s。",
             "contacts": "R50%；L33.3%；全部未触发16.7%。",
@@ -107,8 +108,25 @@ class RawBehaviorCheckTests(unittest.TestCase):
         wrong_row = wrong["public_feedback_summary"]["behavior"]["profile"]["report"]["process"][1]
         wrong_row["text"] = wrong_row["text"].replace("净横向位移0.2m", "净横向位移0.447m")
         self.assertTrue(any("净横向位移" in e for e in check_author(raw, wrong)))
+        singleton = deepcopy(payload)
+        singleton["public_feedback_summary"]["behavior"]["profile"]["report"]["process"][2]["text"] = "偏离路线标签1回合。"
+        self.assertTrue(any("结束" in e for e in check_author(raw, singleton)))
         rows[:] = [r for r in rows if r["id"] != "claim:outcome.success"]
         self.assertTrue(any("outcome.success: missing" in e for e in check_author(raw, payload)))
+
+    def test_secondary_uses_own_singleton_observation_and_detects_deleted_process(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path, _ = self.archive(Path(directory))
+            raw = read_raw(path)
+        payload = self.author_payload()
+        row = {"generation_index": 1, "lane_id": "lane-a", "process":
+               "候选自身失败过程：偏离路线标签1回合（单例，不作群体推广）：结束0.75s；净前移0.2m、横移0.4m；末窗前速0.4m/s；末态上轴倾角0°；上轴向下0/1回合。"}
+        payload["public_feedback_summary"]["behavior"]["secondary"] = [row]
+        self.assertEqual(check_author(raw, payload, secondary_source=(1, "lane-a")), [])
+        row["process"] = row["process"].replace("末窗前速0.4m/s", "末窗前速-0.4m/s")
+        self.assertTrue(any("末窗前速" in e for e in check_author(raw, payload, secondary_source=(1, "lane-a"))))
+        del row["process"]
+        self.assertTrue(check_author(raw, payload, secondary_source=(1, "lane-a")))
 
     def test_unknown_xyz_matches_each_column(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -117,8 +135,8 @@ class RawBehaviorCheckTests(unittest.TestCase):
         payload = self.author_payload()
         feet = [r for r in payload["public_feedback_summary"]["behavior"]["profile"]["report"]["process"] if r["id"].startswith("claim:foot.")]
         for row in feet:
-            row["text"] = row["text"].replace("世界点速0.447m/s", "世界点速未知m/s（有效0/2回合，缺失3读数）").replace(
-                "、相对点速0m/s", "、相对点速未知m/s（有效0/2回合，缺失3读数）").replace("末窗相对点速0m/s", "末窗相对点速未知m/s")
+            row["text"] = row["text"].replace("世界点速0.447m/s", "世界点速未知m/s（有效0/2回合，缺失3读数、不适用2读数）").replace(
+                "、相对点速0m/s", "、相对点速未知m/s（有效0/2回合，缺失3读数、不适用2读数）").replace("末窗相对点速0m/s", "末窗相对点速未知m/s")
             start, end = row["text"].split("相对(x,y,z)均值=")
             row["text"] = start+"相对(x,y,z)均值=未知/未知/未知m"+end.split("m", 1)[1]
         self.assertEqual(check_author(raw, payload), [])
@@ -145,6 +163,42 @@ class RawBehaviorCheckTests(unittest.TestCase):
             self.assertTrue(any("unknown q-point count" in e for e in check_author(raw, payload)))
         rows[0]["text"] += "缺测1点。"
         self.assertTrue(any("unknown q-point count" in e for e in check_author(raw, payload)))
+
+    def test_runtime_zero_valid_subgroup_requires_unknown_percentages(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path, arrays = self.archive(Path(directory))
+            # Duplicate the short success episode; both successes have no finite q.
+            arrays = {k: np.concatenate((v, v[[1]] if k == "terrain_env_origins_w" else v[:, [1]]),
+                axis=0 if k == "terrain_env_origins_w" else 1) for k, v in arrays.items()}
+            arrays["joint_pos"][:, 1:] = np.nan
+            chunk = path.parent/"chunk.npz"
+            np.savez(chunk, **arrays)
+            manifest = json.loads(path.read_text(encoding="utf-8"))
+            seed = manifest["metadata"]["seeds"][0]
+            seed["episode_steps"].append(2)
+            seed["outcomes"].append(deepcopy(seed["outcomes"][1]))
+            for values in manifest["metadata"]["runtime_joint_position_limits"]["values"].values():
+                values.append(deepcopy(values[1]))
+            manifest["chunks"][0]["sha256"] = hashlib.sha256(chunk.read_bytes()).hexdigest()
+            path.write_text(json.dumps(manifest), encoding="utf-8")
+            raw = read_raw(path)
+        self.assertEqual(raw["runtime_joint"]["success"]["episodes"], 2)
+        self.assertEqual(raw["runtime_joint"]["success"]["facts"]["hard"]["hip_joint"]["valid"], 0)
+        payload = self.author_payload()
+        rows = payload["public_feedback_summary"]["behavior"]["profile"]["report"]["process"]
+        joint = next(r for r in rows if r["id"] == "claim:runtime_joint.hip_joint")
+        good = ("hip界外下/上：有效3点，hard 0/33.3%、soft 0/33.3%；"
+            "最小余量(hard/soft)-0.0856/-0.1856rad。缺测4点。"
+            "成功2回合/0点：hard 未知/未知%、soft 未知/未知%。")
+        joint["text"] = good
+        # Other behavior text belongs to the original two-episode fixture;
+        # this test checks only the independently computed runtime-joint facts.
+        joint_errors = lambda: [e for e in check_author(raw, payload) if e.startswith("hip_joint")]
+        self.assertEqual(joint_errors(), [])
+        for kind in ("hard", "soft"):
+            for replacement in ("0/未知", "未知/0"):
+                joint["text"] = good.replace(kind+" 未知/未知%", kind+" "+replacement+"%")
+                self.assertTrue(any("success: wrong/missing "+kind in e for e in joint_errors()))
 
 
 if __name__ == "__main__":
