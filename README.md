@@ -20,3 +20,7 @@
 仿真与训练使用 Python 3.12、Isaac Sim 6、Isaac Lab 3 系列源码、RSL-RL 5 和 CUDA 版 PyTorch。LLM 通过 OpenAI 兼容接口接入。
 
 从仓库根目录配置 `PYTHONPATH` 指向 `true_RL_Agent` 与 `true_RL_Agent/src` 后，可通过 `true_RL_Agent/scripts/run_generation_session.py --help` 查看任务与实验参数。
+
+## PPO 微型检查
+
+`tools/prepare_first_stair_smoke.py --output runs/<准备目录>` 生成 Go2 爬楼梯 reference 作业参数；`true_RL_Agent/scripts/training_numeric_smoke.py` 使用这些参数检查 PPO 执行与数值记录。准备参数不会启动训练或模型请求。
