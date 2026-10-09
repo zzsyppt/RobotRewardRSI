@@ -1,0 +1,432 @@
+"""Stable public prompt payload assembly."""
+
+from __future__ import annotations
+
+from collections.abc import Mapping
+from typing import Any
+
+from true_rl_agent.agent_core.context import (
+    build_public_history_section,
+    sanitize_prompt_public_context,
+)
+from true_rl_agent.agent_core.provider_contract import (
+    candidate_package_files_contract,
+    provider_json_output_contract,
+)
+from true_rl_agent.candidates.authoring_policy import (
+    SINGLE_COMPONENT_DELTA_INSTRUCTION,
+)
+from true_rl_agent.candidates.capability_profile import CandidateCapabilityProfile
+from true_rl_agent.prompting.authoring_frame import (
+    build_authoring_context_frame,
+    compact_public_history_for_frame,
+    normalize_authoring_frame_kind,
+    project_sections_for_authoring_frame,
+    with_final_prompt_budget,
+)
+from true_rl_agent.prompting.capabilities import (
+    candidate_authoring_capabilities,
+    candidate_component_contract_from_capabilities,
+    control_effectiveness_contract_from_capabilities,
+    prompt_visible_component_classes,
+)
+from true_rl_agent.prompting.public_safety import assert_public_only_prompt_payload
+from true_rl_agent.prompting.serialization import (
+    canonical_prompt_json,
+)
+from true_rl_agent.prompting.source_catalog import (
+    PROMPT_SOURCE_SECTION_KEYS,
+    default_prompt_source_sections,
+    validate_prompt_source_sections,
+    finalize_prompt_source_sections,
+)
+from true_rl_agent.prompting.task_sections import sanitize_task_prompt_sections
+
+PROMPT_PAYLOAD_SECTION_ORDER = (
+    "schema_version",
+    "task",
+    "loop_contract",
+    "candidate_capabilities",
+    "reward_inputs_contract",
+    "public_eval_contract",
+    "control_effectiveness_contract",
+    "known_good_examples",
+    "selection_guidance",
+    "source_catalog",
+    "candidate_lineage",
+    "source_payloads",
+    "public_feedback_summary",
+    "runtime_feedback_summary",
+    "public_history",
+    "exploration_directive",
+    "required_candidate_package",
+    "authoring_context_frame",
+    "provider_or_runtime_repair_feedback",
+)
+
+
+def serialize_prompt_payload(payload: Mapping[str, Any]) -> str:
+    """Return the canonical provider-facing JSON text for a public prompt payload."""
+
+    assert_public_only_prompt_payload(payload)
+    return canonical_prompt_json(payload)
+
+
+def reward_inputs_projection() -> dict[str, Any]:
+    return {
+        "schema_version": "true_rl_agent.reward_inputs.public.v1",
+        "status": "legacy_alias_deprecated",
+        "canonical_section": "reward_inputs_contract",
+        "field_semantics_source": "task_owned_reward_inputs_contract",
+        "fields": [],
+    }
+
+
+def candidate_allowed_controls() -> list[str]:
+    return prompt_visible_component_classes()
+
+
+def candidate_component_contract(
+    *,
+    candidate_capabilities: Mapping[str, Any] | None = None,
+    verifier_prompt_rules: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    return candidate_component_contract_from_capabilities(
+        candidate_capabilities,
+        verifier_prompt_rules=verifier_prompt_rules,
+    )
+
+
+def required_candidate_package(
+    *,
+    candidate_capabilities: Mapping[str, Any] | None = None,
+    verifier_prompt_rules: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    advertised_components = (
+        list(
+            candidate_capabilities.get(
+                "provider_declared_components_prompt_advertised",
+                [],
+            )
+        )
+        if isinstance(candidate_capabilities, Mapping)
+        else None
+    )
+    return {
+        "schema_version": "true_rl_agent.required_candidate_package.v1",
+        "candidate_role": "candidate_package_only",
+        "provider_json_output": provider_json_output_contract(
+            advertised_declared_components=advertised_components,
+        ),
+        "candidate_files": candidate_package_files_contract(),
+        "component_contract": candidate_component_contract(
+            candidate_capabilities=candidate_capabilities,
+            verifier_prompt_rules=verifier_prompt_rules,
+        ),
+        "candidate_must_not_change": [
+            "runner code",
+            "runner",
+            "eval protocol",
+            "success metric",
+            "training budget",
+            "seed policy",
+            "checkpoints",
+            "PPO",
+            "acceptance rules",
+        ],
+        "operation_diff_contract": {
+            "materialized_by": "candidate_materializer",
+            "llm_output_key_allowed": False,
+            "derived_from": ["declared_changed_components"],
+            "authority": "verifier-derived change set remains authoritative",
+            "purpose": "public provenance for declared changed components, not a runner patch",
+        },
+        "diagnostics_contract": {
+            "materialized_by": "candidate_materializer",
+            "llm_output_key_allowed": False,
+            "derived_from": ["provider_response_parse", "candidate_materialization_status"],
+            "purpose": "public candidate-package materialization diagnostics; task-owned diagnostics use only prompt-visible capabilities",
+        },
+    }
+
+
+def control_effectiveness_contract(
+    *, candidate_capabilities: Mapping[str, Any] | None = None
+) -> dict[str, Any]:
+    return control_effectiveness_contract_from_capabilities(candidate_capabilities)
+
+
+def build_prompt_payload(
+    *,
+    public_context: dict[str, Any],
+    frame_kind: str | None = None,
+    authoring_capability_readiness: Mapping[str, Mapping[str, Any]] | None = None,
+    candidate_capability_profile: CandidateCapabilityProfile | None = None,
+    candidate_verifier_prompt_rules: Mapping[str, Any] | None = None,
+    recoverable_sources: tuple[Mapping[str, Any], ...] = (),
+) -> dict[str, Any]:
+    safe_context = sanitize_prompt_public_context(dict(public_context))
+    authoring_frame_kind = normalize_authoring_frame_kind(frame_kind, safe_context)
+    task_sections = _task_prompt_sections(safe_context.get("task_prompt_sections"))
+    safe_context.pop("task_prompt_sections", None)
+    source_sections = _source_prompt_sections(
+        safe_context,
+        allow_source_payload_subset=authoring_frame_kind == "source_followup",
+    )
+    for section in PROMPT_SOURCE_SECTION_KEYS:
+        safe_context.pop(section, None)
+    public_history, omitted_sections = compact_public_history_for_frame(
+        _public_history(safe_context),
+        frame_kind=authoring_frame_kind,
+    )
+    safe_context["recent_outcomes"] = public_history["recent_outcomes"]
+    safe_context["public_history_limits"] = public_history["limits"]
+    safe_context["public_history_omitted_round_count"] = public_history["omitted_round_count"]
+
+    candidate_capabilities = candidate_authoring_capabilities(
+        capability_profile=candidate_capability_profile,
+        task_specific_metadata=task_sections.get("task_capability_metadata"),
+        authoring_capability_readiness=authoring_capability_readiness,
+    )
+    section_values: dict[str, Any] = {
+        "task": task_sections.get("task", _generic_task_section()),
+        "loop_contract": _loop_contract(candidate_capabilities),
+        "public_feedback_summary": task_sections.get(
+            "public_feedback_summary", _generic_public_feedback_summary(safe_context)
+        ),
+        "runtime_feedback_summary": task_sections.get(
+            "runtime_feedback_summary", _generic_runtime_feedback_summary(safe_context)
+        ),
+        "required_candidate_package": required_candidate_package(
+            candidate_capabilities=candidate_capabilities,
+            verifier_prompt_rules=candidate_verifier_prompt_rules,
+        ),
+        "candidate_capabilities": candidate_capabilities,
+        "reward_inputs_contract": task_sections.get(
+            "reward_inputs_contract", _generic_reward_inputs_contract()
+        ),
+        "public_eval_contract": task_sections.get("public_eval_contract", _generic_public_eval_contract()),
+        "control_effectiveness_contract": control_effectiveness_contract(
+            candidate_capabilities=candidate_capabilities
+        ),
+        "source_catalog": source_sections["source_catalog"],
+        "candidate_lineage": source_sections["candidate_lineage"],
+        "source_payloads": source_sections["source_payloads"],
+        "public_history": public_history,
+        "known_good_examples": task_sections.get("known_good_examples", []),
+        "exploration_directive": source_sections["exploration_directive"],
+        "selection_guidance": _task_selection_guidance(
+            task_sections.get("selection_guidance")
+        ),
+        "provider_or_runtime_repair_feedback": safe_context.get("candidate_repair_feedback"),
+        "schema_version": "true_rl_agent.prompt_payload.v5",
+    }
+    section_values, frame_omissions = project_sections_for_authoring_frame(
+        section_values,
+        frame_kind=authoring_frame_kind,
+        section_order=PROMPT_PAYLOAD_SECTION_ORDER,
+    )
+    projected_source_sections = finalize_prompt_source_sections(
+        {key: section_values[key] for key in PROMPT_SOURCE_SECTION_KEYS},
+        recoverable_sources=recoverable_sources,
+    )
+    section_values.update(projected_source_sections)
+    omitted_sections.extend(frame_omissions)
+    section_values["authoring_context_frame"] = build_authoring_context_frame(
+        frame_kind=authoring_frame_kind,
+        section_values=section_values,
+        section_order=PROMPT_PAYLOAD_SECTION_ORDER,
+        omitted_sections=omitted_sections,
+    )
+    payload: dict[str, Any] = {}
+    for section in PROMPT_PAYLOAD_SECTION_ORDER:
+        if section not in section_values or (
+            section == "provider_or_runtime_repair_feedback"
+            and section_values[section] is None
+        ):
+            continue
+        payload[section] = section_values[section]
+    payload["authoring_context_frame"] = with_final_prompt_budget(
+        payload["authoring_context_frame"],
+        prompt_payload=payload,
+        legacy_alias_sections=(),
+    )
+    assert_public_only_prompt_payload(payload)
+    return payload
+
+
+def _task_prompt_sections(value: Any) -> dict[str, Any]:
+    if not isinstance(value, Mapping):
+        return {}
+    return sanitize_task_prompt_sections(value)
+
+
+def _source_prompt_sections(
+    public_context: Mapping[str, Any],
+    *,
+    allow_source_payload_subset: bool = False,
+) -> dict[str, Any]:
+    defaults = default_prompt_source_sections()
+    sections = {
+        key: public_context.get(key, defaults[key])
+        for key in PROMPT_SOURCE_SECTION_KEYS
+    }
+    return validate_prompt_source_sections(
+        sections,
+        require_inline_payloads=not allow_source_payload_subset,
+    )
+
+
+def _generic_task_section() -> dict[str, Any]:
+    return {
+        "schema_version": "true_rl_agent.task_prompt.generic.v1",
+        "task_id": "not_provided",
+        "name": "not_provided_by_task_prompt_adapter",
+        "prompt_adapter": "not_provided",
+    }
+
+
+def _loop_contract(candidate_capabilities: Mapping[str, Any]) -> dict[str, Any]:
+    candidate_may: list[str] = []
+    visible = candidate_capabilities.get("prompt_visible_capabilities", [])
+    if isinstance(visible, list):
+        for capability in visible:
+            if not isinstance(capability, Mapping):
+                continue
+            actions = capability.get("candidate_allowed_actions", [])
+            if not isinstance(actions, list):
+                continue
+            for action in actions:
+                if isinstance(action, str) and action not in candidate_may:
+                    candidate_may.append(action)
+    return {
+        "schema_version": "true_rl_agent.loop_contract.v2",
+        "candidate_role": "Return a candidate package only.",
+        "candidate_may": candidate_may,
+        "runner_owned": [
+            "training budget",
+            "eval protocol",
+            "seed policy",
+            "checkpoint selection",
+            "success metric",
+            "accept/reject decision",
+        ],
+        "candidate_must_not_change": [
+            "runner",
+            "eval protocol",
+            "training budget",
+            "seed policy",
+            "checkpoints",
+            "PPO",
+            "acceptance rules",
+            "task invariants",
+        ],
+        "evidence_discipline": _task_neutral_evidence_discipline(),
+    }
+
+
+def _generic_reward_inputs_contract() -> dict[str, Any]:
+    return {
+        "schema_version": "true_rl_agent.reward_inputs_contract.generic.v1",
+        "status": "task_owned_contract_not_provided",
+        "field_semantics_source": "task_prompt_adapter_required",
+    }
+
+
+def _generic_public_eval_contract() -> dict[str, Any]:
+    return {
+        "schema_version": "true_rl_agent.public_eval_contract.generic.v1",
+        "status": "task_owned_contract_not_provided",
+        "decision_authority": "runner_owned_read_only",
+    }
+
+
+def _generic_public_feedback_summary(public_context: Mapping[str, Any]) -> dict[str, Any]:
+    summary = {
+        "schema_version": "true_rl_agent.public_feedback_summary.generic.v1",
+        "previous_rounds": public_context.get("previous_rounds", 0),
+        "best_public_score": public_context.get("best_public_score"),
+        "last_outcome": public_context.get("last_outcome"),
+        "candidate_repair_feedback_available": "candidate_repair_feedback" in public_context,
+    }
+    task_summary = public_context.get("task_public_summary")
+    if isinstance(task_summary, Mapping):
+        summary["task_public_summary"] = sanitize_prompt_public_context(dict(task_summary))
+    return summary
+
+
+def _generic_runtime_feedback_summary(public_context: Mapping[str, Any]) -> dict[str, Any]:
+    repair_feedback = public_context.get("candidate_repair_feedback")
+    return {
+        "schema_version": "true_rl_agent.runtime_feedback_summary.generic.v1",
+        "status": "not_projected_yet",
+        "repair_feedback_category": (
+            repair_feedback.get("failure_category") if isinstance(repair_feedback, Mapping) else None
+        ),
+    }
+
+
+def _public_history(public_context: Mapping[str, Any]) -> dict[str, Any]:
+    return build_public_history_section(public_context)
+
+
+def _generic_selection_guidance() -> list[str]:
+    return [
+        "Prefer code-level training mechanisms over parameter-only changes.",
+        "Use only public prompt evidence.",
+        "Do not modify runner, eval protocol, training budget, seed policy, checkpoints, PPO, or acceptance rules.",
+    ]
+
+
+def _task_selection_guidance(task_guidance: Any) -> list[str]:
+    """Return task-owned guidance without merging common prompt sections into it."""
+
+    if task_guidance is None:
+        guidance = _generic_selection_guidance()
+    elif isinstance(task_guidance, list | tuple) and all(
+        isinstance(item, str) and item.strip() for item in task_guidance
+    ):
+        guidance = list(task_guidance)
+    else:
+        raise TypeError("selection_guidance must be a sequence of non-empty strings")
+    return list(dict.fromkeys(guidance))
+
+
+def _task_neutral_evidence_discipline() -> list[str]:
+    """Return common evidence rules owned by the shared loop contract."""
+
+    return [
+        (
+            "Before authoring, compare the proposed mechanism with public_history.experiment_memory, "
+            "recent_outcomes, and current-best evidence."
+        ),
+        (
+            "Treat lower scores, failed gates, and dominating or negligible runtime component "
+            "contributions as negative evidence; do not silently repeat or combine those mechanisms."
+        ),
+        (
+            "Treat last_mean only as the last sampled weighted-contribution snapshot; never infer "
+            "that a component is inactive or causally ineffective from last_mean alone. Compare "
+            "max_abs, repeated runtime evidence, and fixed evaluation outcomes."
+        ),
+        (
+            "If reusing a rejected mechanism, the canonical hypothesis narrative embedded in "
+            "TrainingComponents.rationale must name the closest prior candidate, state the exact "
+            "code-level difference, and explain how it addresses the observed failure; keep "
+            "mechanical repair notes out of that hypothesis."
+        ),
+        (
+            "Do not submit numeric-only, string-only, or formatting-only variants of an evaluated "
+            "source; the historical-source gate rejects those variants before training."
+        ),
+        (
+            "Prefer the accepted current-best source, or when none exists the explicitly "
+            "nonaccepted best-observed bootstrap anchor."
+        ),
+        SINGLE_COMPONENT_DELTA_INSTRUCTION,
+        (
+            "Process evidence may contain several correlated observations; it does not authorize "
+            "changing multiple mechanisms. Separate observations from hypotheses, keep the "
+            "current focus during repair, and treat a previous rationale as a proposal, not an observation."
+        ),
+    ]

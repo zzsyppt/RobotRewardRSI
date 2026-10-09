@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "true-rl-agent"
+version = "0.1.0"
+description = "Independent true RL policy improvement agent for humanoid tasks."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "true_RL_Agent contributors" }]
+dependencies = []
+
+[project.optional-dependencies]
+test = ["numpy>=2,<3", "imageio-ffmpeg==0.6.0", "torch==2.11.0", "ruff==0.16.6"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+src = ["src", "tests"]

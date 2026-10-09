@@ -1,0 +1,56 @@
+--- a/source/unitree_rl_lab/config/extension.toml
++++ b/source/unitree_rl_lab/config/extension.toml
+@@ -1,7 +1,7 @@
+ [package]
+ 
+ # Semantic Versioning is used: https://semver.org/
+-version = "0.1.0"
++version = "0.2.1+isaaclab3.p2"
+ 
+ # Description
+ category = "isaaclab"
+--- a/source/unitree_rl_lab/pyproject.toml
++++ b/source/unitree_rl_lab/pyproject.toml
+@@ -4,7 +4,7 @@
+ 
+ [project]
+ name = "unitree_rl_lab"
+-version = "0.2.1"
++version = "0.2.1+isaaclab3.p2"
+ description = "Reinforcement Learning Lab for Unitree Robots."
+ dependencies = [
+     "argcomplete",
+--- a/source/unitree_rl_lab/unitree_rl_lab/tasks/locomotion/robots/g1/29dof/velocity_env_cfg.py
++++ b/source/unitree_rl_lab/unitree_rl_lab/tasks/locomotion/robots/g1/29dof/velocity_env_cfg.py
+@@ -16,7 +16,8 @@
+ from isaaclab.terrains import TerrainImporterCfg
+ from isaaclab.utils import configclass
+ from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR
+-from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
++from isaaclab.utils.noise import UniformNoiseCfg as Unoise
++from isaaclab_physx.physics import PhysxCfg
+ 
+ from unitree_rl_lab.assets.robots.unitree import UNITREE_G1_29DOF_CFG as ROBOT_CFG
+ from unitree_rl_lab.tasks.locomotion import mdp
+@@ -379,7 +380,7 @@
+         self.sim.dt = 0.005
+         self.sim.render_interval = self.decimation
+         self.sim.physics_material = self.scene.terrain.physics_material
+-        self.sim.physx.gpu_max_rigid_patch_count = 10 * 2**15
++        self.sim.physics = PhysxCfg(gpu_max_rigid_patch_count=10 * 2**15)
+ 
+         # update sensor update periods
+         # we tick all the sensors based on the smallest update period (physics update period)
+--- a/source/unitree_rl_lab/unitree_rl_lab/assets/robots/unitree.py
++++ b/source/unitree_rl_lab/unitree_rl_lab/assets/robots/unitree.py
+@@ -397,8 +397,8 @@
+ )
+ 
+ UNITREE_G1_29DOF_CFG = UnitreeArticulationCfg(
+-    spawn=UnitreeUrdfFileCfg(
+-        asset_path=f"{UNITREE_ROS_DIR}/robots/g1_description/g1_29dof_rev_1_0.urdf",
++    spawn=UnitreeUsdFileCfg(
++        usd_path=os.path.join(os.path.dirname(__file__), "../g1_29dof_physx/g1_29dof_rev_1_0.usd"),
+     ),
+     init_state=ArticulationCfg.InitialStateCfg(
+         pos=(0.0, 0.0, 0.8),

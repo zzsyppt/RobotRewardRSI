@@ -1,0 +1,146 @@
+{
+  "artifacts": {
+    "checkpoint": {
+      "relative_path": "runner/stair-r0-formal-aacaee2/checkpoints/best.pt",
+      "sha256": "d85e0fa232826711ff88d61f6d1d386bf70a58a14a21bbb720cb4b82078e43f9"
+    },
+    "evaluation_summary": {
+      "relative_path": "runner/stair-r0-formal-aacaee2/eval/summary.json",
+      "sha256": "e4ed6082405b29acd9331985ace753ab5530462dfd0785316a3c939b0964fe40"
+    },
+    "reference_artifact_manifest": {
+      "relative_path": "reference_program_artifacts/official-g1-rough-reward-v1/df2938d72a15fa2d2c0079c0155de1765194e27de25583d32546f416efda0c7d/.true_rl_agent_reference_artifact.json",
+      "sha256": "15eb2ec3c3690693a4039c0835b83dc2aa7a43797481a62ac268f066ac30c884"
+    },
+    "reference_private_evidence": {
+      "relative_path": "reference_eval_artifact.json",
+      "sha256": "57c1cdcd05017edce6426c24fde9903b578f954c31c03b3c9dfab21ed3744a74"
+    },
+    "reference_reward_source": {
+      "relative_path": "reference_program_artifacts/official-g1-rough-reward-v1/df2938d72a15fa2d2c0079c0155de1765194e27de25583d32546f416efda0c7d/training_code/components.py",
+      "sha256": "a1255b585ffc6752df710be648cf0439017d5220a41853b9dfdebc778c3c03a3"
+    },
+    "session_genesis": {
+      "relative_path": "session_genesis.json",
+      "sha256": "d425de59e63f50075437bee130bbb5b8dcc5e3f1a019ffc3239b74ed023f24b3"
+    },
+    "training_summary": {
+      "relative_path": "runner/stair-r0-formal-aacaee2/train/summary.json",
+      "sha256": "75361d7c682e91f88452be3a8d760fd9dbc3595f5fb61e38f55bdb1ef84fcfb1"
+    }
+  },
+  "evaluation": {
+    "gate_statuses": {
+      "accept_evidence_gate": "pass",
+      "budget_accounting": "pass",
+      "reference_capability_gate": "pass",
+      "runtime_activation_gate": "pass",
+      "sealed_validation_gate": "pass",
+      "stair_behavior_gate": "pass"
+    },
+    "public_accept": {
+      "count": 5,
+      "mean": 0.5464285714285715,
+      "standard_error": 0.01749635530559413,
+      "std": 0.03912303982179759
+    },
+    "public_score": 0.5464285714285715,
+    "reference_capability": {
+      "minimum_macro_mean_max_progress_m": 0.5,
+      "minimum_macro_mean_success_rate": 0.05,
+      "observed_macro_mean_max_progress_m": 6.072470604333333,
+      "observed_macro_mean_success_rate": 0.95,
+      "status": "pass"
+    },
+    "sealed_validation": {
+      "count": 7,
+      "mean": 0.5586734693877551,
+      "standard_error": 0.012145286443100079,
+      "std": 0.03213340753008703
+    }
+  },
+  "execution": {
+    "budget": {
+      "budget_steps": 196608000,
+      "max_iterations": 2000,
+      "num_envs": 4096,
+      "num_steps_per_env": 24,
+      "status": "pass"
+    },
+    "execution_device": "cuda:1",
+    "formal_training_code_commit": "aacaee242fa6242c76bf63fc937a6eb649fd632c",
+    "load_only_verification_code_commit": "734f0167dbe790fec25199bd3a9dc72c22815dcd",
+    "policy_initialization": "random"
+  },
+  "formal_creation": {
+    "control_root_uri": "ssh://humanoid-server/data/yuyangliu/true_rl_agent_phase_e/formal_r0_aacaee2_control",
+    "exit_code": 0,
+    "exit_code_file_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "launcher_pid": 3480066,
+    "launcher_pid_file_sha256": "4f798f44724cc8de155c93dbb2b8756ff5f56c87eef16ef64b07a5a9493c41cb",
+    "launcher_process_after": "absent",
+    "run_log_sha256": "b15ecd4421bfb3c84debab8b9cc8d00e87e82c2fda464c13737db49a3bd943a7",
+    "status": "pass"
+  },
+  "lineage": {
+    "acceptance_protocol_hash": "4e860ba981315580dba49ab0385a6b6826c8987288a1e98b8b4bbcacfe3f5917",
+    "agent_configuration_hash": "8a5d64c47ac034695d2eec23ff60a89ecbf1253694edb8c373a4da86872bb450",
+    "capability_profile_hash": "a5f96c0685e07b04929d5b92f1c8485d72e8e4e6025d7653933b557d5d2093a0",
+    "environment_source_manifest_hash": "f5c5edffe857a905d60e1ffea1a0ceca0aa586c247fe62883b329f598b9ad94b",
+    "eval_protocol_hash": "728d683cea3a602e86cddac6748a687f4e0f65c43f19138a568e7b18ee848397",
+    "evaluation_binding_hash": "236b8afd2540fcdca92b182c04d58bf4503fed281d6f70bbf090f7110d40aa17",
+    "genesis_identity_hash": "efc20d066b7184518fae63efbd8b36256ca604eab2cb8976de918cc2ad70f524",
+    "initial_policy_state_hash": "55154410d8451cece112f6418cf6f18da6a7ed6c76571cd65e08f99e4c2d543a",
+    "initialization_seed_schedule_hash": "0906656b49bcb995fc790c36d4c16174e521f06e41496ae918523a118e458d6d",
+    "optimizer_training_profile_hash": "77942852bd99b536e3e244dd216a15e6f07a4ea4681c045dc7cc5bf50eb3962b",
+    "policy_architecture_hash": "a02a7e06b7e87699dde132fd5f8ae8ac1de438c88b694ea774d958faa9d0f159",
+    "reference_artifact_hash": "df2938d72a15fa2d2c0079c0155de1765194e27de25583d32546f416efda0c7d",
+    "reference_manifest_hash": "34dff42c11b5fcd6a21514ca9e5edaaa95897c6866583f8a5ee0319338aa438e",
+    "reference_program_verification_hash": "26ac7c4a0d43ff2b225b0958488ca7ba37cc8e33ebd6aac37a27c993238147bf",
+    "reward_program_qualification_hash": "914e4bdd978ee62c0416149bab3b77d5132093ce4b94bd1844585f3c6c670c80",
+    "reward_source_checksum": "sha256:a1255b585ffc6752df710be648cf0439017d5220a41853b9dfdebc778c3c03a3",
+    "seed_cohort_hash": "0166c39eaf19ad7c146d28e7a28ec57b6d2a7b58239e61ed6bf4a700c75a95db",
+    "task_protocol_hash": "d08200cc7458773f464f4fe78122f26d188153895f6d7268c7b5d5e209bc009d",
+    "training_binding_hash": "2a469d700e2cff853d525e720173483381139f0901852ac031c681c0192fc2b2"
+  },
+  "load_only_replay": {
+    "evidence_root_uri": "ssh://humanoid-server/data/yuyangliu/true_rl_agent_phase_e/formal_r0_aacaee2_load_only_734f016",
+    "exit_code": 0,
+    "genesis_bytes_unchanged": true,
+    "genesis_mtime_ns": 1785468089714246768,
+    "genesis_mtime_unchanged": true,
+    "gpu_processes": {
+      "after_snapshot_sha256": "880c13e3778f67cba977fc30cd6eceab7b33a7a754e5893fe480781756648821",
+      "before_snapshot_sha256": "4191b7ed8728c50585195e72387e7cfb2766c4375ed9f15ec8df371d6fa87d02",
+      "new_process_count": 0,
+      "note": "One pre-existing PID remained; its memory use changed independently. No new GPU PID appeared."
+    },
+    "ledger_record_count": 0,
+    "ledger_state_after": "absent",
+    "ledger_state_before": "absent",
+    "matching_runtime_processes_after": 0,
+    "matching_runtime_processes_after_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "matching_runtime_processes_before": 0,
+    "matching_runtime_processes_before_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "provider_call_count": 0,
+    "reference_source_status": "pass",
+    "replay_status": "pass",
+    "runner_call_count": 0,
+    "status": "pass",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "summary_relative_path": "load_only_summary.json",
+    "summary_sha256": "37e170489fa804aa79478aed0a9bcd2f508546c090b84400edc281940a870439"
+  },
+  "manifest_hash": "2808fd835a65c019801f27ece1d6de511faa32908f559bb487484cb5ff545e7f",
+  "phase": "E",
+  "reference_id": "official-g1-rough-reward-v1",
+  "schema_version": "true_rl_agent.stair.phase_e_completion.v1",
+  "session": {
+    "artifact_root_uri": "ssh://humanoid-server/data/yuyangliu/true_rl_agent_phase_e/formal_r0_aacaee2",
+    "embedded_session_genesis_hash": "83801c0ac596c1e7567fabdc580383a9c9ff8324510e68d374a1a593dd248ac5",
+    "ledger_state": "absent",
+    "session_id": "stair-r0-formal-aacaee2"
+  },
+  "status": "complete",
+  "task_id": "unitree_stair_climbing"
+}

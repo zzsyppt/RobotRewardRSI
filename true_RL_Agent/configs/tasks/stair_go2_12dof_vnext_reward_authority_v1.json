@@ -1,0 +1,89 @@
+{
+  "schema_version": "true_rl_agent.task.stair_climbing.vnext_reward_authority.v1",
+  "authority_id": "stair_go2_complete_reward_vnext_authority_v1",
+  "task_id": "unitree_stair_climbing",
+  "common_input_field_names": [
+    "base_height",
+    "roll",
+    "pitch",
+    "base_pos_xy",
+    "base_lin_vel",
+    "base_ang_vel",
+    "projected_gravity",
+    "commanded_base_vel",
+    "joint_pos",
+    "joint_vel",
+    "joint_pos_error",
+    "last_action",
+    "prev_action",
+    "action_delta",
+    "progress_fraction"
+  ],
+  "joint_group_inputs": [],
+  "output_contract": {
+    "shape": [
+      "num_envs"
+    ],
+    "dtype": "float",
+    "device": "same_as_inputs",
+    "finite_required": true,
+    "term_bound_applies_to": "weighted_contribution_after_clip",
+    "maximum_absolute_term_rate": 100000.0,
+    "maximum_absolute_total_rate": 100000.0
+  },
+  "dispatcher": {
+    "manager_term_name": "complete_reward",
+    "manager_term_weight": 1.0,
+    "program_calls_per_control_step": 1,
+    "term_calls_per_program_call": 1,
+    "determinism_preflight_repeats": 2,
+    "evidence_sample_interval_steps": 24,
+    "input_isolation": "detached_clone_per_field",
+    "rng_guard": "python_numpy_torch_cpu_and_all_initialized_cuda_devices"
+  },
+  "reference_equivalence": {
+    "upstream_project": "IsaacLab",
+    "upstream_revision": "v2.3.0",
+    "upstream_source_path": "isaaclab_tasks/manager_based/locomotion/velocity/config/go2/flat_env_cfg.py",
+    "absolute_tolerance": 1e-06,
+    "relative_tolerance": 1e-06,
+    "active_term_names": [
+      "track_lin_vel_xy_exp",
+      "track_ang_vel_z_exp",
+      "ang_vel_xy_l2",
+      "flat_orientation_l2",
+      "dof_torques_l2",
+      "dof_acc_l2",
+      "action_rate_l2",
+      "feet_air_time"
+    ],
+    "zero_weight_term_names": [
+      "lin_vel_z_l2",
+      "dof_pos_limits"
+    ],
+    "disabled_term_names": [
+      "undesired_contacts"
+    ],
+    "weight_adaptations": [
+      {
+        "term_name": "track_lin_vel_xy_exp",
+        "upstream_weight": 1.5,
+        "reference_weight": 3.5,
+        "rationale_id": "forward_only_command_advantage_normalization"
+      },
+      {
+        "term_name": "lin_vel_z_l2",
+        "upstream_weight": -2.0,
+        "reference_weight": 0.0,
+        "rationale_id": "stair_ascent_vertical_motion_not_penalized"
+      }
+    ]
+  },
+  "performance_gate": {
+    "num_envs": 1024,
+    "warmup_control_steps": 32,
+    "measured_control_steps": 128,
+    "minimum_dispatcher_throughput_ratio": 0.85
+  },
+  "authority_hash": "de4380225e9620dc3d541c7aa4ca813b6face10d36cdacdc4ea28bbf72c84855"
+}
