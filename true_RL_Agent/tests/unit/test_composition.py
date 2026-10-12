@@ -416,6 +416,9 @@ class CompositionTests(unittest.TestCase):
         values = dict(provider.cli_defaults())
         values.update(
             {
+                "cell_variant_id": "push.g1_29dof.legacy_v1",
+                "reference_program_genesis": False,
+                "eval_base_seed": 42,
                 "isaac_python": "/opt/isaac/python",
                 "train_entrypoint": "scripts/custom_train.py",
                 "eval_entrypoint": "scripts/custom_eval.py",
@@ -444,7 +447,11 @@ class CompositionTests(unittest.TestCase):
 
         task_config = composition.task_plugin.config
         backend_config = composition.backend_adapter.config
-        self.assertEqual(dict(composition.task_defaults), values)
+        # The new evaluation field is absent in a frozen legacy snapshot.
+        expected_defaults = {**values}
+        self.assertIsNone(expected_defaults.pop("push_evaluation_protocol"))
+        expected_defaults.pop("reference_admission_policy")
+        self.assertEqual(dict(composition.task_defaults), expected_defaults)
         self.assertEqual(
             composition.runner.allowed_executables,
             (values["isaac_python"],),

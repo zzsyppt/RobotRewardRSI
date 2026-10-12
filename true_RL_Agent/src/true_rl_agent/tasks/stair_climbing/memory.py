@@ -83,7 +83,7 @@ class StairTaskMemoryAdapter:
             raise ValueError(
                 "Stair generation history requires its bound generation session contract"
             )
-        projector = self._exploration_projector()
+        projector = self.exploration_projector()
         return build_generation_exploration_plan(
             history,
             task_projector=projector,
@@ -94,7 +94,12 @@ class StairTaskMemoryAdapter:
             ),
         )
 
-    def _exploration_projector(self) -> StairExplorationProjector:
+    def exploration_projector_contract(self) -> Mapping[str, Any]:
+        if self.config is None:
+            raise ValueError("Stair generation requires the resolved task configuration")
+        return StairExplorationProjector(self.config).contract()
+
+    def exploration_projector(self) -> StairExplorationProjector:
         if self.config is None:
             raise ValueError(
                 "Stair generation history requires the resolved task configuration"

@@ -36,6 +36,7 @@ class TaskCompositionError(ValueError):
 class TaskCompositionContext:
     project_root: Path
     output_dir: Path
+    read_only: bool = False
 
 
 @dataclass(frozen=True)
@@ -51,6 +52,8 @@ class ResolvedTaskComposition:
     policy_initialization: PolicyInitialization
     genesis_anchor_kind: str
     task_defaults: Mapping[str, Any] = field(default_factory=dict)
+    scientific_parameters: Mapping[str, Any] = field(default_factory=dict)
+    execution_placement: Mapping[str, Any] = field(default_factory=dict)
     baseline_manifest: BaselineManifest | None = None
     reference_program_artifact: VerifiedReferenceProgramArtifact | None = None
     bootstrap_initial_best_score: float | None = None
@@ -269,11 +272,8 @@ class ResolvedTaskComposition:
                 )
         else:
             raise TaskCompositionError("composition Genesis anchor kind is invalid")
-        object.__setattr__(
-            self,
-            "task_defaults",
-            MappingProxyType(dict(self.task_defaults)),
-        )
+        for name in ("task_defaults", "scientific_parameters", "execution_placement"):
+            object.__setattr__(self, name, MappingProxyType(dict(getattr(self, name))))
 
     @property
     def reference_program_manifest(self) -> ReferenceProgramManifest | None:
@@ -289,11 +289,6 @@ class ResolvedTaskComposition:
         """
 
         snapshot = {
-            "schema_version": (
-                "true_rl_agent.runtime_composition_snapshot.v2"
-                if self.resolved_cell_manifest is not None
-                else "true_rl_agent.runtime_composition_snapshot.v1"
-            ),
             "task_id": self.task_id,
             "task_protocol_hash": (
                 self.task_plugin.task_spec.resolved_task_protocol_hash()
@@ -302,7 +297,9 @@ class ResolvedTaskComposition:
             "candidate_capability_profile": (
                 self.task_plugin.task_spec.candidate_capability_profile.to_public_dict()
             ),
-            "task_defaults": dict(self.task_defaults),
+            "fixed_train_protocol": dict(self.task_plugin.task_spec.fixed_train_protocol),
+            "fixed_eval_protocol": dict(self.task_plugin.task_spec.fixed_eval_protocol),
+            "parameters": dict(self.scientific_parameters),
         }
         if self.resolved_cell_manifest is not None:
             manifest = self.resolved_cell_manifest
@@ -332,7 +329,11 @@ class ResolvedTaskComposition:
             snapshot["bootstrap_initial_best_score"] = float(
                 self.bootstrap_initial_best_score
             )
-        return MappingProxyType(snapshot)
+        return MappingProxyType({
+            "schema_version": "true_rl_agent.runtime_composition_snapshot.v3",
+            "scientific": snapshot,
+            "execution_placement": dict(self.execution_placement),
+        })
 
 
 class TaskCompositionProvider(ABC):

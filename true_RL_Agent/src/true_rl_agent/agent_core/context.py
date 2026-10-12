@@ -18,11 +18,13 @@ from true_rl_agent.agent_core.source_request_feedback import (
     project_source_request_round_feedback,
 )
 from true_rl_agent.evaluation.acceptance_protocol import AcceptanceProtocol
+from true_rl_agent.candidates.mechanism import RuntimeActivationEvidence
 from true_rl_agent.evaluation.acceptance_replay import (
     ProjectedPublicHistory,
     project_public_history,
 )
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
+from true_rl_agent.evaluation.phased_adapter import PhasedEvaluationAdapter
 from true_rl_agent.prompt_serialization import canonical_prompt_json_bytes
 
 PUBLIC_HISTORY_MAX_RECENT_ROUNDS = 8
@@ -138,6 +140,7 @@ def build_public_context(
     expected_session_genesis_hash: str | None = None,
     history_blocked_key_parts: Sequence[str] = (),
     history_blocked_text_parts: Sequence[str] = (),
+    phased_evaluation_adapter: PhasedEvaluationAdapter | None = None,
 ) -> dict[str, Any]:
     """Validate and sequentially project raw ledger rows into public context."""
 
@@ -160,6 +163,7 @@ def build_public_context(
         initial_current_best=initial_current_best,
         expected_session_genesis_hash=expected_session_genesis_hash,
         acceptance_protocol=acceptance_protocol,
+        phased_evaluation_adapter=phased_evaluation_adapter,
     )
     return build_public_context_from_projected(
         history,
@@ -497,26 +501,21 @@ def _candidate_runtime_activated_in_training(
     )
     activation_gate = _mapping(record.get("runtime_activation_gate"))
     gate_proves_activation = activation_gate.get("status") == "pass"
-    if isinstance(declared, bool):
-        if declared is False and gate_proves_activation:
-            return "inconsistent_evidence"
-        return declared
+    runtime = _mapping(record.get("runtime_activation_summary"))
+    evidence = RuntimeActivationEvidence.from_mapping(runtime)
+    counts = (evidence.step_calls, evidence.reward_term_calls, evidence.diagnostic_calls)
+    executed = any(value is not None and value > 0 for value in counts)
+    if declared is False and (executed or gate_proves_activation):
+        return "inconsistent_evidence"
+    if executed:
+        return True
+    if evidence.step_calls == 0:
+        return "inconsistent_evidence" if gate_proves_activation else False
     if gate_proves_activation:
         return True
-
-    runtime = _mapping(record.get("runtime_activation_summary"))
-    for key in ("reward_term_calls", "diagnostic_calls"):
-        value = runtime.get(key)
-        if isinstance(value, int) and not isinstance(value, bool) and value > 0:
-            return True
-    for key in (
-        "component_activation_records",
-        "feature_activation_records",
-        "capability_activation_records",
-    ):
-        value = runtime.get(key)
-        if isinstance(value, list | tuple) and value:
-            return True
+    if declared is False:
+        return False
+    # Loading a package or listing capabilities does not prove it executed.
     return "unknown"
 
 
@@ -669,13 +668,11 @@ def _runtime_activation_public_summary(value: Any) -> dict[str, Any]:
     runtime = _mapping(value)
     if not runtime:
         return {"status": "not_available"}
-    if runtime.get("status") == "not_available":
-        return {"status": "not_available"}
+    measured = RuntimeActivationEvidence.from_mapping(runtime).measurement_summary()
+    if measured["status"] == "not_available":
+        return measured
     return {
-        "status": "available",
-        "reward_term_calls": _int_or_zero(runtime.get("reward_term_calls")),
-        "diagnostic_calls": _int_or_zero(runtime.get("diagnostic_calls")),
-        "nonzero_reward_contribution": bool(runtime.get("nonzero_reward_contribution", False)),
+        **measured,
         "capability_activation_records": _list_of_strings(
             runtime.get("capability_activation_records"),
             max_items=_PUBLIC_HISTORY_MAX_LIST_ITEMS,
@@ -886,10 +883,6 @@ def _bounded_text(value: str) -> str:
     if len(compact) <= _PUBLIC_HISTORY_TEXT_LIMIT:
         return compact
     return compact[: _PUBLIC_HISTORY_TEXT_LIMIT - 15] + "...[truncated]"
-
-
-def _int_or_zero(value: Any) -> int:
-    return int(value) if isinstance(value, int | float) else 0
 
 
 def _first_present(*values: Any) -> Any:

@@ -14,6 +14,7 @@ from isaaclab.managers import (
     SceneEntityCfg,
 )
 from isaaclab.utils import configclass
+from true_rl_agent.backends.isaac_lab_arrays import quaternion_wxyz
 
 from true_rl_agent.robots.isaaclab_locomotion import (
     isaaclab_locomotion_runtime_spec,
@@ -55,6 +56,7 @@ from true_rl_agent.tasks.stair_climbing.runtime_projection import (
     STAIR_TRANSITION_VNEXT_SCHEMA_VERSION,
     StairRuntimeProjection,
     resolve_stair_runtime_projection,
+    stair_contact_force_history_snapshot,
 )
 from true_rl_agent.tasks.stair_climbing.termination_capture import (
     capture_current_termination_masks,
@@ -79,6 +81,7 @@ class StairEvalTransitionRecorder(RecorderTerm):
         if not isinstance(projection, StairRuntimeProjection):
             raise TypeError("Stair recorder runtime projection is invalid")
         self.runtime_projection = projection
+        self._capture_contact_history = cfg.capture_contact_history
         robot = env.scene["robot"]
         contact_sensor = env.scene[projection.contact_sensor_name]
         self._resolved_projection = resolve_stair_runtime_projection(
@@ -109,7 +112,7 @@ class StairEvalTransitionRecorder(RecorderTerm):
             resolved_projection=resolved,
         )
         base_pos_w = kinematic_base.pos_w
-        base_quat_w = kinematic_base.quat_w
+        base_quat_w = quaternion_wxyz(kinematic_base.quat_xyzw)
         common = {
             "joint_pos": robot_data.joint_pos[:, resolved.joint_ids].detach().clone(),
             "episode_length": self._env.episode_length_buf.detach().clone(),
@@ -166,7 +169,19 @@ class StairEvalTransitionRecorder(RecorderTerm):
                     self.runtime_projection.forbidden_contact_count
                 ),
             }
+            if self._capture_contact_history:
+                payload.update(stair_contact_force_history_snapshot(
+                    contact_sensor=scene[self.runtime_projection.contact_sensor_name],
+                    resolved_projection=resolved, runtime_projection=self.runtime_projection,
+                    physics_dt=self._env.physics_dt, control_dt=self._env.step_dt,
+                    lazy_sensor_update=self._env.cfg.scene.lazy_sensor_update,
+                ))
         self._env.extras[STAIR_EVAL_TRANSITION_EXTRAS_KEY] = payload
+        # Numeric tensors have been cloned; render the same pre-reset state.
+        # The task execution layer owns recording lifetime and scored-episode scope.
+        capture = getattr(self._env, "_stair_pre_reset_capture", None)
+        if capture is not None:
+            capture()
         return None, None
 
     def runtime_summary(self) -> dict[str, Any]:
@@ -177,6 +192,7 @@ class StairEvalTransitionRecorder(RecorderTerm):
 class StairEvalTransitionRecorderCfg(RecorderTermCfg):
     class_type: type[RecorderTerm] = StairEvalTransitionRecorder
     runtime_projection: StairRuntimeProjection | None = None
+    capture_contact_history: bool = False
 
 
 @configclass
@@ -395,9 +411,14 @@ def build_stair_eval_env_cfg(
     evaluation_split: str | None = None,
     runtime_projection: StairRuntimeProjection | None = None,
     unified_protocol: StairUnifiedProtocol | None = None,
+    capture_contact_history: bool = False,
 ) -> Any:
     """Build production evaluation with pre-reset task evidence."""
 
+    if capture_contact_history and (
+        unified_protocol is None or evaluation_split != "public_dev"
+    ):
+        raise ValueError("Stair contact history capture requires unified public_dev")
     if evaluation_profile is not None and ordered_evaluation_suite is not None:
         raise ValueError("Stair eval cannot combine grid and ordered suites")
     if ordered_evaluation_suite is None and evaluation_split is not None:
@@ -453,6 +474,7 @@ def build_stair_eval_env_cfg(
     install_stair_termination_capture(cfg.terminations)
     cfg.recorders = StairEvalRecorderManagerCfg()
     cfg.recorders.transition.runtime_projection = runtime_projection
+    cfg.recorders.transition.capture_contact_history = capture_contact_history
     return cfg
 
 

@@ -1,0 +1,32 @@
+{
+  "schema_version": "true_rl_agent.robot_body_anchors.v1",
+  "robot_profile_id": "unitree_g1_37dof_isaaclab_v2",
+  "robot_profile_hash": "1bc05d6728d1eac4b30dd24eb3c20cc44ed51573b10a494ea41fbed276861478",
+  "root_asset": {
+    "identity": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/IsaacLab/Robots/Unitree/G1/g1_minimal.usd",
+    "sha256": "4f5e0600f24bed04d4c45b3921b6f3d7b6205463b0b1ac051cf2883dd3aaee67"
+  },
+  "legs": {
+    "left": {
+      "H": {"body_name": "left_hip_yaw_link", "joint_name": "left_hip_yaw_joint", "joint_prim": "/g1/left_hip_roll_link/left_hip_yaw_joint", "child_local_position_m": [0, 0, 0]},
+      "K": {"body_name": "left_knee_link", "joint_name": "left_knee_joint", "joint_prim": "/g1/left_hip_yaw_link/left_knee_joint", "child_local_position_m": [0, 0, 0]},
+      "A": {"body_name": "left_ankle_pitch_link", "joint_name": "left_ankle_pitch_joint", "joint_prim": "/g1/left_knee_link/left_ankle_pitch_joint", "child_local_position_m": [0, 0, 0]}
+    },
+    "right": {
+      "H": {"body_name": "right_hip_yaw_link", "joint_name": "right_hip_yaw_joint", "joint_prim": "/g1/right_hip_roll_link/right_hip_yaw_joint", "child_local_position_m": [0, 0, 0]},
+      "K": {"body_name": "right_knee_link", "joint_name": "right_knee_joint", "joint_prim": "/g1/right_hip_yaw_link/right_knee_joint", "child_local_position_m": [0, 0, 0]},
+      "A": {"body_name": "right_ankle_pitch_link", "joint_name": "right_ankle_pitch_joint", "joint_prim": "/g1/right_knee_link/right_ankle_pitch_joint", "child_local_position_m": [0, 0, 0]}
+    }
+  },
+  "palm_origins": {
+    "left": {"body_name": "left_palm_link", "joint_name": "left_palm_joint", "joint_prim": "/g1/left_elbow_roll_link/left_palm_joint", "child_local_position_m": [0, 0, 0]},
+    "right": {"body_name": "right_palm_link", "joint_name": "right_palm_joint", "joint_prim": "/g1/right_elbow_roll_link/right_palm_joint", "child_local_position_m": [0, 0, 0]}
+  },
+  "verification": {
+    "method": "CPU pxr read of hash-matched original USD; no simulation",
+    "child_attachment": "Every listed joint has physics:body1=/g1/{body_name} and physics:localPos1=(0,0,0), so its child attachment point is the link-frame origin.",
+    "geometry_scope": "Angle at K between world-position vectors H-K and A-K. It is robot-link geometry, not anatomical knee flexion or whole-body crouch depth. Joint coordinates are not used.",
+    "palm_scope": "The palm fixed joints have localPos0=(0.12,0,0) and localPos1=(0,0,0). The recorded palm link origin is a wrist-side attachment anchor for localization, not the palm centre.",
+    "joint_frame_warning": "The knee joint localRot0 and ankle-pitch joint localRot0 are nonidentity; revolute joint coordinates cannot substitute for the three-point geometry."
+  }
+}

@@ -10,6 +10,7 @@ from true_rl_agent.evaluation.binding import canonical_json_hash, require_sha256
 from true_rl_agent.prompting.public_safety import assert_public_only_prompt_payload
 from true_rl_agent.prompting.capacity import validate_prompt_capacity_projection
 from true_rl_agent.prompting.serialization import canonical_prompt_json_bytes
+from true_rl_agent.prompt_serialization import legacy_indented_prompt_json
 
 PROVIDER_TASK_PROMPT_SECTION_KEYS = (
     "task",
@@ -99,9 +100,14 @@ def _build_provider_task_prompt_receipt(
     *,
     schema_version: str,
     max_serialized_bytes: int,
+    serializer: str = "canonical_prompt_json.compact.v1",
 ) -> dict[str, Any]:
     sections = provider_task_prompt_sections(prompt_payload)
-    serialized_bytes = canonical_prompt_json_bytes(sections)
+    serialized_bytes = (
+        len(legacy_indented_prompt_json(sections).encode("utf-8"))
+        if serializer == "canonical_prompt_json.v1"
+        else canonical_prompt_json_bytes(sections)
+    )
     if serialized_bytes > max_serialized_bytes:
         raise ValueError(
             "provider-facing task prompt sections exceed "
@@ -109,7 +115,7 @@ def _build_provider_task_prompt_receipt(
         )
     return {
         "schema_version": schema_version,
-        "serializer": "canonical_prompt_json.v1",
+        "serializer": serializer,
         "section_keys": list(sections),
         "content_hash": canonical_json_hash(sections),
         "serialized_bytes": serialized_bytes,
@@ -135,7 +141,7 @@ def validate_provider_task_prompt_receipt(
         PROVIDER_TASK_PROMPT_RECEIPT_SCHEMA_VERSION,
     }:
         raise ValueError("provider task prompt receipt schema mismatch")
-    if receipt.get("serializer") != "canonical_prompt_json.v1":
+    if receipt.get("serializer") not in {"canonical_prompt_json.v1", "canonical_prompt_json.compact.v1"}:
         raise ValueError("provider task prompt receipt serializer mismatch")
     require_sha256_digest(
         receipt.get("content_hash"),
@@ -150,6 +156,7 @@ def validate_provider_task_prompt_receipt(
         prompt_payload,
         schema_version=str(schema_version),
         max_serialized_bytes=max_serialized_bytes,
+        serializer=str(receipt["serializer"]),
     )
     if dict(receipt) != expected:
         raise ValueError("provider task prompt receipt does not match payload")

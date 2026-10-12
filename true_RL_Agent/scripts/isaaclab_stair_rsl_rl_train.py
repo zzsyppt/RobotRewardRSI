@@ -20,7 +20,9 @@ if str(SRC_ROOT) not in sys.path:
 from true_rl_agent.backends.isaac_lab_execution_environment import (  # noqa: E402
     verify_current_isaac_lab_execution_environment,
 )
+from true_rl_agent.backends.isaac_lab_runtime import require_physx_success  # noqa: E402
 from true_rl_agent.runner.isaac_app_lifecycle import (  # noqa: E402
+    bind_isaac_log_path,
     close_isaac_app_on_success,
 )
 from true_rl_agent.runner.specs import require_execution_device  # noqa: E402
@@ -34,12 +36,12 @@ from true_rl_agent.tasks.stair_climbing.entrypoint_contract import (  # noqa: E4
     StairTrainEntrypointContext,
     validate_stair_train_invocation,
 )
-from true_rl_agent.tasks.stair_climbing.gpu_process_binding import (  # noqa: E402
-    StairGpuRuntimeBinding,
-    add_stair_gpu_process_binding_arguments,
-    attach_stair_gpu_runtime_evidence,
-    capture_stair_gpu_compute_context,
-    validate_stair_gpu_process_binding_invocation,
+from true_rl_agent.runner.gpu_process_binding import (  # noqa: E402
+    GpuRuntimeBinding,
+    add_gpu_process_binding_arguments,
+    attach_gpu_runtime_evidence,
+    capture_gpu_compute_context,
+    validate_gpu_process_binding_invocation,
 )
 from true_rl_agent.tasks.stair_climbing.isaaclab_execution import (  # noqa: E402
     VerifiedStairExecutionSourceManifest,
@@ -93,6 +95,8 @@ def _build_parser() -> argparse.ArgumentParser:
     artifact_group.add_argument("--reference-artifact")
     parser.add_argument("--candidate-artifact-hash", default=None)
     parser.add_argument("--candidate-verification-hash", default=None)
+    parser.add_argument("--runtime-comparison-json", default=None)
+    parser.add_argument("--runtime-comparison-hash", default=None)
     parser.add_argument(
         "--candidate-execution-authorization-json",
         default=None,
@@ -102,6 +106,7 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
     )
     parser.add_argument("--reference-artifact-hash", default=None)
+    parser.add_argument("--capture-training-numeric", action="store_true")
     parser.add_argument(
         "--expected-initial-policy-state-hash",
         default=None,
@@ -127,7 +132,7 @@ def _build_parser() -> argparse.ArgumentParser:
         parser.add_argument("--device", required=True)
     else:
         AppLauncher.add_app_launcher_args(parser)
-    add_stair_gpu_process_binding_arguments(parser)
+    add_gpu_process_binding_arguments(parser)
     for action in required_actions:
         action.required = True
     artifact_group.required = True
@@ -142,7 +147,7 @@ def main(argv: list[str] | None = None) -> int:
             args.device,
             "stair train execution device",
         )
-        gpu_runtime_binding = validate_stair_gpu_process_binding_invocation(
+        gpu_runtime_binding = validate_gpu_process_binding_invocation(
             args,
             environment=os.environ,
         )
@@ -205,6 +210,7 @@ def main(argv: list[str] | None = None) -> int:
 
     from isaaclab.app import AppLauncher
 
+    bind_isaac_log_path(args, summary_path)
     simulation_app = (
         AppLauncher(args, multi_gpu=False).app
         if gpu_runtime_binding is not None
@@ -278,11 +284,14 @@ def _run_training(
     reward_program: QualifiedStairRewardProgram,
     summary_path: Path,
     checkpoint_output: Path,
-    gpu_runtime_binding: StairGpuRuntimeBinding | None,
+    gpu_runtime_binding: GpuRuntimeBinding | None,
 ) -> int:
     attempt_id = uuid.uuid4().hex
     run_dir = summary_path.parent / "run" / f"attempt-{attempt_id}"
     summary_path.parent.mkdir(parents=True, exist_ok=True)
+    from true_rl_agent.tasks.stair_climbing.training_diagnostics import load_stair_training_comparison
+    comparison = load_stair_training_comparison(args.runtime_comparison_json, args.runtime_comparison_hash,
+        context=context, candidate_program=reward_program)
     result = execute_stair_training(
         config=context.config,
         source_manifest_preflight=source_manifest_preflight,
@@ -296,10 +305,20 @@ def _run_training(
             context.expected_initial_policy_state_hash
         ),
         resolved_cell_manifest=getattr(args, "resolved_cell_manifest", None),
+        runtime_comparison=comparison,
+        capture_training_numeric=getattr(args, "capture_training_numeric", False),
+        numeric_evidence_identity={
+            "job": context.identity.to_public_dict(),
+            "training_binding_hash": context.training_binding.binding_hash,
+            "train_attempt_id": attempt_id,
+            "backend_execution_environment_verification": execution_environment_verification,
+        },
     )
     fields = result.to_summary_fields()
+    if comparison is not None:
+        fields["runtime_diagnostic_context_hash"] = comparison["context_hash"]
     compute_context_observation = (
-        capture_stair_gpu_compute_context(gpu_runtime_binding)
+        capture_gpu_compute_context(gpu_runtime_binding)
         if gpu_runtime_binding is not None
         else None
     )
@@ -328,6 +347,8 @@ def _run_training(
         **fields,
     )
 
+    if summary["status"] == "pass":
+        require_physx_success(summary_path.with_suffix(".kit.log"))
     _write_json(summary_path, summary)
     print(
         json.dumps(
@@ -349,7 +370,7 @@ def _status_summary(
     attempt_id: str,
     formal_training_executed: bool,
     execution_device: str,
-    gpu_runtime_binding: StairGpuRuntimeBinding | None = None,
+    gpu_runtime_binding: GpuRuntimeBinding | None = None,
     compute_context_observation: Mapping[str, Any] | None = None,
     **payload: Any,
 ) -> dict[str, Any]:
@@ -416,7 +437,7 @@ def _status_summary(
                 ),
             }
         )
-    return attach_stair_gpu_runtime_evidence(
+    return attach_gpu_runtime_evidence(
         summary,
         gpu_runtime_binding,
         compute_context_observation=compute_context_observation,
@@ -431,7 +452,7 @@ def _write_candidate_failure_summary(
     execution_environment_verification: Mapping[str, str],
     failure: StairCandidateProgramFailure,
     summary_path: Path,
-    gpu_runtime_binding: StairGpuRuntimeBinding | None,
+    gpu_runtime_binding: GpuRuntimeBinding | None,
 ) -> None:
     summary = _status_summary(
         "fail",

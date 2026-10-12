@@ -34,6 +34,9 @@ from true_rl_agent.tasks.stair_climbing.prompt_adapter import (
     _compact_required_feedback_entry,
     _latest_generation_trial_comparisons,
     _stair_unified_capacity_preflight_feedback,
+    _project_unified_prompt_generation,
+    _public_feedback_summary,
+    _minimum_core_stair_prompt_sections,
 )
 from true_rl_agent.tasks.stair_climbing.reference_programs.official_g1_rough_v1.training_code import (
     components as legacy_official_components,
@@ -63,6 +66,113 @@ from true_rl_agent.tasks.stair_climbing.unified_scoring import (
 
 
 class StairPhase4ContractTests(unittest.TestCase):
+    def test_measured_dev_without_selection_has_one_exploration_and_prompt_comparison(self):
+        mask = build_reference_objective_family_mask(suite=self.config.ordered_evaluation_suite,
+                                                   public_accept_summary=self.summary)
+        raw = {"schema_version": GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION,
+               "generation_id": "g3", "generation_index": 3, "generation_outcome": "incomplete",
+               "formal": None, "guard_reference": {"screen_role": "guard_reference",
+                   "acceptance_authority": False, "generalization_score_stats": {"mean": 0.4},
+                   "anchor_score_stats": {"mean": 0.6}},
+               "trials": [{"trial_id": "g3-a", "lane_id": "lane-a", "trial_status": "public_dev_complete",
+                           "public_dev": {"public_summary": self.public_dev_summary}, "train": {"completed": True}},
+                          {"trial_id": "g3-b", "lane_id": "lane-b", "trial_status": "candidate_failed",
+                           "status_reason": "candidate_runtime_failed"}]}
+        adapter = lambda value: _project_unified_prompt_generation(value, config=self.config,
+                                                                   objective_family_mask_provider=lambda: mask)
+        projector = StairExplorationProjector(self.config, objective_family_mask=mask)
+        projected = adapter(raw)
+        expected = build_unified_score_projection(self.public_dev_summary, objective_family_mask=mask)
+        outcome = projected["trials"][0]["prompt_outcome"]
+        self.assertEqual(outcome["objective_delta"], round(expected["j_primary"]["score_stats"]["mean"] - 0.4, 6))
+        guard_vectors = [expected[guard.name]["seed_macro_scores"] for guard in self.config.acceptance_protocol.named_guards]
+        self.assertAlmostEqual(outcome["guard_delta"],
+                               round(sum(min(row) for row in zip(*guard_vectors, strict=True)) / self.config.public_seed_count - 0.6, 6))
+        self.assertNotIn("objective_delta", projected["trials"][1]["prompt_outcome"])
+        self.assertEqual(projected["trials"][1]["status_reason"], "candidate_runtime_failed")
+        self.assertEqual(adapter(projected), projected)
+        del raw["guard_reference"]
+        raw["parent_public_dev"] = self.public_dev_summary
+        measured_against_parent = adapter(raw)
+        self.assertEqual(measured_against_parent["trials"][0]["prompt_outcome"]["objective_delta"], 0.0)
+        self.assertEqual(measured_against_parent["trials"][0]["prompt_outcome"]["guard_delta"], 0.0)
+        self.assertNotIn("parent_public_dev", measured_against_parent)
+        self.assertEqual(adapter(measured_against_parent), measured_against_parent)
+        for generation in (raw, measured_against_parent):
+            assessment = projector.assess_trial(generation=generation, trial=generation["trials"][0], parent=None)
+            self.assertEqual(assessment.observed_effect, "neutral")
+            self.assertEqual(assessment.revisit_rank_key, (0, 0))
+            self.assertEqual(assessment.public_evidence_summary["objective"]["delta"], 0.0)
+            self.assertEqual(assessment.public_evidence_summary["guard_floor"]["delta"], 0.0)
+
+        # The sibling's failure must not hide a completed improvement from the
+        # exploration index while its exact same evidence is shown in memory.
+        raw["parent_public_dev"] = self._summary_for_split("public_dev", progress={
+            "c0_id": 0.1, "c1_id": 0.1, "height_ood": 0.1, "tread_ood": 0.1,
+            "joint_ood": 0.1, "phase_composition_ood": 0.1,
+            "c1_conditional_frontier": 0.1, "c2_mechanism_ood": 0.1,
+        })
+        projected = adapter(raw)
+        assessments = [projector.assess_trial(generation=value, trial=value["trials"][0], parent=None)
+                       for value in (raw, projected)]
+        self.assertEqual(assessments[0], assessments[1])
+        self.assertEqual(assessments[0].observed_effect, "positive")
+        self.assertEqual(assessments[0].value_label, "medium")
+        outcome = projected["trials"][0]["prompt_outcome"]
+        for field, source in (("objective_delta", "objective"), ("guard_delta", "guard_floor")):
+            self.assertEqual(outcome[field], round(assessments[0].public_evidence_summary[source]["delta"], 6))
+        self.assertEqual(_latest_generation_trial_comparisons(
+            [{"generation": raw}], config=self.config, objective_family_mask_provider=lambda: mask), [])
+        self.assertNotIn("objective_delta", projected["trials"][1]["prompt_outcome"])
+        self.assertEqual(adapter(projected), projected)
+
+        del raw["parent_public_dev"]
+        missing_parent = projector.assess_trial(generation=raw, trial=raw["trials"][0], parent=None)
+        self.assertEqual(missing_parent.observed_effect, "unknown")
+        self.assertEqual(missing_parent.reason_codes, ("parent_public_dev_reference_missing",))
+        raw["trials"][0]["prompt_outcome"] = {"objective_delta": 1.0, "guard_delta": 1.0}
+        self.assertNotIn("objective_delta", adapter(raw)["trials"][0]["prompt_outcome"])
+        raw["parent_public_dev"] = self.summary
+        with self.assertRaises(ValueError):
+            adapter(raw)
+
+    def test_feedback_keeps_two_details_and_shares_columns_without_losing_rates(self):
+        mask = build_reference_objective_family_mask(suite=self.config.ordered_evaluation_suite,
+                                                   public_accept_summary=self.summary)
+        feedback = build_unified_stair_prompt_feedback(suite=self.config.ordered_evaluation_suite,
+            semantics=self.config.evaluation_semantics, summary=self.public_dev_summary, objective_family_mask=mask)
+        records = [{"round_id": f"trial-{i}", "candidate": {"candidate_id": f"candidate-{i}"},
+                    "decision": {"accepted": i == 1},
+                    "public_result": {"status": "pass", "metrics": {"prompt_feedback": copy.deepcopy(feedback)}}}
+                   for i in range(5)]
+        # Make the latest table use an additional failure column; sharing headers
+        # must preserve named rates rather than relabel the previous row's values.
+        records[-1]["public_result"]["metrics"]["prompt_feedback"]["generalization_summary"]["stratum_diagnostics"]["c0_id"]["primary_failure_breakdown"]["forbidden_contact"] = 0.25
+        summary = _public_feedback_summary(records, {}, latest_generation_trial_comparisons=(),
+                                          use_public_dev_objective=True, latest_nonaccepted_trial_id="trial-4")
+        details = [entry for entry in summary["feedback_entries"]
+                   if "stratum_diagnostics" in entry["feedback"]["generalization_summary"]]
+        self.assertEqual([entry["round_id"] for entry in details], ["trial-1", "trial-4"])
+        self.assertEqual(summary["shared_evaluation_identity"]["objective_family_mask_hash"], mask["objective_family_mask_hash"])
+        definition = summary["diagnostic_table_definitions"]["stratum_diagnostics"]
+        failure_position = definition["columns"].index("primary_failure_rates")
+        contact_position = definition["primary_failure_rate_columns"].index("forbidden_contact")
+        for entry, expected_contact_rate in zip(details, (0.0, 0.25), strict=True):
+            generalization = entry["feedback"]["generalization_summary"]
+            self.assertNotIn("ordered_suite_hash", generalization)
+            table = generalization["stratum_diagnostics"]
+            self.assertNotIn("columns", table)
+            row = next(row for row in table["rows"] if row[0] == "c0_id")
+            self.assertEqual(row[failure_position][contact_position], expected_contact_rate)
+        for entry in summary["feedback_entries"]:
+            self.assertEqual(entry["feedback"]["generalization_summary"]["family_scores"], feedback["generalization_summary"]["family_scores"])
+        adapter = StairClimbingPromptAdapter(self.config, resolved_cell_manifest=self.manifest,
+                                             objective_family_mask_provider=lambda: mask)
+        minimum = _minimum_core_stair_prompt_sections(
+            adapter._prompt_sections(public_feedback=summary, runtime_feedback={}), target_bytes=56 * 1024)
+        for key in ("shared_evaluation_identity", "diagnostic_table_definitions"):
+            self.assertEqual(minimum["public_feedback_summary"][key], summary[key])
+
     @classmethod
     def setUpClass(cls) -> None:
         protocol_path = ROOT / "configs/tasks/stair_unified_protocol_v1.json"
@@ -533,7 +643,7 @@ class StairPhase4ContractTests(unittest.TestCase):
             objective_family_mask_provider=plugin.objective_family_mask,
         )
         self.assertEqual(
-            memory._exploration_projector().objective_family_mask,
+            memory.exploration_projector().objective_family_mask,
             mask,
         )
         prompt = plugin.prompt_adapter()
@@ -716,6 +826,7 @@ class StairPhase4ContractTests(unittest.TestCase):
                         "trial_id": "phase4-trial-a",
                         "trial_status": "formal_rejected",
                         "status_reason": hidden_marker,
+                        "train": {"completed": True},
                         "candidate": {
                             "candidate_id": "phase4-candidate-a",
                             "program_source_checksum": checksum,
@@ -737,6 +848,9 @@ class StairPhase4ContractTests(unittest.TestCase):
                 ],
             },
         }
+        record["generation"]["trials"][0]["runtime_activation_summary"] = copy.deepcopy(
+            record["runtime_activation_summary"]
+        )
         sibling = copy.deepcopy(record["generation"]["trials"][0])
         sibling["lane_id"] = "lane-b"
         sibling["trial_id"] = "phase4-trial-b"
@@ -745,6 +859,8 @@ class StairPhase4ContractTests(unittest.TestCase):
             "candidate_id": "phase4-candidate-b",
             "program_source_checksum": "sha256:" + "d" * 64,
         }
+        sibling["runtime_activation_summary"] = copy.deepcopy(record["runtime_activation_summary"])
+        sibling["runtime_activation_summary"]["reward_term_calls"] = 37
         sibling["selection_screen"]["runtime_effect_evidence"] = {
             "schema_version": "true_rl_agent.task.stair_climbing.candidate_runtime_effect_evidence.v1",
             "status": "fail",
@@ -839,6 +955,14 @@ class StairPhase4ContractTests(unittest.TestCase):
         )
         serialized = json.dumps(sections, sort_keys=True)
         self.assertNotIn(hidden_marker, serialized)
+        runtime = sections["runtime_feedback_summary"]
+        self.assertEqual(runtime["source_round_id"], "phase4-trial-a")
+        self.assertEqual(runtime["source_candidate_id"], "phase4-candidate-a")
+        self.assertEqual(runtime["program_source_checksum"], checksum)
+        self.assertEqual(runtime["latest_runtime_activation"]["reward_term_calls"], 2)
+        entries_by_id = {entry.get("candidate_id"): entry for entry in sections["public_feedback_summary"]["feedback_entries"]}
+        self.assertEqual(entries_by_id["phase4-candidate-a"]["round_id"], runtime["source_round_id"])
+        self.assertEqual(entries_by_id["phase4-candidate-a"]["program_source_checksum"], runtime["program_source_checksum"])
         comparisons = sections["public_feedback_summary"][
             "latest_generation_trial_comparisons"
         ]
@@ -886,14 +1010,13 @@ class StairPhase4ContractTests(unittest.TestCase):
         drifted_record["public_result"]["metrics"]["prompt_feedback"][
             "generalization_summary"
         ]["public_dev_objective_score"] += 0.01
-        with self.assertRaisesRegex(
-            ValueError,
-            "stored prompt feedback differs from public_dev",
-        ):
-            adapter.project_prompt_public_history(
-                public_records=[drifted_record],
-                initial_anchor_public_evidence=None,
-            )
+        self.assertEqual(adapter.project_prompt_public_history(
+            public_records=[drifted_record], initial_anchor_public_evidence=None,
+        ).records, projection.records)
+        del drifted_record["public_result"]["metrics"]["prompt_feedback"]
+        self.assertEqual(adapter.project_prompt_public_history(
+            public_records=[drifted_record], initial_anchor_public_evidence=None,
+        ).records, projection.records)
 
         memory = StairTaskMemoryAdapter(config=self.config).build_public_summary(
             [projected]

@@ -56,6 +56,7 @@ from true_rl_agent.json_contract import (
 from true_rl_agent.prompt_serialization import (
     MAX_AUTHORING_PROMPT_PAYLOAD_BYTES,
     canonical_prompt_json,
+    sealed_prompt_json,
 )
 
 PROMPT_PAYLOAD_REF_SCHEMA_VERSION = "true_rl_agent.prompt_payload_ref.v1"
@@ -879,7 +880,7 @@ def verify_prompt_payload(ref: PromptPayloadRef) -> dict[str, Any]:
     )
     parsed = strict_json_object_loads(payload, context="prompt payload artifact")
     assert_public_only_prompt_payload(parsed)
-    if payload != canonical_prompt_json(parsed).encode("utf-8"):
+    if payload != sealed_prompt_json(parsed).encode("utf-8"):
         raise ValueError("prompt payload artifact is not canonical provider JSON")
     return parsed
 
@@ -1328,6 +1329,43 @@ def authoring_outcome_from_evidence(
     )
 
 
+def project_authoring_status(evidence: Mapping[str, Any]) -> dict[str, Any]:
+    """Bounded lane memory from sealed attempts; no performance inference."""
+
+    outcome = authoring_outcome_from_evidence(evidence)
+    attempts = [item["provider_attempt"] for item in evidence["attempts"]
+                if item.get("status") == "completed"]
+    candidate = next((item for item in reversed(attempts) if item.get("candidate_id")), {})
+    pending = None
+    if candidate and outcome["stop_reason"] != "candidate_verified":
+        if candidate.get("verifier_status") != "pass":
+            pending = {"stage": "static_verifier", "reason": candidate.get("verifier_reason")}
+        else:
+            for key in ("component_smoke", "anti_degenerate_assessment",
+                        "sibling_semantic_exclusion_assessment", "historical_verifier_exclusion_assessment",
+                        "historical_exact_exclusion_assessment"):
+                assessment = candidate.get(key)
+                if isinstance(assessment, Mapping) and (assessment.get("status") in {"fail", "advisory"}
+                                                       or assessment.get("blocking") is True):
+                    pending = {"stage": key, "reason": assessment.get("reason")}
+                    break
+    failure = outcome.get("provider_failure")
+    summary = {
+        "schema_version": "true_rl_agent.authoring_status.v1",
+        "stop_reason": outcome["stop_reason"],
+        "attempt_count": len(attempts),
+        "candidate_verified": outcome["stop_reason"] == "candidate_verified",
+        "candidate_id": candidate.get("candidate_id"),
+        "program_source_checksum": candidate.get("candidate_program_source_checksum"),
+        "provider_failure": ({key: str(failure.get(key, ""))[:200] for key in ("category", "reason")}
+                             if isinstance(failure, Mapping) else None),
+        "unresolved_candidate_failure": ({"stage": pending["stage"], "reason": str(pending["reason"])[:200]}
+                                          if pending else None),
+    }
+    assert_public_only_prompt_payload(summary)
+    return summary
+
+
 def _build_authoring_terminal_outcome(
     *,
     stop_reason: str,
@@ -1504,6 +1542,21 @@ def verify_authoring_candidate_binding(
             raise ValueError(
                 "authoring evidence selected candidate identity mismatch"
             )
+
+
+def authoring_prompt_verifier_rules(prompt_payload: Mapping[str, Any]) -> Mapping[str, Any]:
+    required = prompt_payload.get("required_candidate_package")
+    component_contract = (
+        required.get("component_contract") if isinstance(required, Mapping) else None
+    )
+    rules = (
+        component_contract.get("static_verifier_rules")
+        if isinstance(component_contract, Mapping)
+        else None
+    )
+    if not isinstance(rules, Mapping):
+        raise ValueError("generation authoring prompt has no verifier rules")
+    return rules
 
 
 def verify_authoring_anchor_prompt(
@@ -2111,7 +2164,7 @@ def _prompt_ref_from_existing(path: Path) -> PromptPayloadRef:
         context="authoring journal prompt",
     )
     assert_public_only_prompt_payload(parsed)
-    if payload != canonical_prompt_json(parsed).encode("utf-8"):
+    if payload != sealed_prompt_json(parsed).encode("utf-8"):
         raise ValueError("authoring journal prompt is not canonical provider JSON")
     return PromptPayloadRef(
         path=str(path.resolve(strict=False)),

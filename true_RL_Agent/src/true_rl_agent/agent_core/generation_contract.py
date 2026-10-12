@@ -7,10 +7,10 @@ evaluation semantics remain opaque hashes supplied by the task plugin.
 from __future__ import annotations
 
 import hashlib
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
 
 from true_rl_agent.evaluation.binding import (
     canonical_json_hash,
@@ -36,6 +36,8 @@ GENERATION_MANIFEST_V2_SCHEMA_VERSION = "true_rl_agent.generation_manifest.v2"
 GENERATION_LEDGER_RECORD_SCHEMA_VERSION = (
     "true_rl_agent.generation_ledger_record.v1"
 )
+GENERATION_LEDGER_RECORD_V2_SCHEMA_VERSION = "true_rl_agent.generation_ledger_record.v2"
+GENERATION_LEDGER_RECORD_V3_SCHEMA_VERSION = "true_rl_agent.generation_ledger_record.v3"
 GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION = (
     "true_rl_agent.generation_public_history_projection.v3"
 )
@@ -50,6 +52,73 @@ GENERATION_SESSION_MODES = frozenset(
     }
 )
 MAX_GENERATION_LANE_INTENT_BYTES = 2 * 1024
+
+# Host lifecycle codes are public; exception text and task-private rejection
+# detail are not. Task adapters reuse this projection instead of owning a copy.
+PUBLIC_GENERATION_TRIAL_REASONS = frozenset({
+    "lane_not_started", "candidate_verified", "candidate_preparation_failed",
+    "sibling_exclusion_unavailable", "paired_authoring_incomplete",
+    "public_dev_complete", "sibling_not_selected", "formal_acceptance_passed",
+    "post_train_task_gate_failed", "train_receipt_reused", "train_complete",
+    "candidate_runtime_failed", "train_incomplete", "eval_incomplete",
+    "not_run_due_to_early_reject",
+    "authoring_provider_failed", "authoring_static_failed",
+    "authoring_candidate_verified",
+    *(f"{reason}_{phase}" for reason in ("candidate_runtime_failed", "eval_incomplete")
+      for phase in ("public_dev", "public_accept", "sealed_validation")),
+})
+
+
+def project_public_trial_reason(value: Any) -> str | None:
+    """Expose a host-owned code without forwarding arbitrary failure details."""
+    return value if isinstance(value, str) and value in PUBLIC_GENERATION_TRIAL_REASONS else None
+
+
+def latest_nonaccepted_trial(
+    records: Sequence[Mapping[str, Any]],
+    *, include_failed_training_sampling: bool = False,
+) -> tuple[int, Mapping[str, Any]] | None:
+    """Prefer the latest generation's selected trained nonaccepted trial.
+
+    The task selector already owns candidate comparison. If its selection was
+    accepted or is unavailable, keep the latest eligible sibling as the fallback.
+    Source retrieval and detailed feedback share this choice across generation gaps.
+    Runtime feedback can also inspect a failed run's published sampling coverage;
+    that does not turn it into completed training for source/score selection.
+    """
+
+    for index in range(len(records) - 1, -1, -1):
+        record = records[index]
+        if record.get("decision", {}).get("reason") == "decision_record_invalid":
+            continue
+        generation = record.get("generation", record)
+        trials = generation.get("trials", ())
+        if trials:
+            eligible = [
+                trial for trial in trials
+                if (trial.get("trial_status") != "accepted"
+                    and (isinstance(trial.get("train"), Mapping)
+                         or (include_failed_training_sampling and _has_training_sampling(trial)))
+                    and isinstance(trial.get("candidate"), Mapping))
+            ]
+            if eligible:
+                selection = generation.get("selection")
+                if isinstance(selection, Mapping):
+                    for trial in eligible:
+                        if trial.get("trial_id") == selection.get("selected_trial_id"):
+                            return index, trial
+                return index, eligible[-1]
+        elif (record.get("decision", {}).get("accepted") is False
+                and (isinstance(record.get("train_result"), Mapping)
+                     or (include_failed_training_sampling and _has_training_sampling(record)))
+                and isinstance(record.get("candidate"), Mapping)):
+            return index, record
+    return None
+
+
+def _has_training_sampling(record: Mapping[str, Any]) -> bool:
+    runtime = record.get("runtime_activation_summary")
+    return isinstance(runtime, Mapping) and isinstance(runtime.get("training_sampling"), Mapping)
 
 
 def generation_training_initialization_hash(
@@ -254,7 +323,10 @@ class GenerationSessionContract:
             raise ValueError("generation width must be exactly two")
         if tuple(self.authoring_order) != GENERATION_AUTHORING_ORDER:
             raise ValueError("generation authoring order must be lane-a then lane-b")
-        if self.ledger_record_schema != GENERATION_LEDGER_RECORD_SCHEMA_VERSION:
+        if self.ledger_record_schema not in {
+            GENERATION_LEDGER_RECORD_SCHEMA_VERSION, GENERATION_LEDGER_RECORD_V2_SCHEMA_VERSION,
+            GENERATION_LEDGER_RECORD_V3_SCHEMA_VERSION,
+        }:
             raise ValueError("generation ledger writer schema mismatch")
         for field_name in ("max_generations", "max_trials", "max_train_jobs"):
             _positive_int(getattr(self, field_name), f"generation contract {field_name}")
@@ -347,11 +419,12 @@ class GenerationSessionContract:
 def publish_generation_session_contract(
     output_dir: Path,
     contract: GenerationSessionContract,
+    *,
+    require_existing: bool = False,
 ) -> GenerationSessionContractRef:
     if not isinstance(contract, GenerationSessionContract):
         raise TypeError("generation session contract is invalid")
     output_dir = Path(output_dir).resolve(strict=False)
-    output_dir.mkdir(parents=True, exist_ok=True)
     path = output_dir / GENERATION_SESSION_CONTRACT_FILENAME
     payload = canonical_json_bytes(contract.to_dict(), trailing_newline=True)
     if len(payload) > _MAX_CONTRACT_BYTES:
@@ -365,12 +438,48 @@ def publish_generation_session_contract(
         if existing != payload:
             raise FileExistsError("generation session contract already exists with different bytes")
     else:
+        if require_existing:
+            raise FileNotFoundError(path)
+        output_dir.mkdir(parents=True, exist_ok=True)
         create_once_bytes(path, payload)
     return GenerationSessionContractRef(
         logical_name=GENERATION_SESSION_CONTRACT_FILENAME,
         checksum="sha256:" + hashlib.sha256(payload).hexdigest(),
         size_bytes=len(payload),
     )
+
+
+def load_replay_generation_session_contract(
+    output_dir: Path,
+    current: GenerationSessionContract,
+) -> tuple[GenerationSessionContract, GenerationSessionContractRef]:
+    """Read a frozen contract for evidence replay, never for resumed execution.
+
+    Authoring is not run during replay, so its current admission policy cannot
+    redefine historical evidence. All other commitments must still match. The
+    caller must replay Genesis and terminal evidence against the returned ref.
+    """
+    path = Path(output_dir) / GENERATION_SESSION_CONTRACT_FILENAME
+    if not path.exists():
+        raise FileNotFoundError(path)
+    payload = read_bounded_regular_file(
+        path,
+        max_bytes=_MAX_CONTRACT_BYTES,
+        label="replay generation session contract",
+    )
+    ref = GenerationSessionContractRef(
+        logical_name=GENERATION_SESSION_CONTRACT_FILENAME,
+        checksum="sha256:" + hashlib.sha256(payload).hexdigest(),
+        size_bytes=len(payload),
+    )
+    stored = load_generation_session_contract(output_dir, ref)
+    comparable = replace(current, bound_contract_hashes={
+        **current.bound_contract_hashes,
+        "authoring_policy": stored.bound_contract_hashes["authoring_policy"],
+    })
+    if comparable != stored:
+        raise ValueError("replay generation contract differs outside authoring_policy")
+    return stored, ref
 
 
 def load_generation_session_contract(
@@ -705,6 +814,7 @@ __all__ = [
     "GENERATION_AUTHORING_ORDER",
     "GENERATION_LANE_IDS",
     "GENERATION_LEDGER_RECORD_SCHEMA_VERSION",
+    "GENERATION_LEDGER_RECORD_V2_SCHEMA_VERSION",
     "GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION",
     "GENERATION_MANIFEST_SCHEMA_VERSION",
     "GENERATION_MANIFEST_V2_SCHEMA_VERSION",

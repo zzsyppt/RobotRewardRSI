@@ -88,6 +88,63 @@ class _VelocityDeltaVecEnv:
 
 
 class PushRecoveryRuntimeAdapterTests(unittest.TestCase):
+    def test_reward_peak_frame_uses_same_env_and_only_replaces_on_larger_peak(self) -> None:
+        import torch
+
+        for tensor in (False, True):
+            with self.subTest(torch_tensor=tensor):
+                rows = [[1.0, 2.0], [1.0, 5.0]]
+
+                def vector(index):
+                    return torch.tensor(rows[index]) if tensor else list(rows[index])
+
+                adapter = CandidateRuntimeAdapter(
+                    manifest=None,
+                    components=TrainingComponents(
+                        name="reward-peak-probe",
+                        reward_terms=[
+                            RewardTerm(name="benefit", weight=2.0, fn=lambda _: vector(0), clip_max=3.0),
+                            RewardTerm(name="penalty", weight=-3.0, fn=lambda _: vector(1)),
+                        ],
+                    ),
+                    num_envs=2,
+                    planned_training_steps=8,
+                    diagnostic_interval_steps=24,
+                )
+                adapter.enable_physical_program()
+                wrapper = CandidateRewardVecEnvWrapper(_FakeVecEnv(), adapter)
+                self.assertEqual(wrapper.step([[0.0], [0.0]])[1], [0.0, -10.0])
+                first = adapter.runtime_summary()["max_abs_candidate_reward_frame"]
+                self.assertEqual(first["control_step_1based"], 1)
+                self.assertEqual(first["env_index_0based"], 1)
+                self.assertEqual(first["signed_total"], -11.0)
+                self.assertEqual(first["units"], "reward_rate_before_control_dt_integration")
+                self.assertEqual(first["terms"], [
+                    {"name": "benefit", "effective_weight": 2.0, "signed_weighted_contribution": 4.0},
+                    {"name": "penalty", "effective_weight": -3.0, "signed_weighted_contribution": -15.0},
+                ])
+                self.assertEqual(adapter.runtime_summary()["max_abs_candidate_reward"], 11.0)
+
+                rows[:] = [[3.0, 3.0], [2.0, 1.0]]
+                self.assertEqual(wrapper.step([[0.0], [0.0]])[1], [1.0, 4.0])
+                self.assertEqual(adapter.runtime_summary()["max_abs_candidate_reward_frame"], first)
+                rows[:] = [[1.0, 1.0], [-3.0, 0.0]]
+                self.assertEqual(wrapper.step([[0.0], [0.0]])[1], [12.0, 3.0])
+                self.assertEqual(adapter.runtime_summary()["max_abs_candidate_reward_frame"], first)
+
+                rows[:] = [[9.0, 1.0], [7.0, 1.0]]
+                self.assertEqual(wrapper.step([[0.0], [0.0]])[1], [-14.0, 0.0])
+                runtime = adapter.runtime_summary()
+                peak = runtime["max_abs_candidate_reward_frame"]
+                self.assertEqual(peak["control_step_1based"], 4)
+                self.assertEqual(peak["env_index_0based"], 0)
+                self.assertEqual(peak["signed_total"], -15.0)
+                self.assertEqual(runtime["max_abs_candidate_reward"], 15.0)
+                self.assertEqual([term["signed_weighted_contribution"] for term in peak["terms"]], [6.0, -21.0])
+                self.assertEqual(sum(term["signed_weighted_contribution"] for term in peak["terms"]), peak["signed_total"])
+                self.assertTrue(all(row["observation_count"] == 0 for row in runtime["component_activation_records"]))
+                json.dumps(peak)
+
     def test_runtime_reuses_shared_component_name_bound(self) -> None:
         def reward(_inputs):
             return [0.0, 0.0]
@@ -611,6 +668,40 @@ class PushRecoveryRuntimeAdapterTests(unittest.TestCase):
         provenance = adapter.runtime_summary()["input_provenance"]
         self.assertEqual(provenance["push_active"], "zero_fallback")
         self.assertEqual(provenance["push_vec_public"], "zero_fallback")
+
+    def test_input_provenance_tracks_current_action_history(self) -> None:
+        observed_inputs = []
+
+        def action_delta_reward(inputs):
+            observed_inputs.append((inputs.prev_action, inputs.action_delta))
+            return [row[0] for row in inputs.action_delta]
+
+        adapter = CandidateRuntimeAdapter(
+            manifest=None,
+            components=TrainingComponents(
+                name="action-history-probe",
+                reward_terms=[RewardTerm(name="delta", weight=1.0, fn=action_delta_reward)],
+            ),
+            num_envs=2,
+            planned_training_steps=8,
+        )
+        wrapper = CandidateRewardVecEnvWrapper(_FakeVecEnv(), adapter)
+
+        self.assertEqual(wrapper.step([[2.0], [4.0]])[1], [3.0, 5.0])
+        first = adapter.runtime_summary()["input_provenance"]
+        self.assertEqual(first["last_action"], "observed")
+        self.assertEqual(first["prev_action"], "zero_fallback")
+        self.assertEqual(first["action_delta"], "zero_fallback")
+
+        self.assertEqual(wrapper.step([[3.0], [6.0]])[1], [2.0, 3.0])
+        second = adapter.runtime_summary()["input_provenance"]
+        self.assertEqual(second["prev_action"], "observed")
+        self.assertEqual(second["action_delta"], "observed")
+        self.assertEqual(first["prev_action"], "zero_fallback")
+        self.assertEqual(observed_inputs, [
+            ([[0.0], [0.0]], [[2.0], [4.0]]),
+            ([[2.0], [4.0]], [[1.0], [2.0]]),
+        ])
 
 
 if __name__ == "__main__":

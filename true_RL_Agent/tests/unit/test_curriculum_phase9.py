@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -101,12 +102,14 @@ class CurriculumPhase9Tests(unittest.TestCase):
             )
 
     def test_task_and_backend_expose_fixed_protocol_and_future_capability_status(self) -> None:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
         provider = PushRecoveryCompositionProvider()
         composition = provider.resolve(
             values=provider.cli_defaults(),
             context=TaskCompositionContext(
                 project_root=PROJECT_ROOT,
-                output_dir=PROJECT_ROOT / "outputs" / "test-composition",
+                output_dir=Path(temporary.name),
             ),
         )
         task = composition.task_plugin.task_spec

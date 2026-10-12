@@ -1,185 +1,60 @@
-# Stair 全新正式 15 轮启动手册
+# 共享正式 generation 入口
 
-这是一份发布后、且用户明确批准启动后才可执行的操作手册。它不是当前启动授权。旧的
-`outputs/launch_genesis_*.sh` 和 `outputs/launch_live_*.sh` 没有新的最终确认计划绑定，
-不得用于新主线正式实验。
+宿主流程核对日期：2026-09-10；Push 入口与代数边界更新于2026-09-22。正式宿主默认为 15 generations × width 2；`--max-generations N` 可显式指定正整数代数，成本合同、会话合同和 final plan 必须冻结同一个 N。Stair 与 Push 使用同一个 [run_generation_session.py](../scripts/run_generation_session.py)。机器人、任务含义和资格门分别由 profile、task 与 cell 绑定提供。
 
-## 不变量
+P3 的 G1/Go2 Stair V3 reference 已通过原资格门，见 [P3 验收](../PLAN/2new_world/P3/ACCEPTANCE_ZH.md)。P4 的 Push reference cell 只闭合历史工程装配；当前 Push 两行统一为外力评价 V3，原 G1 资格只在原速度增量域有效，新评价域的完整资格仍未闭合，见 [Push 指南](task_extension_guides/push_recovery.md)。固定 runner 或新 public-dev 工程验收通过不代表 reference 资格 GO。
 
-- 使用一个全新的、此前不存在的 `OUT`，不复用旧 Genesis、ledger 或 runner 产物。
-- 四个阶段使用同一个 `SESSION_ID`、`OUT`、`PLAN`、发布 commit 和
-  `--execution-device`。
-- `PLAN` 必须在 Genesis 之前 create-once；计划路径必须是
-  `$OUT/final_confirmation/plan.json`。
-- 正式 live 入口显式请求且只允许 15 轮，并且必须由一次 invocation 从空 ledger 闭合全部
-  15 轮。ledger 行数或 reward 不能代替该入口生成的闭合 live receipt、ledger replay 和
-  eval audit。
-- 所有命令使用配置绑定的 Isaac Python。最终确认入口会再次强制检查当前解释器。
-- provider 密钥只通过只读 env 文件加载，不复制进输出、命令行、prompt 或 followup。
-- 任何失败都先保留现场并审计根因；不删除/覆盖正式目录，不在训练中临时叠补丁。
+## 准备与执行
 
-启动批准前，必须把
-`outputs/formal_15round_38818b5_evalv6_followups.md` 中每一项逐条标为已由证据关闭、无需
-实现，或明确需要下一轮实验验证；不能带着未处理的权威性 blocker 启动。发布审计还要确认
-每项代码升级确有必要、在源头解决、没有把 Stair 语义推入公用层，也没有让旧任务插件退化。
+1. 明确 `--task-id` 和 `--cell-variant-id`。Stair 当前新研究选择 `stair.g1_37dof.unified_v3` 或 `stair.go2_12dof.unified_v3`；Push 活跃行是 `push.g1_37dof.recovery_v3` 和 `push.go2_12dof.recovery_v3`，完成对应新评价域资格前不得据注册或工程验收启动正式 generation。`push.g1_29dof.reference_v1` 只保留显式历史审计入口。正式入口不隐式选择机器人。
+2. 使用当前 cell 合格的 reference，或通过 `--source-reference-genesis-dir` 与 `--source-reference-session-id` 导入身份兼容的 Genesis。reference 资格不是 CLI prepare 检查可以替代的。
+3. 提供 `--cost-contract` 与 `--provider-policy` JSON。成本合同从所选 cell 的真实 workload、测量来源及各 operation 的保守时间/空间预约构造；必须计入 reference、两个 dev、选中的 accept/sealed、retry、final 和会话文件。不得把 P4 固定 runner 的测试数值用作物理训练预算。provider 请求配置与其尝试/输入/输出额度一起冻结。新会话还须提供 `model_context`：`context_window_tokens`、`max_output_tokens`、`tokenizer_count_source="provider_usage_prompt_tokens"` 和官方能力依据 `specification_source`。输入预约加请求输出不得超过窗口；请求后的实际输入 token 以 provider usage 为准，不能把字节估算当精确 tokenizer 结果。
+4. 显式提供 session/output、干净的源码 commit、环境、host、两块 GPU UUID、lease root 与总限额。`--prepare-only` 完成真实 composition 和冻结文件核验，不启动训练或模型请求。首次准备会创建 manifest、cost、continuation、session contract 和任务 final plan。
+5. 去掉 `--prepare-only` 后执行同一组参数。首次执行及尚未终结的恢复都在后续工作前检查本地 provider 凭据，不发送网络探测；prepare-only 和只读终态审计不要求凭据。正式入口核对主机恰好拥有冻结的两卡，拒绝重复 index/UUID、错误映射及额外卡。每个物理 attempt 使用独立目录、成本预约和退出回执；接受判决仍以任务协议为准。确定性 public-accept 拒绝可省略 sealed，并明确记录 `not_run_due_to_early_reject`。
 
-## 发布和环境前置检查
-
-在服务器 Bash 中设置本次发布值。`EXPECTED_HEAD` 与 `RUN_TAG` 必须由已批准发布填写：
+在目标项目根查看完整参数：
 
 ```bash
-set -euo pipefail
-
-REPO=/data/yuyangliu/AGENT
-PROJECT="$REPO/true_RL_Agent"
-ISAAC_PY=/data/yuyangliu/envs/isaaclab/bin/python
-PROVIDER_ENV=/data/yuyangliu/secrets/deepseek.env
-DEVICE=cuda:0
-
-: "${EXPECTED_HEAD:?set EXPECTED_HEAD to the approved release commit}"
-: "${RUN_TAG:?set RUN_TAG to a new UTC tag, for example 20260813T120000Z}"
-
-SESSION_ID="stair-reference-formal-${RUN_TAG}"
-OUT="/data/yuyangliu/true_rl_agent_phase_g/fresh_formal_15round_${RUN_TAG}"
-PLAN="$OUT/final_confirmation/plan.json"
-
-assert_release_state() {
-  test "$(git -C "$REPO" rev-parse HEAD)" = "$EXPECTED_HEAD"
-  test -z "$(git -C "$REPO" status --porcelain --untracked-files=no)"
-  test -z "$(git -C "$REPO" status --porcelain --untracked-files=all -- \
-    true_RL_Agent/src \
-    true_RL_Agent/scripts \
-    true_RL_Agent/configs \
-    true_RL_Agent/docs)"
-}
-
-test -x "$ISAAC_PY"
-test -r "$PROVIDER_ENV"
-assert_release_state
-test ! -e "$OUT"
-mkdir -p "$OUT"
-cd "$PROJECT"
+/data/yuyangliu/envs/isaaclab6_validation/bin/python scripts/run_generation_session.py --help
+/data/yuyangliu/envs/isaaclab6_validation/bin/python scripts/create_stair_reference_genesis.py --help
 ```
 
-`assert_release_state` 会在四个正式阶段前重复检查发布 commit、全仓 tracked dirty state，
-以及 `src/scripts/configs/docs` 生产表面的 untracked 文件。`OUT` 位于仓库外，正式输出不会被
-这些源码状态检查误拦。不要在前置检查后切换 commit、修改 tracked 文件或更换 Python/设备。
-若任一检查失败，停止，不创建正式状态。
+`launch_stair_generation_session.py` 与 `run_stair_generation_session.py` 只保留兼容文件名，转发相同参数。旧 `--formal-session`、pilot/validation、readiness receipt 与 launcher 专属参数已经退役，不要照抄历史 shell 文件。
 
-## 1. 在 Genesis 前创建最终确认计划
+## 暂停、恢复和审计
+
+- `--pause-after-generation N` 在第 N 代完整关账后退出，N 必须大于等于 1 且小于冻结的 `--max-generations`（默认 15 代时为 1–14）；省略暂停参数则连续运行，暂停/恢复仍受冻结的段数和成本上限约束。旧会话只允许其已冻结的暂停边界。恢复使用原 session/output、相同 `--max-generations` 和 `--resume-existing`，继续复用冻结文件。改变代数、cell、成本或合同不是恢复操作；缺失的权威基础文件不会自动重建。5 代验证应使用 `--max-generations 5` 并完成 final，不能用 15 代会话暂停于第 5 代替代。
+- Linux CLI 在启动前拥有独立进程组；崩溃恢复仍检查原进程/进程组已经退出，并按现有 attempt/lease/cost 回执恢复。不能手改进程身份来绕过仍在运行的作业。
+- 正常执行负责关闭 final 并生成报告。`--resume-existing --terminal-audit-only` 只核验已经完整的终态证据和报告，不补写缺失文件，不运行 GPU 或 provider。未完成 final/报告的会话用普通 resume 完成后再审计。
+- 新会话的 final plan 由任务提供。Stair 在 Genesis 前承诺私有 study 实例，恢复复用 `final_confirmation/study_holdout.json`；`--final-replication-source` 明确声明复现实例。Push P4 final 复用已有 sealed cohort，不声明新的 seed 或地形泛化。
+
+单作业 `--runner-timeout-s` 默认 36000 秒，属于执行位置与成本预约；冻结协议的历史 7200 秒字段只保留原身份解释。共享宿主没有第二个 Stair launcher 的总超时参数。provider env 只传文件路径，密钥不写进命令或回执。
+
+## 旧证据与完成标准
+
+旧 V2/旧 generation ledger/report 不迁写为新版本。旧宿主的 Stair v6 报告使用 `scripts/audit_stair_generation_history.py`；新共享报告使用上述正式入口的 `--terminal-audit-only`。历史入口从原成本文件读取上限，校验原始来源和完整报告，不要求 provider 凭据、不采样 GPU、不补造缺失文件。它要求任务协议和后端兼容的审计 checkout，并不是任意旧环境的转换器；需要旧执行条件时从原 Git commit 获取。重放入口与固定格式验证见 [P4 复审](../PLAN/2new_world/P4/AUDIT_FOLLOWUP_ZH.md)。
 
 ```bash
-assert_release_state
-
-"$ISAAC_PY" scripts/create_stair_final_confirmation_plan.py \
-  --session-id "$SESSION_ID" \
-  --output-dir "$OUT" \
-  --execution-device "$DEVICE" \
-  2>&1 | tee "$OUT/final_confirmation_plan.log"
-
-test -s "$PLAN"
-test ! -e "$OUT/session_genesis.json"
-test ! -e "$OUT/ledger.jsonl"
+/data/yuyangliu/envs/isaaclab6_validation/bin/python scripts/audit_stair_generation_history.py --help
 ```
 
-此步骤将 never-fed 最终 cohort、任务/评估协议和配对规则冻结在计划中。计划已存在时
-入口会失败；不能覆盖后重试。
+验收必须同时核对 ledger、generation receipts/closures、attempt reservation/result、checkpoint/summary hash、成本与资源闭包，以及 final plan→reservation→phase receipts→result→report。退出成功或 ledger 达到冻结代数不能单独证明完成。
 
-## 2. 用同一计划创建并只读复核 reference Genesis
+原 Go2 15 代实验的 reference、head、71 个 checkpoint 与原始回执继续保留，入口见 [P0 基线](../PLAN/2new_world/P0/ACCEPTANCE_ZH.md) 和 [实验结果](../PLAN/Variant_construction/15_rounds_formal/PHASE6_15_ROUND_RESULTS_ZH.md)。本页不授予新的物理训练预算。
+
+## 两任务的接受边界
+
+P4 历史工程证据中，Stair V3 与 Push reference_v1 共用编排，采用各自冻结的科学判据。该旧 Push 行的 `min_delta=0.05`，使用非配对的噪声余量，主分数下限为 0.05，至少 3 个 accept 样本，没有 named guard；sealed 分数只要求达到绝对下限，没有 public→sealed 下降门。这些数值仅解释 P4 原记录，不是当前 Push 外力评价的规则。Stair 使用配对 headroom 改进、5 个样本、5 个 named guard 和 0.05 的候选 public→sealed 下降门。当前 Push 合同由所选 cell 的 task config、reference contract 和 phased adapter 提供，入口见 [Push 指南](task_extension_guides/push_recovery.md)；不得移植历史 Push 或 Stair 的阈值。
+
+## 目标环境完整回归
+
+在最终代码版本下运行整套测试；`PYTHONPATH` 同时传给测试启动的子进程。动态 Isaac 开关使目标环境执行开发机无法覆盖的配置和资源检查。
 
 ```bash
-assert_release_state
-
-"$ISAAC_PY" scripts/create_stair_reference_genesis.py \
-  --mode create \
-  --session-id "$SESSION_ID" \
-  --output-dir "$OUT" \
-  --final-confirmation-plan "$PLAN" \
-  --execution-device "$DEVICE" \
-  2>&1 | tee "$OUT/genesis_create.log"
-
-test -s "$OUT/session_genesis.json"
-test ! -e "$OUT/ledger.jsonl"
-
-"$ISAAC_PY" scripts/create_stair_reference_genesis.py \
-  --mode load-only \
-  --session-id "$SESSION_ID" \
-  --output-dir "$OUT" \
-  --final-confirmation-plan "$PLAN" \
-  --execution-device "$DEVICE" \
-  2>&1 | tee "$OUT/genesis_load_only.log"
-
-test ! -e "$OUT/ledger.jsonl"
+cd /data/yuyangliu/AGENT/true_RL_Agent
+PYTHONPATH="$PWD:$PWD/src" TRUE_RL_AGENT_ISAAC_DYNAMIC_TEST=1 \
+  /data/yuyangliu/envs/isaaclab6_validation/bin/python \
+  -m unittest discover -s tests -t . -v
 ```
 
-`load-only` 必须报告 runner/provider 调用数为 0，并证明 Genesis 和 ledger（若存在）未被
-改写。新实验在此时 ledger 仍应不存在。
-
-## 3. 从空 ledger 启动单次 15 轮正式 live
-
-```bash
-assert_release_state
-
-"$ISAAC_PY" scripts/run_stair_live.py \
-  --rounds 15 \
-  --session-id "$SESSION_ID" \
-  --output-dir "$OUT" \
-  --final-confirmation-plan "$PLAN" \
-  --provider-base-url https://api.deepseek.com \
-  --provider-endpoint /chat/completions \
-  --provider-model deepseek-v4-flash \
-  --provider-api-key-env DEEPSEEK_API_KEY \
-  --provider-env-file "$PROVIDER_ENV" \
-  --provider-timeout-s 180 \
-  --provider-max-tokens 32768 \
-  --provider-reasoning-mode adaptive \
-  --provider-reasoning-effort max \
-  --provider-max-attempts 5 \
-  --execution-device "$DEVICE" \
-  2>&1 | tee "$OUT/live.log"
-```
-
-最终确认只接受这一次 live invocation 从空 ledger 生成全部 15 条记录。通用 loop 的 resume
-能力仍保留，但本次正式进程一旦中断，resume 产物只能作为开发证据；必须使用新的
-`OUT`、计划和 Genesis 重开完整正式 15 轮，不能把恢复后的 ledger 送入最终确认。
-
-ledger 已有 15 条时禁止再次运行同一个 `--rounds 15` 命令。该零工作量调用会把根
-`live_summary.json` 改成 `15 -> 15` 的 no-op summary，遮住原闭合 receipt 的根绑定；这个
-`OUT` 随即失去最终确认资格，不能靠再次运行恢复。
-
-每一轮都检查 `authoring` evidence、`runner/<round>/train|eval/summary.json`、正式 eval、
-ledger record、live invocation receipt，以及当前 best/parent/lineage 绑定。跨轮还要检查
-prompt/history/memory 的继承与探索关系；不能把进度、reward 或 provider 成功当作接受证据。
-对本次改动的计划/Genesis 绑定、authoring anchor、backend/source manifest、provider attempt
-evidence、public safety 和 live summary v6 要做同等逐轮重点监察，而不是只看新候选的表现。
-
-训练中发现非阻断问题时，记录到
-`outputs/formal_15round_38818b5_evalv6_followups.md`，在下一次正式启动前逐条核实；只有明确
-阻断当前权威性的根因才进入“停止并重开全新 15 轮”的发布审计。
-
-## 4. 15 轮闭合后运行单次最终确认
-
-只有 live 命令成功返回、15 条 ledger 均完成逐轮审计、且入口生成的闭合 receipt 与
-ledger replay/eval audit 一致后，才运行：
-
-```bash
-assert_release_state
-
-"$ISAAC_PY" scripts/run_stair_final_confirmation.py \
-  --session-id "$SESSION_ID" \
-  --output-dir "$OUT" \
-  --final-confirmation-plan "$PLAN" \
-  --execution-device "$DEVICE" \
-  2>&1 | tee "$OUT/final_confirmation.log"
-
-test -s "$OUT/final_confirmation/reservation.json"
-test -s "$OUT/final_confirmation/result.json"
-```
-
-该入口会从真实 ledger 重建 acceptance replay/eval audit，验证 15 轮闭合 live receipt、
-Genesis 与最终 current-best checkpoint、后端环境和源码 manifest，然后才对预承诺 cohort
-按 Genesis -> final 顺序做一次配对确认。结果仅用于最终诊断，不回流到 acceptance、prompt、
-history 或 memory。
-
-如果最终确认在写入 `reservation.json` 后失败，reservation 会故意保留。不要删除它或直接
-重跑来规避 single-use 语义；保留全部证据，先完成根因审计并决定是否需要新的完整正式实验。
+测试发现失败并修改源码后，应重新执行此完整命令。记录使用的源码快照、Python、退出码、failure/error/skip；旧批次的成功 ID 并集不能替代最终代码全量。

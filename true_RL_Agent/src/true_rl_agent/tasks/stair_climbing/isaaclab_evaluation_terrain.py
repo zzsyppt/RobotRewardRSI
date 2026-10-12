@@ -63,7 +63,8 @@ def build_profile_eval_terrain_generator(
         border_width=0.0,
         num_rows=1,
         num_cols=len(profile.cells),
-        color_scheme="height",
+        # Uniform material: target trimesh lacks Lab's height-color "jet" map.
+        color_scheme="none",
         sub_terrains=sub_terrains,
         difficulty_range=(0.0, 1.0),
         use_cache=False,
@@ -100,7 +101,8 @@ def build_ordered_eval_terrain_generator(
         border_width=0.0,
         num_rows=1,
         num_cols=len(cells),
-        color_scheme="height",
+        # Uniform material: target trimesh lacks Lab's height-color "jet" map.
+        color_scheme="none",
         sub_terrains=sub_terrains,
         difficulty_range=(0.0, 1.0),
         use_cache=False,

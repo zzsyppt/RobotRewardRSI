@@ -197,9 +197,12 @@ class TrainJobSpec:
     reference_artifact: VerifiedReferenceProgramArtifactRef | None = None
     attempt_scope: JobAttemptExecutionScope | None = None
     gpu_process_binding: GpuProcessBinding | None = None
+    runtime_diagnostic_context_hash: str | None = None
 
     def __post_init__(self) -> None:
         self.job_identity()
+        if self.runtime_diagnostic_context_hash is not None:
+            require_sha256_digest(self.runtime_diagnostic_context_hash, "training runtime diagnostic context")
         if self.subject.kind not in {"candidate", "reference"}:
             raise ValueError("train job subject must be candidate or reference")
         require_sha256_checksum(
@@ -370,6 +373,8 @@ class TrainJobSpec:
                 else None
             ),
         }
+        if self.runtime_diagnostic_context_hash is not None:
+            result["runtime_diagnostic_context_hash"] = self.runtime_diagnostic_context_hash
         if self.expected_initial_policy_state_hash is not None:
             result["expected_initial_policy_state_hash"] = (
                 self.expected_initial_policy_state_hash

@@ -5,8 +5,11 @@ import json
 import sys
 import tempfile
 import unittest
+
+import torch
 from dataclasses import replace
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -23,6 +26,7 @@ from tests.fakes.decision_records import (  # noqa: E402
     valid_accepted_ledger_record,
 )
 from tests.fakes.fake_components import FakeTaskPlugin, FakeVerifier  # noqa: E402
+from true_rl_agent.agent_core.public_safety import assert_public_only_prompt_payload  # noqa: E402
 from true_rl_agent.agent_core.authoring_loop import (  # noqa: E402
     AuthoringBudgetExhaustedError,
     CandidateAuthoringLoop,
@@ -33,9 +37,15 @@ from true_rl_agent.agent_core.authoring_loop import (  # noqa: E402
 from true_rl_agent.agent_core.authoring_response import (  # noqa: E402
     CandidateDraftResponse,
     SourceRequestResponse,
+    next_authoring_response,
+)
+from true_rl_agent.agent_core.generation_provider_budget import (
+    CostGuardedProvider,
+    collect_provider_actuals,
 )
 from true_rl_agent.agent_core.provider_errors import (
     ProviderCandidateError,  # noqa: E402
+    ProviderServiceUnavailableError,
 )
 from true_rl_agent.candidates.schema import (  # noqa: E402
     CandidateChangeSet,
@@ -46,6 +56,7 @@ from true_rl_agent.candidates.authoring_policy import (  # noqa: E402
     verifier_equivalence_exclusion_set_hash,
 )
 from true_rl_agent.candidates.component_source_semantics import (  # noqa: E402
+    assess_anti_degenerate_source,
     project_single_component_operation_delta,
 )
 from true_rl_agent.candidates.verifier import (  # noqa: E402
@@ -77,7 +88,6 @@ from true_rl_agent.prompting.source_catalog import (  # noqa: E402
 )
 from true_rl_agent.tasks.component_smoke import (  # noqa: E402
     ComponentSmokeFixture,
-    SmokeTensor,
 )
 from true_rl_agent.tasks.push_recovery.reward_inputs import (
     PushRecoveryRewardInputs,  # noqa: E402
@@ -139,7 +149,7 @@ def _accepted_record(round_id: str, candidate: CandidatePackageRef, public_score
 def _r10_components_source(*, component_name: str, include_support: bool) -> str:
     support_function = (
         "\n\ndef foot_contact_support_reward(inputs):\n"
-        "    return inputs.base_height * 0.5\n"
+        "    return inputs.base_height * inputs.roll.square()\n"
         if include_support
         else ""
     )
@@ -179,15 +189,15 @@ class _SmokeAdapter:
 
     def build_component_smoke_fixture(self) -> ComponentSmokeFixture:
         num_envs = 3
-        vector = SmokeTensor.vector([0.2, 0.3, 0.4])
-        matrix2 = SmokeTensor.matrix([[0.0, 0.0], [0.1, 0.0], [0.0, -0.1]])
-        matrix3 = SmokeTensor.matrix([[0.1, 0.0, 0.0], [0.0, 0.1, 0.0], [0.0, 0.0, 0.1]])
+        vector = torch.tensor([0.2, 0.3, 0.4])
+        matrix2 = torch.tensor([[0.0, 0.0], [0.1, 0.0], [0.0, -0.1]])
+        matrix3 = torch.tensor([[0.1, 0.0, 0.0], [0.0, 0.1, 0.0], [0.0, 0.0, 0.1]])
         return ComponentSmokeFixture(
             task_id=self.task_id,
             reward_inputs=PushRecoveryRewardInputs(
                 base_height=vector,
-                roll=SmokeTensor.vector([0.01, 0.02, 0.03]),
-                pitch=SmokeTensor.vector([0.02, 0.01, 0.0]),
+                roll=torch.tensor([0.01, 0.02, 0.03]),
+                pitch=torch.tensor([0.02, 0.01, 0.0]),
                 base_pos_xy=matrix2,
                 base_lin_vel=matrix3,
                 base_ang_vel=matrix3,
@@ -199,9 +209,9 @@ class _SmokeAdapter:
                 last_action=matrix3,
                 prev_action=matrix3,
                 action_delta=matrix3,
-                push_active=SmokeTensor.vector([0.0, 1.0, 0.0]),
+                push_active=torch.tensor([0.0, 1.0, 0.0]),
                 push_vec_public=matrix2,
-                progress_fraction=SmokeTensor.vector([0.1, 0.4, 0.8]),
+                progress_fraction=torch.tensor([0.1, 0.4, 0.8]),
             ),
             expected_reward_output_shape=(num_envs,),
             public_summary={"fixture_owner": "task_owned_test", "num_envs": num_envs},
@@ -351,7 +361,7 @@ class _TwoDistinctSourceRequestsThenSuccessProvider:
             )
         if len(self.payloads) == 2:
             return SourceRequestResponse(
-                logical_ids=("attempt/latest_failed/training_code/components.py",),
+                logical_ids=("memory/latest_nonaccepted/training_code/components.py",),
                 rationale="Need latest failed source as repair evidence.",
                 source_catalog_logical_ids=tuple(sorted(prompt_source_catalog_logical_ids(prompt_payload))),
             )
@@ -551,15 +561,16 @@ class _AlwaysProviderFailureProvider:
 
 
 class _TransportFailureProvider:
-    def __init__(self, *, retryable: bool | None) -> None:
+    def __init__(self, *, retryable: bool | None, http_status: int = 401) -> None:
         self.retryable = retryable
+        self.http_status = http_status
         self.payloads: list[dict] = []
 
     def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
         self.payloads.append(prompt_payload)
         details = {
             "failure_kind": "network_error" if self.retryable else "http_error",
-            "http_status": None if self.retryable else 401,
+            "http_status": None if self.retryable else self.http_status,
         }
         if self.retryable is not None:
             details["retryable"] = self.retryable
@@ -873,6 +884,98 @@ class CandidateAuthoringLoopTests(unittest.TestCase):
             "historical_verifier_equivalent_repeat",
         )
         self.assertEqual(assessment["verifier_equivalence_key"], blocked_key)
+        self.assertEqual(assessment["exclusion_sources"], ["negative_evidence"])
+        self.assertEqual(assessment["negative_evidence_exclusion_set_hash"], exclusion_set_hash)
+        self.assertEqual(
+            assessment["evaluated_exclusion_set_hash"],
+            verifier_equivalence_exclusion_set_hash(()),
+        )
+
+    def test_evaluated_program_repeat_ignores_renaming_without_negative_evidence(self):
+        anchor_source = _r10_components_source(component_name="anchor_components", include_support=False)
+        source = _r10_components_source(component_name="new_components", include_support=True)
+        first_delta = project_single_component_operation_delta(candidate_source=source, anchor_source=anchor_source)
+        key = single_component_verifier_equivalence_key(first_delta)
+        renamed = source.replace("foot_contact_support_reward", "renamed_support_reward")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            anchor = _write_candidate_package(root / "anchor", "anchor", anchor_source)
+            candidate = _write_candidate_package(root / "candidate", "repeat", renamed)
+            result = CandidateAuthoringLoop(
+                context_builder=PublicContextBuilder(task_prompt_adapter=FakeTaskPlugin().prompt_adapter(),
+                    acceptance_protocol=TEST_ACCEPTANCE_PROTOCOL),
+                provider=_SingleDraftProvider(candidate), candidate_admission_policy=FakeVerifier(),
+                round_dir=root / "round", max_attempts=1, evaluated_verifier_equivalence_keys=(key,),
+            ).run_round(round_id="round-repeat", records=[_accepted_record("round-anchor", anchor, 0.31)])
+        self.assertEqual(result.stop_reason, "static_failed")
+        assessment = result.attempt_records[0]["historical_verifier_exclusion_assessment"]
+        self.assertEqual(assessment["reason"], "historical_verifier_equivalent_repeat")
+        self.assertEqual(assessment["verifier_equivalence_key"], key)
+        self.assertEqual(assessment["exclusion_sources"], ["same_parent_evaluated"])
+
+    def test_evaluated_history_blocks_a07_weight_variant_but_allows_new_mechanism(self):
+        fixtures = PROJECT_ROOT / "tests" / "fixtures" / "authoring_admission"
+        anchor_source = (fixtures / "a07_parent.txt").read_text(encoding="utf-8")
+        prior_source = (fixtures / "a07_evaluated_tilt_brake.txt").read_text(encoding="utf-8")
+        prior_delta = project_single_component_operation_delta(
+            candidate_source=prior_source, anchor_source=anchor_source
+        )
+        key = single_component_verifier_equivalence_key(prior_delta)
+        for fixture, expected_stop in (
+            ("a07_historical_weight_variant.txt", "static_failed"),
+            ("a07_distinct_impulse_absorb.txt", "candidate_verified"),
+        ):
+            with self.subTest(fixture=fixture), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                anchor = _write_candidate_package(root / "anchor", "anchor", anchor_source)
+                candidate = _write_candidate_package(
+                    root / "candidate", "candidate",
+                    (fixtures / fixture).read_text(encoding="utf-8"),
+                )
+                # No historical source is in the prompt or negative-evidence set.
+                # The admission set must survive prompt history/source compaction.
+                with patch(
+                    "true_rl_agent.agent_core.authoring_loop._evaluated_candidate_sources",
+                    return_value=(),
+                ):
+                    loop = CandidateAuthoringLoop(
+                        context_builder=PublicContextBuilder(
+                            task_prompt_adapter=FakeTaskPlugin().prompt_adapter(),
+                            acceptance_protocol=TEST_ACCEPTANCE_PROTOCOL,
+                        ),
+                        provider=_SingleDraftProvider(candidate),
+                        candidate_admission_policy=FakeVerifier(),
+                        round_dir=root / "round", max_attempts=1,
+                        evaluated_verifier_equivalence_keys=(key,),
+                    )
+                    result = loop.run_round(
+                        round_id="round-a07-replay",
+                        records=[_accepted_record("round-anchor", anchor, 0.31)],
+                    )
+                self.assertEqual(result.stop_reason, expected_stop)
+                assessment = result.attempt_records[0]["historical_verifier_exclusion_assessment"]
+                self.assertEqual(assessment["blocking"], expected_stop == "static_failed")
+                self.assertEqual(
+                    assessment["exclusion_sources"],
+                    ["same_parent_evaluated"] if expected_stop == "static_failed" else [],
+                )
+                self.assertEqual(
+                    assessment["negative_evidence_exclusion_set_hash"],
+                    verifier_equivalence_exclusion_set_hash(()),
+                )
+                self.assertEqual(loop.blocked_verifier_equivalence_keys, ())
+                self.assertNotIn("historical_exact_exclusion_assessment", result.attempt_records[0])
+
+    def test_numeric_only_reward_edits_and_numeric_rename_require_repair(self):
+        anchor = _r10_components_source(component_name="anchor_components", include_support=True)
+        modified = anchor.replace("weight=1.0,\n                fn=foot_contact_support_reward", "weight=0.25,\n                fn=foot_contact_support_reward")
+        self.assertNotEqual(modified, anchor)
+        for source in (modified, modified.replace("foot_contact_support_reward", "renamed_support_reward")):
+            assessment = assess_anti_degenerate_source(
+                candidate_source=source, current_best_source=anchor)
+            self.assertEqual(assessment["status"], "fail")
+            self.assertTrue(assessment["blocking"])
+            self.assertEqual(assessment["classification"], "parameter_only_delta")
 
     def test_terminal_resume_preserves_candidate_metadata_without_provider_call(
         self,
@@ -1312,6 +1415,39 @@ class CandidateAuthoringLoopTests(unittest.TestCase):
         self.assertEqual(len(resumed_provider.payloads), 1)
         self.assertEqual(resumed.attempt_records[0]["attempt"], 2)
 
+    def test_reasoning_exhaustion_stays_disabled_after_candidate_repair_and_resume(self):
+        from true_rl_agent.agent_core.openai_compatible_provider import _resolved_thinking_mode
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            seen = []
+            verifier_provider = _VerifierFailThenSuccessProvider(root / "candidates")
+
+            class ExhaustThenRepairThenInterrupt:
+                def next_candidate(self, *, prompt_payload):
+                    seen.append(prompt_payload)
+                    if len(seen) == 1:
+                        raise ProviderCandidateError("reasoning_output_exhausted", "output exhausted",
+                                                     details={"finish_reason": "length"})
+                    if len(seen) == 2:
+                        return verifier_provider.next_candidate(prompt_payload=prompt_payload)
+                    raise KeyboardInterrupt("interrupt before provider response")
+
+            builder = PublicContextBuilder(task_prompt_adapter=FakeTaskPlugin().prompt_adapter(),
+                                           acceptance_protocol=TEST_ACCEPTANCE_PROTOCOL)
+            common = dict(context_builder=builder, candidate_admission_policy=FakeVerifier(),
+                          round_dir=root / "round", max_attempts=5)
+            with self.assertRaises(KeyboardInterrupt):
+                CandidateAuthoringLoop(provider=ExhaustThenRepairThenInterrupt(), **common).run_round(
+                    round_id="round-001", records=[])
+            provider = _ImmediateSuccessProvider()
+            result = CandidateAuthoringLoop(provider=provider, **common).run_round(round_id="round-001", records=[])
+            self.assertEqual(result.stop_reason, "candidate_verified")
+            for payload in [*seen[1:], provider.payloads[0]]:
+                self.assertEqual(_resolved_thinking_mode("adaptive", payload, empty_final_reasoning_retry=True),
+                                 "disabled")
+                self.assertEqual(_resolved_thinking_mode("adaptive", payload, empty_final_reasoning_retry=False),
+                                 "enabled")
+
     def test_r8_shape_resume_skips_interrupted_attempt_and_keeps_truncation_feedback(
         self,
     ) -> None:
@@ -1656,7 +1792,7 @@ def build_training_components():
         )
         self.assertNotIn("candidate_repair_feedback", result.round_public_context)
         self.assertNotIn("source_payloads", result.round_public_context)
-        self.assertNotIn("recent_outcomes", provider.payloads[1]["public_context"])
+        self.assertNotIn("public_context", provider.payloads[1])
         repair_feedback = provider.payloads[1]["provider_or_runtime_repair_feedback"]
         repair_text = json.dumps(repair_feedback, sort_keys=True)
         self.assertNotIn(
@@ -1669,7 +1805,7 @@ def build_training_components():
         self.assertIn("current_best_reward", provider.payloads[1]["source_payloads"][0]["content"])
         self.assertEqual(provider.payloads[1]["public_history"]["recent_outcomes"], [])
         followup_frame = provider.payloads[1]["authoring_context_frame"]
-        self.assertEqual(followup_frame["legacy_alias_sections"], ["public_context"])
+        self.assertEqual(followup_frame["legacy_alias_sections"], [])
         self.assertLess(
             followup_frame["budget_metadata"]["actual_prompt_payload_bytes"],
             followup_frame["budget_metadata"]["hard_limits"]["max_prompt_payload_bytes"],
@@ -1849,7 +1985,6 @@ def build_training_components():
                 "consumed_gates": [],
                 "gate_statuses": {},
             }
-            runtime_failed_record["train_result"] = None
             runtime_failed_record["public_result"] = None
             runtime_failed_record["jobs"]["train"][
                 "candidate_failure_contract_hash"
@@ -1884,7 +2019,7 @@ def build_training_components():
         self.assertEqual(result.attempt_records[1]["source_request_result"]["status"], "source_payload_returned")
         self.assertEqual(
             result.attempt_records[1]["source_request_result"]["returned_logical_ids"],
-            ["attempt/latest_failed/training_code/components.py"],
+            ["memory/latest_nonaccepted/training_code/components.py"],
         )
         self.assertEqual(provider.payloads[1]["authoring_context_frame"]["frame_kind"], "source_followup")
         self.assertEqual(provider.payloads[2]["authoring_context_frame"]["frame_kind"], "source_followup")
@@ -1892,9 +2027,9 @@ def build_training_components():
         payload_3_by_id = {item["logical_id"]: item for item in provider.payloads[2]["source_payloads"]}
         self.assertEqual(payload_2_ids, ["current_best/training_code/components.py"])
         self.assertIn("current_best/training_code/components.py", payload_3_by_id)
-        self.assertIn("attempt/latest_failed/training_code/components.py", payload_3_by_id)
+        self.assertIn("memory/latest_nonaccepted/training_code/components.py", payload_3_by_id)
         self.assertIn("current_best_reward", payload_3_by_id["current_best/training_code/components.py"]["content"])
-        self.assertIn("latest_failed_reward", payload_3_by_id["attempt/latest_failed/training_code/components.py"]["content"])
+        self.assertIn("latest_failed_reward", payload_3_by_id["memory/latest_nonaccepted/training_code/components.py"]["content"])
 
     def test_verifier_failure_repair_uses_latest_failed_source_slot(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -1927,7 +2062,7 @@ def build_training_components():
         self.assertEqual(len(failed_sources), 1)
         self.assertIn("failed_static_reward", failed_sources[0]["content"])
 
-    def test_static_repair_payload_keeps_full_failed_source_but_not_draft_context(
+    def test_static_repair_payload_keeps_failed_source_and_task_evidence_without_history(
         self,
     ) -> None:
         current_best_source = (
@@ -1993,13 +2128,13 @@ def build_training_components():
         repair_text = serialize_prompt_payload(repair_payload)
         self.assertNotIn(current_best_source, repair_text)
         for omitted_section in (
-            "public_feedback_summary",
             "runtime_feedback_summary",
             "public_history",
             "known_good_examples",
-            "selection_guidance",
         ):
             self.assertNotIn(omitted_section, repair_payload)
+        for retained_section in ("public_feedback_summary", "selection_guidance", "exploration_directive"):
+            self.assertEqual(repair_payload[retained_section], initial_payload[retained_section])
         self.assertIn("exploration_directive", repair_payload)
         for stable_contract in (
             "task",
@@ -2014,10 +2149,14 @@ def build_training_components():
                 repair_payload[stable_contract],
                 initial_payload[stable_contract],
             )
-        self.assertEqual(
-            repair_payload["candidate_lineage"],
-            initial_payload["candidate_lineage"],
-        )
+        self.assertEqual(repair_payload["candidate_lineage"]["parent_program_source_checksum"],
+                         initial_payload["candidate_lineage"]["parent_program_source_checksum"])
+        self.assertEqual(repair_payload["candidate_lineage"]["current_best"]["source_delivery"], "source_request")
+        current_catalog = next(item for item in repair_payload["source_catalog"]["items"]
+                               if item["logical_id"] == CURRENT_BEST_SOURCE_ID)
+        self.assertEqual(current_catalog["recoverability"], "source_request")
+        self.assertFalse(current_catalog["inline_by_default"])
+        self.assertTrue(current_catalog["requestable"])
         repair_hashes = {
             item["logical_id"]: item["content_sha256"]
             for item in repair_frame["source_hashes"]
@@ -2300,6 +2439,10 @@ def build_training_components():
         self.assertIn(LATEST_FAILED_SOURCE_ID, followup_sources)
         self.assertIn("failed_static_reward", followup_sources[LATEST_FAILED_SOURCE_ID]["content"])
 
+        pending = provider.payloads[2]["provider_or_runtime_repair_feedback"]["unresolved_candidate_repair"]
+        self.assertEqual(pending["failure_category"], "verifier_error")
+        self.assertEqual(pending["previous_candidate_id"], "candidate-001")
+
     def test_static_repair_source_request_uses_all_prior_provider_visible_sources(
         self,
     ) -> None:
@@ -2483,7 +2626,7 @@ def build_training_components():
 
     def test_nonretryable_transport_failure_stops_without_burning_attempt_budget(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            provider = _TransportFailureProvider(retryable=False)
+            provider = _TransportFailureProvider(retryable=False, http_status=400)
             result = CandidateAuthoringLoop(
                 context_builder=PublicContextBuilder(
                     task_prompt_adapter=FakeTaskPlugin().prompt_adapter(),
@@ -2499,6 +2642,64 @@ def build_training_components():
         self.assertEqual(len(provider.payloads), 1)
         self.assertEqual(len(result.attempt_records), 1)
         self.assertFalse(result.provider_failure["details"]["retryable"])
+
+    def test_billing_and_auth_failures_persist_then_stop_without_candidate_failure(self) -> None:
+        for status, attempt_cap in ((401, 5), (402, 5), (403, 5), (402, 1)):
+            with self.subTest(status=status, attempt_cap=attempt_cap), tempfile.TemporaryDirectory() as tmp:
+                provider = _TransportFailureProvider(retryable=False, http_status=status)
+                output_dir = Path(tmp)
+                generation_id = "pilot-generation-001"
+                round_id = f"{generation_id}-lane-a"
+                round_dir = output_dir / "authoring" / generation_id / "lane-a"
+                caps = {"attempts_per_lane_per_generation": 5,
+                    "input_units_per_attempt_reserve": 40000, "output_units_per_attempt_cap": 32768}
+
+                def guarded(delegate):
+                    return CostGuardedProvider(
+                        delegate=SimpleNamespace(next_authoring_response=lambda *, prompt_payload:
+                            next_authoring_response(delegate, prompt_payload=prompt_payload)),
+                        output_dir=output_dir, generation_id=generation_id, lane_id="lane-a",
+                        provider_caps=caps,
+                    )
+
+                kwargs = dict(
+                    context_builder=PublicContextBuilder(
+                        task_prompt_adapter=FakeTaskPlugin().prompt_adapter(),
+                        acceptance_protocol=TEST_ACCEPTANCE_PROTOCOL,
+                    ),
+                    candidate_admission_policy=FakeVerifier(), round_dir=round_dir, max_attempts=attempt_cap,
+                )
+                with self.assertRaisesRegex(ProviderServiceUnavailableError, f"HTTP {status}"):
+                    CandidateAuthoringLoop(provider=guarded(provider), **kwargs).run_round(round_id=round_id, records=[])
+                self.assertEqual(len(provider.payloads), 1)
+                result_path = round_dir / "authoring_attempts/attempt_000001/attempt_result.json"
+                persisted = json.loads(result_path.read_text(encoding="utf-8"))
+                self.assertEqual(persisted["provider_attempt"]["provider_failure"]["details"]["http_status"], status)
+                self.assertEqual(persisted["continuation_state"]["disposition"], "continue")
+                self.assertIsNone(persisted["continuation_state"]["stop_reason"])
+                self.assertNotIn("provider_usage", persisted["provider_attempt"])
+                original = result_path.read_bytes()
+                actuals = collect_provider_actuals(SimpleNamespace(
+                    config=SimpleNamespace(output_dir=output_dir, session_id="pilot"),
+                    cost_contract=SimpleNamespace(to_dict=lambda: {"provider": caps})), ledger=[])
+                self.assertEqual(actuals["attempts"], 1)
+                self.assertEqual(actuals["conservative_attempts"], 1)
+                self.assertEqual(actuals["request_units"], 40000)
+                self.assertEqual(actuals["response_units"], 32768)
+                recovered = _ImmediateSuccessProvider()
+                if attempt_cap == 1:
+                    with self.assertRaises(AuthoringBudgetExhaustedError):
+                        CandidateAuthoringLoop(provider=guarded(recovered), **kwargs).run_round(
+                            round_id=round_id, records=[])
+                    self.assertEqual(len(recovered.payloads), 0)
+                    self.assertEqual(result_path.read_bytes(), original)
+                    continue
+                resumed = CandidateAuthoringLoop(provider=guarded(recovered), **kwargs).run_round(
+                    round_id=round_id, records=[])
+                self.assertEqual(resumed.stop_reason, "candidate_verified")
+                self.assertEqual(len(resumed.attempt_records), 2)
+                self.assertEqual(len(recovered.payloads), 1)
+                self.assertEqual(result_path.read_bytes(), original)
 
     def test_retryable_transport_failure_uses_existing_attempt_budget_without_code_repair(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -2618,14 +2819,15 @@ def build_training_components():
             "static_repair",
         )
         for compact_section in (
-            "public_feedback_summary",
             "runtime_feedback_summary",
             "public_history",
             "known_good_examples",
-            "selection_guidance",
         ):
             self.assertNotIn(compact_section, second_payload)
             self.assertNotIn(compact_section, third_payload)
+        for retained_section in ("public_feedback_summary", "selection_guidance", "exploration_directive"):
+            self.assertEqual(second_payload[retained_section], provider.payloads[0][retained_section])
+            self.assertEqual(third_payload[retained_section], provider.payloads[0][retained_section])
         self.assertLessEqual(
             third_payload["authoring_context_frame"]["budget_metadata"][
                 "actual_prompt_payload_bytes"
@@ -2641,6 +2843,51 @@ def build_training_components():
             ],
             "response_truncated",
         )
+
+        pending = third_payload["provider_or_runtime_repair_feedback"]["unresolved_candidate_repair"]
+        self.assertEqual(pending["failure_category"], "verifier_error")
+        self.assertEqual(pending["previous_candidate_id"], "candidate-001")
+
+    def test_smoke_repair_survives_transport_failure_and_durable_resume(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            candidates = _SmokeFailThenSuccessProvider(root / "candidates")
+            interrupted_payloads = []
+
+            class InterruptedTransportProvider:
+                def next_candidate(self, *, prompt_payload):
+                    interrupted_payloads.append(prompt_payload)
+                    if len(interrupted_payloads) == 1:
+                        return candidates.next_candidate(prompt_payload=prompt_payload)
+                    if len(interrupted_payloads) == 2:
+                        raise ProviderCandidateError("runtime_error", "temporary transport failure",
+                                                     details={"retryable": True})
+                    raise KeyboardInterrupt()
+
+            builder = PublicContextBuilder(task_prompt_adapter=FakeTaskPlugin().prompt_adapter(),
+                                           acceptance_protocol=TEST_ACCEPTANCE_PROTOCOL)
+            kwargs = dict(context_builder=builder, candidate_admission_policy=FakeVerifier(),
+                          round_dir=root / "round-001", max_attempts=4,
+                          component_smoke_adapter=_SmokeAdapter())
+            with self.assertRaises(KeyboardInterrupt):
+                CandidateAuthoringLoop(provider=InterruptedTransportProvider(), **kwargs).run_round(
+                    round_id="round-001", records=[])
+            result = CandidateAuthoringLoop(provider=candidates, **kwargs).run_round(
+                round_id="round-001", records=[])
+
+        self.assertEqual(result.stop_reason, "candidate_verified")
+        self.assertEqual(result.candidate.candidate_id, "candidate-smoke-pass")
+        for payload in (interrupted_payloads[2], candidates.payloads[-1]):
+            feedback = payload["provider_or_runtime_repair_feedback"]
+            self.assertEqual(feedback["failure_category"], "runtime_error")
+            pending = feedback["unresolved_candidate_repair"]
+            self.assertEqual(pending["failure_category"], "component_smoke_error")
+            self.assertEqual(pending["previous_candidate_id"], "candidate-smoke-fail")
+            self.assertNotIn("unresolved_candidate_repair", pending)
+            failed_source = next(item for item in payload["source_payloads"]
+                                 if item["logical_id"] == LATEST_FAILED_SOURCE_ID)
+            self.assertIn("broken_reward", failed_source["content"])
+            assert_public_only_prompt_payload(payload)
 
     def test_component_smoke_failure_repairs_with_failed_source_payload(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -2681,7 +2928,7 @@ def build_training_components():
         self.assertNotIn("/data/yuyangliu", feedback_text)
         self.assertNotIn("sk-live-secret", feedback_text)
 
-    def test_component_smoke_advisory_repairs_once_then_allows_training(
+    def test_component_smoke_observation_does_not_consume_a_repair_attempt(
         self,
     ) -> None:
         advisory = {
@@ -2715,15 +2962,10 @@ def build_training_components():
                 ).run_round(round_id="round-001", records=[])
 
         self.assertEqual(result.stop_reason, "candidate_verified")
-        self.assertEqual(len(result.attempt_records), 2)
+        self.assertEqual(len(result.attempt_records), 1)
+        self.assertEqual(len(provider.payloads), 1)
         self.assertEqual(
-            provider.payloads[1]["provider_or_runtime_repair_feedback"][
-                "failure_category"
-            ],
-            "component_smoke_advisory",
-        )
-        self.assertEqual(
-            result.attempt_records[1]["component_smoke"]["status"],
+            result.attempt_records[0]["component_smoke"]["status"],
             "advisory",
         )
 

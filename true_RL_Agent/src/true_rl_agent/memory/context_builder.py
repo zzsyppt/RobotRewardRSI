@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
@@ -30,6 +31,7 @@ from true_rl_agent.evaluation.binding import (
     require_sha256_digest,
 )
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
+from true_rl_agent.evaluation.phased_adapter import PhasedEvaluationAdapter
 from true_rl_agent.evaluation.public_result import PublicEvalResult
 from true_rl_agent.memory.records import ExperimentRecord, PromptPayloadRef
 from true_rl_agent.memory.task_adapter import TaskMemoryAdapter
@@ -138,9 +140,11 @@ class PublicContextBuilder:
         ledger_authoring_mode: str = NON_PROVIDER_AUTHORING_MODE,
         expected_ledger_epoch_hash: str | None = None,
         generation_session_contract: GenerationSessionContract | None = None,
+        phased_evaluation_adapter: PhasedEvaluationAdapter | None = None,
     ) -> None:
         self.task_memory_adapter = task_memory_adapter
         self.task_prompt_adapter = task_prompt_adapter
+        self.phased_evaluation_adapter = phased_evaluation_adapter
         self.acceptance_protocol = acceptance_protocol
         self.initial_current_best = initial_current_best
         self.session_genesis_hash = session_genesis_hash
@@ -194,6 +198,7 @@ class PublicContextBuilder:
         frame_kind: str | None = None,
         authoring_capability_readiness: Mapping[str, Mapping[str, Any]] | None = None,
         candidate_verifier_prompt_rules: Mapping[str, Any] | None = None,
+        recoverable_sources: tuple[Mapping[str, Any], ...] = (),
     ) -> PublicPromptBuild:
         prepared = self._prepare_records(records)
         experiment_records, history = prepared
@@ -212,6 +217,7 @@ class PublicContextBuilder:
         task_prompt_sections = self._build_task_prompt_sections(
             public_records=public_records,
             round_public_context=round_public_context,
+            current_best=history.current_best,
         )
         if task_prompt_sections:
             provider_context["task_prompt_sections"] = task_prompt_sections
@@ -246,6 +252,7 @@ class PublicContextBuilder:
             ]
 
         provider_payload = build_prompt_payload(
+            recoverable_sources=recoverable_sources,
             public_context=sanitize_prompt_public_context(provider_context),
             frame_kind=frame_kind,
             authoring_capability_readiness=authoring_capability_readiness,
@@ -336,6 +343,7 @@ class PublicContextBuilder:
             ),
             expected_authoring_mode=self.ledger_authoring_mode,
             expected_ledger_epoch_hash=self.expected_ledger_epoch_hash,
+            phased_evaluation_adapter=self.phased_evaluation_adapter,
         )
 
     def _validated_exploration_history(
@@ -419,9 +427,15 @@ class PublicContextBuilder:
         *,
         public_records: Sequence[Mapping[str, Any]],
         round_public_context: Mapping[str, Any],
+        current_best: CurrentBestEvalStats | None,
     ) -> dict[str, Any]:
         if self.task_prompt_adapter is not None:
             adapter_context = sanitize_prompt_public_context(dict(round_public_context))
+            if current_best is not None:
+                identity = current_best.comparison_identity()
+                adapter_context["current_best_identity"] = {key: identity[key] for key in (
+                    "mode", "anchor_kind", "anchor_id", "accepted_round_id",
+                    "checkpoint_hash", "program_source_checksum")}
             if self.initial_anchor_public_evidence is not None:
                 adapter_context["initial_anchor_public_evidence"] = dict(
                     self.initial_anchor_public_evidence
@@ -485,7 +499,8 @@ def _validate_initial_anchor_public_evidence(
         return None
     if not isinstance(value, Mapping):
         raise TypeError("initial anchor public evidence must be an object")
-    if set(value) != {"anchor_kind", "public_result", "public_result_hash"}:
+    required = {"anchor_kind", "public_result", "public_result_hash"}
+    if not required <= set(value) or set(value) - required - {"training_runtime"}:
         raise ValueError("initial anchor public evidence fields mismatch")
     if initial_current_best is None or acceptance_protocol is None:
         raise ValueError(
@@ -542,11 +557,28 @@ def _validate_initial_anchor_public_evidence(
         raise ValueError("initial anchor public evidence kind is invalid")
     if restored.to_public_dict() != initial_current_best.to_public_dict():
         raise ValueError("initial anchor public evidence does not restore current-best")
-    return {
+    evidence = {
         "anchor_kind": anchor_kind,
         "public_result": public_result_dict,
         "public_result_hash": public_result_hash,
     }
+    if "training_runtime" in value:
+        from true_rl_agent.candidates.mechanism import RuntimeActivationEvidence
+        trained = value["training_runtime"]
+        subject = trained.get("evaluation_subject") if isinstance(trained, Mapping) else None
+        if (anchor_kind != "reference_program" or not isinstance(subject, Mapping)
+                or subject.get("kind") != "reference" or subject.get("id") != initial_current_best.anchor_id
+                or trained.get("checkpoint_hash") != initial_current_best.checkpoint_hash
+                or trained.get("program_source_checksum") != initial_current_best.program_source_checksum):
+            raise ValueError("initial anchor training runtime identity mismatch")
+        evidence["training_runtime"] = {
+            "checkpoint_hash": trained["checkpoint_hash"],
+            "evaluation_subject": dict(subject),
+            "program_source_checksum": trained["program_source_checksum"],
+            "runtime_activation_summary": RuntimeActivationEvidence.from_mapping(
+                trained.get("runtime_activation_summary")).to_public_dict(),
+        }
+    return evidence
 
 
 def _prompt_public_record_scrub_policy(
@@ -579,8 +611,10 @@ def _project_prompt_public_history(
     )
     if callable(projector):
         projection = projector(
-            public_records=public_records,
-            initial_anchor_public_evidence=initial_anchor_public_evidence,
+            # A task view must not mutate the validated history used by source
+            # resolution, exploration or the authority comparison below.
+            public_records=deepcopy(public_records),
+            initial_anchor_public_evidence=deepcopy(initial_anchor_public_evidence),
         )
     else:
         projection = PromptPublicHistoryProjection(

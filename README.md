@@ -1,83 +1,26 @@
-# Humanoid Control Agentic Self-Improvement MVP
+# RobotRewardRSI
 
-The project follows `humanoid_agentic_policy_improvement_plan_v3.md`. The
-current completed implementation milestone is Phase 6: a public-only
-multi-round LLM improvement loop scaffold that starts from the Phase 2
-baseline, uses fixed paired seed subsets, and only expands 3 seeds to 5 seeds
-when the public decision is near the acceptance threshold. The expensive live
-multi-round training run is intentionally a separate execution step.
+基于大语言模型的机器人奖励函数自进化系统，结合奖励代码生成、PPO 策略训练、Isaac Sim / Isaac Lab 仿真评测与结构化行为反馈。
 
-Start here:
+## 功能
 
-- Full environment installation and reproduction: `setup/environment_reproduction.md`
-- Phase -1 evidence and decisions:
-  `development_logs/phase_-1_environment_bootstrap/2026-06-20_phase_-1_completion.md`
-- Phase 0 official baseline evidence:
-  `development_logs/phase_0_official_baseline/2026-06-20_phase_0_official_baseline.md`
-- Phase 1 standing push-recovery evidence:
-  `development_logs/phase_1_push_recovery_environment/2026-06-20_phase_1_push_recovery.md`
-- Phase 1 push-gate audit correction:
-  `development_logs/phase_1_push_recovery_environment/2026-06-20_phase_1_gate_audit_fix.md`
-- Phase 2 baseline variance evidence:
-  `development_logs/phase_2_baseline_variance/2026-06-20_phase_2_baseline_variance.md`
-- Phase 3 verifier and smoke evidence:
-  `development_logs/phase_3_verifier_smoke/2026-06-20_phase_3_verifier_smoke.md`
-- Phase 4 rule-baseline evidence:
-  `development_logs/phase_4_rule_baseline/2026-06-20_phase_4_rule_baseline.md`
-- Phase 5 LLM-agent scaffold evidence:
-  `development_logs/phase_5_llm_single_iteration/2026-06-21_phase_5_llm_agent_scaffold.md`
-- Phase 5 DeepSeek live validation:
-  `development_logs/phase_5_llm_single_iteration/2026-06-21_phase_5_deepseek_live_validation.md`
-- Phase 5 formal accept/reject:
-  `development_logs/phase_5_llm_single_iteration/2026-06-21_phase_5_formal_accept_reject.md`
-- Phase 5 prompt-leak audit and clean public-only rerun:
-  `development_logs/phase_5_llm_single_iteration/2026-06-21_phase_5_prompt_leak_audit_fix.md`
-- Phase 6 public-only multi-round loop implementation:
-  `development_logs/phase_6_multi_round_loop/2026-06-21_phase_6_loop_implementation.md`
-- Server status: `setup/server_check.md`
-- Direct version pins: `setup/locks/`
+- 支持 Unitree Go2 / G1 的爬楼梯与抗扰恢复任务。
+- 验证候选奖励程序，按固定训练预算生成策略并进行分层评测。
+- 将轨迹测量、接触状态和奖励分项整理为后续迭代反馈。
+- 分离机器人配置、任务语义、作业执行和评测协议。
 
-Quick validation on the server:
+## 代码
 
-```bash
-cd /data/yuyangliu/AGENT
-source scripts/activate_environment.sh
-python scripts/smoke_torch_cuda.py
-bash scripts/smoke_isaac_headless.sh
-bash scripts/smoke_dual_gpu.sh
-bash scripts/phase0_official_baseline.sh
-bash scripts/phase1_push_recovery_smoke.sh
-DEVICE=cuda:0 RUN_ROOT=/data/yuyangliu/runs/phase_2_baseline_variance_5seed \
-  bash scripts/phase2_baseline_variance.sh
-RUN_ROOT=/data/yuyangliu/runs/phase_3_verifier_smoke \
-  bash scripts/phase3_verifier_smoke.sh
-PYTHONPATH=/data/yuyangliu/AGENT/src python3 scripts/phase4_rule_baseline_selftest.py
-PYTHONPATH=/data/yuyangliu/AGENT/src python3 scripts/phase4_rule_baseline.py \
-  --summary-file /data/yuyangliu/runs/phase_2_baseline_variance_5seed/2026-06-20_5seed_formal/summary.json \
-  --output-dir /data/yuyangliu/runs/phase_4_rule_baseline/manual_repro
-PYTHONPATH=/data/yuyangliu/AGENT/src python3 scripts/phase5_llm_agent_selftest.py
-PYTHONPATH=/data/yuyangliu/AGENT/src python3 scripts/phase6_llm_loop_selftest.py
-PYTHONPATH=/data/yuyangliu/AGENT/src python3 scripts/phase5_llm_single_iteration.py \
-  --provider dry_run \
-  --summary-file /data/yuyangliu/runs/phase_2_baseline_variance_5seed/2026-06-20_5seed_formal/summary.json \
-  --output-dir /data/yuyangliu/runs/phase_5_llm_single_iteration/manual_dry_run
-# Live provider run requires a server-side secret file such as
-# /data/yuyangliu/secrets/deepseek.env and explicit spend authorization.
-RUN_ID=manual_deepseek_live PHASE5_PROVIDER=deepseek bash scripts/phase5_live_provider.sh
-CANDIDATE_DIR=/data/yuyangliu/runs/phase_5_llm_single_iteration/manual_deepseek_live \
-  RUN_NAME=formal_5seed_eval \
-  bash scripts/phase5_run_candidate_eval.sh
-# Phase 6 dry-run planning does not call the provider or train.
-PYTHONPATH=/data/yuyangliu/AGENT/src python3 scripts/phase6_multi_round_loop.py \
-  --rounds 3
-# Live Phase 6 requires the server-side provider secret and explicit spend flag.
-source /data/yuyangliu/secrets/deepseek.env
-PYTHONPATH=/data/yuyangliu/AGENT/src python3 scripts/phase6_multi_round_loop.py \
-  --execute \
-  --provider deepseek \
-  --allow-api-spend \
-  --rounds 3
-```
+运行模块位于 `true_RL_Agent/src/true_rl_agent/`，任务配置位于 `true_RL_Agent/configs/`，训练与评测入口位于 `true_RL_Agent/scripts/`。
 
-Large environments, caches, raw logs, and checkpoints live under
-`/data/yuyangliu` and are intentionally excluded from Git.
+技术说明见 [系统概览](true_RL_Agent/docs/system_overview_zh.md) 和 [扩展接口](true_RL_Agent/docs/extension_and_boundary_guide.md)。
+
+## 运行环境
+
+仿真与训练使用 Python 3.12、Isaac Sim 6、Isaac Lab 3 系列源码、RSL-RL 5 和 CUDA 版 PyTorch。LLM 通过 OpenAI 兼容接口接入。
+
+从仓库根目录配置 `PYTHONPATH` 指向 `true_RL_Agent` 与 `true_RL_Agent/src` 后，可通过 `true_RL_Agent/scripts/run_generation_session.py --help` 查看任务与实验参数。
+
+## PPO 微型检查
+
+`tools/prepare_first_stair_smoke.py --output runs/<准备目录>` 生成 Go2 爬楼梯 reference 作业参数；`true_RL_Agent/scripts/training_numeric_smoke.py` 使用这些参数检查 PPO 执行与数值记录。准备参数不会启动训练或模型请求。

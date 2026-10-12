@@ -7,6 +7,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
+from true_rl_agent.evaluation.derived_statistics import DERIVED_STATISTICS_VERSION
+
 
 @dataclass(frozen=True)
 class ScoreStatsValidation:
@@ -31,6 +33,9 @@ def validate_score_stats(
     if not isinstance(value, Mapping) or not value:
         return ScoreStatsValidation(False, ("score_stats_missing",))
     reasons: list[str] = []
+    version = value.get("statistics_version")
+    if version not in {None, DERIVED_STATISTICS_VERSION}:
+        reasons.append("score_stats_version_invalid")
     count = _positive_int(value.get("count"))
     if count is None:
         reasons.append("score_stats_count_invalid")
@@ -53,6 +58,8 @@ def validate_score_stats(
     canonical: dict[str, Any] = {}
     if not reasons:
         canonical = {"count": count, "mean": mean}
+        if version is not None:
+            canonical["statistics_version"] = version
         if std is not None:
             canonical["std"] = std
         if standard_error is not None:

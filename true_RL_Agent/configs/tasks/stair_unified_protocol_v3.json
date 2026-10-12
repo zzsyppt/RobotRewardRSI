@@ -1,0 +1,265 @@
+{
+  "candidate_authority": {
+    "capability_ids": [
+      "complete_reward_program"
+    ],
+    "mutable_components": [
+      "complete_reward_program"
+    ],
+    "runner_owned_components": [
+      "terrain_generator",
+      "training_distribution",
+      "curriculum",
+      "seed_policy",
+      "training_budget",
+      "ppo_hyperparameters",
+      "checkpoint_selector",
+      "evaluation_suite",
+      "success_definition",
+      "failure_thresholds",
+      "observation_space",
+      "action_space",
+      "acceptance_protocol"
+    ]
+  },
+  "cell_variant_id": "stair.g1_37dof.unified_v3",
+  "component_hashes": {
+    "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+    "evaluation_suite_hash": "d78f19feeaeb8a7baf725e56acb178d7aaf58f8931f9b8e7e69ede9aa9aca73f",
+    "training_profile_hash": "d222a1ddc2ed52ed6feae43d8413b6364576880ac4febbc09e6ac7a9122028d1",
+    "vnext_reward_authority_hash": "b4cbca68377eec8a0f10a3fe6724067c8adec4b774fda89ecaf8f6a58189c186"
+  },
+  "component_refs": {
+    "acceptance_protocol": "stair_unified_acceptance_protocol_v7.json",
+    "evaluation_suite": "stair_unified_evaluation_suite_v2.json",
+    "training_profile": "stair_unified_training_profile_v1.json",
+    "vnext_reward_authority": "stair_vnext_reward_authority_v1.json"
+  },
+  "episode_outcomes": {
+    "classification_warning_blocks_pass": true,
+    "counting_invariant": "success_count_plus_primary_failure_counts_equals_total_episode_count",
+    "diagnostic_flags": [
+      "base_orientation_instability_detected",
+      "slip_detected",
+      "insufficient_clearance_detected",
+      "off_course_detected",
+      "goal_not_reached_detected",
+      "first_valid_top_arrival_achieved"
+    ],
+    "failure_priority": [
+      "forbidden_contact",
+      "off_course",
+      "base_orientation_instability",
+      "slip",
+      "insufficient_clearance",
+      "timeout"
+    ],
+    "primary_reasons": [
+      "success",
+      "forbidden_contact",
+      "off_course",
+      "base_orientation_instability",
+      "slip",
+      "insufficient_clearance",
+      "timeout"
+    ],
+    "signals": {
+      "base_orientation_instability": {
+        "comparison": "greater_than",
+        "consecutive_control_steps": 10,
+        "source": "kinematic_base_roll_or_pitch_abs",
+        "threshold": 0.65,
+        "unit": "rad"
+      },
+      "forbidden_contact": {
+        "force_threshold_n": 1.0,
+        "manager_term": "base_contact",
+        "other_body_contacts_policy": "allowed_unless_another_failure_signal_triggers",
+        "source": "resolved_forbidden_contact_role_force",
+        "trigger": "manager_term_active"
+      },
+      "insufficient_clearance": {
+        "comparison": "less_than",
+        "consecutive_control_steps": 3,
+        "source": "noncontact_support_effector_clearance_above_projected_local_stair_surface",
+        "threshold": 0.03,
+        "unit": "m"
+      },
+      "off_course": {
+        "comparison": "outside",
+        "consecutive_control_steps": 1,
+        "source": "kinematic_base_xy_outside_own_terrain_patch",
+        "unit": "m"
+      },
+      "slip": {
+        "consecutive_control_steps": 5,
+        "contact_force_threshold": 1.0,
+        "force_unit": "N",
+        "source": "support_effector_planar_speed_while_in_contact",
+        "speed_threshold": 0.5,
+        "speed_unit": "m/s"
+      },
+      "timeout": {
+        "deadline_authority": "ordered_evaluation_suite",
+        "source": "evaluation_suite_cell_episode_horizon",
+        "unit": "s"
+      }
+    },
+    "success": {
+      "completion_mode": "first_valid_top_arrival_latched",
+      "minimum_progress_fraction": 1.0,
+      "minimum_support_effector_upward_force_n": 10.0,
+      "minimum_support_effectors_on_top": 1,
+      "post_arrival_failure_policy": "not_evaluated_outcome_closes_on_first_valid_top_arrival",
+      "pre_arrival_blocking_latches": [
+        "forbidden_contact",
+        "off_course"
+      ],
+      "requires_kinematic_base_within_top_platform_bounds": true,
+      "requires_orientation_stable": true,
+      "requires_support_effectors_within_top_platform_bounds": true,
+      "support_effector_surface_clearance_range_m": [
+        0.0,
+        0.12
+      ]
+    },
+    "support_surface_projection": {
+      "maximum_projected_surface_penetration_m": 0.03,
+      "no_contact_fallback": "lowest_vertically_feasible_projected_support_surface"
+    }
+  },
+  "protocol_hash": "8b99d01247fe5c7c940d876750c31780e603cf738672d0ffdf4c8c731cba600b",
+  "protocol_id": "unitree_stair_climbing_unified_v3",
+  "protocol_state": "active",
+  "reference_program": {
+    "entrypoint": "training_code.components:build_training_components",
+    "reference_id": "official-g1-rough-reward-vnext-v1",
+    "repository_source_path": "src/true_rl_agent/tasks/stair_climbing/reference_programs/official_g1_rough_vnext_v1/training_code/components.py",
+    "required_authorship_origin": "official_upstream",
+    "session_role": "reference"
+  },
+  "reference_readiness": {
+    "easy_strata": [
+      "c0_id",
+      "c1_id"
+    ],
+    "minimum_macro_goal_progress_fraction": 0.5,
+    "minimum_macro_success_rate": 0.05,
+    "ood_requirement": "finite_complete_non_structurally_degenerate_telemetry",
+    "predicate": "each_easy_stratum_meets_both_floors",
+    "seed_count": 5,
+    "source_cohort": "public_accept"
+  },
+  "required_pass_gates": [
+    "accept_evidence_gate",
+    "budget_accounting",
+    "runtime_activation_gate",
+    "stair_behavior_gate",
+    "sealed_validation_gate"
+  ],
+  "runtime_controls": {
+    "eval_observation_corruption_enabled": false,
+    "evaluation_command": {
+      "forward_mps": 0.8,
+      "lateral_mps": 0.0,
+      "yaw_radps": 0.0
+    },
+    "external_force_events_enabled": false,
+    "push_events_enabled": false,
+    "reset_velocity_ranges": {
+      "pitch": [
+        0.0,
+        0.0
+      ],
+      "roll": [
+        0.0,
+        0.0
+      ],
+      "x": [
+        0.0,
+        0.0
+      ],
+      "y": [
+        0.0,
+        0.0
+      ],
+      "yaw": [
+        0.0,
+        0.0
+      ],
+      "z": [
+        0.0,
+        0.0
+      ]
+    },
+    "spawn": {
+      "x_range_m_from_origin": [
+        -0.1,
+        0.1
+      ],
+      "y_range_m_from_origin": [
+        -0.1,
+        0.1
+      ],
+      "yaw_range_rad": [
+        0.0,
+        0.0
+      ]
+    },
+    "train_observation_corruption_enabled": true
+  },
+  "schema_version": "true_rl_agent.task.stair_climbing.unified_protocol.v1",
+  "task_id": "unitree_stair_climbing",
+  "task_protocol_hash": "7c14e242162904283ddf4e5b2212904ea413fdf2e4bed4b2a955194ef30c9322",
+  "training": {
+    "budget_steps": 196608000,
+    "checkpoint_selector": "final_iteration",
+    "command": {
+      "forward_mps_range": [
+        0.0,
+        0.8
+      ],
+      "heading_command_enabled": false,
+      "lateral_command_mps": 0.0,
+      "standing_env_fraction": 0.02,
+      "yaw_command_radps": 0.0
+    },
+    "episode_horizon_s": 12.0,
+    "eval_profile": "stair_unified_v1_eval",
+    "max_iterations": 2000,
+    "num_envs": 4096,
+    "policy_initialization": "random",
+    "runner_timeout_s": 7200,
+    "steps_per_env": 24,
+    "train_profile": "stair_unified_v1_train"
+  },
+  "training_execution": {
+    "checkpoint_save_interval_iterations": 50,
+    "clip_actions": null,
+    "cudnn_allow_tf32": true,
+    "cudnn_benchmark": false,
+    "cudnn_deterministic": false,
+    "empirical_normalization": null,
+    "init_at_random_episode_length": true,
+    "logger": "tensorboard",
+    "observation_groups": {
+      "critic": [
+        "policy"
+      ],
+      "policy": [
+        "policy"
+      ]
+    },
+    "resume": false,
+    "runner": "rsl_rl_on_policy_runner",
+    "torch_matmul_allow_tf32": true
+  },
+  "training_lineage": {
+    "mode": "evaluation_only_successor",
+    "source_base_task_protocol_hash": "fc84b8eece40372afd6680acf711cb3b754bba660608318e5a334492d9587ded",
+    "source_cell_variant_id": "stair.g1_37dof.unified_v2",
+    "source_resolved_cell_manifest_hash": "dbd79e0074ce64f23ae447d3e50ebcf1997593fe121fa209b4efd61b410c79a1",
+    "source_resolved_cell_task_protocol_hash": "32d7f3c9855b04a826dcbfe958bf12fc44d7be09275285295e12f80f3abc0332",
+    "source_training_profile_hash": "d222a1ddc2ed52ed6feae43d8413b6364576880ac4febbc09e6ac7a9122028d1"
+  }
+}

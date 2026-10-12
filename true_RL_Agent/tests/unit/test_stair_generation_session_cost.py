@@ -10,7 +10,7 @@ from types import SimpleNamespace
 from true_rl_agent.json_contract import canonical_json_bytes
 from true_rl_agent.tasks.stair_climbing.config import StairClimbingTaskConfig
 from true_rl_agent.tasks.stair_climbing.row_catalog import (
-    STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+    STAIR_GO2_12DOF_UNIFIED_V2_CELL_VARIANT_ID,
 )
 from true_rl_agent.tasks.stair_climbing.generation_session_cost import (
     DEVELOPMENT_GENERATION_PILOT_MODE,
@@ -77,7 +77,7 @@ def _go2_scientific_cost_basis():
         / "configs"
         / "tasks"
         / "stair_go2_12dof_unified_protocol_v2.json",
-        cell_variant_id=STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+        cell_variant_id=STAIR_GO2_12DOF_UNIFIED_V2_CELL_VARIANT_ID,
     )
     return build_stair_generation_scientific_cost_basis(
         session_id="cost-contract-test",

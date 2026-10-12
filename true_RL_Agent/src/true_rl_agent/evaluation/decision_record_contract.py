@@ -79,6 +79,7 @@ _ALLOWED_REASONS_BY_OUTCOME = {
             "candidate_guard_stats_missing",
             "candidate_named_guard_stats_missing",
             "candidate_runtime_failed",
+            "post_train_task_gate_failed",
             "candidate_static_authoring_failed",
             "candidate_verifier_failed",
             "current_best_eval_stats_missing",
@@ -146,6 +147,7 @@ _REASON_ALLOWED_ROUND_STAGES = {
         {TRAIN_FAILURE_STAGE, POST_TRAIN_FAILURE_STAGE}
     ),
     "eval_incomplete": frozenset({POST_TRAIN_FAILURE_STAGE}),
+    "post_train_task_gate_failed": frozenset({POST_TRAIN_FAILURE_STAGE}),
 }
 
 
@@ -914,6 +916,7 @@ def _comparison_reasons(
             try:
                 threshold_result = guard_regression_threshold(
                     acceptance_protocol,
+                    statistics_version=acceptance_evidence.guard_score_stats.get("statistics_version"),
                     candidate_guard_score=candidate_guard,
                     best_guard_score=best_guard,
                     candidate_guard_score_samples=(
@@ -1005,6 +1008,7 @@ def _comparison_reasons(
                 threshold_result = named_guard_regression_threshold(
                     acceptance_protocol,
                     guard,
+                    statistics_version=_mapping(evidence.get("score_stats")).get("statistics_version"),
                     candidate_guard_score=candidate_guard,
                     best_guard_score=best_guard,
                     candidate_guard_score_samples=evidence.get("score_samples"),

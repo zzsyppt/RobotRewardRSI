@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import posixpath
 import sys
-from dataclasses import InitVar, dataclass
+from dataclasses import InitVar, dataclass, replace
 from pathlib import Path
 from typing import Any, Callable, Mapping
 
@@ -37,6 +37,7 @@ from true_rl_agent.evaluation.subject import (
     validate_experiment_subject_id,
 )
 from true_rl_agent.policy import PolicyInitialization
+from true_rl_agent.runner.source_snapshot import running_project_source_snapshot
 from true_rl_agent.policy_baselines import (
     BaselineManifest,
     validate_baseline_compatibility,
@@ -63,8 +64,6 @@ from true_rl_agent.runner.specs import (
 from true_rl_agent.tasks.base import TaskSpec
 from true_rl_agent.training_binding import (
     TrainingBinding,
-    fixed_training_seed_resolver_hash,
-    initialization_seed_schedule_hash,
 )
 from true_rl_agent.training_programs import VerifiedReferenceProgramArtifact
 
@@ -110,9 +109,13 @@ class IsaacLabRslRlBackendConfig:
     curriculum_capabilities: Mapping[str, Mapping[str, Any]] | None = None
     resolved_cell_manifest_path: str | None = None
     resolved_cell_manifest_hash: str | None = None
+    capture_public_dev_numeric: bool = False
+    capture_training_numeric: bool = False
     trusted_seed_count: InitVar[int | None] = None
 
     def __post_init__(self, trusted_seed_count: int | None = None) -> None:
+        if not isinstance(self.capture_public_dev_numeric, bool) or not isinstance(self.capture_training_numeric, bool):
+            raise TypeError("numeric capture settings must be boolean")
         for field_name in (
             "isaac_lab_python",
             "train_entrypoint",
@@ -329,6 +332,9 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
         self._uses_production_execution_environment_resolver = (
             execution_environment_resolver is None
         )
+        self._source_at_construction = (
+            running_project_source_snapshot() if execution_environment_resolver is None else None
+        )
         if execution_environment_resolver is None:
             execution_environment_resolver = (
                 build_current_isaac_lab_execution_environment_manifest
@@ -409,6 +415,8 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
 
     def _resolve_current_execution_environment(self) -> dict[str, Any]:
         if self._uses_production_execution_environment_resolver:
+            if running_project_source_snapshot() != self._source_at_construction:
+                raise ValueError("project source changed after backend construction")
             controller_python = Path(sys.executable).resolve(strict=True)
             backend_python = Path(self.config.isaac_lab_python).resolve(strict=True)
             if controller_python != backend_python:
@@ -677,6 +685,7 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
                 "summary_path": train_summary_path,
                 "sealed_checkpoint_uri": planned_checkpoint.uri,
                 "checkpoint_output_path": checkpoint_output_path,
+                "capture_training_numeric": self.config.capture_training_numeric,
                 "work_dir": self.config.work_dir,
                 "external_dependencies": self.external_dependencies,
                 "robot": self.config.robot,
@@ -788,19 +797,66 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
             task_invariants=task_spec.invariants,
         )
 
+    def rematerialize_eval_plan(
+        self,
+        *,
+        eval_plan: EvalJobSpec,
+        round_id: str,
+        summary_path: str,
+    ) -> EvalJobSpec:
+        """Rebuild executable metadata from a bound plan, not its previous argv."""
+
+        if eval_plan.evaluation_protocol() != self.config.evaluation_protocol():
+            raise ValueError("eval plan protocol differs from backend configuration")
+        argv = self._eval_argv(
+            job_id=eval_plan.job_id,
+            round_id=round_id,
+            task_id=eval_plan.task_id,
+            subject=eval_plan.subject,
+            checkpoint=eval_plan.execution_checkpoint(),
+            evaluation_binding=eval_plan.evaluation_binding,
+            summary_path=summary_path,
+            subject_manifest_hash=eval_plan.subject_manifest_hash,
+            program_source_checksum=eval_plan.program_source_checksum,
+            training_binding_hash=eval_plan.training_binding_hash,
+            capability_profile_hash=eval_plan.capability_profile_hash,
+            execution_environment_manifest_hash=eval_plan.metadata.get(
+                "backend_execution_environment_manifest_hash"
+            ),
+            gpu_process_binding=eval_plan.gpu_process_binding,
+        )
+        return replace(
+            eval_plan,
+            metadata={
+                **eval_plan.metadata,
+                **_cli_metadata(argv),
+                "evaluation_subject": eval_plan.subject.to_public_dict(),
+                "subject_manifest_hash": eval_plan.subject_manifest_hash,
+                "program_source_checksum": eval_plan.program_source_checksum,
+                "training_binding_hash": eval_plan.training_binding_hash,
+                "capability_profile_hash": eval_plan.capability_profile_hash,
+                "summary_path": summary_path,
+            },
+        )
+
     def materialize_eval_phase(
         self,
         *,
         eval_plan: EvalJobSpec,
         phase: EvaluationPhase,
         attempt_scope: JobAttemptExecutionScope | None = None,
+        numeric_evidence_dir: str | None = None,
+        numeric_evidence_max_bytes: int = 2 * 1024**3,
+        capture_numeric: bool | None = None,
     ) -> EvalPhaseJobSpec:
-        """Bind one explicit split to the same full Stair evaluation plan."""
+        """Bind one explicit split to the same full evaluation plan."""
 
         if not isinstance(eval_plan, EvalJobSpec):
             raise TypeError("phased eval requires an EvalJobSpec plan")
         eval_plan.execution_checkpoint()
         phase = EvaluationPhase.parse(phase)
+        if numeric_evidence_dir is not None and (phase is not EvaluationPhase.PUBLIC_DEV or numeric_evidence_max_bytes <= 0):
+            raise ValueError("numeric capture requires public_dev and a positive byte budget")
         metadata = dict(eval_plan.metadata)
         raw_argv = metadata.get("cli_argv")
         if not isinstance(raw_argv, list) or not all(
@@ -816,6 +872,13 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
             phase.value,
             "summary.json",
         )
+        capture_enabled = self.config.capture_public_dev_numeric if capture_numeric is None else capture_numeric
+        if capture_numeric is False and numeric_evidence_dir is not None:
+            raise ValueError("disabled numeric capture cannot specify an evidence directory")
+        if numeric_evidence_dir is None and capture_enabled and phase is EvaluationPhase.PUBLIC_DEV:
+            numeric_evidence_dir = posixpath.join(posixpath.dirname(phase_summary_path), "numeric_evidence")
+        if numeric_evidence_dir is not None and numeric_evidence_max_bytes <= 0:
+            raise ValueError("numeric capture requires a positive byte budget")
         phase_argv = _replace_separate_cli_option(
             raw_argv,
             "--job-id",
@@ -836,6 +899,11 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
                 canonical_json_hash(eval_plan.to_public_dict()),
             ]
         )
+        if numeric_evidence_dir is not None:
+            phase_argv.extend(["--numeric-evidence-dir", numeric_evidence_dir,
+                               "--numeric-evidence-max-bytes", str(numeric_evidence_max_bytes)])
+            metadata.update(numeric_evidence_dir=numeric_evidence_dir,
+                            numeric_evidence_max_bytes=numeric_evidence_max_bytes)
         metadata.update(
             {
                 "cli_argv": phase_argv,
@@ -1166,6 +1234,8 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
             parts.extend(["--max-iterations", str(self.config.train_max_iterations)])
         if self.config.runtime_config_path is not None:
             parts.extend(["--config", self.config.runtime_config_path])
+        if self.config.capture_training_numeric:
+            parts.append("--capture-training-numeric")
         parts.append("--headless")
         init_checkpoint = None
         if policy_initialization.baseline is not None:
@@ -1578,21 +1648,11 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
                 task_protocol_hash = (
                     manifest.resolved_cell_task_protocol_hash
                 )
-        return TrainingBinding(
+        return agent_configuration.training_binding(
             initialization_mode=policy_initialization.kind,
             initialization_checkpoint_hash=checkpoint_hash,
-            policy_architecture_hash=str(agent_configuration.policy_architecture_hash),
-            agent_configuration_hash=str(agent_configuration.agent_configuration_hash),
-            initialization_seed_schedule_hash=(
-                initialization_seed_schedule_hash(self.config.train_seed)
-            ),
-            optimizer_training_profile_hash=str(
-                agent_configuration.optimizer_training_profile_hash
-            ),
+            train_seed=self.config.train_seed,
             budget_steps=self.config.default_budget_steps,
-            private_training_seed_resolver_hash=(
-                fixed_training_seed_resolver_hash(self.config.train_seed)
-            ),
             capability_profile_hash=str(
                 task_spec.candidate_capability_profile.profile_hash
             ),

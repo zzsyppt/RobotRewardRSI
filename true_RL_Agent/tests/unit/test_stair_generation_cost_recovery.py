@@ -19,11 +19,9 @@ from true_rl_agent.agent_core.generation_lifecycle import (
 )
 from true_rl_agent.runner.job_attempts import JobAttemptJournal, JobAttemptScope
 from true_rl_agent.tasks.stair_climbing.config import StairClimbingTaskConfig
-from true_rl_agent.tasks.stair_climbing.generation_session import (
-    _assert_validation_cost_receipt_is_current,
+from true_rl_agent.agent_core.generation_session import (
+    assert_actual_cost_receipt_matches_usage,
     _current_validation_boundary_cost_receipt,
-    _finalize_missing_terminal_validation_report,
-    _publish_or_validate_generation_closure,
     _replay_validation_combined_cost_chain,
     _validation_boundary_was_already_paused,
 )
@@ -86,8 +84,7 @@ class StairGenerationCostRecoveryTests(unittest.TestCase):
 
             with (
                 patch(
-                    "true_rl_agent.tasks.stair_climbing.generation_session."
-                    "collect_actual_cost_usage",
+                    'true_rl_agent.agent_core.generation_session.collect_actual_cost_usage',
                     return_value=(usage, (), ()),
                 ),
                 patch.object(
@@ -172,8 +169,7 @@ class StairGenerationCostRecoveryTests(unittest.TestCase):
 
             with (
                 patch(
-                    "true_rl_agent.tasks.stair_climbing.generation_session."
-                    "collect_actual_cost_usage",
+                    'true_rl_agent.agent_core.generation_session.collect_actual_cost_usage',
                     return_value=(usage, (), ()),
                 ),
                 patch.object(
@@ -265,8 +261,7 @@ class StairGenerationCostRecoveryTests(unittest.TestCase):
 
             with (
                 patch(
-                    "true_rl_agent.tasks.stair_climbing.generation_session."
-                    "collect_actual_cost_usage",
+                    'true_rl_agent.agent_core.generation_session.collect_actual_cost_usage',
                     return_value=(usage, (), ()),
                 ),
                 patch.object(
@@ -325,25 +320,12 @@ class StairGenerationCostRecoveryTests(unittest.TestCase):
             )
             lifecycle = fixture.audit(require_closed=True)
 
-            with patch(
-                "true_rl_agent.tasks.stair_climbing.generation_session."
-                "collect_actual_cost_usage",
-                return_value=(usage, charges, ()),
-            ):
-                replayed = _assert_validation_cost_receipt_is_current(
-                    SimpleNamespace(),
-                    genesis=SimpleNamespace(),
-                    ledger=[
-                        {"generation_index": 1},
-                        {"generation_index": 2},
-                        {"generation_index": 3},
-                    ],
-                    cost_journal=fixture.cost_journal,
-                    lifecycle=lifecycle,
-                    cost_ref=terminal_cost,
-                )
-
-            self.assertEqual(replayed, usage)
+            self.assertEqual(_replay_validation_combined_cost_chain(
+                fixture.cost_journal, lifecycle), terminal_cost.payload_hash)
+            assert_actual_cost_receipt_matches_usage(
+                terminal_cost, usage=usage, conservative_charges=charges,
+                context="terminal cost replay",
+            )
 
     def test_recovery_head_is_the_next_actual_settlement_predecessor(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -592,132 +574,6 @@ class StairGenerationCostRecoveryTests(unittest.TestCase):
                 generation_3.payload_hash,
             )
 
-    def test_missing_terminal_report_replays_closure_with_generation_settlement(
-        self,
-    ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            fixture = _fixture(Path(tmp).resolve())
-            reservation = fixture.cost_journal.publish_reservation()
-            generation_cost = fixture.cost_journal.publish_snapshot(
-                event_id="generation-003-settlement",
-                previous_cost_chain_head_hash=reservation.payload_hash,
-                usage=StairGenerationActualCostUsageV2(),
-            )
-            terminal_cost = fixture.cost_journal.publish_snapshot(
-                event_id="segment-post-generation-failed-generation-003",
-                previous_cost_chain_head_hash=generation_cost.payload_hash,
-                usage=StairGenerationActualCostUsageV2(),
-            )
-            ledger = [
-                {
-                    "generation_id": f"p6c-cost-recovery-test-generation-{index:03d}",
-                    "generation_index": index,
-                    "resulting_current_best_hash": str(index) * 64,
-                }
-                for index in range(1, 4)
-            ]
-            execution_receipt = {"kind": "generation_execution"}
-            execution_ref = Mock()
-            execution_ref.to_dict.return_value = execution_receipt
-            foundation = SimpleNamespace(
-                config=SimpleNamespace(
-                    output_dir=fixture.root,
-                    session_id="p6c-cost-recovery-test",
-                ),
-                session_contract=fixture.session_contract,
-                continuation_policy=fixture.policy,
-                cost_contract=fixture.cost_contract,
-                composition=SimpleNamespace(
-                    task_plugin=SimpleNamespace(
-                        task_spec=SimpleNamespace(acceptance_protocol=Mock())
-                    )
-                ),
-            )
-            genesis = SimpleNamespace(
-                initial_current_best=Mock(),
-                expected_initial_policy_state_hash=None,
-            )
-            lifecycle = SimpleNamespace(
-                terminal=True,
-                segment_count=1,
-                active_segment_id=None,
-                cost_chain_head_hash=terminal_cost.payload_hash,
-                recovery_cost_edges=(),
-            )
-            usage = StairGenerationActualCostUsageV2()
-            expected_report = {"schema_version": "terminal-report-test"}
-
-            with patch(
-                "true_rl_agent.tasks.stair_climbing.generation_session."
-                "_validate_stored_resource_closure_evidence"
-            ):
-                closure = _publish_or_validate_generation_closure(
-                    foundation,
-                    ledger=ledger,
-                    generation_record=ledger[-1],
-                    generation_execution_receipt=execution_receipt,
-                    actual_cost_receipt=generation_cost,
-                    resource_evidence={"generation_index": 3},
-                    segment_id="generation-three-segment",
-                )
-
-            with (
-                patch(
-                    "true_rl_agent.tasks.stair_climbing.generation_session.load_ledger",
-                    return_value=ledger,
-                ),
-                patch(
-                    "true_rl_agent.tasks.stair_climbing.generation_session."
-                    "_validation_lifecycle_identity",
-                    return_value=Mock(),
-                ),
-                patch(
-                    "true_rl_agent.tasks.stair_climbing.generation_session."
-                    "audit_generation_lifecycle",
-                    return_value=lifecycle,
-                ),
-                patch(
-                    "true_rl_agent.tasks.stair_climbing.generation_session."
-                    "collect_actual_cost_usage",
-                    return_value=(usage, (), ()),
-                ),
-                patch(
-                    "true_rl_agent.tasks.stair_climbing.generation_session."
-                    "build_generation_terminal_binding",
-                    return_value=Mock(to_dict=Mock(return_value={})),
-                ),
-                patch(
-                    "true_rl_agent.tasks.stair_climbing.generation_session."
-                    "_load_existing_generation_execution",
-                    return_value=(ledger[-1], execution_ref),
-                ),
-                patch(
-                    "true_rl_agent.tasks.stair_climbing.generation_session."
-                    "_validate_stored_resource_closure_evidence"
-                ),
-                patch(
-                    "true_rl_agent.tasks.stair_climbing.generation_session."
-                    "_build_validation_report",
-                    return_value=expected_report,
-                ),
-                patch(
-                    "true_rl_agent.tasks.stair_climbing.generation_session."
-                    "_load_and_validate_existing_validation_report",
-                    return_value=expected_report,
-                ),
-            ):
-                report = _finalize_missing_terminal_validation_report(
-                    foundation,
-                    genesis=genesis,
-                    cost_journal=fixture.cost_journal,
-                )
-
-            self.assertEqual(report, expected_report)
-            self.assertEqual(
-                closure["actual_cost_receipt"]["payload_hash"],
-                generation_cost.payload_hash,
-            )
-            self.assertNotEqual(generation_cost.payload_hash, terminal_cost.payload_hash)
 
 
 class _Fixture:

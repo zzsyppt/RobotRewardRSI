@@ -41,11 +41,12 @@ from true_rl_agent.tasks.stair_climbing.local_paths import resolve_existing_file
 from true_rl_agent.tasks.stair_climbing.seed_policy import (
     STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE,
     STAIR_FORMAL_EVAL_NAMESPACE,
+    diagnostic_seed_namespace,
 )
 from true_rl_agent.tasks.stair_climbing.row_catalog import stair_robot_row
 from true_rl_agent.training_binding import TrainingBinding
 from true_rl_agent.tasks.stair_climbing.unified_protocol import (
-    STAIR_UNIFIED_PROTOCOL_RELATIVE_PATH,
+    STAIR_UNIFIED_V2_PROTOCOL_RELATIVE_PATH,
 )
 
 
@@ -85,6 +86,7 @@ class StairEvalEntrypointContext:
 
 STAIR_EVAL_PURPOSE_FORMAL = "formal_generation"
 STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION = "final_confirmation"
+STAIR_EVAL_PURPOSE_PUBLIC_DEV_DIAGNOSTIC = "public_dev_diagnostic"
 
 
 def validate_stair_train_invocation(
@@ -121,7 +123,6 @@ def validate_stair_train_invocation(
         sealed_validation_seed_count=defaults.sealed_validation_seed_count,
         eval_protocol_version=defaults.eval_protocol_version,
         train_seed=_nonnegative_int(args.seed, "seed"),
-        runner_timeout_s=defaults.runner_timeout_s,
         train_profile=_text(args.profile, "profile"),
         eval_profile=defaults.eval_profile,
         cell_variant_id=defaults.cell_variant_id,
@@ -413,11 +414,44 @@ def validate_stair_eval_invocation(
         STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION: (
             STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE
         ),
+        STAIR_EVAL_PURPOSE_PUBLIC_DEV_DIAGNOSTIC: (
+            diagnostic_seed_namespace(getattr(args, "diagnostic_cohort", "v1"))
+        ),
     }
     try:
         seed_namespace = seed_namespace_by_purpose[eval_purpose]
     except (KeyError, TypeError) as exc:
         raise ValueError("stair eval purpose is invalid") from exc
+
+    if eval_purpose == STAIR_EVAL_PURPOSE_PUBLIC_DEV_DIAGNOSTIC:
+        if not config.is_unified_protocol or getattr(args, "evaluation_phase", None) != "public_dev":
+            raise ValueError("Stair diagnostic evaluation requires unified public_dev phase")
+        require_sha256_digest(
+            getattr(args, "evaluation_plan_hash", None),
+            "Stair diagnostic evaluation plan hash",
+        )
+    elif getattr(args, "diagnostic_cohort", "v1") != "v1":
+        raise ValueError("Stair diagnostic cohort requires public_dev diagnostic purpose")
+
+    final_plan_path = getattr(args, "stair_final_plan", None)
+    if final_plan_path is not None or (
+        config.requires_study_holdout
+        and eval_purpose == STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION
+    ):
+        if eval_purpose != STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION or final_plan_path is None:
+            raise ValueError("Stair study final requires its committed plan and final purpose")
+        from true_rl_agent.tasks.stair_climbing.generation_finalization import (
+            bind_stair_final_config,
+            read_stair_final_plan,
+        )
+
+        final_plan_path = Path(final_plan_path).resolve()
+        final_plan = read_stair_final_plan(
+            final_plan_path, expected_config=config,
+        )
+        config = bind_stair_final_config(
+            config, plan=final_plan, plan_path=final_plan_path,
+        )
 
     expected_binding = EvaluationBindingV1(
         eval_protocol_hash=config.evaluation_protocol().protocol_hash,
@@ -489,7 +523,9 @@ def _canonical_config_path(
 ) -> Path:
     if not isinstance(project_root, Path):
         raise TypeError("project_root must be a Path")
-    expected = STAIR_UNIFIED_PROTOCOL_RELATIVE_PATH
+    # Manifest-free invocations are the historical G1 V2 contract. New launches
+    # resolve the catalog default first and always supply their cell manifest.
+    expected = STAIR_UNIFIED_V2_PROTOCOL_RELATIVE_PATH
     if resolved_cell_manifest is not None:
         if not isinstance(resolved_cell_manifest, ResolvedCellManifestV1):
             raise TypeError("resolved Stair cell manifest is invalid")
@@ -556,6 +592,7 @@ def _nonnegative_int(value: Any, field_name: str) -> int:
 __all__ = [
     "StairEvalEntrypointContext",
     "STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION",
+    "STAIR_EVAL_PURPOSE_PUBLIC_DEV_DIAGNOSTIC",
     "STAIR_EVAL_PURPOSE_FORMAL",
     "StairTrainEntrypointContext",
     "validate_stair_eval_invocation",

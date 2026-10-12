@@ -43,6 +43,29 @@ class DryRunAuditLoopTests(unittest.TestCase):
 
             self.assertEqual(list(package_root.iterdir()), [])
 
+    def test_reference_cells_cannot_create_synthetic_bootstrap_audit(self) -> None:
+        for cell in ("push.g1_29dof.reference_v1", "push.g1_37dof.recovery_v2", "push.go2_12dof.recovery_v2"):
+            with self.subTest(cell=cell), tempfile.TemporaryDirectory() as tmp:
+                output = Path(tmp) / "audit"
+                composition = _resolve_push_composition(output, cell_variant_id=cell)
+                self.assertEqual(composition.genesis_anchor_kind, "reference_program")
+                before = {str(path.relative_to(output)) for path in output.rglob("*")}
+                with self.assertRaisesRegex(ValueError, "legacy bootstrap cell"):
+                    run_push_recovery_loop_audit(composition=composition, output_dir=output, rounds=1)
+                self.assertEqual({str(path.relative_to(output)) for path in output.rglob("*")}, before)
+                self.assertFalse((output / "ledger.jsonl").exists())
+                self.assertFalse((output / "session_genesis.json").exists())
+
+    def test_default_audit_cli_requires_explicit_legacy_cell(self) -> None:
+        for script_name in ("run_loop.py", "run_round.py"):
+            with self.subTest(script=script_name), tempfile.TemporaryDirectory() as tmp:
+                script = _load_script(script_name)
+                output = Path(tmp) / "audit"
+                with self.assertRaisesRegex(ValueError, "--cell-variant-id push.g1_29dof.legacy_v1"):
+                    script.main(["--output-dir", str(output)])
+                self.assertFalse((output / "ledger.jsonl").exists())
+                self.assertFalse((output / "audit_candidates").exists())
+
     def test_fifteen_round_audit_saves_public_prompts_and_blocks_tuning_accepts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             output_dir = Path(tmp)
@@ -117,13 +140,13 @@ class DryRunAuditLoopTests(unittest.TestCase):
             run_loop = _load_script("run_loop.py")
             with redirect_stdout(io.StringIO()) as loop_stdout:
                 loop_status = run_loop.main(
-                    ["--rounds", "4", "--session-id", "cli-loop", "--output-dir", str(tmp_path / "loop")]
+                    ["--cell-variant-id", "push.g1_29dof.legacy_v1", "--rounds", "4", "--session-id", "cli-loop", "--output-dir", str(tmp_path / "loop")]
                 )
 
             run_round = _load_script("run_round.py")
             with redirect_stdout(io.StringIO()) as round_stdout:
                 round_status = run_round.main(
-                    ["--session-id", "cli-round", "--output-dir", str(tmp_path / "round")]
+                    ["--cell-variant-id", "push.g1_29dof.legacy_v1", "--session-id", "cli-round", "--output-dir", str(tmp_path / "round")]
                 )
 
             materialize = _load_script("materialize_job.py")
@@ -135,6 +158,8 @@ class DryRunAuditLoopTests(unittest.TestCase):
             with redirect_stdout(io.StringIO()) as materialize_stdout:
                 materialize_status = materialize.main(
                     [
+                        "--cell-variant-id",
+                        "push.g1_29dof.legacy_v1",
                         "--round-id",
                         "cli-materialize",
                         "--candidate-id",
@@ -185,6 +210,8 @@ class DryRunAuditLoopTests(unittest.TestCase):
             with redirect_stdout(io.StringIO()) as materialize_stdout:
                 status = materialize.main(
                     [
+                        "--cell-variant-id",
+                        "push.g1_29dof.legacy_v1",
                         "--round-id",
                         "explicit-component",
                         "--candidate-id",
@@ -388,6 +415,8 @@ class DryRunAuditLoopTests(unittest.TestCase):
         self,
     ) -> None:
         explicit_runtime_args = [
+            "--cell-variant-id",
+            "push.g1_29dof.legacy_v1",
             "--budget-steps",
             "128",
             "--train-num-envs",
@@ -524,11 +553,11 @@ def _load_script(filename: str):
     return module
 
 
-def _resolve_push_composition(output_dir: Path):
+def _resolve_push_composition(output_dir: Path, *, cell_variant_id: str = "push.g1_29dof.legacy_v1"):
     provider = PushRecoveryCompositionProvider()
     return resolve_task_composition(
         provider=provider,
-        values=dict(provider.cli_defaults()),
+        values={**dict(provider.cli_defaults()), "cell_variant_id": cell_variant_id},
         context=TaskCompositionContext(
             project_root=PROJECT_ROOT,
             output_dir=output_dir,

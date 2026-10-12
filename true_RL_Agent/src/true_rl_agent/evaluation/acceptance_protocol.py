@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from true_rl_agent.evaluation.derived_statistics import paired_standard_error as derived_paired_standard_error
+
 import hashlib
 import json
 import math
@@ -675,6 +677,7 @@ def acceptance_threshold(
     best_score_samples: Sequence[float] | None = None,
     candidate_standard_error: float | None = None,
     best_standard_error: float | None = None,
+    statistics_version: str | None = None,
 ) -> AcceptanceThreshold:
     """Compute the single threshold used by live decisions and ledger replay."""
 
@@ -721,11 +724,7 @@ def acceptance_threshold(
     if len(candidate) != len(best):
         raise ValueError("paired headroom score sample counts differ")
     paired_deltas = [left - right for left, right in zip(candidate, best, strict=True)]
-    paired_standard_error = (
-        statistics.stdev(paired_deltas) / math.sqrt(len(paired_deltas))
-        if len(paired_deltas) > 1
-        else 0.0
-    )
+    paired_standard_error = derived_paired_standard_error(paired_deltas, statistics_version=statistics_version)
     assert protocol.score_ceiling is not None
     assert protocol.headroom_reduction_fraction is not None
     assert protocol.paired_standard_error_multiplier is not None
@@ -800,6 +799,7 @@ def guard_regression_threshold(
     best_guard_score: float | None,
     candidate_guard_score_samples: Sequence[float] | None = None,
     best_guard_score_samples: Sequence[float] | None = None,
+    statistics_version: str | None = None,
 ) -> GuardRegressionThreshold:
     """Compute the one bounded guard tolerance used by decisions and replay."""
 
@@ -829,11 +829,7 @@ def guard_regression_threshold(
     if len(candidate) != len(best):
         raise ValueError("paired guard score sample counts differ")
     paired_deltas = [left - right for left, right in zip(candidate, best, strict=True)]
-    paired_standard_error = (
-        statistics.stdev(paired_deltas) / math.sqrt(len(paired_deltas))
-        if len(paired_deltas) > 1
-        else 0.0
-    )
+    paired_standard_error = derived_paired_standard_error(paired_deltas, statistics_version=statistics_version)
     assert protocol.guard_regression_margin is not None
     assert protocol.paired_standard_error_multiplier is not None
     paired_noise_allowance = (
@@ -861,6 +857,7 @@ def named_guard_regression_threshold(
     best_guard_score: float | None,
     candidate_guard_score_samples: Sequence[float] | None,
     best_guard_score_samples: Sequence[float] | None,
+    statistics_version: str | None = None,
 ) -> GuardRegressionThreshold:
     """Compute one v6 guard tolerance without interpreting its task-owned name."""
 
@@ -883,11 +880,7 @@ def named_guard_regression_threshold(
     if len(candidate) != len(best):
         raise ValueError("paired named guard score sample counts differ")
     paired_deltas = [left - right for left, right in zip(candidate, best, strict=True)]
-    paired_standard_error = (
-        statistics.stdev(paired_deltas) / math.sqrt(len(paired_deltas))
-        if len(paired_deltas) > 1
-        else 0.0
-    )
+    paired_standard_error = derived_paired_standard_error(paired_deltas, statistics_version=statistics_version)
     assert protocol.paired_standard_error_multiplier is not None
     paired_noise_allowance = (
         protocol.paired_standard_error_multiplier * paired_standard_error

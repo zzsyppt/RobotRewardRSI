@@ -78,6 +78,7 @@ from true_rl_agent.evaluation.public_projection import (
 )
 from true_rl_agent.evaluation.public_result import PublicEvalResult
 from true_rl_agent.memory.records import PrivateArtifactRef, PromptPayloadRef
+from true_rl_agent.runner.checkpoint import file_sha256
 from true_rl_agent.policy import PolicyInitialization
 from true_rl_agent.prompt_artifacts import (
     AuthoringEvidenceRef,
@@ -385,6 +386,14 @@ def prepare_candidate_trial(inputs: RoundInputs) -> PreparedCandidateTrial:
         except ValueError:
             task_invariants_valid = False
 
+    if jobs is not None and authoring_mechanism_operation_delta is not None:
+        from true_rl_agent.candidates.authoring_policy import select_authoring_anchor_source
+        parent_source, _, _ = select_authoring_anchor_source(verify_authoring_anchor_prompt(authoring_evidence))
+        jobs = replace(jobs, train_spec=inputs.task_plugin.bind_training_diagnostics(
+            jobs.train_spec, parent_source=parent_source,
+            parent_evidence=inputs.current_best_eval_stats.to_public_dict(),
+            mechanism_operation_delta=authoring_mechanism_operation_delta))
+
     trial_journal = _build_trial_receipt_journal(
         inputs=inputs,
         ledger_epoch_hash=ledger_epoch_hash,
@@ -538,9 +547,11 @@ def finalize_prepared_candidate_trial(
     surface_policy = inputs.task_plugin.candidate_surface_policy()
     runtime_evidence = RuntimeActivationEvidence()
     if train_result is not None:
-        runtime_evidence = RuntimeActivationEvidence.from_mapping(
-            train_result.summary.get("runtime_activation_summary")
-        )
+        runtime_evidence = RuntimeActivationEvidence.from_train_summary(train_result.summary)
+    elif isinstance(runner_error, Mapping) and runner_error.get("type") == "CandidateRuntimeError":
+        details = runner_error.get("details")
+        if isinstance(details, Mapping) and "training_sampling" in details:
+            runtime_evidence = RuntimeActivationEvidence(training_sampling=details["training_sampling"])
     runtime_activation_gate = MechanismEvidenceGate().evaluate(
         surface=surface,
         evidence=runtime_evidence,
@@ -1145,35 +1156,19 @@ def _private_artifacts_for_round(
 
 
 def _metadata_private_artifacts(metadata: Mapping[str, Any], *, phase: str) -> list[PrivateArtifactRef]:
-    refs: list[PrivateArtifactRef] = []
+    # Materialized paths describe intended outputs. Only produced files belong
+    # in evidence; directories and planned checkpoints remain in the job plan.
     summary_path = metadata.get("summary_path")
     if isinstance(summary_path, str) and summary_path:
-        refs.append(
-            PrivateArtifactRef(
+        checksum = file_sha256(summary_path)
+        if checksum is not None:
+            return [PrivateArtifactRef(
                 kind=f"runner_{phase}_summary",
                 uri=summary_path,
+                checksum=checksum,
                 reason=f"runner_{phase}_raw_summary",
-            )
-        )
-    work_dir = metadata.get("work_dir")
-    if isinstance(work_dir, str) and work_dir:
-        refs.append(
-            PrivateArtifactRef(
-                kind=f"runner_{phase}_work_dir",
-                uri=work_dir,
-                reason=f"runner_{phase}_execution_directory",
-            )
-        )
-    checkpoint_output = metadata.get("checkpoint_output_path")
-    if isinstance(checkpoint_output, str) and checkpoint_output:
-        refs.append(
-            PrivateArtifactRef(
-                kind="runner_checkpoint_output",
-                uri=checkpoint_output,
-                reason="runner_train_checkpoint_output",
-            )
-        )
-    return refs
+            )]
+    return []
 
 
 def _checkpoint_private_artifacts(checkpoint: CheckpointRef) -> list[PrivateArtifactRef]:
@@ -1184,6 +1179,11 @@ def _checkpoint_private_artifacts(checkpoint: CheckpointRef) -> list[PrivateArti
     ):
         value = checkpoint.metadata.get(key)
         if isinstance(value, str) and value:
+            actual_checksum = file_sha256(value)
+            if actual_checksum is None:
+                continue
+            if actual_checksum != checkpoint.checksum:
+                raise ValueError("private checkpoint artifact checksum mismatch")
             refs.append(PrivateArtifactRef(kind=kind, uri=value, checksum=checkpoint.checksum, reason=reason))
     return refs
 

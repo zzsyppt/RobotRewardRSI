@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import re
 from dataclasses import dataclass
 from typing import Any, Sequence
 
@@ -33,6 +34,8 @@ STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE = (
     "final_never_fed_paired_confirmation_v1"
 )
 STAIR_CALIBRATION_EVAL_NAMESPACE = "c1_irregular_terrain_calibration_v1"
+STAIR_PUBLIC_DEV_DIAGNOSTIC_EVAL_NAMESPACE = "public_dev_diagnostic_v1"
+_DIAGNOSTIC_NAMESPACE_PREFIX = "public_dev_diagnostic_"
 STAIR_FORMAL_TRAIN_NAMESPACE = "formal_reference_candidate_train"
 STAIR_PILOT_TRAIN_NAMESPACE = "pilot_reference_train"
 STAIR_PRIVATE_TRAIN_SEED_RESOLVER_VERSION = (
@@ -49,11 +52,35 @@ _ORDERED_VALID_SPLITS = (*_VALID_SPLITS, "calibration")
 _ORDERED_VALID_EVAL_NAMESPACES = (
     *_VALID_EVAL_NAMESPACES,
     STAIR_CALIBRATION_EVAL_NAMESPACE,
+    STAIR_PUBLIC_DEV_DIAGNOSTIC_EVAL_NAMESPACE,
 )
 _VALID_TRAIN_NAMESPACES = (
     STAIR_FORMAL_TRAIN_NAMESPACE,
     STAIR_PILOT_TRAIN_NAMESPACE,
 )
+
+
+def diagnostic_seed_namespace(cohort: str = "v1") -> str:
+    """Name a public-dev-only reset cohort without changing the task domain."""
+    if not isinstance(cohort, str) or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]*", cohort) is None:
+        raise ValueError("Stair diagnostic cohort must be a nonempty simple identifier")
+    return _DIAGNOSTIC_NAMESPACE_PREFIX + cohort
+
+
+def diagnostic_cohort_from_namespace(namespace: str) -> str:
+    if not isinstance(namespace, str) or not namespace.startswith(_DIAGNOSTIC_NAMESPACE_PREFIX):
+        raise ValueError("Stair diagnostic seed namespace is invalid")
+    cohort = namespace[len(_DIAGNOSTIC_NAMESPACE_PREFIX):]
+    diagnostic_seed_namespace(cohort)
+    return cohort
+
+
+def is_public_dev_diagnostic_namespace(namespace: str) -> bool:
+    try:
+        diagnostic_cohort_from_namespace(namespace)
+    except ValueError:
+        return False
+    return True
 
 
 @dataclass(frozen=True)
@@ -362,16 +389,19 @@ class StairOrderedEvaluationSeedResolver:
         return int.from_bytes(digest[:8], "big") % (2**31 - 1)
 
     def namespace_cohort_hash(self, namespace: str) -> str:
-        _require_namespace(
-            namespace,
-            allowed=_ORDERED_VALID_EVAL_NAMESPACES,
-            field_name="Stair ordered evaluation seed namespace",
-        )
+        if not is_public_dev_diagnostic_namespace(namespace):
+            _require_namespace(
+                namespace,
+                allowed=_ORDERED_VALID_EVAL_NAMESPACES,
+                field_name="Stair ordered evaluation seed namespace",
+            )
         splits = (
             ("calibration",)
             if namespace == STAIR_CALIBRATION_EVAL_NAMESPACE
             else _VALID_SPLITS
         )
+        if is_public_dev_diagnostic_namespace(namespace):
+            splits = ("public_dev",)
         return canonical_json_hash(
             {
                 "schema_version": (
@@ -379,7 +409,7 @@ class StairOrderedEvaluationSeedResolver:
                     "ordered_seed_namespace_cohort.v1"
                 ),
                 "resolver_version": self.resolver_version,
-                "suite_hash": self.evaluation_suite.suite_hash,
+                "suite_hash": self.evaluation_suite.source_suite_hash,
                 "task_protocol_hash": self.task_protocol_hash,
                 "namespace": namespace,
                 "split_cohort_hashes": {
@@ -420,6 +450,8 @@ class StairOrderedEvaluationSeedResolver:
             ),
             "complete_cell_coverage_required": True,
             "ordered_suite_hash": self.evaluation_suite.suite_hash,
+            **({"source_suite_hash": self.evaluation_suite.source_suite_hash}
+               if self.evaluation_suite.source_suite_hash != self.evaluation_suite.suite_hash else {}),
             "split_cohort_hash": self.evaluation_suite.cohort_hash(split),
             "seed_cohort_hash": self.namespace_cohort_hash(namespace),
         }
@@ -432,7 +464,7 @@ class StairOrderedEvaluationSeedResolver:
             ),
             "resolver_version": self.resolver_version,
             "task_protocol_hash": self.task_protocol_hash,
-            "ordered_suite_hash": self.evaluation_suite.suite_hash,
+            "ordered_suite_hash": self.evaluation_suite.source_suite_hash,
             "split": split,
             "split_cohort_hash": self.evaluation_suite.cohort_hash(split),
         }
@@ -454,6 +486,8 @@ class StairOrderedEvaluationSeedResolver:
 
     @staticmethod
     def _validate_namespace_for_split(*, split: str, namespace: str) -> None:
+        if split == "public_dev" and is_public_dev_diagnostic_namespace(namespace):
+            return
         allowed = (
             (STAIR_CALIBRATION_EVAL_NAMESPACE,)
             if split == "calibration"
@@ -693,6 +727,7 @@ __all__ = [
     "STAIR_FORMAL_EVAL_NAMESPACE",
     "STAIR_FORMAL_TRAIN_NAMESPACE",
     "STAIR_PILOT_EVAL_NAMESPACE",
+    "STAIR_PUBLIC_DEV_DIAGNOSTIC_EVAL_NAMESPACE",
     "STAIR_PILOT_TRAIN_NAMESPACE",
     "STAIR_PRIVATE_SEED_RESOLVER_VERSION",
     "STAIR_EVALUATION_SEED_RESOLVER_VERSION",
@@ -704,4 +739,7 @@ __all__ = [
     "StairOrderedEvaluationSeedResolver",
     "StairPrivateTrainingSeedResolver",
     "assert_seed_namespaces_disjoint",
+    "diagnostic_seed_namespace",
+    "diagnostic_cohort_from_namespace",
+    "is_public_dev_diagnostic_namespace",
 ]

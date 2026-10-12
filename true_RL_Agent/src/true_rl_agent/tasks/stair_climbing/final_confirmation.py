@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import math
-import statistics
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
 
+from true_rl_agent.evaluation.derived_statistics import DERIVED_STATISTICS_VERSION, sample_statistics
 from true_rl_agent.agent_core.generation_lifecycle import GenerationTerminalBinding
 from true_rl_agent.backends.base import (
     BACKEND_EXECUTION_ENVIRONMENT_VERIFICATION_SCHEMA_VERSION,
@@ -47,6 +47,7 @@ from true_rl_agent.tasks.stair_climbing.training_distribution import (
 )
 from true_rl_agent.tasks.stair_climbing.unified_scoring import (
     STAIR_UNIFIED_SUMMARY_SCHEMA_VERSION,
+    UNIFIED_SUMMARY_SCHEMA_VERSIONS,
     build_unified_score_projection,
     validate_unified_stair_summary,
 )
@@ -57,6 +58,7 @@ STAIR_FINAL_CONFIRMATION_PLAN_SCHEMA_VERSION = (
 STAIR_FINAL_CONFIRMATION_PLAN_V2_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.final_confirmation_plan.v2"
 )
+STAIR_FINAL_CONFIRMATION_PLAN_V3_SCHEMA_VERSION = "true_rl_agent.task.stair_climbing.final_confirmation_plan.v3"
 STAIR_FINAL_CONFIRMATION_RESERVATION_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.final_confirmation_reservation.v1"
 )
@@ -83,9 +85,9 @@ STAIR_FINAL_CONFIRMATION_FORMAL_SESSION_MODE = "formal_generation_session"
 STAIR_FINAL_CONFIRMATION_SPLIT = "sealed_validation"
 MAX_STAIR_FINAL_CONFIRMATION_PLAN_BYTES = 64 * 1024
 MAX_STAIR_FINAL_CONFIRMATION_RESERVATION_BYTES = 64 * 1024
-# Two current unified 7-seed summaries plus their receipt metadata can exceed
-# 256 KiB. Keep one bounded 512 KiB envelope; summaries remain schema-validated.
-MAX_STAIR_FINAL_CONFIRMATION_RESULT_BYTES = 512 * 1024
+# V3 carries two 7-seed, 24-cell summaries with 12 episode facts per cell
+# (~785,000 bytes in current G1/Go2 fixtures). Writers and readers share this cap.
+MAX_STAIR_FINAL_CONFIRMATION_RESULT_BYTES = 2 * 1024 * 1024
 
 _COMPARISON = {
     "genesis_role": "reference_program_genesis_checkpoint",
@@ -299,8 +301,26 @@ class StairFinalConfirmationPlan:
 class StairFinalConfirmationPlanV2(StairFinalConfirmationPlan):
     """Generation-session commitment frozen before formal Genesis."""
 
+    study_holdout_commitment: str | None = None
+    replication_of: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.study_holdout_commitment is not None:
+            require_sha256_digest(self.study_holdout_commitment, "Stair study holdout commitment")
+        if self.replication_of is not None:
+            require_sha256_digest(self.replication_of, "Stair replication source commitment")
+            if self.study_holdout_commitment is None:
+                raise ValueError("Stair replication requires a study holdout")
+        super().__post_init__()
+
+    def study_commitment(self) -> dict[str, Any]:
+        return {"commitment": self.study_holdout_commitment, "replication_of": self.replication_of}
+
     @classmethod
     def from_mapping(cls, value: Any) -> "StairFinalConfirmationPlanV2":
+        study_scoped = isinstance(value, Mapping) and value.get("schema_version") == STAIR_FINAL_CONFIRMATION_PLAN_V3_SCHEMA_VERSION
+        version = STAIR_FINAL_CONFIRMATION_PLAN_V3_SCHEMA_VERSION if study_scoped else STAIR_FINAL_CONFIRMATION_PLAN_V2_SCHEMA_VERSION
+        study = _exact_mapping(value.get("study_holdout"), {"commitment", "replication_of"}, "Stair study commitment") if study_scoped else {}
         mapping = _exact_mapping(
             value,
             {
@@ -319,12 +339,12 @@ class StairFinalConfirmationPlanV2(StairFinalConfirmationPlan):
                 "single_use",
                 "information_flow",
                 "plan_hash",
-            },
+            } | ({"study_holdout"} if study_scoped else set()),
             "Stair generation final confirmation plan",
         )
         if (
             mapping.get("schema_version")
-            != STAIR_FINAL_CONFIRMATION_PLAN_V2_SCHEMA_VERSION
+            != version
             or mapping.get("session_mode")
             != STAIR_FINAL_CONFIRMATION_FORMAL_SESSION_MODE
             or mapping.get("task_id") != STAIR_TASK_ID
@@ -395,12 +415,15 @@ class StairFinalConfirmationPlanV2(StairFinalConfirmationPlan):
                 "episodes_per_seed_per_cell",
             ),
             plan_hash=require_sha256_digest(mapping.get("plan_hash"), "plan_hash"),
+            study_holdout_commitment=study.get("commitment"),
+            replication_of=study.get("replication_of"),
         )
 
     def genesis_commitment(self) -> dict[str, Any]:
         assert self.plan_hash is not None
         return {
-            "schema_version": STAIR_FINAL_CONFIRMATION_PLAN_V2_SCHEMA_VERSION,
+            "schema_version": (STAIR_FINAL_CONFIRMATION_PLAN_V3_SCHEMA_VERSION if self.study_holdout_commitment is not None else STAIR_FINAL_CONFIRMATION_PLAN_V2_SCHEMA_VERSION),
+            **({"study_holdout": self.study_commitment()} if self.study_holdout_commitment is not None else {}),
             "session_mode": STAIR_FINAL_CONFIRMATION_FORMAL_SESSION_MODE,
             "plan_hash": self.plan_hash,
             "confirmation_namespace": STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE,
@@ -415,7 +438,8 @@ class StairFinalConfirmationPlanV2(StairFinalConfirmationPlan):
 
     def _hash_payload(self) -> dict[str, Any]:
         return {
-            "schema_version": STAIR_FINAL_CONFIRMATION_PLAN_V2_SCHEMA_VERSION,
+            "schema_version": (STAIR_FINAL_CONFIRMATION_PLAN_V3_SCHEMA_VERSION if self.study_holdout_commitment is not None else STAIR_FINAL_CONFIRMATION_PLAN_V2_SCHEMA_VERSION),
+            **({"study_holdout": self.study_commitment()} if self.study_holdout_commitment is not None else {}),
             "session_mode": STAIR_FINAL_CONFIRMATION_FORMAL_SESSION_MODE,
             "session_id": self.session_id,
             "task_id": STAIR_TASK_ID,
@@ -532,6 +556,8 @@ def build_stair_generation_final_confirmation_plan(
         raise TypeError(
             "Stair generation final confirmation requires StairClimbingTaskConfig"
         )
+    if config.requires_study_holdout and config.final_holdout is None:
+        raise ValueError("Stair final plan requires its precommitted private study instance")
     resolver = config.seed_resolver()
     evaluation_shape_hash, cell_count, episodes_per_seed_per_cell = (
         _final_confirmation_evaluation_shape(config)
@@ -547,6 +573,8 @@ def build_stair_generation_final_confirmation_plan(
         seed_count=config.sealed_validation_seed_count,
         cell_count=cell_count,
         episodes_per_seed_per_cell=episodes_per_seed_per_cell,
+        study_holdout_commitment=(config.final_holdout.commitment if config.final_holdout else None),
+        replication_of=(config.final_holdout.replication_of if config.final_holdout else None),
     )
 
 
@@ -582,9 +610,26 @@ def create_stair_generation_final_confirmation_plan(
     output_dir: Path,
     session_id: str,
     config: StairClimbingTaskConfig,
+    replication_source: Path | None = None,
 ) -> tuple[StairFinalConfirmationPlanV2, Path]:
     output_dir = output_dir.resolve()
     _assert_pre_genesis_output_state(output_dir)
+    if config.requires_study_holdout:
+        from true_rl_agent.tasks.stair_climbing.study_holdout import StairStudyHoldout
+
+        private_path = stair_final_confirmation_plan_path(output_dir).with_name("study_holdout.json")
+        replication = StairStudyHoldout.load(replication_source) if replication_source is not None else None
+        if private_path.exists():
+            holdout = StairStudyHoldout.load(private_path)
+            if holdout.study_id != session_id or (replication is not None and holdout.replication_of != replication.commitment):
+                raise ValueError("Stair existing study holdout differs from requested study")
+        else:
+            holdout = StairStudyHoldout.create(path=private_path, study_id=session_id,
+                source_suite=config.ordered_evaluation_suite,
+                training_profile=config.unified_training_profile, replication=replication)
+        config = config.bind_final_holdout(holdout)
+    elif replication_source is not None:
+        raise ValueError("Historical Stair final plans do not support study replication")
     plan = build_stair_generation_final_confirmation_plan(
         session_id=session_id,
         config=config,
@@ -620,6 +665,7 @@ def load_stair_generation_final_confirmation_plan(
     if expected_session_id is not None and plan.session_id != expected_session_id:
         raise ValueError("Stair generation final confirmation plan session mismatch")
     if expected_config is not None:
+        expected_config = bind_stair_generation_final_config(expected_config, plan=plan, plan_path=path)
         expected = build_stair_generation_final_confirmation_plan(
             session_id=plan.session_id,
             config=expected_config,
@@ -629,6 +675,24 @@ def load_stair_generation_final_confirmation_plan(
                 "Stair generation final confirmation plan differs from task config"
             )
     return plan
+
+
+
+def bind_stair_generation_final_config(
+    config: StairClimbingTaskConfig, *, plan: StairFinalConfirmationPlanV2, plan_path: Path,
+) -> StairClimbingTaskConfig:
+    """Private final view; search continues to use the original task configuration."""
+    if plan.study_holdout_commitment is None:
+        if config.requires_study_holdout:
+            raise ValueError("Stair study-scoped protocol cannot use a historical final plan")
+        return config
+    from true_rl_agent.tasks.stair_climbing.study_holdout import StairStudyHoldout
+
+    holdout = StairStudyHoldout.load(plan_path.with_name("study_holdout.json"),
+                                    expected_commitment=plan.study_holdout_commitment)
+    if holdout.study_id != plan.session_id or holdout.replication_of != plan.replication_of:
+        raise ValueError("Stair final study identity or replication label mismatch")
+    return config.bind_final_holdout(holdout)
 
 
 def create_stair_final_confirmation_reservation(
@@ -1586,7 +1650,7 @@ def build_stair_generation_final_confirmation_result(
         right - left
         for left, right in zip(genesis_scores, final_scores, strict=True)
     )
-    delta_std = statistics.stdev(deltas) if len(deltas) > 1 else 0.0
+    paired_stats = _paired_statistics(deltas, canonical_genesis)
     result = StairFinalConfirmationResultV2(
         plan_hash=require_sha256_digest(plan.plan_hash, "plan_hash"),
         reservation_hash=require_sha256_digest(
@@ -1603,8 +1667,8 @@ def build_stair_generation_final_confirmation_result(
         genesis_summary=canonical_genesis,
         final_summary=canonical_final,
         paired_seed_deltas=deltas,
-        paired_mean=statistics.fmean(deltas),
-        paired_standard_error=delta_std / math.sqrt(len(deltas)),
+        paired_mean=paired_stats["mean"],
+        paired_standard_error=paired_stats["standard_error"],
     )
     _validate_generation_final_confirmation_result(
         result,
@@ -1650,7 +1714,7 @@ def build_stair_final_confirmation_result(
         right - left
         for left, right in zip(genesis_scores, final_scores, strict=True)
     ]
-    delta_std = statistics.stdev(deltas) if len(deltas) > 1 else 0.0
+    paired_stats = sample_statistics(deltas, statistics_version=None)
     return StairFinalConfirmationResult(
         plan_hash=require_sha256_digest(plan.plan_hash, "plan_hash"),
         reservation_hash=require_sha256_digest(
@@ -1665,8 +1729,8 @@ def build_stair_final_confirmation_result(
         genesis_summary=genesis,
         final_summary=final,
         paired_seed_deltas=tuple(deltas),
-        paired_mean=statistics.fmean(deltas),
-        paired_standard_error=delta_std / math.sqrt(len(deltas)),
+        paired_mean=paired_stats["mean"],
+        paired_standard_error=paired_stats["standard_error"],
     )
 
 
@@ -1877,18 +1941,18 @@ class StairFinalConfirmationResult:
             right - left
             for left, right in zip(genesis_scores, final_scores, strict=True)
         )
-        expected_std = statistics.stdev(expected_deltas) if len(expected_deltas) > 1 else 0.0
+        expected_stats = sample_statistics(expected_deltas, statistics_version=None)
         if (
             result.paired_seed_deltas != expected_deltas
             or not math.isclose(
                 result.paired_mean,
-                statistics.fmean(expected_deltas),
+                expected_stats["mean"],
                 rel_tol=0.0,
                 abs_tol=1.0e-12,
             )
             or not math.isclose(
                 result.paired_standard_error,
-                expected_std / math.sqrt(len(expected_deltas)),
+                expected_stats["standard_error"],
                 rel_tol=0.0,
                 abs_tol=1.0e-12,
             )
@@ -2489,20 +2553,22 @@ def _validate_generation_final_confirmation_result(
         right - left
         for left, right in zip(genesis_scores, final_scores, strict=True)
     )
-    expected_std = (
-        statistics.stdev(expected_deltas) if len(expected_deltas) > 1 else 0.0
-    )
+    expected_stats = _paired_statistics(expected_deltas, result.genesis_summary)
+    if result.genesis_summary.get("schema_version") == STAIR_UNIFIED_SUMMARY_SCHEMA_VERSION and (
+        result.paired_mean != expected_stats["mean"] or result.paired_standard_error != expected_stats["standard_error"]
+    ):
+        raise ValueError("Stair generation final confirmation canonical paired statistics mismatch")
     if (
         result.paired_seed_deltas != expected_deltas
         or not math.isclose(
             result.paired_mean,
-            statistics.fmean(expected_deltas),
+            expected_stats["mean"],
             rel_tol=0.0,
             abs_tol=1.0e-12,
         )
         or not math.isclose(
             result.paired_standard_error,
-            expected_std / math.sqrt(len(expected_deltas)),
+            expected_stats["standard_error"],
             rel_tol=0.0,
             abs_tol=1.0e-12,
         )
@@ -2510,6 +2576,19 @@ def _validate_generation_final_confirmation_result(
         raise ValueError(
             "Stair generation final confirmation paired statistics mismatch"
         )
+
+
+def _paired_statistics(
+    deltas: Sequence[float], summary: Mapping[str, Any]
+) -> dict[str, Any]:
+    return sample_statistics(
+        deltas,
+        statistics_version=(
+            DERIVED_STATISTICS_VERSION
+            if summary.get("schema_version") == STAIR_UNIFIED_SUMMARY_SCHEMA_VERSION
+            else None
+        ),
+    )
 
 
 def _require_plan_config_binding(
@@ -2569,7 +2648,7 @@ def _summary_seed_scores(
     config: StairClimbingTaskConfig | None = None,
     objective_family_mask: Mapping[str, Any] | None = None,
 ) -> list[float]:
-    if summary.get("schema_version") == STAIR_UNIFIED_SUMMARY_SCHEMA_VERSION:
+    if summary.get("schema_version") in UNIFIED_SUMMARY_SCHEMA_VERSIONS:
         if (
             config is None
             or not config.is_unified_protocol

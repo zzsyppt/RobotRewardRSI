@@ -68,8 +68,8 @@ class StairPhase3BSurfaceTests(unittest.TestCase):
                     self.assertAlmostEqual(vertex, 0.0, places=12)
 
         invalid = dict(profile)
-        invalid["amplitude_m"] = 0.015001
-        with self.assertRaisesRegex(ValueError, "bounded range"):
+        invalid["amplitude_m"] = 0.0
+        with self.assertRaisesRegex(ValueError, "positive"):
             normalize_stair_surface_profile(invalid)
 
     def test_surface_relative_clearance_keeps_failure_classification_exact(self) -> None:

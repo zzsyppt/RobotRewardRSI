@@ -686,6 +686,8 @@ class StairPhase3BContractTests(unittest.TestCase):
                     "public_dev_objective_score",
                     "qualified_ood_families",
                     "stratum_diagnostics",
+                    "success_count_by_cell",
+                    "episodes_per_cell",
                 },
             )
             self.assertEqual(

@@ -59,7 +59,7 @@ from true_rl_agent.memory import (
 from true_rl_agent.prompting.payload import (
     build_prompt_payload as assemble_prompt_payload,
 )
-from true_rl_agent.prompting.serialization import canonical_prompt_json_bytes
+from true_rl_agent.prompting.serialization import canonical_prompt_json, canonical_prompt_json_bytes
 from true_rl_agent.tasks.push_recovery import PushTaskMemoryAdapter
 from true_rl_agent.tasks.prompt_adapter import PromptPublicHistoryProjection
 
@@ -699,8 +699,7 @@ class MemoryContextPhase13Tests(unittest.TestCase):
             payload["public_feedback_summary"]["task_public_summary"],
             round_context["task_public_summary"],
         )
-        self.assertNotIn("recent_outcomes", payload["public_context"])
-        self.assertNotIn("task_public_summary", payload["public_context"])
+        self.assertNotIn("public_context", payload)
         self.assertNotIn("source_catalog", round_context)
         self.assertNotIn("task_prompt_sections", round_context)
         self.assertNotIn("private_seed", payload_text)
@@ -717,10 +716,7 @@ class MemoryContextPhase13Tests(unittest.TestCase):
             saved_text = prompt_path.read_text(encoding="utf-8")
 
         self.assertEqual(saved, payload)
-        self.assertTrue(
-            saved_text.startswith('{\n  "schema_version":'),
-            saved_text[:80],
-        )
+        self.assertEqual(saved_text, canonical_prompt_json(payload))
         self.assertEqual(ref.visibility, "public_prompt_payload")
         self.assertEqual(ref.to_public_dict()["path"], str(prompt_path))
 
@@ -1921,6 +1917,29 @@ class MemoryContextPhase13Tests(unittest.TestCase):
             canonical_prompt_json_bytes(memory),
             memory["limits"]["max_serialized_bytes"],
         )
+        self.assertEqual(recompact_experiment_memory(memory), memory)
+
+    def test_generation_memory_keeps_trial_index_before_repeated_details(self) -> None:
+        entries = [
+            {"round_index": generation, "accepted": generation == 8,
+             "reason": "runner_did_not_accept_candidate",
+             "candidate_id": f"candidate-{generation}-b",
+             "objective_score_source": "public_dev_objective_score", "objective_score": 0.8,
+             "trial_outcomes": [[lane, f"candidate-{generation}-{lane}", "add",
+                 f"RewardTerm:mechanism_{generation}_{lane}", "qualified_not_selected",
+                 -0.01, -0.02, "pass", None] for lane in ("a", "b")],
+             "activated_components": [{"kind": "reward_term", "name": f"term_{term}",
+                 "last_mean": 0.0123456789, "max_abs": 1.23456789} for term in range(8)]}
+            for generation in range(1, 16)
+        ]
+        memory = recompact_experiment_memory({"experiments": entries})
+        self.assertEqual(memory["omitted_experiment_count"], 0)
+        self.assertEqual([e["round_index"] for e in memory["experiments"]], list(range(1, 16)))
+        self.assertEqual([e["trial_outcomes"] for e in memory["experiments"]],
+                         [[row + ["not_available"] for row in e["trial_outcomes"]]
+                          for e in entries])
+        self.assertTrue(any("activated_components" not in e for e in memory["experiments"]))
+        self.assertLessEqual(canonical_prompt_json_bytes(memory), 14 * 1024)
         self.assertEqual(recompact_experiment_memory(memory), memory)
 
     def test_direct_prompt_payload_public_history_uses_fixed_allowlist(self) -> None:

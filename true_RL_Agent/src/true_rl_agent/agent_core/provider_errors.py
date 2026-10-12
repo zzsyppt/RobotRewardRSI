@@ -19,6 +19,7 @@ PROVIDER_FAILURE_CATEGORIES = frozenset(
     {
         "json_parse_error",
         "response_truncated",
+        "reasoning_output_exhausted",
         "schema_error",
         "candidate_materialize_error",
         "verifier_error",
@@ -54,6 +55,8 @@ _MAX_PROVIDER_USAGE_COUNT = 1_000_000_000_000
 _PROVIDER_RECEIPT_SCHEMA_V1 = "true_rl_agent.provider_response_receipt.v1"
 _PROVIDER_RECEIPT_SCHEMA_V2 = "true_rl_agent.provider_response_receipt.v2"
 _PROVIDER_RECEIPT_SCHEMA_VERSION = "true_rl_agent.provider_response_receipt.v3"
+_PROVIDER_RECEIPT_SCHEMA_V4 = "true_rl_agent.provider_response_receipt.v4"
+EXTERNAL_RECEIPT_SCHEMA = "true_rl_agent.external_author_receipt.v1"
 _PROVIDER_RECEIPT_OPTIONAL_STRINGS = (
     "requested_model",
     "response_model",
@@ -108,6 +111,35 @@ class ProviderCandidateError(RuntimeError):
             }
         )
 
+    @property
+    def requires_service_recovery(self) -> bool:
+        """Billing and authorization failures cannot be repaired by a candidate."""
+        return provider_failure_requires_service_recovery(
+            {"category": self.category, "details": self.details}
+        )
+
+
+def provider_failure_requires_service_recovery(value: Any) -> bool:
+    """Use the same service-rejection boundary for live errors and journals."""
+    if not isinstance(value, Mapping):
+        return False
+    details = value.get("details")
+    return (
+        value.get("category") == "runtime_error"
+        and isinstance(details, Mapping)
+        and details.get("failure_kind") == "http_error"
+        and details.get("retryable") is False
+        and details.get("http_status") in {401, 402, 403}
+    )
+
+
+class ProviderServiceUnavailableError(RuntimeError):
+    """Stop the invocation while retaining the current authoring continuation."""
+
+    def __init__(self, error: ProviderCandidateError) -> None:
+        self.provider_failure = error.to_public_dict()
+        super().__init__(f"provider service requires recovery (HTTP {error.details['http_status']})")
+
 
 def build_provider_repair_feedback(error: ProviderCandidateError) -> dict[str, Any]:
     failure = error.to_public_dict()
@@ -121,7 +153,7 @@ def build_provider_repair_feedback(error: ProviderCandidateError) -> dict[str, A
         "Fix only the candidate package response or training_code/components.py needed for this failure.",
         "Do not ask to change runner, eval protocol, training budget, seed policy, checkpoints, PPO, or acceptance rules.",
     ]
-    if error.category == "response_truncated":
+    if error.category in {"response_truncated", "reasoning_output_exhausted"}:
         instructions[0:0] = [
             "Return a shorter response that closes the complete JSON object within the provider output limit.",
             (
@@ -177,6 +209,29 @@ def normalize_provider_usage(value: Any) -> dict[str, int]:
 def normalize_provider_receipt(value: Any) -> dict[str, Any]:
     """Retain bounded response identity and hashes without response content."""
 
+    if isinstance(value, Mapping) and value.get("schema_version") == EXTERNAL_RECEIPT_SCHEMA:
+        if value.get("backend") != "external_file" or value.get("usage_status") != "unknown_full_reserve":
+            return {}
+        model = value.get("requested_model")
+        if not isinstance(model, str) or not model:
+            return {}
+        capture = value.get("response_capture")
+        if capture not in {"complete", "byte_limit_prefix"}:
+            return {}
+        receipt = {"schema_version": EXTERNAL_RECEIPT_SCHEMA, "backend": "external_file",
+                   "usage_status": "unknown_full_reserve", "requested_model": _public_string(model),
+                   "response_capture": capture}
+        for name in ("system_sha256", "user_sha256", "response_text_sha256"):
+            item = value.get(name)
+            if not isinstance(item, str) or not re.fullmatch(r"sha256:[0-9a-f]{64}", item):
+                return {}
+            receipt[name] = item
+        for name in ("response_text_utf8_bytes", "requested_output_units"):
+            item = value.get(name)
+            if type(item) is not int or not 0 <= item <= _MAX_PROVIDER_USAGE_COUNT:
+                return {}
+            receipt[name] = item
+        return receipt
     if (
         not isinstance(value, Mapping)
         or value.get("schema_version")
@@ -184,6 +239,7 @@ def normalize_provider_receipt(value: Any) -> dict[str, Any]:
             _PROVIDER_RECEIPT_SCHEMA_V1,
             _PROVIDER_RECEIPT_SCHEMA_V2,
             _PROVIDER_RECEIPT_SCHEMA_VERSION,
+            _PROVIDER_RECEIPT_SCHEMA_V4,
         }
     ):
         return {}
@@ -207,7 +263,7 @@ def normalize_provider_receipt(value: Any) -> dict[str, Any]:
     thinking_mode = value.get("requested_thinking_mode")
     if thinking_mode in {"enabled", "disabled", "provider_default"}:
         receipt["requested_thinking_mode"] = thinking_mode
-    if schema_version == _PROVIDER_RECEIPT_SCHEMA_VERSION:
+    if schema_version in {_PROVIDER_RECEIPT_SCHEMA_VERSION, _PROVIDER_RECEIPT_SCHEMA_V4}:
         reasoning_effort = value.get("requested_reasoning_effort")
         if reasoning_effort not in {"high", "max", "provider_default"}:
             return {}
@@ -243,6 +299,23 @@ def normalize_provider_receipt(value: Any) -> dict[str, Any]:
             receipt[field_name] = None
         elif isinstance(item, str) and re.fullmatch(r"sha256:[0-9a-f]{64}", item):
             receipt[field_name] = item
+    if schema_version == _PROVIDER_RECEIPT_SCHEMA_V4:
+        from true_rl_agent.agent_core.provider_limits import validate_provider_model_context
+        try:
+            context = validate_provider_model_context(value.get("model_context"))
+        except ValueError:
+            return {}
+        if "requested_output_units" not in receipt:
+            return {}
+        input_tokens = value.get("input_tokens")
+        if input_tokens is not None and (isinstance(input_tokens, bool) or not isinstance(input_tokens, int) or input_tokens < 0):
+            return {}
+        expected_status = ("unknown_without_provider_usage" if input_tokens is None
+                           else "within_declared_window" if input_tokens + receipt["requested_output_units"] <= context["context_window_tokens"]
+                           else "exceeds_declared_window")
+        if value.get("joint_capacity_status") != expected_status:
+            return {}
+        receipt.update(model_context=context, input_tokens=input_tokens, joint_capacity_status=expected_status)
     return receipt
 
 

@@ -34,6 +34,7 @@ from true_rl_agent.evaluation.decision_record_contract import (
     REJECT_OUTCOME,
 )
 from true_rl_agent.evaluation.public_result import PublicEvalResult
+from true_rl_agent.evaluation.public_accept_scores import PublicAcceptScores
 
 
 class DecisionOutcome(str, Enum):
@@ -309,125 +310,15 @@ def decide_candidate(
             consumed_gates,
             gate_statuses,
         )
-    if acceptance_protocol.uses_guard_score:
-        candidate_guard = acceptance_validation.guard_score_mean
-        current_best_guard = current_best.guard_score_for_comparison()
-        if (
-            candidate_guard is None
-            or current_best_guard is None
-        ):
-            return DecisionRecord(
-                DecisionOutcome.REJECT,
-                False,
-                "guard_eval_stats_missing",
-                surface.classification,
-                public_result.public_score,
-                comparison,
-                consumed_gates,
-                gate_statuses,
-            )
-        try:
-            guard_threshold = _guard_regression_threshold(
-                acceptance_protocol=acceptance_protocol,
-                acceptance_validation=acceptance_validation,
-                current_best=current_best,
-            )
-        except ValueError:
-            return DecisionRecord(
-                DecisionOutcome.REJECT,
-                False,
-                "guard_eval_stats_missing",
-                surface.classification,
-                public_result.public_score,
-                comparison,
-                consumed_gates,
-                gate_statuses,
-            )
-        if candidate_guard < current_best_guard - guard_threshold.threshold:
-            return DecisionRecord(
-                DecisionOutcome.REJECT,
-                False,
-                "guard_score_regression",
-                surface.classification,
-                public_result.public_score,
-                comparison,
-                consumed_gates,
-                gate_statuses,
-            )
-    if acceptance_protocol.uses_named_guards:
-        for guard in acceptance_protocol.named_guards:
-            candidate_guard = _candidate_named_guard_score(
-                acceptance_validation, guard.name
-            )
-            current_best_guard = current_best.named_guard_score_for_comparison(
-                guard.name
-            )
-            if candidate_guard is None or current_best_guard is None:
-                return DecisionRecord(
-                    DecisionOutcome.REJECT,
-                    False,
-                    "named_guard_eval_stats_missing",
-                    surface.classification,
-                    public_result.public_score,
-                    comparison,
-                    consumed_gates,
-                    gate_statuses,
-                )
-            try:
-                threshold = _named_guard_regression_threshold(
-                    acceptance_protocol=acceptance_protocol,
-                    guard=guard,
-                    acceptance_validation=acceptance_validation,
-                    current_best=current_best,
-                )
-            except ValueError:
-                return DecisionRecord(
-                    DecisionOutcome.REJECT,
-                    False,
-                    "named_guard_eval_stats_missing",
-                    surface.classification,
-                    public_result.public_score,
-                    comparison,
-                    consumed_gates,
-                    gate_statuses,
-                )
-            if candidate_guard < current_best_guard - threshold.threshold:
-                return DecisionRecord(
-                    DecisionOutcome.REJECT,
-                    False,
-                    "named_guard_score_regression",
-                    surface.classification,
-                    public_result.public_score,
-                    comparison,
-                    consumed_gates,
-                    gate_statuses,
-                )
-    delta = candidate_score - current_best_score
-    threshold_result = _acceptance_threshold(
+    rejection = compare_public_accept_scores(
         acceptance_protocol=acceptance_protocol,
         acceptance_validation=acceptance_validation,
         current_best=current_best,
     )
-    delta_met = acceptance_delta_met(
-        acceptance_protocol,
-        delta,
-        threshold_result.threshold,
-    )
-    if delta_met:
-        return DecisionRecord(
-            DecisionOutcome.POLICY_IMPROVEMENT_ACCEPT,
-            True,
-            acceptance_delta_reason(acceptance_protocol, accepted=True),
-            surface.classification,
-            public_result.public_score,
-            comparison,
-            consumed_gates,
-            gate_statuses,
-        )
     return DecisionRecord(
-        DecisionOutcome.REJECT,
-        False,
-        acceptance_delta_reason(acceptance_protocol, accepted=False),
+        DecisionOutcome.POLICY_IMPROVEMENT_ACCEPT if rejection is None else DecisionOutcome.REJECT,
+        rejection is None,
+        acceptance_delta_reason(acceptance_protocol, accepted=True) if rejection is None else rejection,
         surface.classification,
         public_result.public_score,
         comparison,
@@ -436,16 +327,70 @@ def decide_candidate(
     )
 
 
+def compare_public_accept_scores(
+    *,
+    acceptance_protocol: AcceptanceProtocol,
+    acceptance_validation: AcceptanceEvidenceValidation | PublicAcceptScores,
+    current_best: CurrentBestEvalStats,
+) -> str | None:
+    """Return a conclusive score rejection, or None when later gates still matter."""
+    candidate_score = acceptance_validation.score_mean
+    current_best_score = current_best.score_for_comparison()
+    if acceptance_protocol.uses_guard_score:
+        candidate_guard = acceptance_validation.guard_score_mean
+        current_best_guard = current_best.guard_score_for_comparison()
+        if candidate_guard is None or current_best_guard is None:
+            return "guard_eval_stats_missing"
+        try:
+            guard_threshold = _guard_regression_threshold(
+                acceptance_protocol=acceptance_protocol,
+                acceptance_validation=acceptance_validation,
+                current_best=current_best,
+            )
+        except ValueError:
+            return "guard_eval_stats_missing"
+        if candidate_guard < current_best_guard - guard_threshold.threshold:
+            return "guard_score_regression"
+    if acceptance_protocol.uses_named_guards:
+        for guard in acceptance_protocol.named_guards:
+            candidate_guard = _candidate_named_guard_score(acceptance_validation, guard.name)
+            current_best_guard = current_best.named_guard_score_for_comparison(guard.name)
+            if candidate_guard is None or current_best_guard is None:
+                return "named_guard_eval_stats_missing"
+            try:
+                threshold = _named_guard_regression_threshold(
+                    acceptance_protocol=acceptance_protocol,
+                    guard=guard,
+                    acceptance_validation=acceptance_validation,
+                    current_best=current_best,
+                )
+            except ValueError:
+                return "named_guard_eval_stats_missing"
+            if candidate_guard < current_best_guard - threshold.threshold:
+                return "named_guard_score_regression"
+    delta = candidate_score - current_best_score
+    threshold_result = _acceptance_threshold(
+        acceptance_protocol=acceptance_protocol,
+        acceptance_validation=acceptance_validation,
+        current_best=current_best,
+    )
+    delta_met = acceptance_delta_met(acceptance_protocol, delta, threshold_result.threshold)
+    if delta_met:
+        return None
+    return acceptance_delta_reason(acceptance_protocol, accepted=False)
+
+
 def _acceptance_threshold(
     *,
     acceptance_protocol: AcceptanceProtocol,
-    acceptance_validation: AcceptanceEvidenceValidation,
+    acceptance_validation: AcceptanceEvidenceValidation | PublicAcceptScores,
     current_best: CurrentBestEvalStats,
 ) -> AcceptanceThreshold:
     candidate_se = acceptance_validation.standard_error
     best_se = _standard_error(current_best.public_accept_stats)
     return acceptance_threshold(
         acceptance_protocol,
+        statistics_version=acceptance_validation.score_stats.get("statistics_version"),
         candidate_score=acceptance_validation.score_mean,
         best_score=current_best.score_for_comparison(),
         candidate_score_samples=acceptance_validation.score_samples,
@@ -460,11 +405,12 @@ def _acceptance_threshold(
 def _guard_regression_threshold(
     *,
     acceptance_protocol: AcceptanceProtocol,
-    acceptance_validation: AcceptanceEvidenceValidation,
+    acceptance_validation: AcceptanceEvidenceValidation | PublicAcceptScores,
     current_best: CurrentBestEvalStats,
 ) -> GuardRegressionThreshold:
     return guard_regression_threshold(
         acceptance_protocol,
+        statistics_version=acceptance_validation.guard_score_stats.get("statistics_version"),
         candidate_guard_score=acceptance_validation.guard_score_mean,
         best_guard_score=current_best.guard_score_for_comparison(),
         candidate_guard_score_samples=acceptance_validation.guard_score_samples,
@@ -478,13 +424,14 @@ def _named_guard_regression_threshold(
     *,
     acceptance_protocol: AcceptanceProtocol,
     guard: NamedGuardSpec,
-    acceptance_validation: AcceptanceEvidenceValidation,
+    acceptance_validation: AcceptanceEvidenceValidation | PublicAcceptScores,
     current_best: CurrentBestEvalStats,
 ) -> GuardRegressionThreshold:
     item = _mapping(acceptance_validation.named_guard_evidence.get(guard.name))
     return named_guard_regression_threshold(
         acceptance_protocol,
         guard,
+        statistics_version=_mapping(item.get("score_stats")).get("statistics_version"),
         candidate_guard_score=_candidate_named_guard_score(
             acceptance_validation, guard.name
         ),
@@ -705,7 +652,7 @@ def _candidate_binding_hash(public_result: PublicEvalResult) -> str | None:
 
 
 def _candidate_named_guard_score(
-    validation: AcceptanceEvidenceValidation,
+    validation: AcceptanceEvidenceValidation | PublicAcceptScores,
     name: str,
 ) -> float | None:
     item = _mapping(validation.named_guard_evidence.get(name))

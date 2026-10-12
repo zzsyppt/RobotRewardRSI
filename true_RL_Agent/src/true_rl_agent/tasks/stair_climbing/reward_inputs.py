@@ -267,7 +267,7 @@ def stair_reward_input_prompt_contract(
     history_semantics = (
         f"axes=[env,history(0 newest; larger older),{support_axis},xyz]; "
         f"contact=norm xyz,max all {history_length} history,then threshold; "
-        "air-to-contact=index0 contact and older air"
+        "this window alone does not identify every onset within a control step"
     )
     return {
         "schema_version": (
@@ -276,6 +276,12 @@ def stair_reward_input_prompt_contract(
             else "true_rl_agent.reward_inputs_contract.stair.v12"
         ),
         "status": "available",
+        "reward_integration": {
+            "step_reward": "control_dt * sum(weight * clipped_raw)",
+            "control_dt_unit": "seconds",
+            "control_dt_source": "env.step_dt = sim.dt * decimation",
+            "candidate_usage": "Return raw reward rates; the dispatcher applies weight, clip and dt once.",
+        },
         "input_schema_hash": contract.input_schema_hash,
         "input_type": input_type,
         "field_semantics_constraints": {
@@ -384,7 +390,16 @@ def stair_reward_input_prompt_contract(
                         "temporal_behavior": (
                             "recent-history indicator, not current-sample-only contact"
                         ),
-                    }
+                    },
+                    **({"support_first_contact": {
+                        "source": "contact_sensor.compute_first_contact(env.step_dt)",
+                        "semantics": "contact onset observed within the last control period; not contact occupancy",
+                        "candidate_usage": "Use this event mask with support_last_air_time for landing rewards; history-any-contact is not onset.",
+                    }} if "support_first_contact" in field_names else {}),
+                    "support_contact_time": {"unit": "s", "semantics": "duration of current contact episode; zero while airborne"},
+                    "support_air_time": {"unit": "s", "semantics": "duration of current airborne episode; zero in contact"},
+                    **({"support_last_air_time": {"unit": "s", "semantics": "duration of the last completed airborne episode, held until the next landing"}}
+                       if "support_last_air_time" in field_names else {}),
                 }
                 if is_vnext
                 else {}

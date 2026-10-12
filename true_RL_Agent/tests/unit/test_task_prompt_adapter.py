@@ -61,7 +61,7 @@ class TaskPromptAdapterTests(unittest.TestCase):
                 "opaque_public_metric": 7,
             },
         )
-        self.assertNotIn("task_public_summary", payload["public_context"])
+        self.assertNotIn("public_context", payload)
 
     def test_task_plugin_exposes_neutral_prompt_adapter_without_push_semantics(self) -> None:
         adapter = NonPushTaskPlugin().prompt_adapter()
@@ -90,7 +90,7 @@ class TaskPromptAdapterTests(unittest.TestCase):
             payload["task"]["task_id"],
             "stair_climbing",
         )
-        self.assertNotIn("task_prompt_sections", payload["public_context"])
+        self.assertNotIn("public_context", payload)
         self.assertNotIn("push_active", text)
         self.assertNotIn("push_vec_public", text)
         self.assertNotIn("push recovery", text.lower())
@@ -141,7 +141,7 @@ class TaskPromptAdapterTests(unittest.TestCase):
 
         self.assertEqual(sections["task"]["task_id"], "custom_task")
         self.assertEqual(sections["reward_inputs_contract"]["note"], "[redacted]")
-        self.assertNotIn("task_prompt_sections", payload["public_context"])
+        self.assertNotIn("public_context", payload)
         self.assertNotIn("private_seed", text)
         self.assertNotIn("sk-secret-value", text)
         self.assertEqual(seen_round_counts, [1])

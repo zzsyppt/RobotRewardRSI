@@ -98,6 +98,7 @@ def build_push_dry_run_public_result(
         budget_summary=None,
         min_public_accept_count=eval_spec.public_accept_seed_count,
         acceptance_protocol=acceptance_protocol,
+        evaluation_protocol=eval_spec.evaluation_protocol(),
     )
     metrics = dict(result.metrics)
     evaluation_protocol = eval_spec.evaluation_protocol()

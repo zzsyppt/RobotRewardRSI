@@ -123,6 +123,11 @@ def config_for_profile(config: dict[str, Any], profile_name: str | None) -> dict
 def public_runtime_dynamics(config: Mapping[str, Any]) -> dict[str, Any]:
     """Project the runner-applied public task protocol and its dynamics."""
 
+    if "push_protocol" in config or "push_robot_scale_m" in config:
+        from true_rl_agent.tasks.push_recovery.protocol import physical_public_runtime_dynamics
+
+        return physical_public_runtime_dynamics(config)
+
     task = _required_mapping(config, "task")
     environment = _required_mapping(config, "environment")
     evaluation = _required_mapping(config, "evaluation")

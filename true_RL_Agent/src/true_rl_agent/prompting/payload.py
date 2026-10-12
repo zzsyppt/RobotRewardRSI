@@ -33,12 +33,12 @@ from true_rl_agent.prompting.capabilities import (
 from true_rl_agent.prompting.public_safety import assert_public_only_prompt_payload
 from true_rl_agent.prompting.serialization import (
     canonical_prompt_json,
-    canonical_prompt_json_bytes,
 )
 from true_rl_agent.prompting.source_catalog import (
     PROMPT_SOURCE_SECTION_KEYS,
     default_prompt_source_sections,
     validate_prompt_source_sections,
+    finalize_prompt_source_sections,
 )
 from true_rl_agent.prompting.task_sections import sanitize_task_prompt_sections
 
@@ -58,16 +58,11 @@ PROMPT_PAYLOAD_SECTION_ORDER = (
     "public_feedback_summary",
     "runtime_feedback_summary",
     "public_history",
-    "public_context",
     "exploration_directive",
     "required_candidate_package",
     "authoring_context_frame",
     "provider_or_runtime_repair_feedback",
 )
-LEGACY_PROMPT_PAYLOAD_ALIAS_SECTIONS = (
-    "public_context",
-)
-MAX_LEGACY_PUBLIC_CONTEXT_ALIAS_BYTES = 1024
 
 
 def serialize_prompt_payload(payload: Mapping[str, Any]) -> str:
@@ -168,6 +163,7 @@ def build_prompt_payload(
     authoring_capability_readiness: Mapping[str, Mapping[str, Any]] | None = None,
     candidate_capability_profile: CandidateCapabilityProfile | None = None,
     candidate_verifier_prompt_rules: Mapping[str, Any] | None = None,
+    recoverable_sources: tuple[Mapping[str, Any], ...] = (),
 ) -> dict[str, Any]:
     safe_context = sanitize_prompt_public_context(dict(public_context))
     authoring_frame_kind = normalize_authoring_frame_kind(frame_kind, safe_context)
@@ -223,27 +219,16 @@ def build_prompt_payload(
             task_sections.get("selection_guidance")
         ),
         "provider_or_runtime_repair_feedback": safe_context.get("candidate_repair_feedback"),
-        "schema_version": "true_rl_agent.prompt_payload.v4",
+        "schema_version": "true_rl_agent.prompt_payload.v5",
     }
     section_values, frame_omissions = project_sections_for_authoring_frame(
         section_values,
         frame_kind=authoring_frame_kind,
         section_order=PROMPT_PAYLOAD_SECTION_ORDER,
     )
-    projected_source_sections = validate_prompt_source_sections(
-        {
-            key: section_values[key]
-            for key in PROMPT_SOURCE_SECTION_KEYS
-        },
-        require_inline_payloads=(
-            not (
-                authoring_frame_kind == "source_followup"
-                or (
-                    authoring_frame_kind == "static_repair"
-                    and bool(frame_omissions)
-                )
-            )
-        ),
+    projected_source_sections = finalize_prompt_source_sections(
+        {key: section_values[key] for key in PROMPT_SOURCE_SECTION_KEYS},
+        recoverable_sources=recoverable_sources,
     )
     section_values.update(projected_source_sections)
     omitted_sections.extend(frame_omissions)
@@ -253,17 +238,8 @@ def build_prompt_payload(
         section_order=PROMPT_PAYLOAD_SECTION_ORDER,
         omitted_sections=omitted_sections,
     )
-    # Compatibility ref for older provider/test adapters that still inspect the
-    # sanitized public context directly. Canonical contracts stay in the ordered
-    # top-level sections above.
-    legacy_public_context = _legacy_public_context_alias(safe_context)
     payload: dict[str, Any] = {}
     for section in PROMPT_PAYLOAD_SECTION_ORDER:
-        if section == "public_context":
-            # Keep the small stable compatibility alias in the shared prefix as
-            # well; lane/attempt-specific sections start at this boundary.
-            payload["public_context"] = legacy_public_context
-            continue
         if section not in section_values or (
             section == "provider_or_runtime_repair_feedback"
             and section_values[section] is None
@@ -273,40 +249,10 @@ def build_prompt_payload(
     payload["authoring_context_frame"] = with_final_prompt_budget(
         payload["authoring_context_frame"],
         prompt_payload=payload,
-        legacy_alias_sections=LEGACY_PROMPT_PAYLOAD_ALIAS_SECTIONS,
+        legacy_alias_sections=(),
     )
     assert_public_only_prompt_payload(payload)
     return payload
-
-
-def _legacy_public_context_alias(public_context: Mapping[str, Any]) -> dict[str, Any]:
-    alias: dict[str, Any] = {
-        "schema_version": "true_rl_agent.public_context_legacy_summary.v1",
-        "deprecated": True,
-        "public_only": True,
-        "previous_rounds": public_context.get("previous_rounds", 0),
-        "best_public_score": public_context.get("best_public_score"),
-        "last_outcome": public_context.get("last_outcome"),
-        "pure_knob_streak": public_context.get("pure_knob_streak", 0),
-        "canonical_sections": {
-            "history": "public_history",
-            "public_feedback": "public_feedback_summary",
-            "runtime_feedback": "runtime_feedback_summary",
-        },
-    }
-    if "candidate_repair_feedback" in public_context:
-        alias["candidate_repair_feedback_ref"] = {
-            "available": True,
-            "canonical_section": "provider_or_runtime_repair_feedback",
-        }
-    clean = sanitize_prompt_public_context(alias)
-    size = canonical_prompt_json_bytes(clean)
-    if size >= MAX_LEGACY_PUBLIC_CONTEXT_ALIAS_BYTES:
-        raise ValueError(
-            "legacy public_context alias must stay below "
-            f"{MAX_LEGACY_PUBLIC_CONTEXT_ALIAS_BYTES} bytes: {size}"
-        )
-    return clean
 
 
 def _task_prompt_sections(value: Any) -> dict[str, Any]:
@@ -478,4 +424,9 @@ def _task_neutral_evidence_discipline() -> list[str]:
             "nonaccepted best-observed bootstrap anchor."
         ),
         SINGLE_COMPONENT_DELTA_INSTRUCTION,
+        (
+            "Process evidence may contain several correlated observations; it does not authorize "
+            "changing multiple mechanisms. Separate observations from hypotheses, keep the "
+            "current focus during repair, and treat a previous rationale as a proposal, not an observation."
+        ),
     ]

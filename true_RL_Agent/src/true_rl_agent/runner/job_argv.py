@@ -43,6 +43,9 @@ def validate_train_job_argv(
     """Validate all task-neutral train identity and execution bindings."""
 
     _validate_common_identity(spec, argv)
+    capture_count = list(argv).count("--capture-training-numeric")
+    if capture_count != int(bool(spec.metadata.get("capture_training_numeric", False))):
+        raise ValueError("training numeric capture argv differs from job metadata")
     require_exact_option_value(
         argv,
         "--program-source-checksum",
@@ -193,6 +196,13 @@ def validate_eval_job_argv(
     _require_metadata_path(spec.metadata, argv, "summary_path", "--summary-path")
     unique_option_value(argv, "--round")
     unique_option_value(argv, "--seed")
+
+    if spec.metadata.get("numeric_evidence_dir") is not None:
+        _require_metadata_path(spec.metadata, argv, "numeric_evidence_dir", "--numeric-evidence-dir")
+        require_exact_option_value(argv, "--numeric-evidence-max-bytes", expected=str(spec.metadata["numeric_evidence_max_bytes"]))
+    else:
+        require_option_absent(argv, "--numeric-evidence-dir")
+        require_option_absent(argv, "--numeric-evidence-max-bytes")
 
     if isinstance(spec, EvalPhaseJobSpec):
         require_exact_option_value(

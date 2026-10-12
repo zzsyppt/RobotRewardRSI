@@ -188,6 +188,9 @@ def run_stair_split_execution(
     seed_namespace: str,
     progress_callback: Callable[[int, int], None] | None = None,
     runtime_projection: StairRuntimeProjection | None = None,
+    on_seed_reset: Callable[[int, int], None] | None = None,
+    on_seed_completed: Callable[[tuple[StairEpisodeOutcome, ...]], None] | None = None,
+    numeric_capture: Any | None = None,
 ) -> StairSplitRolloutExecution:
     """Collect outcomes and exact runner-owned control-step cost for one split."""
 
@@ -206,9 +209,13 @@ def run_stair_split_execution(
             run_index=run_index,
             seed_namespace=seed_namespace,
             runtime_projection=runtime_projection,
+            on_seed_reset=on_seed_reset,
+            numeric_capture=numeric_capture,
         )
         outcomes.append(seed_execution.outcomes)
         vector_env_step_calls += seed_execution.vector_env_step_calls
+        if on_seed_completed is not None:
+            on_seed_completed(seed_execution.outcomes)
         if progress_callback is not None:
             progress_callback(run_index, seed_count)
     return StairSplitRolloutExecution(
@@ -264,6 +271,8 @@ def _execute_stair_seed_rollout(
     run_index: int,
     seed_namespace: str,
     runtime_projection: StairRuntimeProjection | None = None,
+    on_seed_reset: Callable[[int, int], None] | None = None,
+    numeric_capture: Any | None = None,
 ) -> _StairSeedRolloutExecution:
     """Collect one seed and retain the exact number of env.step invocations."""
 
@@ -277,6 +286,8 @@ def _execute_stair_seed_rollout(
     _set_runner_seed(runner_seed)
     observation, _ = _reset_env(env, runner_seed)
     _assert_finite_tree(observation, "Stair reset observation")
+    if on_seed_reset is not None:
+        on_seed_reset(run_index, runner_seed)
 
     if isinstance(seed_resolver, StairOrderedEvaluationSeedResolver):
         assignment = seed_resolver.private_bin_assignment(split)
@@ -310,10 +321,37 @@ def _execute_stair_seed_rollout(
             "Stair episode horizon is not an integral control-step count"
         )
 
+    trackers = [
+        StairEpisodeTracker(protocol, semantics, env_index=index, bin_id=bin_id,
+                            evaluation_cell=cell_assignment[index] if cell_assignment is not None else None)
+        for index, bin_id in enumerate(assignment)
+    ]
+    outcomes: list[StairEpisodeOutcome | None] = [None] * len(trackers)
+    active = [True] * len(trackers)
+    if numeric_capture is not None:
+        numeric_capture.begin_seed(run_index=run_index, runner_seed=runner_seed, split=split, step_dt=step_dt)
+
+    def consume_chunk(host_steps: tuple[Mapping[str, Any], ...], done_steps: tuple[Any, ...]) -> None:
+        valid_steps: list[list[bool]] = []
+        for raw_transition, done_mask in zip(host_steps, done_steps, strict=True):
+            if not any(active):
+                break
+            valid_steps.append(list(active))
+            transitions = decode_stair_transition_batch(
+                raw_transition, wrapper_done_mask=done_mask, protocol=protocol, semantics=semantics,
+                expected_bin_assignment=assignment, expected_cell_assignment=cell_assignment,
+                runtime_projection=runtime_projection,
+            )
+            for env_index, transition in enumerate(transitions):
+                if active[env_index]:
+                    outcome = trackers[env_index].observe(transition)
+                    if outcome is not None:
+                        outcomes[env_index], active[env_index] = outcome, False
+        if numeric_capture is not None and valid_steps:
+            numeric_capture.record_chunk(host_steps[:len(valid_steps)], done_steps[:len(valid_steps)], valid_steps)
+
     raw_history: list[Mapping[str, Any]] = []
     wrapper_done_history: list[Any] = []
-    host_history: list[Mapping[str, Any]] = []
-    host_wrapper_done: list[Any] = []
     seen_done = None
     finite_status = None
     vector_env_step_calls = 0
@@ -339,8 +377,7 @@ def _execute_stair_seed_rollout(
                 raw_history,
                 wrapper_done_history,
             )
-            host_history.extend(host_chunk)
-            host_wrapper_done.extend(done_chunk)
+            consume_chunk(host_chunk, done_chunk)
         seen_done = (
             done_snapshot
             if seen_done is None
@@ -365,51 +402,14 @@ def _execute_stair_seed_rollout(
         raw_history,
         wrapper_done_history,
     )
-    host_history.extend(host_chunk)
-    host_wrapper_done.extend(done_chunk)
-
-    trackers = [
-        StairEpisodeTracker(
-            protocol,
-            semantics,
-            env_index=index,
-            bin_id=bin_id,
-            evaluation_cell=(
-                cell_assignment[index] if cell_assignment is not None else None
-            ),
-        )
-        for index, bin_id in enumerate(assignment)
-    ]
-    outcomes: list[StairEpisodeOutcome | None] = [None] * len(trackers)
-    active = [True] * len(trackers)
-    for raw_transition, done_mask in zip(
-        host_history,
-        host_wrapper_done,
-        strict=True,
-    ):
-        transitions = decode_stair_transition_batch(
-            raw_transition,
-            wrapper_done_mask=done_mask,
-            protocol=protocol,
-            semantics=semantics,
-            expected_bin_assignment=assignment,
-            expected_cell_assignment=cell_assignment,
-            runtime_projection=runtime_projection,
-        )
-        for env_index, transition in enumerate(transitions):
-            if not active[env_index]:
-                continue
-            outcome = trackers[env_index].observe(transition)
-            if outcome is not None:
-                outcomes[env_index] = outcome
-                active[env_index] = False
-        if not any(active):
-            break
+    consume_chunk(host_chunk, done_chunk)
 
     if any(active) or any(outcome is None for outcome in outcomes):
         raise StairEvaluationRuntimeError(
             "Stair first-episode coverage did not close within the fixed horizon"
         )
+    if numeric_capture is not None:
+        numeric_capture.finish_seed(outcomes)
     return _StairSeedRolloutExecution(
         outcomes=tuple(outcome for outcome in outcomes if outcome is not None),
         vector_env_step_calls=vector_env_step_calls,

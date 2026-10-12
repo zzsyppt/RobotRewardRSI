@@ -19,9 +19,8 @@ from true_rl_agent.tasks.stair_climbing.isaaclab_terrain import (
 )
 from true_rl_agent.tasks.stair_climbing.unified_training import (
     STAIR_TERRAIN_REGIME_C0,
-    STAIR_TERRAIN_REGIME_C1,
     StairUnifiedTrainingProfile,
-    goal_progress_m_by_terrain_type,
+    goal_progress_m_by_terrain_type as goal_progress_m_by_terrain_type,
     unified_assignment_summary,
     unified_initial_terrain_assignment,
 )
@@ -139,7 +138,8 @@ def build_unified_train_terrain_generator(
         border_width=0.0,
         num_rows=int(grid["terrain_rows"]),
         num_cols=int(grid["terrain_cols"]),
-        color_scheme="height",
+        # Uniform material: target trimesh lacks Lab's height-color "jet" map.
+        color_scheme="none",
         sub_terrains=sub_terrains,
         difficulty_range=tuple(float(value) for value in grid["difficulty_range"]),
         use_cache=False,

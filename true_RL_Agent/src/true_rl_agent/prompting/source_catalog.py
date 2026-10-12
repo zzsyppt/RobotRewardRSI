@@ -3,17 +3,20 @@
 from __future__ import annotations
 
 import hashlib
+import copy
 import math
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 
 from true_rl_agent.agent_core.ledger import is_strict_ledger_record
+from true_rl_agent.agent_core.generation_contract import latest_nonaccepted_trial
 from true_rl_agent.agent_core.provider_contract import SOURCE_REQUEST_SERVICE_ENABLED
 from true_rl_agent.agent_core.public_safety import sanitize_prompt_public_value
 from true_rl_agent.agent_core.source_request_limits import (
     BEST_OBSERVED_SOURCE_ID,
     CURRENT_BEST_SOURCE_ID,
     LATEST_FAILED_SOURCE_ID,
+    LATEST_NONACCEPTED_SOURCE_ID,
     PROMPT_SOURCE_LOGICAL_IDS,
 )
 from true_rl_agent.agent_core.source_request_limits import (
@@ -44,9 +47,10 @@ from true_rl_agent.evaluation.binding import (
     require_sha256_digest,
 )
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
+from true_rl_agent.evaluation.phased_adapter import PhasedEvaluationAdapter
 from true_rl_agent.prompting.public_safety import assert_public_only_prompt_payload
 
-SOURCE_CATALOG_SCHEMA_VERSION = "true_rl_agent.source_catalog.v3"
+SOURCE_CATALOG_SCHEMA_VERSION = "true_rl_agent.source_catalog.v4"
 CANDIDATE_LINEAGE_SCHEMA_VERSION = "true_rl_agent.candidate_lineage.v4"
 SOURCE_PAYLOAD_SCHEMA_VERSION = "true_rl_agent.prompt_source_payload.v1"
 EXPLORATION_DIRECTIVE_SCHEMA_VERSION = "true_rl_agent.exploration_directive.v2"
@@ -75,6 +79,7 @@ def build_prompt_source_context(
     latest_failed_candidate: Any = None,
     initial_reference_program_source: str | None = None,
     expected_ledger_epoch_hash: str | None = None,
+    phased_evaluation_adapter: PhasedEvaluationAdapter | None = None,
     nonaccepted_authoring_tiebreak_key: Callable[
         [Mapping[str, Any]], Sequence[float]
     ]
@@ -103,6 +108,7 @@ def build_prompt_source_context(
         expected_session_genesis_hash=session_genesis_hash,
         acceptance_protocol=acceptance_protocol,
         expected_ledger_epoch_hash=expected_ledger_epoch_hash,
+        phased_evaluation_adapter=phased_evaluation_adapter,
     )
     return build_prompt_source_context_from_projected(
         records,
@@ -192,21 +198,18 @@ def build_prompt_source_context_from_projected(
         index=best_observed_index,
         objective_score_source=objective_score_source,
     )
-    if latest_failed_candidate is not None:
-        latest_failed = _resolve_latest_failed_source(latest_failed_candidate)
-        latest_failed_index = None
-    else:
-        latest_failed_index = _immediate_previous_nonaccepted_index(
-            canonical_public_records
-        )
-        latest_failed = _resolve_latest_failed_record_source(
-            records[latest_failed_index] if latest_failed_index is not None else None
-        )
+    latest_failed = _resolve_latest_failed_source(latest_failed_candidate)
+    selected_trial = latest_nonaccepted_trial(canonical_public_records)
+    latest_failed_index = selected_trial[0] if selected_trial is not None else None
+    latest_nonaccepted = _resolve_record_candidate_source(
+        records[latest_failed_index] if latest_failed_index is not None else None,
+        expected_candidate=selected_trial[1].get("candidate") if selected_trial else None,
+    )
     best_observed_aliases_latest = (
         best_observed_index is not None
         and latest_failed_index is not None
         and _sources_share_content(
-            _mapping(best_observed.get("source")), latest_failed
+            _mapping(best_observed.get("source")), latest_nonaccepted
         )
     )
     catalog = _source_catalog(
@@ -214,6 +217,7 @@ def build_prompt_source_context_from_projected(
         best_observed=best_observed,
         best_observed_aliases_latest=best_observed_aliases_latest,
         latest_failed=latest_failed,
+        latest_nonaccepted=latest_nonaccepted,
         known_good_examples=known_good_examples,
     )
     source_payloads = _source_payloads(
@@ -221,6 +225,7 @@ def build_prompt_source_context_from_projected(
         best_observed=best_observed,
         best_observed_aliases_latest=best_observed_aliases_latest,
         latest_failed=latest_failed,
+        latest_nonaccepted=latest_nonaccepted,
     )
     lineage = _candidate_lineage(
         accepted=accepted,
@@ -308,6 +313,41 @@ def validate_prompt_source_sections(
     return clean
 
 
+def finalize_prompt_source_sections(sections: Mapping[str, Any], *, recoverable_sources: Sequence[Mapping[str, Any]] = ()) -> dict[str, Any]:
+    """Derive delivery claims after frame pruning, from the payload actually sent."""
+
+    final = copy.deepcopy(dict(sections))
+    sent = {item["logical_id"] for item in final["source_payloads"]}
+    items = {item["logical_id"]: item for item in final["source_catalog"]["items"]}
+    recoverable = {item["logical_id"]: item for item in recoverable_sources}
+    for logical_id, item in items.items():
+        stored = recoverable.get(logical_id, {})
+        can_request = (stored.get("content_sha256") == item.get("content_sha256")
+                       and stored.get("bytes") == item.get("bytes") and bool(stored))
+        if logical_id in sent:
+            item.update(status="inline", inline_by_default=True, requestable=True)
+            item.pop("pending_reason", None)
+        elif item.get("status") in {"inline", "available_by_request", "omitted_from_frame"}:
+            item.update(status="available_by_request" if can_request else "omitted_from_frame",
+                        inline_by_default=False, requestable=can_request,
+                        pending_reason="source_not_sent_in_this_frame")
+        item["recoverability"] = ("inline" if logical_id in sent else "inline_alias"
+                                  if item.get("alias_of") in sent else "source_request" if can_request
+                                  else "unavailable_in_this_frame")
+    for key in ("current_best", "best_observed_experiment"):
+        source = final["candidate_lineage"].get(key)
+        if isinstance(source, dict) and source.get("source_delivery") in {"inline", "source_request", "unavailable"}:
+            logical_id = source["source_logical_id"]
+            if logical_id in sent:
+                source.update(source_delivery="inline", source_payload_ref=logical_id)
+                source.pop("pending_reason", None)
+            else:
+                source["source_delivery"] = ("source_request" if items[logical_id].get("requestable") else "unavailable")
+                source.pop("source_payload_ref", None)
+                source["pending_reason"] = "source_not_sent_in_this_frame"
+    return validate_prompt_source_sections(final)
+
+
 def prompt_source_catalog_logical_ids(prompt_payload: Mapping[str, Any]) -> frozenset[str]:
     """Return the closed source logical-id allowlist from a provider-facing prompt payload."""
 
@@ -362,7 +402,12 @@ def is_known_prompt_source_logical_id(logical_id: Any) -> bool:
 
 def _validate_source_catalog(value: Any) -> dict[str, Mapping[str, Any]]:
     catalog = _require_mapping(value, "source_catalog")
-    _require_schema(catalog, SOURCE_CATALOG_SCHEMA_VERSION, "source_catalog")
+    historical = catalog.get("schema_version") == "true_rl_agent.source_catalog.v3"
+    if not historical:
+        _require_schema(catalog, SOURCE_CATALOG_SCHEMA_VERSION, "source_catalog")
+    allowed_ids = (_SOURCE_CATALOG_LOGICAL_IDS - {LATEST_NONACCEPTED_SOURCE_ID}
+                   if historical else _SOURCE_CATALOG_LOGICAL_IDS)
+    history_source_id = LATEST_FAILED_SOURCE_ID if historical else LATEST_NONACCEPTED_SOURCE_ID
     policy = _require_mapping(catalog.get("policy"), "source_catalog.policy")
     if policy.get("ids_are_closed_allowlist") is not True:
         raise ValueError("source_catalog.policy.ids_are_closed_allowlist must be true")
@@ -377,7 +422,7 @@ def _validate_source_catalog(value: Any) -> dict[str, Mapping[str, Any]]:
     for index, raw_item in enumerate(items):
         item = _require_mapping(raw_item, f"source_catalog.items[{index}]")
         logical_id = _require_string(item.get("logical_id"), f"source_catalog.items[{index}].logical_id")
-        if logical_id not in _SOURCE_CATALOG_LOGICAL_IDS:
+        if logical_id not in allowed_ids:
             raise ValueError(f"source_catalog contains unknown logical_id: {logical_id}")
         if logical_id in by_id:
             raise ValueError(f"source_catalog contains duplicate logical_id: {logical_id}")
@@ -394,18 +439,18 @@ def _validate_source_catalog(value: Any) -> dict[str, Mapping[str, Any]]:
         if item.get("status") == "alias":
             if logical_id != BEST_OBSERVED_SOURCE_ID:
                 raise ValueError("only best-observed source may use alias delivery")
-            if item.get("alias_of") != LATEST_FAILED_SOURCE_ID:
+            if item.get("alias_of") != history_source_id:
                 raise ValueError("best-observed alias must reference latest-failed source")
             if item.get("requestable") is not False or item.get("max_bytes") != 0:
                 raise ValueError("best-observed alias must not be independently requestable")
         by_id[logical_id] = item
-    if frozenset(by_id) != _SOURCE_CATALOG_LOGICAL_IDS:
-        missing = sorted(_SOURCE_CATALOG_LOGICAL_IDS - frozenset(by_id))
-        extra = sorted(frozenset(by_id) - _SOURCE_CATALOG_LOGICAL_IDS)
+    if frozenset(by_id) != allowed_ids:
+        missing = sorted(allowed_ids - frozenset(by_id))
+        extra = sorted(frozenset(by_id) - allowed_ids)
         raise ValueError(f"source_catalog logical_ids must match closed allowlist; missing={missing}; extra={extra}")
     observed_item = by_id[BEST_OBSERVED_SOURCE_ID]
     current_item = by_id[CURRENT_BEST_SOURCE_ID]
-    latest_item = by_id[LATEST_FAILED_SOURCE_ID]
+    latest_item = by_id[history_source_id]
     if latest_item.get("source_owner") not in {
         CURRENT_AUTHORING_ATTEMPT_SOURCE_OWNER,
         PRIOR_LEDGER_RECORD_SOURCE_OWNER,
@@ -429,6 +474,8 @@ def _validate_source_catalog(value: Any) -> dict[str, Mapping[str, Any]]:
         if current_item.get("status") not in {
             "inline",
             "omitted_over_budget",
+            "omitted_from_frame",
+            "available_by_request",
         }:
             raise ValueError("reference current-best source must be available")
     if observed_item.get("status") == "alias":
@@ -536,6 +583,7 @@ def _validate_candidate_lineage(
         if observed.get("source_logical_id") not in {
             BEST_OBSERVED_SOURCE_ID,
             LATEST_FAILED_SOURCE_ID,
+            LATEST_NONACCEPTED_SOURCE_ID,
         }:
             raise ValueError("bootstrap anchor references an invalid source role")
         _validate_lineage_source(
@@ -719,7 +767,7 @@ def _validate_lineage_source(
             raise ValueError(f"inline candidate_lineage source has no payload: {logical_id}")
         if catalog_item.get("status") != "inline":
             raise ValueError(f"inline candidate_lineage source is not inline in catalog: {logical_id}")
-    elif source_delivery in {"omitted_over_budget", "unavailable"}:
+    elif source_delivery in {"omitted_over_budget", "unavailable", "source_request"}:
         if logical_id in payloads:
             raise ValueError(f"non-inline candidate_lineage source must not have payload: {logical_id}")
         if source_delivery == "omitted_over_budget" and catalog_item.get("status") != "omitted_over_budget":
@@ -944,6 +992,7 @@ def _source_catalog(
     best_observed: Mapping[str, Any],
     best_observed_aliases_latest: bool,
     latest_failed: Mapping[str, Any],
+    latest_nonaccepted: Mapping[str, Any],
     known_good_examples: Any,
 ) -> dict[str, Any]:
     current_item = _current_best_catalog_item(current_best)
@@ -969,6 +1018,7 @@ def _source_catalog(
         ),
         _known_good_catalog_item(known_good_examples),
         _latest_failed_catalog_item(latest_failed),
+        _latest_failed_catalog_item(latest_nonaccepted, logical_id=LATEST_NONACCEPTED_SOURCE_ID),
     ]
     catalog = {
         "schema_version": SOURCE_CATALOG_SCHEMA_VERSION,
@@ -983,10 +1033,11 @@ def _source_catalog(
     return catalog
 
 
-def _latest_failed_catalog_item(latest_failed: Mapping[str, Any]) -> dict[str, Any]:
+def _latest_failed_catalog_item(latest_failed: Mapping[str, Any], *, logical_id: str = LATEST_FAILED_SOURCE_ID) -> dict[str, Any]:
     item = {
-        "logical_id": LATEST_FAILED_SOURCE_ID,
-        "role": "latest_nonaccepted_candidate_source",
+        "logical_id": logical_id,
+        "role": ("current_failed_candidate_source" if logical_id == LATEST_FAILED_SOURCE_ID
+                 else "latest_nonaccepted_candidate_source"),
         "candidate_use": (
             "Use the latest nonaccepted source with its verifier, runtime, and eval "
             "feedback to repair, refute, or replace the attempted mechanism."
@@ -1000,6 +1051,7 @@ def _latest_failed_catalog_item(latest_failed: Mapping[str, Any]) -> dict[str, A
         "bytes": latest_failed.get("bytes"),
         "hash_scope": latest_failed.get("hash_scope"),
         "pending_reason": latest_failed.get("pending_reason"),
+        "feedback_identity": latest_failed.get("feedback_identity"),
         "source_owner": latest_failed.get(
             "source_origin",
             NO_FAILED_SOURCE_OWNER,
@@ -1028,7 +1080,7 @@ def _best_observed_catalog_item(
             "requestable": False,
             "max_bytes": 0,
             "status": "alias",
-            "alias_of": LATEST_FAILED_SOURCE_ID,
+            "alias_of": LATEST_NONACCEPTED_SOURCE_ID,
             "content_sha256": source.get("content_sha256"),
             "bytes": source.get("bytes"),
             "pending_reason": source.get("pending_reason"),
@@ -1136,6 +1188,7 @@ def _source_payloads(
     best_observed: Mapping[str, Any],
     best_observed_aliases_latest: bool,
     latest_failed: Mapping[str, Any],
+    latest_nonaccepted: Mapping[str, Any],
 ) -> list[dict[str, Any]]:
     observed_source = _mapping(best_observed.get("source"))
     payloads = [
@@ -1163,6 +1216,8 @@ def _source_payloads(
             role="latest_nonaccepted_candidate_source",
             source=latest_failed,
         ),
+        _source_payload(logical_id=LATEST_NONACCEPTED_SOURCE_ID,
+                        role="latest_nonaccepted_candidate_source", source=latest_nonaccepted),
     ]
     return [payload for payload in payloads if payload is not None]
 
@@ -1400,7 +1455,7 @@ def _observed_lineage_entry(
         return None
     observed_source = _mapping(best_observed.get("source"))
     logical_id = (
-        LATEST_FAILED_SOURCE_ID if aliases_latest else BEST_OBSERVED_SOURCE_ID
+        LATEST_NONACCEPTED_SOURCE_ID if aliases_latest else BEST_OBSERVED_SOURCE_ID
     )
     observed = {
         "round_id": best_observed.get("round_id"),
@@ -1458,6 +1513,7 @@ def _validate_observed_lineage_entry(
     if observed.get("source_logical_id") not in {
         BEST_OBSERVED_SOURCE_ID,
         LATEST_FAILED_SOURCE_ID,
+        LATEST_NONACCEPTED_SOURCE_ID,
     }:
         raise ValueError("best observed lineage references an invalid source role")
     _validate_lineage_source(
@@ -1635,6 +1691,8 @@ def _resolve_latest_failed_source(candidate: Any) -> dict[str, Any]:
             sealed_artifact=False,
         ),
         "source_origin": CURRENT_AUTHORING_ATTEMPT_SOURCE_OWNER,
+        "feedback_identity": {"candidate_id": getattr(candidate, "candidate_id", None),
+                              "evidence_kind": "current_authoring_repair"},
     }
 
 
@@ -1662,7 +1720,7 @@ def _resolve_record_candidate_source(
             expected_candidate=expected_candidate,
         )
         if expected_candidate is not None
-        else _latest_failed_generation_trial_source(
+        else _latest_nonaccepted_generation_trial_source(
             record,
             public_record=public_record,
         )
@@ -1697,6 +1755,14 @@ def _resolve_record_candidate_source(
         return {
             **source,
             "source_origin": PRIOR_LEDGER_RECORD_SOURCE_OWNER,
+            "feedback_identity": {
+                "candidate_id": candidate.get("candidate_id"),
+                "program_source_checksum": candidate.get("program_source_checksum"),
+                "trial_id": next((trial.get("trial_id") for trial in public_record.get("trials", ())
+                                  if _mapping(trial.get("candidate")).get("candidate_id") == candidate.get("candidate_id")),
+                                 public_record.get("round_id")),
+                "evidence_kind": "prior_ledger_trial",
+            },
         }
     except (OSError, TypeError, ValueError):
         return {
@@ -1707,33 +1773,21 @@ def _resolve_record_candidate_source(
         }
 
 
-def _latest_failed_generation_trial_source(
+def _latest_nonaccepted_generation_trial_source(
     record: Any,
     *,
     public_record: Mapping[str, Any],
 ) -> tuple[dict[str, Any], Path | None] | None:
-    """Resolve the most recently authored nonaccepted lane in a generation."""
+    """Resolve the selected trained nonaccepted lane in a generation."""
 
     if public_record.get("record_kind") != "generation":
         return None
-    trials = public_record.get("trials")
-    if not isinstance(trials, list | tuple):
+    selected = latest_nonaccepted_trial([public_record])
+    if selected is None:
         return ({}, None)
-    for trial in reversed(trials):
-        if not isinstance(trial, Mapping) or trial.get("trial_status") == "accepted":
-            continue
-        candidate = _mapping(trial.get("candidate"))
-        lane_id = trial.get("lane_id")
-        if not candidate.get("artifact_hash") or not isinstance(lane_id, str):
-            continue
-        return (
-            candidate,
-            _private_artifact_root(
-                record,
-                expected_kind=f"{lane_id}_candidate_artifact",
-            ),
-        )
-    return ({}, None)
+    trial = selected[1]
+    return (_mapping(trial.get("candidate")),
+            _private_artifact_root(record, expected_kind=f"{trial['lane_id']}_candidate_artifact"))
 
 
 def _generation_trial_source_for_candidate(
@@ -2215,26 +2269,6 @@ def _validated_authoring_tiebreak_key(value: Any) -> tuple[float, ...]:
             )
         clean.append(number)
     return tuple(clean)
-
-
-def _immediate_previous_nonaccepted_index(
-    canonical_public_records: Sequence[Mapping[str, Any]],
-) -> int | None:
-    if not canonical_public_records:
-        return None
-    latest = canonical_public_records[-1]
-    if latest.get("record_kind") == "generation":
-        outcome = _mapping(latest.get("generation")).get("generation_outcome")
-        if isinstance(outcome, str) and outcome != "accepted":
-            return len(canonical_public_records) - 1
-        return None
-    decision = _mapping(latest.get("decision"))
-    if (
-        decision.get("accepted") is False
-        and decision.get("reason") != "decision_record_invalid"
-    ):
-        return len(canonical_public_records) - 1
-    return None
 
 
 def _candidate_package_root(record: Any) -> Path | None:

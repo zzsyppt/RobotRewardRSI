@@ -38,7 +38,7 @@ class GenerationReceiptRef:
     def __post_init__(self) -> None:
         if self.schema_version != GENERATION_RECEIPT_REF_SCHEMA_VERSION:
             raise ValueError("generation receipt ref schema mismatch")
-        if self.kind not in {"manifest", "selection", "execution"}:
+        if self.kind not in {"manifest", "selection", "execution", "early_rejection"}:
             raise ValueError("generation receipt ref kind is invalid")
         if not isinstance(self.path, str) or not self.path:
             raise ValueError("generation receipt ref path is required")
@@ -93,6 +93,14 @@ class GenerationReceiptJournal:
             kind="manifest",
             context="generation manifest receipt",
         )
+
+    def publish_early_rejection(self, evidence: Mapping[str, Any]) -> GenerationReceiptRef:
+        return self._publish_or_verify(self.root / "early_rejection.json", evidence,
+            kind="early_rejection", context="public-accept early rejection")
+
+    def load_early_rejection(self):
+        path = self.root / "early_rejection.json"
+        return self._load(path, kind="early_rejection", context="public-accept early rejection") if path.exists() else None
 
     def publish_selection(
         self,

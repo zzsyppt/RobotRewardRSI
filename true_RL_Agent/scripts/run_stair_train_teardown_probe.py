@@ -52,8 +52,8 @@ from true_rl_agent.runner.specs import (  # noqa: E402
     GpuProcessBinding,
     require_execution_device,
 )
-from true_rl_agent.tasks.stair_climbing.gpu_process_binding import (  # noqa: E402
-    validate_stair_gpu_runtime_summary_evidence,
+from true_rl_agent.runner.gpu_process_binding import (  # noqa: E402
+    is_full_gpu_uuid, validate_gpu_runtime_summary_evidence,
 )
 
 LAUNCH_SCHEMA = "true_rl_agent.p6b.stair_train_teardown_probe.launch.v1"
@@ -69,9 +69,6 @@ CRITICAL_SOURCE_PATHS = ("scripts/run_stair_train_teardown_probe.py", "scripts/i
 AUTHORITY = dict(operational_only=True, scientific_claim_authority=False, acceptance_authority=False, ledger_authority=False)
 _COMMIT_PATTERN = re.compile(r"[0-9a-f]{40}\Z")
 _BOOT_ID_PATTERN = re.compile(r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\Z")
-_FULL_GPU_UUID_PATTERN = re.compile(
-    r"GPU-[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\Z"
-)
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -168,7 +165,7 @@ def _resolve_target_gpu(
     )
     if not device.startswith("cuda:"):
         raise ValueError("teardown probe host device must be CUDA")
-    if _FULL_GPU_UUID_PATTERN.fullmatch(expected_uuid) is None:
+    if not is_full_gpu_uuid(expected_uuid):
         raise ValueError("teardown probe requires one full physical GPU UUID")
     inventory = discover_nvidia_gpu_inventory(nvidia_smi=str(nvidia_smi))
     matches = tuple(item for item in inventory if item.execution_device == device)
@@ -272,7 +269,7 @@ def _validated_smoke_report(
         or checkpoint.get("checksum") != checkpoint_checksum
     ):
         raise ValueError("Stair smoke checkpoint evidence mismatch")
-    gpu_evidence = validate_stair_gpu_runtime_summary_evidence(
+    gpu_evidence = validate_gpu_runtime_summary_evidence(
         report,
         expected_binding=binding,
         expected_physical_gpu_uuid=gpu_uuid,

@@ -520,19 +520,20 @@ sys.stdout.buffer.write(canonical_json_bytes(manifest.to_dict(), trailing_newlin
             "body",
             ("torso_link", "left_ankle_roll_link"),
         )
-        conflicting_profile = replace(
-            profile,
-            semantic_roles=conflicting_roles,
-            profile_hash=None,
+        with self.assertRaisesRegex(ValueError, "physical support bodies"):
+            replace(profile, semantic_roles=conflicting_roles, profile_hash=None)
+        # Keep physical support membership valid while exercising the compiler's
+        # separate prohibition on overlapping task roles.
+        conflicting_roles = dict(profile.semantic_roles)
+        conflicting_roles["forbidden_contact"] = SemanticRole(
+            "forbidden_contact", "body", ("left_ankle_roll_link",),
         )
+        conflicting_profile = replace(profile, semantic_roles=conflicting_roles, profile_hash=None)
         conflicting_binding = replace(
             definition.robot_task_binding,
             role_bindings={
                 **definition.robot_task_binding.role_bindings,
-                "support_effector": (
-                    "torso_link",
-                    "left_ankle_roll_link",
-                ),
+                "forbidden_contact": ("left_ankle_roll_link",),
             },
             binding_hash=None,
         )
@@ -556,7 +557,7 @@ sys.stdout.buffer.write(canonical_json_bytes(manifest.to_dict(), trailing_newlin
             base_task_protocol_hash=self.stair_config.task_protocol_hash,
         )
         self.assertIn(
-            "conflicting_role_target:forbidden_contact:support_effector:torso_link",
+            "conflicting_role_target:forbidden_contact:support_effector:left_ankle_roll_link",
             conflicting.reasons,
         )
 
@@ -745,7 +746,7 @@ sys.stdout.buffer.write(canonical_json_bytes(manifest.to_dict(), trailing_newlin
         provider = PushRecoveryCompositionProvider()
         with tempfile.TemporaryDirectory() as tmp:
             composition = provider.resolve(
-                values=dict(provider.cli_defaults()),
+                values={**provider.cli_defaults(), "cell_variant_id": PUSH_G1_29DOF_LEGACY_CELL_VARIANT_ID},
                 context=TaskCompositionContext(
                     project_root=PROJECT_ROOT,
                     output_dir=Path(tmp),
@@ -760,10 +761,10 @@ sys.stdout.buffer.write(canonical_json_bytes(manifest.to_dict(), trailing_newlin
             snapshot = composition.genesis_identity_snapshot()
             self.assertEqual(
                 snapshot["schema_version"],
-                "true_rl_agent.runtime_composition_snapshot.v2",
+                "true_rl_agent.runtime_composition_snapshot.v3",
             )
             self.assertEqual(
-                snapshot["resolved_cell"]["manifest_hash"],
+                snapshot["scientific"]["resolved_cell"]["manifest_hash"],
                 config.resolved_cell_manifest_hash,
             )
             candidate = make_verified_candidate_artifact(

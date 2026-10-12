@@ -10,6 +10,10 @@ class TaskMemoryAdapter(Protocol):
 
     task_id: str
 
+    def exploration_projector_contract(self) -> Mapping[str, Any]:
+        """Freeze projection rules before Genesis supplies runtime qualification."""
+        ...
+
     def build_public_summary(
         self,
         public_records: Sequence[Mapping[str, Any]],

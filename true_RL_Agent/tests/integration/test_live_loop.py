@@ -6,6 +6,8 @@ import json
 import sys
 import tempfile
 import unittest
+
+import torch
 from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
@@ -60,7 +62,6 @@ from true_rl_agent.runner.candidate_failure import (  # noqa: E402
 from true_rl_agent.runner.subprocess_runner import SubprocessRunner  # noqa: E402
 from true_rl_agent.tasks.component_smoke import (  # noqa: E402
     ComponentSmokeFixture,
-    SmokeTensor,
 )
 from true_rl_agent.tasks.push_recovery.reward_inputs import (
     PushRecoveryRewardInputs,  # noqa: E402
@@ -108,7 +109,7 @@ class _SequenceProvider:
         self.contexts: list[dict] = []
 
     def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
-        public_context = prompt_payload["public_context"]
+        public_context = prompt_payload["public_history"]
         self.contexts.append(public_context)
         index = len(self.contexts)
         return make_test_candidate_package(
@@ -125,14 +126,11 @@ class _InterruptProvider:
 
 class _RepairProvider:
     def __init__(self) -> None:
-        self.contexts: list[dict] = []
         self.payloads: list[dict] = []
 
     def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
         self.payloads.append(prompt_payload)
-        public_context = prompt_payload["public_context"]
-        self.contexts.append(public_context)
-        index = len(self.contexts)
+        index = len(self.payloads)
         verifier_status = "fail" if index == 1 else "pass"
         return make_test_candidate_package(
             f"candidate-{index:03d}",
@@ -189,7 +187,7 @@ class _RuntimeRepairProvider:
         self.contexts: list[dict] = []
 
     def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
-        public_context = prompt_payload["public_context"]
+        public_context = prompt_payload["public_history"]
         self.contexts.append(public_context)
         index = len(self.contexts)
         return make_test_candidate_package(
@@ -248,7 +246,7 @@ class _RuntimePathRepairProvider:
         )
 
 
-class _RuntimeThenLocalSuccessProvider:
+class _RejectedThenLocalSuccessProvider:
     def __init__(self, candidate_root: Path) -> None:
         self.candidate_root = candidate_root
         self.payloads: list[dict] = []
@@ -257,12 +255,13 @@ class _RuntimeThenLocalSuccessProvider:
         self.payloads.append(prompt_payload)
         index = len(self.payloads)
         term_name = {
-            1: "runtime_failed_reward",
+            1: "rejected_reward",
             2: "accepted_success_reward",
         }.get(index, "fresh_success_reward")
-        reward_expression = (
-            "inp.base_height" if index < 3 else "inp.base_height.relu()"
-        )
+        reward_expression = {
+            1: "inp.base_height.square()",
+            2: "inp.base_height",
+        }.get(index, "inp.base_height.relu()")
         candidate = _write_candidate_package(
             self.candidate_root,
             f"candidate-{index:03d}",
@@ -282,7 +281,7 @@ class _RuntimeThenLocalSuccessProvider:
             candidate,
             metadata={
                 **dict(candidate.metadata),
-                "fake_public_score": 0.30 + 0.10 * index,
+                "fake_public_score": 0.0 if index == 1 else 0.30 + 0.10 * index,
             },
         )
 
@@ -363,15 +362,15 @@ class _SmokeAdapter:
 
     def build_component_smoke_fixture(self) -> ComponentSmokeFixture:
         num_envs = 3
-        vector = SmokeTensor.vector([0.2, 0.3, 0.4])
-        matrix2 = SmokeTensor.matrix([[0.0, 0.0], [0.1, 0.0], [0.0, -0.1]])
-        matrix3 = SmokeTensor.matrix([[0.1, 0.0, 0.0], [0.0, 0.1, 0.0], [0.0, 0.0, 0.1]])
+        vector = torch.tensor([0.2, 0.3, 0.4])
+        matrix2 = torch.tensor([[0.0, 0.0], [0.1, 0.0], [0.0, -0.1]])
+        matrix3 = torch.tensor([[0.1, 0.0, 0.0], [0.0, 0.1, 0.0], [0.0, 0.0, 0.1]])
         return ComponentSmokeFixture(
             task_id=self.task_id,
             reward_inputs=PushRecoveryRewardInputs(
                 base_height=vector,
-                roll=SmokeTensor.vector([0.01, 0.02, 0.03]),
-                pitch=SmokeTensor.vector([0.02, 0.01, 0.0]),
+                roll=torch.tensor([0.01, 0.02, 0.03]),
+                pitch=torch.tensor([0.02, 0.01, 0.0]),
                 base_pos_xy=matrix2,
                 base_lin_vel=matrix3,
                 base_ang_vel=matrix3,
@@ -383,9 +382,9 @@ class _SmokeAdapter:
                 last_action=matrix3,
                 prev_action=matrix3,
                 action_delta=matrix3,
-                push_active=SmokeTensor.vector([0.0, 1.0, 0.0]),
+                push_active=torch.tensor([0.0, 1.0, 0.0]),
                 push_vec_public=matrix2,
-                progress_fraction=SmokeTensor.vector([0.1, 0.4, 0.8]),
+                progress_fraction=torch.tensor([0.1, 0.4, 0.8]),
             ),
             expected_reward_output_shape=(num_envs,),
             public_summary={"fixture_owner": "task_owned_test", "num_envs": num_envs},
@@ -881,7 +880,7 @@ class LiveLoopTests(unittest.TestCase):
         )
         self.assertTrue(all(Path(path).name == "prompt_payload.json" for path in summary["prompt_payload_paths"]))
         for payload in payloads:
-            self.assertEqual(payload["schema_version"], "true_rl_agent.prompt_payload.v4")
+            self.assertEqual(payload["schema_version"], "true_rl_agent.prompt_payload.v5")
             self.assertNotIn("trusted_seed", json.dumps(payload, sort_keys=True))
         self.assertEqual(summary["train_result_count"], 2)
         self.assertEqual(summary["public_result_count"], 2)
@@ -1091,7 +1090,7 @@ class LiveLoopTests(unittest.TestCase):
         self.assertEqual(saved_payload["task"]["task_id"], "fake_push_recovery")
         self.assertEqual(saved_payload["task"]["prompt_adapter"], "neutral_fallback")
         self.assertEqual(saved_payload["reward_inputs_contract"]["status"], "not_available")
-        self.assertNotIn("task_prompt_sections", saved_payload["public_context"])
+        self.assertNotIn("public_context", saved_payload)
         self.assertEqual(list(saved_payload)[0], "schema_version")
         self.assertLess(
             list(saved_payload).index("reward_inputs_contract"),
@@ -1119,18 +1118,16 @@ class LiveLoopTests(unittest.TestCase):
             )
             ledger = load_ledger(Path(tmp) / "ledger.jsonl")
 
-        self.assertEqual(len(provider.contexts), 2)
+        self.assertEqual(len(provider.payloads), 2)
         repair_feedback = provider.payloads[1]["provider_or_runtime_repair_feedback"]
         self.assertEqual(repair_feedback["failure_category"], "verifier_error")
         self.assertEqual(repair_feedback["previous_candidate_id"], "candidate-001")
         instructions = " ".join(repair_feedback["instructions"])
         self.assertIn("Fix only the current verifier failure", instructions)
         self.assertNotIn("Do not import torch", instructions)
-        self.assertNotIn("candidate_repair_feedback", provider.contexts[1])
-        self.assertEqual(
-            provider.contexts[1]["candidate_repair_feedback_ref"]["canonical_section"],
-            "provider_or_runtime_repair_feedback",
-        )
+        self.assertIn("public_history", provider.payloads[0])
+        self.assertNotIn("public_history", provider.payloads[1])
+        self.assertNotIn("public_context", provider.payloads[1])
         self.assertEqual(len(ledger), 1)
         self.assertEqual(ledger[0]["candidate"]["candidate_id"], "candidate-002")
         self.assertEqual(ledger[0]["candidate_surface"]["classification"], "code_level")
@@ -1609,7 +1606,7 @@ class LiveLoopTests(unittest.TestCase):
             {"candidate_runtime": 1},
         )
 
-    def test_next_round_prompt_uses_latest_runtime_failed_source_catalog(self) -> None:
+    def test_untrained_runtime_failure_remains_in_history_without_performance_source(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             provider = _RuntimePathRepairProvider(root / "candidates")
@@ -1633,6 +1630,7 @@ class LiveLoopTests(unittest.TestCase):
         self.assertEqual(summary["provider_attempt_count"], 2)
         self.assertEqual(ledger[0]["candidate"]["candidate_id"], "candidate-001")
         self.assertEqual(ledger[0]["decision"]["reason"], "candidate_runtime_failed")
+        self.assertIsNone(ledger[0]["train_result"])
         self.assertEqual(ledger[1]["candidate"]["candidate_id"], "candidate-002")
 
         next_payload = provider.payloads[1]
@@ -1641,14 +1639,13 @@ class LiveLoopTests(unittest.TestCase):
         failed_sources = [
             item
             for item in next_payload["source_payloads"]
-            if item["logical_id"] == "attempt/latest_failed/training_code/components.py"
+            if item["logical_id"] == "memory/latest_nonaccepted/training_code/components.py"
         ]
 
         self.assertNotIn("provider_or_runtime_repair_feedback", next_payload)
         self.assertIn("candidate_runtime_failed", public_history_text)
         self.assertIn("CandidateRuntimeError", public_history_text)
-        self.assertEqual(len(failed_sources), 1)
-        self.assertIn("runtime_failed_reward", failed_sources[0]["content"])
+        self.assertEqual(failed_sources, [])
         self.assertNotIn(str(root / "candidates"), payload_text)
 
     def test_nonzero_train_failure_summary_is_ledgered_and_next_round_continues(self) -> None:
@@ -1748,17 +1745,17 @@ class LiveLoopTests(unittest.TestCase):
             ).reasons,
         )
 
-    def test_runtime_failed_source_does_not_persist_after_success_round(self) -> None:
+    def test_trained_rejected_source_persists_after_success_round(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            provider = _RuntimeThenLocalSuccessProvider(root / "candidates")
+            provider = _RejectedThenLocalSuccessProvider(root / "candidates")
             summary = run_live_loop(
                 output_dir=root / "run",
                 rounds=3,
-                session_id="live-runtime-source-drop",
+                session_id="live-trained-rejected-source",
                 task_plugin=FakeTaskPlugin(),
                 backend_adapter=_CandidateFailureContractBackend(),
-                runner=_RuntimeFailOnceRunner(),
+                runner=FakeRunner(),
                 candidate_admission_policy=FakeVerifier(),
                 provider=provider,
                 policy_initialization=PolicyInitialization.random(),
@@ -1770,12 +1767,13 @@ class LiveLoopTests(unittest.TestCase):
 
         self.assertEqual(len(provider.payloads), 3)
         self.assertEqual(summary["provider_attempt_count"], 3)
-        self.assertEqual(ledger[0]["decision"]["reason"], "candidate_runtime_failed")
+        self.assertIsNotNone(ledger[0]["train_result"])
+        self.assertFalse(ledger[0]["decision"]["accepted"])
         self.assertTrue(ledger[1]["decision"]["accepted"])
         self.assertTrue(summary["checks"]["eval_run_audit_passed"])
         self.assertEqual(
             summary["eval_run_audit"]["failure_buckets"],
-            {"accepted": 2, "candidate_runtime": 1},
+            {"accepted": 2, "decision_threshold": 1},
         )
 
         round_2_payload = provider.payloads[1]
@@ -1783,27 +1781,27 @@ class LiveLoopTests(unittest.TestCase):
         round_2_failed_sources = [
             item
             for item in round_2_payload["source_payloads"]
-            if item["logical_id"] == "attempt/latest_failed/training_code/components.py"
+            if item["logical_id"] == "memory/latest_nonaccepted/training_code/components.py"
         ]
         round_3_failed_sources = [
             item
             for item in round_3_payload["source_payloads"]
-            if item["logical_id"] == "attempt/latest_failed/training_code/components.py"
+            if item["logical_id"] == "memory/latest_nonaccepted/training_code/components.py"
         ]
         round_3_failed_item = next(
             item
             for item in round_3_payload["source_catalog"]["items"]
-            if item["logical_id"] == "attempt/latest_failed/training_code/components.py"
+            if item["logical_id"] == "memory/latest_nonaccepted/training_code/components.py"
         )
         round_3_text = json.dumps(round_3_payload, sort_keys=True)
 
         self.assertEqual(len(round_2_failed_sources), 1)
-        self.assertIn("runtime_failed_reward", round_2_failed_sources[0]["content"])
-        self.assertEqual(round_3_failed_item["status"], "pending")
-        self.assertEqual(round_3_failed_item["pending_reason"], "no_latest_failed_candidate")
-        self.assertEqual(round_3_failed_sources, [])
+        self.assertIn("rejected_reward", round_2_failed_sources[0]["content"])
+        self.assertEqual(round_3_failed_item["status"], "inline")
+        self.assertEqual(round_3_failed_sources, round_2_failed_sources)
         self.assertIn("accepted_success_reward", round_3_text)
-        self.assertNotIn("runtime_failed_reward", round_3_text)
+        self.assertIn("rejected_reward", round_3_text)
+        self.assertNotIn(str(root / "candidates"), round_3_text)
 
     def test_live_loop_refuses_ledger_without_genesis(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

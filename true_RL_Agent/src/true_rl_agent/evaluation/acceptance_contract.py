@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
+
 from typing import Any
 
 from true_rl_agent.evaluation.acceptance_protocol import (
@@ -14,6 +15,7 @@ from true_rl_agent.evaluation.acceptance_protocol import (
     validated_score_samples,
 )
 from true_rl_agent.evaluation.result_contract import validate_finite_number
+from true_rl_agent.evaluation.derived_statistics import DERIVED_STATISTICS_VERSION
 from true_rl_agent.evaluation.sealed_validation import (
     CANDIDATE_CONTAMINATION_FIELDS,
     SEALED_VALIDATION_EVIDENCE_KEY,
@@ -139,12 +141,15 @@ def validate_acceptance_evidence(
         reasons.append("acceptance_score_stats_missing")
     stats_mismatches: list[str] = []
     if public_accept_stats and score_stats:
-        for key in ("count", "mean", "std", "standard_error", "eval_protocol_hash"):
+        for key in ("count", "mean", "std", "standard_error", "eval_protocol_hash", "statistics_version"):
             if key in public_accept_stats or key in score_stats:
                 if not _values_match(public_accept_stats.get(key), score_stats.get(key)):
                     mismatch = f"acceptance_score_stats_mismatch:{key}"
                     reasons.append(mismatch)
                     stats_mismatches.append(mismatch)
+        if public_accept_stats.get("statistics_version") not in {None, DERIVED_STATISTICS_VERSION}:
+            stats_mismatches.append("acceptance_score_stats_version_invalid")
+            reasons.append("acceptance_score_stats_version_invalid")
 
     raw_min_score_count = acceptance.get("min_score_count")
     min_score_count = _positive_int(raw_min_score_count)
@@ -376,6 +381,8 @@ def validate_acceptance_evidence(
             canonical_score_stats["standard_error"] = public_standard_error
         if score_samples:
             canonical_score_stats["score_samples"] = list(score_samples)
+        if public_accept_stats.get("statistics_version") is not None:
+            canonical_score_stats["statistics_version"] = public_accept_stats["statistics_version"]
 
     guard_score_stats: dict[str, Any] = {}
     guard_score_mean: float | None = None
@@ -745,10 +752,12 @@ def _validate_guard_score_evidence(
         reasons.append("guard_score_stats_missing")
     if not declared_stats:
         reasons.append("acceptance_guard_score_stats_missing")
-    for key in ("count", "mean", "std", "standard_error", "eval_protocol_hash"):
+    for key in ("count", "mean", "std", "standard_error", "eval_protocol_hash", "statistics_version"):
         if source_stats or declared_stats:
             if not _values_match(source_stats.get(key), declared_stats.get(key)):
                 reasons.append(f"acceptance_guard_score_stats_mismatch:{key}")
+    if source_stats.get("statistics_version") not in {None, DERIVED_STATISTICS_VERSION}:
+        reasons.append("guard_score_stats_version_invalid")
     count = _positive_int(source_stats.get("count"))
     mean = _optional_number(source_stats.get("mean"))
     std = _nonnegative_number(source_stats.get("std"))
@@ -770,6 +779,8 @@ def _validate_guard_score_evidence(
             "standard_error": standard_error,
             "eval_protocol_hash": protocol_hash,
         }
+        if source_stats.get("statistics_version") is not None:
+            canonical["statistics_version"] = source_stats["statistics_version"]
     return {
         "valid": valid,
         "reasons": reasons,

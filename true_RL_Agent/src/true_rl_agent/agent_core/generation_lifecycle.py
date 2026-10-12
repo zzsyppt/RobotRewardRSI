@@ -17,7 +17,6 @@ from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 
 from true_rl_agent.agent_core.generation_contract import (
-    GENERATION_LEDGER_RECORD_SCHEMA_VERSION,
     GenerationSessionContract,
 )
 from true_rl_agent.agent_core.ledger import PROVIDER_AUTHORING_MODE, load_ledger
@@ -72,6 +71,7 @@ _EXIT_REASONS = frozenset(
         "exception",
         "budget_exhausted",
         "contract_incomplete",
+        "external_author_waiting",
     }
 )
 
@@ -543,6 +543,9 @@ class GenerationSegmentJournal:
                 raise ValueError("completed generation segment must exit normally")
             if status != "completed" and reason == "normal":
                 raise ValueError("non-completed generation segment cannot exit normally")
+            if reason == "external_author_waiting" and (
+                    status != "paused" or reason not in self.policy.allowed_continuation_reasons):
+                raise ValueError("external author wait requires the frozen pause policy")
             if (reason == "exception") != (exception is not None):
                 raise ValueError(
                     "generation segment exception detail does not match exit reason"
@@ -616,6 +619,8 @@ class GenerationSegmentJournal:
 def publish_generation_continuation_policy(
     output_dir: Path,
     policy: GenerationContinuationPolicy,
+    *,
+    require_existing: bool = False,
 ) -> Path:
     if not isinstance(policy, GenerationContinuationPolicy):
         raise TypeError("generation continuation policy is invalid")
@@ -625,7 +630,6 @@ def publish_generation_continuation_policy(
     payload = canonical_json_bytes(policy.to_dict(), trailing_newline=True)
     if len(payload) > _MAX_POLICY_BYTES:
         raise ValueError("generation continuation policy exceeds its byte limit")
-    path.parent.mkdir(parents=True, exist_ok=True)
     if path.exists() or path.is_symlink():
         existing = read_bounded_regular_file(
             path,
@@ -637,6 +641,9 @@ def publish_generation_continuation_policy(
                 "generation continuation policy already exists with different bytes"
             )
         return path
+    if require_existing:
+        raise FileNotFoundError(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
     try:
         create_once_bytes(path, payload)
     except FileExistsError:
@@ -924,7 +931,7 @@ def _require_generation_ledger_identity(
 
     for expected_index, record in enumerate(records, start=1):
         if (
-            record.get("schema_version") != GENERATION_LEDGER_RECORD_SCHEMA_VERSION
+            record.get("schema_version") != session_contract.ledger_record_schema
             or record.get("record_kind") != "generation"
         ):
             raise ValueError("generation continuation requires generation ledger records")
@@ -1306,6 +1313,9 @@ def _validate_exit(
         raise ValueError("generation segment continuation eligibility mismatch")
     if (mapping["status"] == "completed") != (mapping["reason"] == "normal"):
         raise ValueError("generation segment completion reason mismatch")
+    if mapping["reason"] == "external_author_waiting" and (
+            mapping["status"] != "paused" or mapping["reason"] not in policy.allowed_continuation_reasons):
+        raise ValueError("external author wait requires the frozen pause policy")
     if schema_version == GENERATION_SEGMENT_EXIT_SCHEMA_VERSION:
         exception_type = mapping["exception_type"]
         exception_message = mapping["exception_message"]

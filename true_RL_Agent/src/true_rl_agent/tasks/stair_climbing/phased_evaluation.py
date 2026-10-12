@@ -1,16 +1,26 @@
 """Task-owned Stair phase evidence and full-result assembly."""
 
 from __future__ import annotations
+from .trajectory_production import PUBLIC_SCHEMA as TRAJECTORY_PUBLIC_SCHEMA, FULL_SCHEMA as TRAJECTORY_FULL_SCHEMA
+from .trajectory_production import PROFILE, DEFAULT_PUBLIC_BYTES, PUBLIC_SCHEMA
 
 from collections.abc import Mapping, Sequence
+from copy import deepcopy
+from pathlib import Path
+import logging
+import time
 from typing import Any
 
 from true_rl_agent.evaluation.binding import canonical_json_hash
+from true_rl_agent.evaluation.phase_assembly import (
+    bind_phase_receipts,
+    merge_phase_costs,
+    require_phase_result_matches_plan,
+)
 from true_rl_agent.evaluation.phases import (
     EVALUATION_PHASE_SUMMARY_SCHEMA_VERSION,
     EvaluationAssembly,
     EvaluationPhase,
-    EvaluationPhaseReceiptBinding,
     EvaluationPhaseResult,
 )
 from true_rl_agent.evaluation.sealed_validation import (
@@ -52,7 +62,6 @@ from true_rl_agent.tasks.stair_climbing.selection import (
 from true_rl_agent.tasks.stair_climbing.unified_scoring import (
     build_unified_reference_score_projection,
     build_reference_objective_family_mask,
-    build_unified_score_projection,
     validate_objective_family_mask,
     validate_unified_stair_summary,
 )
@@ -74,7 +83,7 @@ def build_stair_eval_phase_summary(
     checkpoint_safety_report: Mapping[str, Any],
     expected_seed_namespace: str = STAIR_FORMAL_EVAL_NAMESPACE,
 ) -> dict[str, Any]:
-    """Build the private subprocess summary for exactly one Stair split."""
+    """Bind rollout evidence; expensive CPU behavior waits for GPU release."""
 
     phase = EvaluationPhase.parse(phase)
     if set(execution.summaries) != {phase.value}:
@@ -85,6 +94,23 @@ def build_stair_eval_phase_summary(
         execution=execution,
         expected_seed_namespace=expected_seed_namespace,
     )
+    if execution.numeric_evidence is not None:
+        from true_rl_agent.runner.numeric_evidence import load_numeric_evidence_manifest
+        archive = load_numeric_evidence_manifest(execution.numeric_evidence)
+        expected = {
+            **identity.to_public_dict(),
+            "checkpoint_hash": execution.checkpoint_hash,
+            "evaluation_plan_hash": evaluation_plan_hash,
+            "evaluation_binding": evaluation_binding.to_public_dict(),
+            "seed_namespace": expected_seed_namespace,
+            "splits": [phase.value],
+            "environment_source_preflight": dict(execution.source_manifest_preflight),
+            "backend_execution_environment_verification": dict(execution.backend_execution_environment_verification),
+        }
+        if (phase is not EvaluationPhase.PUBLIC_DEV
+                or any(archive["identity"].get(key) != value for key, value in expected.items())
+                or archive["metadata"].get("summary") != task_evidence["summary"]):
+            raise ValueError("Stair numeric evidence execution binding mismatch")
     return {
         "schema_version": EVALUATION_PHASE_SUMMARY_SCHEMA_VERSION,
         **identity.to_public_dict(),
@@ -98,7 +124,15 @@ def build_stair_eval_phase_summary(
         ),
         "environment_source_preflight": dict(execution.source_manifest_preflight),
         "evaluation_execution_cost": execution.execution_cost_artifact(),
-        "status": "pass",
+        **({"checkpoint_loading": dict(execution.checkpoint_loading)}
+           if execution.checkpoint_loading is not None else {}),
+        **({"constructed_learner": dict(execution.constructed_learner)}
+           if execution.constructed_learner is not None else {}),
+        "status": (
+            "postprocessing"
+            if execution.numeric_evidence is not None and config.is_unified_protocol
+            else "pass"
+        ),
         "task_evidence": task_evidence,
         "task_evidence_hash": canonical_json_hash(task_evidence),
         "checkpoint_safety_report": dict(checkpoint_safety_report),
@@ -108,6 +142,94 @@ def build_stair_eval_phase_summary(
         "candidate_path_argument_present": False,
         "errors": [],
     }
+
+
+def finalize_stair_eval_phase_summary(
+    eval_spec: EvalPhaseJobSpec,
+    summary: Mapping[str, Any],
+    *,
+    config: StairClimbingTaskConfig,
+    output_dir: Path,
+    behavior_feedback_profile: str = PROFILE,
+    trajectory_report_max_bytes: int = DEFAULT_PUBLIC_BYTES,
+) -> dict[str, Any]:
+    """Complete the single production behavior derivation on the CPU host.
+
+    The runner invokes this only after its owned process exits and its GPU lease
+    is released. Historical completed summaries are not re-analyzed.
+    """
+    from true_rl_agent.runner.numeric_evidence import load_numeric_evidence_manifest
+    from true_rl_agent.tasks.stair_climbing.behavior import (
+        project_stair_behavior,
+    )
+
+    if summary.get("status") != "postprocessing":
+        raise ValueError("Stair finalization requires an unfinished rollout summary")
+    if not config.is_unified_protocol or eval_spec.phase is not EvaluationPhase.PUBLIC_DEV:
+        raise ValueError("Stair behavior finalization requires unified public-dev")
+    finalized = deepcopy(dict(summary))
+    evidence = finalized["task_evidence"]
+    from .trajectory_pipeline import validate_feedback_profile, build_phase_description, DescriptionCapabilityUnavailable
+    from .trajectory_production import DescriptionComputationError, project_production_report
+    from true_rl_agent.evaluation.process_report import description_error_details
+    validate_feedback_profile(behavior_feedback_profile, trajectory_report_max_bytes, config.cell_variant_id)
+    if "numeric_evidence" not in evidence:
+        raise ValueError("Stair behavior finalization requires this phase's numeric evidence manifest")
+    reference = evidence["numeric_evidence"]
+    expected = {
+        **eval_spec.job_identity().to_public_dict(),
+        "checkpoint_hash": eval_spec.execution_checkpoint().checksum,
+        "evaluation_plan_hash": eval_spec.evaluation_plan_hash,
+        "evaluation_binding": eval_spec.evaluation_binding.to_public_dict(),
+        "seed_namespace": evidence["execution_identity"]["seed_namespace"],
+        "splits": [eval_spec.phase.value],
+        "environment_source_preflight": finalized["environment_source_preflight"],
+        "backend_execution_environment_verification": finalized[
+            "backend_execution_environment_verification"
+        ],
+    }
+    wall_started = time.perf_counter()
+    cpu_started = time.process_time()
+    archive = load_numeric_evidence_manifest(reference)
+    if archive["metadata"].get("summary") != evidence["summary"]:
+        raise ValueError("Stair numeric evidence summary binding mismatch")
+    full = None
+    try:
+        domain, measured, comparison = build_phase_description(reference, expected_identity=expected)
+        evidence["behavior_comparison"] = comparison
+        full = project_production_report(domain, measured, max_bytes=trajectory_report_max_bytes)
+        evidence["behavior"] = project_stair_behavior(full)
+    except DescriptionCapabilityUnavailable:
+        evidence["description_status"] = {"status":"unavailable","reason":"unsupported_capture_contract",
+            "text":"当前描述器不支持此机器人或采集契约；档案完整性已检查，评估数值保留。"}
+    except DescriptionComputationError as exc:
+        logging.getLogger(__name__).warning("Stair description unavailable: job=%s stage=%s",
+            expected["job_id"], exc.stage, exc_info=True)
+        full = None
+        evidence["description_status"] = {"status":"unavailable","reason":"description_computation_failed",
+            **description_error_details(exc, stage=exc.stage),
+            "text":"档案完整性已检查；行为描述计算失败，本次保留评估数值，描述不可用。"}
+    if full is not None:
+        full["source"] = reference
+    from true_rl_agent.json_contract import canonical_json_bytes
+    from true_rl_agent.runner.checkpoint import file_sha256
+    if full is not None:
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        path = output_dir / "behavior_full.json"
+        temporary = output_dir / "behavior_full.json.finalizing"
+        if path.is_symlink() or temporary.is_symlink():
+            raise ValueError("Stair full behavior output must not be a symlink")
+        temporary.write_bytes(canonical_json_bytes(full) + b"\n")
+        temporary.replace(path)
+        evidence["behavior_full"] = {"schema_version": "true_rl_agent.process_full_ref.v1",
+            "file": path.name, "sha256": file_sha256(path).removeprefix("sha256:"), "size_bytes": path.stat().st_size}
+    split_cost = finalized["evaluation_execution_cost"]["splits"][eval_spec.phase.value]
+    split_cost["postprocessing_wall_time_s"] = time.perf_counter() - wall_started
+    split_cost["postprocessing_cpu_time_s"] = time.process_time() - cpu_started
+    finalized["task_evidence_hash"] = canonical_json_hash(evidence)
+    finalized["status"] = "pass"
+    return finalized
 
 
 def build_stair_phase_task_evidence(
@@ -137,6 +259,7 @@ def build_stair_phase_task_evidence(
         "phase": phase.value,
         "execution_identity": execution.execution_identity(),
         "summary": canonical_summary,
+        **({"numeric_evidence": dict(execution.numeric_evidence)} if execution.numeric_evidence is not None else {}),
     }
 
 
@@ -173,7 +296,7 @@ def build_stair_full_eval_summary(
         phase=EvaluationPhase.SEALED_VALIDATION,
         summary=summaries[EvaluationPhase.SEALED_VALIDATION.value],
     )
-    return _build_complete_stair_eval_summary(
+    summary = _build_complete_stair_eval_summary(
         config=config,
         identity=identity,
         evaluation_binding=evaluation_binding,
@@ -195,6 +318,11 @@ def build_stair_full_eval_summary(
         sealed_summary=sealed,
         objective_family_mask=objective_family_mask,
     )
+    if execution.checkpoint_loading is not None:
+        summary["checkpoint_loading"] = dict(execution.checkpoint_loading)
+    if execution.constructed_learner is not None:
+        summary["constructed_learner"] = dict(execution.constructed_learner)
+    return summary
 
 
 def assemble_stair_eval_phase_results(
@@ -234,19 +362,20 @@ def assemble_stair_eval_phase_results(
         raise ValueError("Stair formal assembly selection replay mismatch")
     if selection_result.selected_trial_id != trial_id:
         raise ValueError("Stair formal assembly is not bound to the selected trial")
-    phase_projection = build_stair_public_dev_screen_evidence(
-        config=config,
-        trial_id=trial_id,
-        phase_result=by_phase[EvaluationPhase.PUBLIC_DEV],
-        screen_role="guard_reference",
-        objective_family_mask=objective_family_mask,
-    )
     selected_matches = [
         screen for screen in selection_screens if screen.trial_id == trial_id
     ]
     if len(selected_matches) != 1:
         raise ValueError("Stair formal assembly selected screen is not unique")
     selected_screen = selected_matches[0]
+    phase_projection = build_stair_public_dev_screen_evidence(
+        config=config,
+        trial_id=trial_id,
+        phase_result=by_phase[EvaluationPhase.PUBLIC_DEV],
+        screen_role="guard_reference",
+        objective_family_mask=objective_family_mask,
+        statistics_version=selected_screen.generalization_score_stats.get("statistics_version"),
+    )
     selected_phase_fields = selected_screen.to_selector_dict()
     expected_phase_fields = phase_projection.to_selector_dict()
     for field_name in (
@@ -261,7 +390,7 @@ def assemble_stair_eval_phase_results(
     if selected_screen.evidence_hash not in selection_result.screen_evidence_hashes:
         raise ValueError("Stair formal assembly selection evidence mismatch")
 
-    bindings = _phase_receipt_bindings(
+    bindings = bind_phase_receipts(
         eval_plan=eval_plan,
         by_phase=by_phase,
         phase_receipt_refs=phase_receipt_refs,
@@ -292,7 +421,7 @@ def assemble_stair_reference_eval_phase_results(
         phase_results=phase_results,
         objective_family_mask=None,
     )
-    bindings = _phase_receipt_bindings(
+    bindings = bind_phase_receipts(
         eval_plan=eval_plan,
         by_phase=by_phase,
         phase_receipt_refs=phase_receipt_refs,
@@ -332,7 +461,7 @@ def _validated_complete_phase_summary(
             raise TypeError("Stair phase assembly received an invalid result")
         if result.phase in by_phase:
             raise ValueError("Stair phase assembly contains a duplicate phase")
-        _require_phase_result_matches_plan(result, eval_plan)
+        require_phase_result_matches_plan(result, eval_plan)
         by_phase[result.phase] = result
     if set(by_phase) != set(EvaluationPhase):
         raise ValueError(
@@ -366,7 +495,7 @@ def _validated_complete_phase_summary(
         backend_execution_environment_verification=(
             first.backend_execution_environment_verification
         ),
-        evaluation_execution_cost=_merge_phase_costs(by_phase),
+        evaluation_execution_cost=merge_phase_costs(by_phase),
         checkpoint_safety_report=first.checkpoint_safety_report,
         evaluation_subject=eval_plan.subject,
         subject_manifest_hash=eval_plan.subject_manifest_hash,
@@ -379,59 +508,21 @@ def _validated_complete_phase_summary(
         sealed_summary=canonical[EvaluationPhase.SEALED_VALIDATION],
         objective_family_mask=objective_family_mask,
     )
+    if "behavior" in first.task_evidence:
+        from .behavior import project_stair_behavior
+        summary["metrics"]["behavior"] = project_stair_behavior(first.task_evidence["behavior"])
+    if "description_status" in first.task_evidence:
+        summary["metrics"]["description_status"] = deepcopy(first.task_evidence["description_status"])
+    if "behavior" in first.task_evidence or "description_status" in first.task_evidence:
+        # The producer binds both a report and an explicit description gap.
+        summary["metrics"]["trajectory_phase_binding"] = {
+            "job_id": first.job_id, "checkpoint_hash": first.checkpoint_hash,
+            "evaluation_plan_hash": first.evaluation_plan_hash,
+            "evaluation_binding_hash": first.evaluation_binding_hash,
+            "archive_hash": first.task_evidence["numeric_evidence"]["manifest_sha256"],
+            "seed_namespace": first.task_evidence["execution_identity"]["seed_namespace"],
+        }
     return by_phase, summary
-
-
-def _phase_receipt_bindings(
-    *,
-    eval_plan: EvalJobSpec,
-    by_phase: Mapping[EvaluationPhase, EvaluationPhaseResult],
-    phase_receipt_refs: Mapping[EvaluationPhase | str, Mapping[str, Any]],
-) -> tuple[EvaluationPhaseReceiptBinding, ...]:
-    receipt_refs: dict[EvaluationPhase, Mapping[str, Any]] = {}
-    if not isinstance(phase_receipt_refs, Mapping):
-        raise TypeError("Stair phase receipt refs must be an object")
-    for raw_phase, raw_ref in phase_receipt_refs.items():
-        phase = EvaluationPhase.parse(raw_phase)
-        if phase in receipt_refs:
-            raise ValueError("Stair phase receipt refs contain a duplicate phase")
-        if not isinstance(raw_ref, Mapping):
-            raise TypeError("Stair phase receipt ref must be an object")
-        receipt_refs[phase] = raw_ref
-    if set(receipt_refs) != set(EvaluationPhase):
-        raise ValueError("Stair assembly requires one receipt ref per phase")
-
-    bindings: list[EvaluationPhaseReceiptBinding] = []
-    for phase in EvaluationPhase:
-        raw_ref = receipt_refs[phase]
-        if set(raw_ref) != {
-            "schema_version",
-            "kind",
-            "path",
-            "checksum",
-            "size_bytes",
-        } or raw_ref.get("kind") != "eval_phase":
-            raise ValueError("Stair phase receipt ref contract mismatch")
-        result = by_phase[phase]
-        phase_spec = EvalPhaseJobSpec(
-            job_id=result.job_id,
-            evaluation_plan=eval_plan,
-            phase=phase,
-        )
-        bindings.append(
-            EvaluationPhaseReceiptBinding(
-                phase=phase,
-                job_id=result.job_id,
-                path=raw_ref.get("path"),
-                checksum=raw_ref.get("checksum"),
-                size_bytes=raw_ref.get("size_bytes"),
-                ref_schema_version=raw_ref.get("schema_version"),
-                job_spec_hash=canonical_json_hash(phase_spec.to_public_dict()),
-                phase_result_hash=canonical_json_hash(result.to_private_dict()),
-                resource_binding_hash=result.resource_binding_hash,
-            )
-        )
-    return tuple(bindings)
 
 
 def _build_complete_stair_eval_summary(
@@ -729,7 +820,8 @@ def canonical_stair_phase_result_summary(
     expected_seed_namespace: str = STAIR_FORMAL_EVAL_NAMESPACE,
 ) -> dict[str, Any]:
     evidence = result.task_evidence
-    if set(evidence) != {"schema_version", "phase", "execution_identity", "summary"}:
+    required_fields = {"schema_version", "phase", "execution_identity", "summary"}
+    if not required_fields.issubset(evidence) or set(evidence) - required_fields - {"numeric_evidence", "behavior", "behavior_full", "behavior_comparison", "description_status"}:
         raise ValueError("Stair phase task evidence fields mismatch")
     if (
         evidence.get("schema_version") != STAIR_PHASE_EVIDENCE_SCHEMA_VERSION
@@ -737,8 +829,61 @@ def canonical_stair_phase_result_summary(
     ):
         raise ValueError("Stair phase task evidence identity mismatch")
     execution_identity = evidence.get("execution_identity")
+    if "numeric_evidence" in evidence:
+        from true_rl_agent.runner.numeric_evidence import validate_numeric_evidence_reference
+        if expected_phase is not EvaluationPhase.PUBLIC_DEV:
+            raise ValueError("Stair numeric evidence is public_dev-only")
+        # The producer bound the attachment before sealing this phase. Summary
+        # replay must not depend on that machine's attachment path remaining online.
+        validate_numeric_evidence_reference(evidence["numeric_evidence"])
     if not isinstance(execution_identity, Mapping):
         raise ValueError("Stair phase execution identity is invalid")
+    if "behavior" in evidence:
+        from true_rl_agent.tasks.stair_climbing.behavior import project_stair_behavior
+        if expected_phase is not EvaluationPhase.PUBLIC_DEV or "numeric_evidence" not in evidence:
+            raise ValueError("Stair behavior requires public_dev numeric evidence")
+        behavior = project_stair_behavior(evidence["behavior"])
+        if behavior["schema_version"] in {TRAJECTORY_PUBLIC_SCHEMA}:
+            from .trajectory_report import require_trajectory_phase_binding
+            require_trajectory_phase_binding(behavior, job_id=result.job_id,
+                checkpoint_hash=result.checkpoint_hash, evaluation_plan_hash=result.evaluation_plan_hash,
+                evaluation_binding_hash=result.evaluation_binding_hash,
+                archive_hash=evidence["numeric_evidence"]["manifest_sha256"], seed_namespace=execution_identity["seed_namespace"])
+            if behavior["domain"]["task_protocol_hash"] != config.task_protocol_hash:
+                raise ValueError("Stair trajectory task protocol mismatch")
+        elif (behavior["domain"]["checkpoint_hash"] != result.checkpoint_hash
+                or behavior["domain"]["archive_hash"] != evidence["numeric_evidence"]["manifest_sha256"]
+                or behavior["domain"]["task_protocol_hash"] != config.evaluation_semantics.to_dict()["task_protocol_hash"]):
+            raise ValueError("Stair behavior phase binding mismatch")
+    if "description_status" in evidence:
+        status = evidence["description_status"]
+        if ("behavior" in evidence or expected_phase is not EvaluationPhase.PUBLIC_DEV
+                or status.get("status") != "unavailable"
+                or status.get("reason") not in {"budget_exceeded","unsupported_capture_contract","description_computation_failed"}):
+            raise ValueError("invalid Stair description degradation status")
+    if "behavior_comparison" in evidence:
+        comparison = evidence["behavior_comparison"]
+        domain = comparison["domain"]
+        if (domain["checkpoint_hash"] != result.checkpoint_hash
+                or domain["evaluation_job_id"] != result.job_id
+                or domain["evaluation_plan_hash"] != result.evaluation_plan_hash
+                or domain["evaluation_binding_hash"] != result.evaluation_binding_hash
+                or domain["task_protocol_hash"] != config.task_protocol_hash
+                or domain["seed_namespace"] != execution_identity["seed_namespace"]
+                or domain["archive_hash"] != evidence["numeric_evidence"]["manifest_sha256"]
+                or ("behavior" in evidence and domain != behavior["domain"])):
+            raise ValueError("Stair comparison phase/source binding mismatch")
+    if "behavior_full" in evidence:
+        reference = evidence["behavior_full"]
+        if (("behavior" not in evidence and "description_status" not in evidence) or not isinstance(reference, Mapping)
+                or set(reference) != {"schema_version", "file", "sha256", "size_bytes"}
+                or reference["schema_version"] != "true_rl_agent.process_full_ref.v1"
+                or reference["file"] != "behavior_full.json"
+                or not isinstance(reference["sha256"], str) or len(reference["sha256"]) != 64
+                or any(c not in "0123456789abcdef" for c in reference["sha256"])
+                or type(reference["size_bytes"]) is not int or reference["size_bytes"] <= 0
+                or ("behavior" in evidence and behavior["schema_version"] != PUBLIC_SCHEMA)):
+            raise ValueError("Stair full behavior reference mismatch")
     expected_splits = [expected_phase.value]
     if (
         execution_identity.get("checkpoint_hash") != result.checkpoint_hash
@@ -770,28 +915,6 @@ def canonical_stair_phase_result_summary(
         phase=expected_phase,
         summary=summary,
     )
-
-
-def _require_phase_result_matches_plan(
-    result: EvaluationPhaseResult,
-    eval_plan: EvalJobSpec,
-) -> None:
-    checkpoint = eval_plan.execution_checkpoint()
-    expected = {
-        "evaluation_plan_hash": canonical_json_hash(eval_plan.to_public_dict()),
-        "task_id": eval_plan.task_id,
-        "subject": eval_plan.subject,
-        "subject_manifest_hash": eval_plan.subject_manifest_hash,
-        "program_source_checksum": eval_plan.program_source_checksum,
-        "training_binding_hash": eval_plan.training_binding_hash,
-        "capability_profile_hash": eval_plan.capability_profile_hash,
-        "checkpoint_hash": checkpoint.checksum,
-        "eval_protocol_hash": eval_plan.evaluation_protocol().protocol_hash,
-        "evaluation_binding_hash": eval_plan.evaluation_binding.binding_hash,
-        "execution_device": eval_plan.execution_device,
-    }
-    if any(getattr(result, name) != value for name, value in expected.items()):
-        raise ValueError("Stair phase result differs from its evaluation plan")
 
 
 def _require_eval_plan_matches_config(
@@ -837,32 +960,6 @@ def _require_stair_execution_domain(
         raise ValueError("Stair phased evaluation seed cohort mismatch")
 
 
-def _merge_phase_costs(
-    by_phase: Mapping[EvaluationPhase, EvaluationPhaseResult],
-) -> dict[str, Any]:
-    merged_splits: dict[str, Any] = {}
-    common: dict[str, Any] | None = None
-    for phase in EvaluationPhase:
-        cost = by_phase[phase].execution_cost
-        if set(cost) != {"schema_version", "clock_source", "measurement_scope", "splits"}:
-            raise ValueError("Stair phase execution cost fields mismatch")
-        phase_common = {
-            "schema_version": cost["schema_version"],
-            "clock_source": cost["clock_source"],
-            "measurement_scope": cost["measurement_scope"],
-        }
-        if common is None:
-            common = phase_common
-        elif common != phase_common:
-            raise ValueError("Stair phase execution cost contracts differ")
-        split_costs = cost.get("splits")
-        if not isinstance(split_costs, Mapping) or set(split_costs) != {phase.value}:
-            raise ValueError("Stair phase execution cost split mismatch")
-        merged_splits[phase.value] = dict(split_costs[phase.value])
-    assert common is not None
-    return {**common, "splits": merged_splits}
-
-
 __all__ = [
     "STAIR_FULL_EVAL_SUMMARY_SCHEMA_VERSION",
     "STAIR_PHASE_EVIDENCE_SCHEMA_VERSION",
@@ -872,4 +969,5 @@ __all__ = [
     "build_stair_full_eval_summary",
     "build_stair_phase_task_evidence",
     "canonical_stair_phase_result_summary",
+    "finalize_stair_eval_phase_summary",
 ]

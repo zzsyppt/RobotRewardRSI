@@ -17,6 +17,8 @@ from true_rl_agent.tasks.stair_climbing.evaluation_semantics import (
     stair_legacy_fall_signal_name,
 )
 from true_rl_agent.tasks.stair_climbing.legacy_transition_reader import (
+    STAIR_CONTACT_HISTORY_FIELDS,
+    STAIR_CONTACT_HISTORY_TENSOR_FIELDS,
     STAIR_NORMALIZED_TRANSITION_SCHEMA_VERSION,
     normalize_stair_transition_payload,
 )
@@ -97,7 +99,7 @@ def materialize_stair_transition_history(
             raw = normalize_stair_transition_payload(source_raw)
         except (TypeError, ValueError) as exc:
             raise StairTransitionDecodeError(str(exc)) from exc
-        if set(raw) != _REQUIRED_FIELDS:
+        if set(raw) - STAIR_CONTACT_HISTORY_FIELDS != _REQUIRED_FIELDS:
             raise StairTransitionDecodeError(
                 "Stair normalized transition recorder fields mismatch"
             )
@@ -105,6 +107,10 @@ def materialize_stair_transition_history(
             raise StairTransitionDecodeError(
                 "Stair normalized transition recorder schema mismatch"
             )
+        if not normalized_steps and "contact_force_history" in raw:
+            field_values.update({name: [] for name in STAIR_CONTACT_HISTORY_TENSOR_FIELDS})
+        elif normalized_steps and raw.get("contact_force_history") != normalized_steps[0].get("contact_force_history"):
+            raise StairTransitionDecodeError("Stair contact history coverage changed within a chunk")
         normalized_steps.append(raw)
         current_order = raw.get("termination_term_order")
         current_masks = raw.get("termination_masks")
@@ -126,7 +132,7 @@ def materialize_stair_transition_history(
             raise StairTransitionDecodeError(
                 "Stair termination term order drifted within rollout"
             )
-        for name in _TENSOR_FIELDS:
+        for name in field_values:
             field_values[name].append(raw[name])
         for name in term_order:
             term_values[name].append(current_masks[name])
@@ -186,6 +192,8 @@ def materialize_stair_transition_history(
                 "forbidden_contact_count": normalized_steps[index][
                     "forbidden_contact_count"
                 ],
+                **({"contact_force_history": normalized_steps[index]["contact_force_history"]}
+                   if "contact_force_history" in normalized_steps[index] else {}),
                 **{
                     name: value if shared else value[index]
                     for name, (shared, value) in host_fields.items()
@@ -221,7 +229,7 @@ def decode_stair_transition_batch(
         raw = normalize_stair_transition_payload(raw)
     except (TypeError, ValueError) as exc:
         raise StairTransitionDecodeError(str(exc)) from exc
-    if set(raw) != _REQUIRED_FIELDS:
+    if set(raw) - STAIR_CONTACT_HISTORY_FIELDS != _REQUIRED_FIELDS:
         raise StairTransitionDecodeError(
             "Stair normalized transition recorder fields mismatch"
         )

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import copy
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -93,7 +94,7 @@ STAIR_G1_ROUGH_AGENT_CONFIGURATION = G1_ROUGH_AGENT_CONFIGURATION
 
 @dataclass(frozen=True)
 class StairClimbingTaskConfig:
-    """One validated source for Stair task, backend, and runner settings."""
+    """Frozen Stair protocol values; process placement belongs to composition."""
 
     protocol_v2_path: Path
     budget_steps: int
@@ -106,11 +107,13 @@ class StairClimbingTaskConfig:
     sealed_validation_seed_count: int
     eval_protocol_version: str
     train_seed: int
-    runner_timeout_s: int
+    # Derived from the loaded historical protocol; never a process deadline input.
+    protocol_runner_timeout_s: int = field(init=False)
     train_profile: str
     eval_profile: str
     cell_variant_id: str = STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID
     resolved_cell_task_protocol_hash: str | None = None
+    final_holdout: Any = field(default=None, init=False, repr=False, compare=False)
     protocol_v1: StairProtocolV1 | None = field(init=False, repr=False, compare=False)
     protocol_v2: StairProtocolV2 | StairProtocolV2Draft | None = field(
         init=False,
@@ -167,6 +170,10 @@ class StairClimbingTaskConfig:
             raise ValueError("unsupported Stair cell_variant_id")
         protocol_v2 = _load_stair_protocol_v2(path)
         protocol_v1 = StairProtocolV1.load(path.with_name("stair_protocol_v1.json"))
+        object.__setattr__(
+            self, "protocol_runner_timeout_s",
+            int(protocol_v1.to_dict()["training"]["runner_timeout_s"]),
+        )
         evaluation_semantics = (
             StairEvaluationSemantics.load(
                 path.with_name(Path(STAIR_EVALUATION_SEMANTICS_RELATIVE_PATH).name),
@@ -268,7 +275,7 @@ class StairClimbingTaskConfig:
             "public_seed_count",
             "public_accept_seed_count",
             "sealed_validation_seed_count",
-            "runner_timeout_s",
+            "protocol_runner_timeout_s",
         ):
             _positive_int(getattr(self, field_name), field_name)
         if (
@@ -341,7 +348,7 @@ class StairClimbingTaskConfig:
                 "num_envs": self.train_num_envs,
                 "steps_per_env": self.train_steps_per_iteration,
                 "max_iterations": self.train_max_iterations,
-                "runner_timeout_s": self.runner_timeout_s,
+                "runner_timeout_s": self.protocol_runner_timeout_s,
                 "train_profile": self.train_profile,
                 "eval_profile": self.eval_profile,
             }
@@ -462,6 +469,9 @@ class StairClimbingTaskConfig:
         if self.cell_variant_id != protocol.cell_variant_id:
             raise ValueError("Stair unified config/cell identity mismatch")
         training = protocol.training
+        object.__setattr__(
+            self, "protocol_runner_timeout_s", int(training["runner_timeout_s"])
+        )
         evaluation = protocol.evaluation_suite.evaluation_protocol
         expected = {
             "budget_steps": int(training["budget_steps"]),
@@ -473,7 +483,6 @@ class StairClimbingTaskConfig:
             "public_accept_seed_count": evaluation.public_accept_seed_count,
             "sealed_validation_seed_count": evaluation.sealed_validation_seed_count,
             "eval_protocol_version": evaluation.eval_protocol_version,
-            "runner_timeout_s": int(training["runner_timeout_s"]),
             "train_profile": str(training["train_profile"]),
             "eval_profile": str(training["eval_profile"]),
         }
@@ -493,7 +502,7 @@ class StairClimbingTaskConfig:
             "public_seed_count",
             "public_accept_seed_count",
             "sealed_validation_seed_count",
-            "runner_timeout_s",
+            "protocol_runner_timeout_s",
         ):
             _positive_int(getattr(self, name), name)
         if (
@@ -590,7 +599,6 @@ class StairClimbingTaskConfig:
                 ),
                 eval_protocol_version=evaluation_protocol.eval_protocol_version,
                 train_seed=train_seed,
-                runner_timeout_s=int(training["runner_timeout_s"]),
                 train_profile=str(training["train_profile"]),
                 eval_profile=str(training["eval_profile"]),
                 cell_variant_id=cell_variant_id,
@@ -666,7 +674,6 @@ class StairClimbingTaskConfig:
             ),
             eval_protocol_version=evaluation_protocol.eval_protocol_version,
             train_seed=train_seed,
-            runner_timeout_s=int(training["runner_timeout_s"]),
             train_profile=train_profile,
             eval_profile=eval_profile,
             cell_variant_id=cell_variant_id,
@@ -700,7 +707,7 @@ class StairClimbingTaskConfig:
     @property
     def training_base_task_protocol_hash(self) -> str:
         if self.unified_protocol_config is not None:
-            lineage = self.unified_protocol_config.training_lineage
+            lineage = self.unified_protocol_config.training_origin
             if lineage is not None:
                 return str(lineage["source_base_task_protocol_hash"])
         return self.base_task_protocol_hash
@@ -708,7 +715,7 @@ class StairClimbingTaskConfig:
     @property
     def training_binding_task_protocol_hash(self) -> str:
         if self.unified_protocol_config is not None:
-            lineage = self.unified_protocol_config.training_lineage
+            lineage = self.unified_protocol_config.training_origin
             if lineage is not None:
                 return str(lineage["source_resolved_cell_task_protocol_hash"])
         return self.task_protocol_hash
@@ -828,6 +835,22 @@ class StairClimbingTaskConfig:
             legacy_resolver=legacy,
             evaluation_profile=self.evaluation_profile_config,
         )
+
+    @property
+    def requires_study_holdout(self) -> bool:
+        return bool(self.is_unified_protocol and self.ordered_evaluation_suite.to_dict().get("final_holdout_policy"))
+
+    def bind_final_holdout(self, holdout):
+        """Bind a private final instance after validating the public matrix identity."""
+        if self.final_holdout is not None:
+            if self.final_holdout != holdout:
+                raise ValueError("Stair final context cannot be rebound")
+            return self
+        result = copy.copy(self)
+        suite = holdout.bind_suite(self.ordered_evaluation_suite, training_profile=self.unified_training_profile)
+        object.__setattr__(result, "ordered_evaluation_suite_config", suite)
+        object.__setattr__(result, "final_holdout", holdout)
+        return result
 
     def training_agent_configuration(self) -> RslRlAgentConfiguration:
         binding = stair_robot_row(self.cell_variant_id).load_binding()

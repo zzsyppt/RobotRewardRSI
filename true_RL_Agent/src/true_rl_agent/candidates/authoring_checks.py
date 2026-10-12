@@ -66,26 +66,24 @@ def build_component_smoke_repair_feedback(
     candidate: CandidatePackageRef,
     smoke_result: Mapping[str, Any],
 ) -> dict[str, Any]:
-    advisory = smoke_result.get("status") == "advisory"
+    failed = dict(smoke_result)
+    for field in ("reward_results", "diagnostic_results"):
+        if field in failed:
+            failed[field] = [item for item in failed[field] if item.get("status") == "fail"]
+    failed.pop("changed_component_observation", None)
     feedback = {
         "schema_version": "true_rl_agent.provider_repair_feedback.v1",
-        "status": "repair_suggested" if advisory else "repair_required",
+        "status": "repair_required",
         "previous_candidate_id": candidate.candidate_id,
         "previous_candidate_changed_components": sorted(candidate.change_set.changed_components),
         "previous_candidate_source_logical_id": LATEST_FAILED_SOURCE_ID,
         "previous_candidate_source_delivery": "see_source_catalog",
-        "failure_category": (
-            "component_smoke_advisory" if advisory else "component_smoke_error"
-        ),
-        "component_smoke_result": dict(smoke_result),
+        "failure_category": "component_smoke_error",
+        "component_smoke_result": failed,
         "instructions": [
             "Fix only the candidate training_code/components.py so every reward and diagnostic callable executes on the task-owned RewardInputs fixture.",
             "Return vector-like finite reward outputs with the shape described by the prompt reward_inputs_contract.",
-            (
-                "The callable produced a nonzero smoke signal, but its declared clip_min/clip_max and weight suppressed that signal to zero; correct those declarations if this was not intentional."
-                if advisory
-                else "Keep each callable finite under the declared component contract."
-            ),
+            "Keep each callable finite under the declared component contract.",
             "Diagnostic callables must execute without errors on the same task-owned fixture.",
             "Do not change runner, eval protocol, training budget, seed policy, checkpoints, PPO, or acceptance rules.",
         ],

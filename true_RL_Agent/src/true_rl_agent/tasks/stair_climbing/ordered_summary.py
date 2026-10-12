@@ -3,10 +3,14 @@
 from __future__ import annotations
 
 import math
-import statistics
 from collections import Counter
 from typing import Any, Mapping, Sequence
 
+from true_rl_agent.evaluation.derived_statistics import (
+    DERIVED_STATISTICS_VERSION,
+    sample_mean,
+    sample_statistics,
+)
 from true_rl_agent.tasks.stair_climbing.episode_evidence import StairEpisodeOutcome
 from true_rl_agent.tasks.stair_climbing.evaluation_semantics import (
     FIRST_VALID_TOP_ARRIVAL_COMPLETION_MODE,
@@ -19,11 +23,57 @@ from true_rl_agent.tasks.stair_climbing.ordered_evaluation import (
 )
 
 STAIR_ORDERED_SUMMARY_SCHEMA_VERSION = (
-    "true_rl_agent.task.stair_climbing.ordered_evaluation_summary.v2"
+    "true_rl_agent.task.stair_climbing.ordered_evaluation_summary.v3"
 )
+STAIR_EPISODE_FACTS_ORDERED_SUMMARY_SCHEMA_VERSION = (
+    "true_rl_agent.task.stair_climbing.ordered_evaluation_summary.v4"
+)
+_STAIR_ORDERED_DIAGNOSTIC_SUMMARY_SCHEMA_VERSION = "true_rl_agent.task.stair_climbing.ordered_evaluation_summary.v2"
 _STAIR_ORDERED_LEGACY_SUMMARY_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.ordered_evaluation_summary.v1"
 )
+
+
+def ordered_summary_statistics_version(schema_version: str) -> str | None:
+    """The ordered format owns the arithmetic of its stored aggregates."""
+    if schema_version in {
+        STAIR_ORDERED_SUMMARY_SCHEMA_VERSION, STAIR_EPISODE_FACTS_ORDERED_SUMMARY_SCHEMA_VERSION
+    }:
+        return DERIVED_STATISTICS_VERSION
+    if schema_version in {
+        _STAIR_ORDERED_DIAGNOSTIC_SUMMARY_SCHEMA_VERSION,
+        _STAIR_ORDERED_LEGACY_SUMMARY_SCHEMA_VERSION,
+    }:
+        return None
+    raise ValueError("Stair ordered summary schema mismatch")
+
+
+def validate_episode_facts(
+    facts: Sequence[Mapping[str, Any]], *, horizon_steps: int,
+    semantics: StairEvaluationSemantics,
+) -> None:
+    """Validate stored outcome facts against their task-owned success contract."""
+    if not facts or isinstance(horizon_steps, bool) or not isinstance(horizon_steps, int) or horizon_steps <= 0:
+        raise ValueError("Stair episode facts require episodes and a positive horizon")
+    for fact in facts:
+        if not isinstance(fact, Mapping) or set(fact) != {
+            "primary_reason", "episode_steps", "progress_fraction", "diagnostic_flags"
+        }:
+            raise ValueError("Stair completion fact fields mismatch")
+        steps, progress = fact["episode_steps"], fact["progress_fraction"]
+        flags = fact["diagnostic_flags"]
+        if (
+            isinstance(steps, bool) or not isinstance(steps, int) or not 1 <= steps <= horizon_steps
+            or isinstance(progress, bool) or not isinstance(progress, int | float)
+            or not math.isfinite(progress) or not 0 <= progress <= 1
+            or not isinstance(fact["primary_reason"], str) or not fact["primary_reason"]
+            or not isinstance(flags, list) or any(not isinstance(flag, str) for flag in flags)
+            or len(flags) != len(set(flags))
+        ):
+            raise ValueError("Stair completion fact values are invalid")
+        success = fact["primary_reason"] == "success"
+        if success and progress < float(semantics.outcomes["success"]["minimum_progress_fraction"]):
+            raise ValueError("Stair success progress is below its evaluation semantics")
 
 
 def build_ordered_stair_summary(
@@ -47,6 +97,7 @@ def build_ordered_stair_summary(
     )
     cell_ids = tuple(cell.cell_id for cell in suite.runtime_cells(split))
     episodes = suite.episodes_per_seed_per_cell
+    has_episode_facts = suite.records_episode_facts
     seed_summaries: list[dict[str, Any]] = []
     aggregate_counts = {cell_id: Counter({reason: 0 for reason in reasons}) for cell_id in cell_ids}
     aggregate_diagnostics = {
@@ -62,6 +113,7 @@ def build_ordered_stair_summary(
             for cell_id in cell_ids
         }
         progress = {cell_id: [] for cell_id in cell_ids}
+        facts = {cell_id: [] for cell_id in cell_ids}
         for index, (outcome, cell) in enumerate(
             zip(outcomes, expected_assignment, strict=True)
         ):
@@ -83,6 +135,13 @@ def build_ordered_stair_summary(
                 raise ValueError("Stair ordered summary diagnostic flag is undeclared")
             diagnostics[cell.cell_id].update(outcome.diagnostic_flags)
             progress[cell.cell_id].append(float(outcome.progress_fraction))
+            if has_episode_facts:
+                facts[cell.cell_id].append({
+                    "primary_reason": outcome.primary_reason,
+                    "episode_steps": outcome.episode_steps,
+                    "progress_fraction": float(outcome.progress_fraction),
+                    "diagnostic_flags": list(outcome.diagnostic_flags),
+                })
             aggregate_counts[cell.cell_id][outcome.primary_reason] += 1
             aggregate_diagnostics[cell.cell_id].update(outcome.diagnostic_flags)
         if any(sum(value.values()) != episodes for value in counts.values()):
@@ -93,10 +152,10 @@ def build_ordered_stair_summary(
         seed_summaries.append(
             {
                 "seed_index": seed_index,
-                "macro_score": statistics.fmean(success_by_cell.values()),
+                "macro_score": sample_mean(success_by_cell.values()),
                 "success_rate_by_cell": success_by_cell,
                 "mean_progress_fraction_by_cell": {
-                    cell_id: statistics.fmean(progress[cell_id])
+                    cell_id: sample_mean(progress[cell_id])
                     for cell_id in cell_ids
                 },
                 "primary_outcome_counts": _sum_counts(counts, reasons=reasons),
@@ -106,6 +165,7 @@ def build_ordered_stair_summary(
                 "diagnostic_flag_counts_by_cell": {
                     cell_id: dict(diagnostics[cell_id]) for cell_id in cell_ids
                 },
+                **({"episode_facts_by_cell": facts} if has_episode_facts else {}),
             }
         )
     aggregate_denominator = expected_seed_count * episodes
@@ -114,7 +174,7 @@ def build_ordered_stair_summary(
         for cell_id in cell_ids
     }
     aggregate_progress_mean = {
-        cell_id: statistics.fmean(
+        cell_id: sample_mean(
             float(seed["mean_progress_fraction_by_cell"][cell_id])
             for seed in seed_summaries
         )
@@ -122,7 +182,10 @@ def build_ordered_stair_summary(
     }
     macro_scores = [float(seed["macro_score"]) for seed in seed_summaries]
     summary = {
-        "schema_version": STAIR_ORDERED_SUMMARY_SCHEMA_VERSION,
+        "schema_version": (
+            STAIR_EPISODE_FACTS_ORDERED_SUMMARY_SCHEMA_VERSION if has_episode_facts
+            else STAIR_ORDERED_SUMMARY_SCHEMA_VERSION
+        ),
         "ordered_suite_hash": suite.suite_hash,
         "split": split,
         "split_cohort_hash": suite.cohort_hash(split),
@@ -135,6 +198,7 @@ def build_ordered_stair_summary(
         "score_stats": _score_stats(
             macro_scores,
             eval_protocol_hash=suite.evaluation_protocol.protocol_hash,
+            canonical=True,
         ),
         "aggregate_success_rate_by_cell": aggregate_success,
         "aggregate_mean_progress_fraction_by_cell": aggregate_progress_mean,
@@ -150,6 +214,7 @@ def build_ordered_stair_summary(
             split=split,
             success_by_cell=aggregate_success,
             progress_by_cell=aggregate_progress_mean,
+            statistics_version=DERIVED_STATISTICS_VERSION,
         ),
         "seed_summaries": seed_summaries,
     }
@@ -174,12 +239,13 @@ def validate_ordered_stair_summary(
     if not isinstance(summary, Mapping):
         raise TypeError("Stair ordered summary must be an object")
     schema_version = summary.get("schema_version")
-    if schema_version not in {
-        STAIR_ORDERED_SUMMARY_SCHEMA_VERSION,
-        _STAIR_ORDERED_LEGACY_SUMMARY_SCHEMA_VERSION,
-    }:
-        raise ValueError("Stair ordered summary schema mismatch")
-    has_diagnostic_counts = schema_version == STAIR_ORDERED_SUMMARY_SCHEMA_VERSION
+    statistics_version = ordered_summary_statistics_version(schema_version)
+    has_episode_facts = schema_version == STAIR_EPISODE_FACTS_ORDERED_SUMMARY_SCHEMA_VERSION
+    if has_episode_facts != suite.records_episode_facts:
+        raise ValueError("Stair ordered summary completion contract mismatch")
+    has_diagnostic_counts = (
+        schema_version != _STAIR_ORDERED_LEGACY_SUMMARY_SCHEMA_VERSION
+    )
     expected_fields = {
         "schema_version",
         "ordered_suite_hash",
@@ -217,20 +283,26 @@ def validate_ordered_stair_summary(
     cell_ids = tuple(cell.cell_id for cell in suite.runtime_cells(split))
     if summary.get("cell_ids") != list(cell_ids):
         raise ValueError("Stair ordered summary cell order mismatch")
-    expected_total = len(cell_ids) * suite.episodes_per_seed_per_cell * identity["seed_count"]
+    expected_total = (
+        len(cell_ids) * suite.episodes_per_seed_per_cell * identity["seed_count"]
+    )
     if summary.get("total_episode_count") != expected_total:
         raise ValueError("Stair ordered summary total episode count mismatch")
-    reasons = ("success", *tuple(semantics.to_dict()["episode_outcomes"]["failure_priority"]))
+    reasons = (
+        "success",
+        *tuple(semantics.to_dict()["episode_outcomes"]["failure_priority"]),
+    )
     diagnostic_flags = tuple(
         semantics.to_dict()["episode_outcomes"]["diagnostic_flags"]
     )
     seeds = summary.get("seed_summaries")
     if not isinstance(seeds, list) or len(seeds) != identity["seed_count"]:
         raise ValueError("Stair ordered summary seed summaries mismatch")
-    aggregate_counts = {cell_id: Counter({reason: 0 for reason in reasons}) for cell_id in cell_ids}
+    aggregate_counts = {
+        cell_id: Counter({reason: 0 for reason in reasons}) for cell_id in cell_ids
+    }
     aggregate_diagnostics = {
-        cell_id: Counter({flag: 0 for flag in diagnostic_flags})
-        for cell_id in cell_ids
+        cell_id: Counter({flag: 0 for flag in diagnostic_flags}) for cell_id in cell_ids
     }
     seed_scores: list[float] = []
     aggregate_progress_accumulator = {cell_id: [] for cell_id in cell_ids}
@@ -243,17 +315,39 @@ def validate_ordered_stair_summary(
             diagnostic_flags=diagnostic_flags,
             episodes=suite.episodes_per_seed_per_cell,
             has_diagnostic_counts=has_diagnostic_counts,
+            has_episode_facts=has_episode_facts,
         )
+        if has_episode_facts:
+            for cell in suite.runtime_cells(split):
+                facts = seed["episode_facts_by_cell"][cell.cell_id]
+                validate_episode_facts(facts, horizon_steps=cell.episode_horizon_control_steps,
+                                       semantics=semantics)
+                counts = Counter(fact["primary_reason"] for fact in facts)
+                flags = Counter(flag for fact in facts for flag in fact["diagnostic_flags"])
+                if (
+                    any(reason not in reasons for reason in counts)
+                    or any(flag not in diagnostic_flags for flag in flags)
+                    or {reason: counts[reason] for reason in reasons}
+                    != seed["primary_outcome_counts_by_cell"][cell.cell_id]
+                    or {flag: flags[flag] for flag in diagnostic_flags}
+                    != seed["diagnostic_flag_counts_by_cell"][cell.cell_id]
+                    or sample_mean(fact["progress_fraction"] for fact in facts)
+                    != seed["mean_progress_fraction_by_cell"][cell.cell_id]
+                ):
+                    raise ValueError("Stair ordered episode facts differ from aggregates")
         counts_by_cell = seed["primary_outcome_counts_by_cell"]
         success_by_cell = seed["success_rate_by_cell"]
         progress_by_cell = seed["mean_progress_fraction_by_cell"]
         expected_success = {
-            cell_id: counts_by_cell[cell_id]["success"] / suite.episodes_per_seed_per_cell
+            cell_id: counts_by_cell[cell_id]["success"]
+            / suite.episodes_per_seed_per_cell
             for cell_id in cell_ids
         }
         if success_by_cell != expected_success:
             raise ValueError("Stair ordered seed success rates mismatch")
-        expected_macro = statistics.fmean(expected_success.values())
+        expected_macro = sample_mean(
+            expected_success.values(), statistics_version=statistics_version
+        )
         if not _close(seed["macro_score"], expected_macro):
             raise ValueError("Stair ordered seed macro score mismatch")
         seed_scores.append(float(seed["macro_score"]))
@@ -263,14 +357,22 @@ def validate_ordered_stair_summary(
                 aggregate_diagnostics[cell_id].update(
                     seed["diagnostic_flag_counts_by_cell"][cell_id]
                 )
-            aggregate_progress_accumulator[cell_id].append(float(progress_by_cell[cell_id]))
+            aggregate_progress_accumulator[cell_id].append(
+                float(progress_by_cell[cell_id])
+            )
     if summary.get("seed_macro_scores") != seed_scores:
         raise ValueError("Stair ordered macro score sequence mismatch")
     expected_score_stats = _score_stats(
         seed_scores,
         eval_protocol_hash=suite.evaluation_protocol.protocol_hash,
+        canonical=statistics_version is not None,
     )
     score_stats = summary.get("score_stats")
+    if (
+        statistics_version is not None
+        and score_stats != expected_score_stats
+    ):
+        raise ValueError("Stair ordered canonical score statistics mismatch")
     if (
         not isinstance(score_stats, Mapping)
         or set(score_stats) != set(expected_score_stats)
@@ -283,25 +385,36 @@ def validate_ordered_stair_summary(
         )
     ):
         raise ValueError("Stair ordered score statistics mismatch")
-    expected_counts_by_cell = {cell_id: dict(aggregate_counts[cell_id]) for cell_id in cell_ids}
+    expected_counts_by_cell = {
+        cell_id: dict(aggregate_counts[cell_id]) for cell_id in cell_ids
+    }
     if summary.get("primary_outcome_counts_by_cell") != expected_counts_by_cell:
         raise ValueError("Stair ordered aggregate per-cell outcomes mismatch")
-    if summary.get("primary_outcome_counts") != _sum_counts(aggregate_counts, reasons=reasons):
+    if summary.get("primary_outcome_counts") != _sum_counts(
+        aggregate_counts, reasons=reasons
+    ):
         raise ValueError("Stair ordered aggregate outcomes mismatch")
     if has_diagnostic_counts:
         expected_diagnostics_by_cell = {
             cell_id: dict(aggregate_diagnostics[cell_id]) for cell_id in cell_ids
         }
-        if summary.get("diagnostic_flag_counts_by_cell") != expected_diagnostics_by_cell:
+        if (
+            summary.get("diagnostic_flag_counts_by_cell")
+            != expected_diagnostics_by_cell
+        ):
             raise ValueError("Stair ordered aggregate diagnostic counts mismatch")
     denominator = identity["seed_count"] * suite.episodes_per_seed_per_cell
     expected_success = {
-        cell_id: aggregate_counts[cell_id]["success"] / denominator for cell_id in cell_ids
+        cell_id: aggregate_counts[cell_id]["success"] / denominator
+        for cell_id in cell_ids
     }
     if summary.get("aggregate_success_rate_by_cell") != expected_success:
         raise ValueError("Stair ordered aggregate success rates mismatch")
     expected_progress = {
-        cell_id: statistics.fmean(aggregate_progress_accumulator[cell_id])
+        cell_id: sample_mean(
+            aggregate_progress_accumulator[cell_id],
+            statistics_version=statistics_version,
+        )
         for cell_id in cell_ids
     }
     if summary.get("aggregate_mean_progress_fraction_by_cell") != expected_progress:
@@ -311,6 +424,7 @@ def validate_ordered_stair_summary(
         split=split,
         success_by_cell=expected_success,
         progress_by_cell=expected_progress,
+        statistics_version=statistics_version,
     )
     if summary.get("factor_diagnostics") != expected_factors:
         raise ValueError("Stair ordered factor diagnostics mismatch")
@@ -331,6 +445,7 @@ def build_ordered_stair_prompt_feedback(
         split="public_dev",
         summary=summary,
     )
+    statistics_version = ordered_summary_statistics_version(canonical["schema_version"])
     total = int(canonical["total_episode_count"])
     counts = canonical["primary_outcome_counts"]
     failure_rates = {
@@ -345,18 +460,13 @@ def build_ordered_stair_prompt_feedback(
     completion_mode = str(semantics.outcomes["success"]["completion_mode"])
     feedback = {
         "source_split": "public_dev",
-        "mean_success_rate_by_cell": dict(
-            canonical["aggregate_success_rate_by_cell"]
-        ),
         "generalization_summary": {
-            "public_dev_objective_score": float(
-                canonical["score_stats"]["mean"]
-            ),
+            "public_dev_objective_score": float(canonical["score_stats"]["mean"]),
             "ordered_suite_hash": suite.suite_hash,
             "split_cohort_hash": suite.cohort_hash("public_dev"),
-            "success_rate_by_cell": dict(
-                canonical["aggregate_success_rate_by_cell"]
-            ),
+            "success_count_by_cell": {cell: int(counts["success"])
+                for cell, counts in canonical["primary_outcome_counts_by_cell"].items()},
+            "episodes_per_cell": int(canonical["seed_count"]) * int(canonical["episodes_per_seed_per_cell"]),
             "factor_diagnostics": dict(canonical["factor_diagnostics"]),
         },
         "primary_failure_breakdown": failure_rates,
@@ -366,17 +476,18 @@ def build_ordered_stair_prompt_feedback(
         },
         "diagnostic_flag_rates": _diagnostic_flag_rates(canonical),
         "progress_summary": {
-            "mean_progress_fraction": statistics.fmean(
-                canonical["aggregate_mean_progress_fraction_by_cell"].values()
+            "mean_progress_fraction": sample_mean(
+                canonical["aggregate_mean_progress_fraction_by_cell"].values(),
+                statistics_version=statistics_version,
             ),
             "mean_progress_fraction_by_cell": dict(
                 canonical["aggregate_mean_progress_fraction_by_cell"]
             ),
         },
     }
-    success_rate = statistics.fmean(
-        float(value)
-        for value in canonical["aggregate_success_rate_by_cell"].values()
+    success_rate = sample_mean(
+        canonical["aggregate_success_rate_by_cell"].values(),
+        statistics_version=statistics_version,
     )
     if completion_mode == FIRST_VALID_TOP_ARRIVAL_COMPLETION_MODE:
         feedback.update(
@@ -418,6 +529,7 @@ def _validate_seed_summary(
     diagnostic_flags: tuple[str, ...],
     episodes: int,
     has_diagnostic_counts: bool,
+    has_episode_facts: bool,
 ) -> None:
     fields = {
         "seed_index",
@@ -429,8 +541,17 @@ def _validate_seed_summary(
     }
     if has_diagnostic_counts:
         fields.add("diagnostic_flag_counts_by_cell")
+    if has_episode_facts:
+        fields.add("episode_facts_by_cell")
     if not isinstance(seed, Mapping) or set(seed) != fields or seed.get("seed_index") != seed_index:
         raise ValueError("Stair ordered seed summary fields mismatch")
+    if has_episode_facts and (
+        not isinstance(seed["episode_facts_by_cell"], Mapping)
+        or set(seed["episode_facts_by_cell"]) != set(cell_ids)
+        or any(not isinstance(facts, list) or len(facts) != episodes
+               for facts in seed["episode_facts_by_cell"].values())
+    ):
+        raise ValueError("Stair ordered episode facts coverage mismatch")
     for key in ("success_rate_by_cell", "mean_progress_fraction_by_cell", "primary_outcome_counts_by_cell"):
         if not isinstance(seed.get(key), Mapping) or set(seed[key]) != set(cell_ids):
             raise ValueError(f"Stair ordered seed {key} cell set mismatch")
@@ -485,6 +606,7 @@ def _factor_diagnostics(
     split: str,
     success_by_cell: Mapping[str, float],
     progress_by_cell: Mapping[str, float],
+    statistics_version: str | None,
 ) -> dict[str, Any]:
     cells = suite.cells_for_cohort(split)
     factor_names = tuple(next(iter(cells)).factor_levels)
@@ -501,8 +623,14 @@ def _factor_diagnostics(
             levels[level] = {
                 "cell_count": len(members),
                 "cell_ids": [cell.cell_id for cell in members],
-                "success_rate": statistics.fmean(success_by_cell[cell.cell_id] for cell in members),
-                "mean_progress_fraction": statistics.fmean(progress_by_cell[cell.cell_id] for cell in members),
+                "success_rate": sample_mean(
+                    (success_by_cell[cell.cell_id] for cell in members),
+                    statistics_version=statistics_version,
+                ),
+                "mean_progress_fraction": sample_mean(
+                    (progress_by_cell[cell.cell_id] for cell in members),
+                    statistics_version=statistics_version,
+                ),
             }
         result[factor] = levels
     return result
@@ -523,14 +651,12 @@ def _score_stats(
     values: Sequence[float],
     *,
     eval_protocol_hash: str,
+    canonical: bool,
 ) -> dict[str, Any]:
-    mean = statistics.fmean(values)
-    sample_std = statistics.stdev(values) if len(values) > 1 else 0.0
     return {
-        "count": len(values),
-        "mean": mean,
-        "std": sample_std,
-        "standard_error": sample_std / math.sqrt(len(values)),
+        **sample_statistics(
+            values, statistics_version=DERIVED_STATISTICS_VERSION if canonical else None
+        ),
         "eval_protocol_hash": eval_protocol_hash,
     }
 

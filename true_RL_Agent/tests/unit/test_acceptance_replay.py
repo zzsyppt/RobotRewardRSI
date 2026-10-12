@@ -39,7 +39,10 @@ from true_rl_agent.evaluation.acceptance_protocol import (
     PUBLIC_SCORE_BINDING_ACCEPTANCE_MEAN,
     AcceptanceProtocol,
 )
-from true_rl_agent.evaluation.acceptance_replay import replay_acceptance_ledger
+from true_rl_agent.evaluation.acceptance_replay import (
+    project_public_history,
+    replay_acceptance_ledger,
+)
 from true_rl_agent.evaluation.binding import EvaluationBindingV1
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
 from true_rl_agent.evaluation.decision_record_contract import validate_decision_record
@@ -134,6 +137,26 @@ class AcceptanceReplayTests(unittest.TestCase):
 
         replay.raise_for_invalid_declared_accepts()
         self.assertEqual(replay.current_best.accepted_round_id, second["round_id"])
+        projection_args = {
+            "initial_current_best": initial,
+            "expected_session_genesis_hash": TEST_SESSION_GENESIS_HASH,
+            "acceptance_protocol": protocol,
+        }
+        history = project_public_history(persisted_records, **projection_args)
+        for length in range(3):
+            self.assertEqual(
+                history.prefix(length),
+                project_public_history(persisted_records[:length], **projection_args),
+            )
+        # A new replay observes changed evidence; the existing projection owns
+        # its snapshot and keeps the previously validated decision and head.
+        changed_records = copy.deepcopy(persisted_records)
+        changed_history = project_public_history(changed_records, **projection_args)
+        changed_records[1]["decision"]["accepted"] = False
+        self.assertEqual(changed_history, history)
+        self.assertNotEqual(
+            project_public_history(changed_records, **projection_args), history,
+        )
         self.assertEqual(
             second["decision"]["reason"],
             "paired_headroom_delta",

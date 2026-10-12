@@ -26,6 +26,7 @@ CURRENT_BEST_SOURCE_ID = "current_best/training_code/components.py"
 BEST_OBSERVED_SOURCE_ID = "memory/best_observed/training_code/components.py"
 KNOWN_GOOD_SOURCE_ID = "examples/known_good_reward_terms.py"
 LATEST_FAILED_SOURCE_ID = "attempt/latest_failed/training_code/components.py"
+LATEST_NONACCEPTED_SOURCE_ID = "memory/latest_nonaccepted/training_code/components.py"
 PROMPT_SOURCE_LOGICAL_IDS = frozenset(
     {
         CANDIDATE_COMPONENTS_SOURCE_ID,
@@ -33,5 +34,6 @@ PROMPT_SOURCE_LOGICAL_IDS = frozenset(
         BEST_OBSERVED_SOURCE_ID,
         KNOWN_GOOD_SOURCE_ID,
         LATEST_FAILED_SOURCE_ID,
+        LATEST_NONACCEPTED_SOURCE_ID,
     }
 )

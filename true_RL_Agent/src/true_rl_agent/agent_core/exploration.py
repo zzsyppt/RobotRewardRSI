@@ -429,6 +429,18 @@ class GenerationExplorationPlan:
     lane_intents: tuple[Mapping[str, Any], Mapping[str, Any]]
     prompt_projection: Mapping[str, Any]
 
+    @property
+    def evaluated_verifier_equivalence_keys(self) -> tuple[str, ...]:
+        # The replayed index is scoped to one Genesis (protocol, seed and backend).
+        # Untrained candidates retain signatures but cannot block scientific work.
+        return tuple(sorted({
+            single_component_verifier_equivalence_key(card.mechanism_operation_delta)
+            for card in self.index.cards
+            if card.parent_current_best_hash == self.index.current_head_hash
+            and card.evidence_tier in {"public_dev", "public_complete", "formal"}
+            and card.mechanism_operation_delta is not None
+        }))
+
     def __post_init__(self) -> None:
         expected_frontier = _require_canonical_revisit_frontier(
             self.index,

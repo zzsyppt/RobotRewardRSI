@@ -8,7 +8,6 @@ from typing import Any
 
 STAIR_FLAT_SURFACE_KIND = "flat"
 STAIR_C2_SURFACE_KIND = "bounded_piecewise_linear_v1"
-STAIR_C2_MAX_ABS_OFFSET_M = 0.015
 
 _ROUGH_FIELDS = {
     "kind",
@@ -36,13 +35,15 @@ def normalize_stair_surface_profile(value: Mapping[str, Any]) -> dict[str, Any]:
         raise ValueError("C2 Stair surface profile fields mismatch")
 
     amplitude = _finite_number(value["amplitude_m"], "amplitude")
-    if not 0.0 < amplitude <= STAIR_C2_MAX_ABS_OFFSET_M:
-        raise ValueError("C2 Stair amplitude exceeds its bounded range")
+    # The surface function defines a shape, not a robot-independent difficulty.
+    # The owning cell bounds amplitude against its actual stair dimensions.
+    if amplitude <= 0.0:
+        raise ValueError("C2 Stair amplitude must be positive")
     longitudinal_cycles = _bounded_int(
-        value["longitudinal_cycles"], "longitudinal cycles", minimum=1, maximum=3
+        value["longitudinal_cycles"], "longitudinal cycles", minimum=1, maximum=128
     )
     lateral_cycles = _bounded_int(
-        value["lateral_cycles"], "lateral cycles", minimum=1, maximum=3
+        value["lateral_cycles"], "lateral cycles", minimum=1, maximum=128
     )
     phase_count = _bounded_int(
         value["phase_count"], "phase count", minimum=2, maximum=32
@@ -63,13 +64,13 @@ def normalize_stair_surface_profile(value: Mapping[str, Any]) -> dict[str, Any]:
         value["longitudinal_vertices"],
         "longitudinal vertices",
         minimum=3,
-        maximum=65,
+        maximum=513,
     )
     lateral_vertices = _bounded_int(
         value["lateral_vertices"],
         "lateral vertices",
         minimum=3,
-        maximum=65,
+        maximum=513,
     )
     if longitudinal_vertices < 2 * longitudinal_cycles + 1:
         raise ValueError("C2 Stair longitudinal grid undersamples its carrier")
@@ -236,7 +237,6 @@ def _unit_coordinate(value: Any, field_name: str) -> float:
 
 
 __all__ = [
-    "STAIR_C2_MAX_ABS_OFFSET_M",
     "STAIR_C2_SURFACE_KIND",
     "STAIR_FLAT_SURFACE_KIND",
     "normalize_stair_surface_profile",

@@ -17,6 +17,7 @@ from true_rl_agent.agent_core.generation_contract import require_generation_lane
 from true_rl_agent.agent_core.provider import CandidateProvider
 from true_rl_agent.agent_core.provider_errors import (
     ProviderCandidateError,
+    ProviderServiceUnavailableError,
     build_provider_repair_feedback,
 )
 from true_rl_agent.agent_core.source_request_limits import (
@@ -42,6 +43,7 @@ from true_rl_agent.candidates.sibling_exclusion import (
     SingleComponentDeltaComparisonUnavailable,
     SingleComponentSemanticExclusion,
     candidate_single_component_verifier_equivalence_key,
+    project_candidate_single_component_operation_delta,
 )
 from true_rl_agent.candidates.verifier import CandidateVerifier, VerificationResult
 from true_rl_agent.evaluation.binding import require_sha256_checksum
@@ -54,6 +56,7 @@ from true_rl_agent.memory import (
 from true_rl_agent.prompt_artifacts import (
     AUTHORING_EVIDENCE_KIND,
     AuthoringEvidenceRef,
+    AuthoringAttemptHandle,
     RoundAuthoringJournal,
     authoring_outcome_from_evidence,
     validate_authoring_budget_usage,
@@ -66,7 +69,7 @@ from true_rl_agent.prompting.source_catalog import (
     LATEST_FAILED_SOURCE_ID,
     PROMPT_SOURCE_SECTION_KEYS,
     resolve_candidate_components_source_from_record,
-    validate_prompt_source_sections,
+    finalize_prompt_source_sections,
 )
 from true_rl_agent.tasks.component_smoke import ComponentSmokeAdapter
 from true_rl_agent.training_programs import resolve_candidate_program_identity
@@ -106,6 +109,7 @@ class _AuthoringContinuation:
     round_id: str
     disposition: str
     repair_feedback: Mapping[str, Any] | None
+    response_feedback: Mapping[str, Any] | None
     latest_failed_candidate: CandidatePackageRef | None
     frame_kind: str | None
     source_payloads: tuple[Mapping[str, Any], ...]
@@ -122,10 +126,11 @@ class _AuthoringContinuation:
 
     def to_mapping(self) -> dict[str, Any]:
         return {
-            "schema_version": "true_rl_agent.authoring_continuation.v1",
+            "schema_version": "true_rl_agent.authoring_continuation.v2",
             "round_id": self.round_id,
             "disposition": self.disposition,
             "repair_feedback": _optional_dict(self.repair_feedback),
+            "response_feedback": _optional_dict(self.response_feedback),
             "latest_failed_candidate": _candidate_recovery_mapping(
                 self.latest_failed_candidate
             ),
@@ -175,6 +180,7 @@ class CandidateAuthoringLoop:
         sibling_semantic_exclusion: SingleComponentSemanticExclusion | None = None,
         generation_lane_intent: Mapping[str, Any] | None = None,
         blocked_verifier_equivalence_keys: Sequence[str] = (),
+        evaluated_verifier_equivalence_keys: Sequence[str] = (),
     ) -> None:
         require_authoring_attempt_count(max_attempts)
         if max_source_requests_per_round < 0:
@@ -186,6 +192,22 @@ class CandidateAuthoringLoop:
         if not isinstance(raw_verifier_prompt_rules, Mapping):
             raise TypeError("candidate verifier prompt rules must be an object")
         verifier_prompt_rules = dict(raw_verifier_prompt_rules)
+        self.evaluated_verifier_equivalence_keys = tuple(
+            sorted(set(evaluated_verifier_equivalence_keys))
+        )
+        if self.evaluated_verifier_equivalence_keys:
+            verifier_prompt_rules["evaluated_mechanism_families"] = {
+                "scope": "same_parent_and_session_comparison_domain",
+                "key_set_hash": verifier_equivalence_exclusion_set_hash(
+                    self.evaluated_verifier_equivalence_keys
+                ),
+                "count": len(self.evaluated_verifier_equivalence_keys),
+                "rule": (
+                    "Already evaluated mechanism families are repairable repeats, "
+                    "regardless of score; renaming and numeric-only variants "
+                    "do not confer novelty."
+                ),
+            }
         if generation_lane_intent is not None:
             verifier_prompt_rules["generation_lane_intent"] = (
                 require_generation_lane_intent(generation_lane_intent)
@@ -308,6 +330,7 @@ class CandidateAuthoringLoop:
 
         if continuation is None:
             repair_feedback: dict[str, Any] | None = None
+            response_feedback: dict[str, Any] | None = None
             latest_failed_candidate: CandidatePackageRef | None = None
             frame_kind: str | None = None
             source_payloads: list[dict[str, Any]] | None = None
@@ -331,6 +354,7 @@ class CandidateAuthoringLoop:
                     "authoring continuation source usage differs from the journal"
                 )
             repair_feedback = _optional_dict(continuation.repair_feedback)
+            response_feedback = _optional_dict(continuation.response_feedback)
             latest_failed_candidate = continuation.latest_failed_candidate
             frame_kind = continuation.frame_kind
             source_payloads = [dict(item) for item in continuation.source_payloads]
@@ -386,7 +410,20 @@ class CandidateAuthoringLoop:
                     static_failure=continuation.static_failure,
                 )
 
-        if snapshot.reserved_attempt_count >= max_provider_attempts:
+        pending_handle = None
+        pending_build = None
+        resume = getattr(self.provider, "resume_authoring_attempt", None)
+        if (resume is not None and snapshot.attempts
+                and snapshot.attempts[-1]["status"] == "interrupted_after_prompt"):
+            pending = snapshot.attempts[-1]
+            ref = PromptPayloadRef.from_mapping(pending["prompt_payload"])
+            handle = AuthoringAttemptHandle(round_id=round_id, attempt_id=pending["attempt_id"],
+                sequence=pending["sequence"], prompt_payload_ref=ref,
+                result_path=str(Path(ref.path).with_name("attempt_result.json")))
+            pending_build = resume(handle)
+            if pending_build is not None:
+                pending_handle = handle
+        if pending_handle is None and snapshot.reserved_attempt_count >= max_provider_attempts:
             raise AuthoringBudgetExhaustedError(
                 "authoring provider budget was consumed by durable attempts: "
                 f"round={round_id} reserved={snapshot.reserved_attempt_count} "
@@ -394,27 +431,41 @@ class CandidateAuthoringLoop:
             )
 
         for attempt in range(
-            snapshot.reserved_attempt_count + 1,
+            pending_handle.sequence if pending_handle is not None else snapshot.reserved_attempt_count + 1,
             max_provider_attempts + 1,
         ):
-            prompt_build = build_authoring_prompt(
-                context_builder=self.context_builder,
-                records=records,
-                repair_feedback=repair_feedback,
-                latest_failed_candidate=latest_failed_candidate,
-                frame_kind=frame_kind,
-                source_payloads=(
-                    source_payloads if frame_kind == "source_followup" else None
-                ),
-                authoring_capability_readiness=(
-                    self.authoring_capability_readiness
-                ),
-                candidate_verifier_prompt_rules=(
-                    self.candidate_verifier_prompt_rules
-                ),
-            )
-            prompt_payload = prompt_build.provider_payload
-            attempt_handle = journal.begin_attempt(prompt_payload)
+            if pending_handle is not None and attempt == pending_handle.sequence:
+                prompt_build = pending_build
+                attempt_handle = pending_handle
+            else:
+                prompt_build = build_authoring_prompt(
+                    context_builder=self.context_builder,
+                    recoverable_sources=tuple((source_repository_payload or {}).get("source_payloads", ())),
+                    records=records,
+                    repair_feedback=_authoring_feedback_for_prompt(
+                        repair_feedback, response_feedback,
+                        reasoning_exhausted=any(
+                            record.get("provider_failure", {}).get("category") == "reasoning_output_exhausted"
+                            for record in attempt_records
+                        ),
+                    ),
+                    latest_failed_candidate=latest_failed_candidate,
+                    frame_kind=frame_kind,
+                    source_payloads=(
+                        source_payloads if frame_kind == "source_followup" else None
+                    ),
+                    authoring_capability_readiness=(
+                        self.authoring_capability_readiness
+                    ),
+                    candidate_verifier_prompt_rules=(
+                        self.candidate_verifier_prompt_rules
+                    ),
+                )
+                attempt_handle = journal.begin_attempt(prompt_build.provider_payload)
+                bind = getattr(self.provider, "bind_authoring_attempt", None)
+                if bind is not None:
+                    bind(attempt_handle, prompt_build)
+                attempt_prompt_payload_refs.append(attempt_handle.prompt_payload_ref)
             if attempt_handle.sequence != attempt:
                 raise RuntimeError("authoring journal sequence changed while leased")
             prompt_payload_ref = attempt_handle.prompt_payload_ref
@@ -437,7 +488,6 @@ class CandidateAuthoringLoop:
                 source_repository_prompt_ref = prompt_payload_ref
                 source_payloads = None
             frame_kind = None
-            attempt_prompt_payload_refs.append(prompt_payload_ref)
 
             if (
                 selected_prompt_payload_ref is not None
@@ -476,6 +526,7 @@ class CandidateAuthoringLoop:
                     round_id=round_id,
                     disposition=disposition,
                     repair_feedback=repair_feedback,
+                    response_feedback=response_feedback,
                     latest_failed_candidate=latest_failed_candidate,
                     frame_kind=frame_kind,
                     source_payloads=tuple(source_payloads or ()),
@@ -524,6 +575,10 @@ class CandidateAuthoringLoop:
                         exc.provider_receipt
                     )
                 last_provider_failure = failure
+                if exc.requires_service_recovery:
+                    response_feedback = _transport_retry_feedback(exc)
+                    complete_attempt(disposition="continue")
+                    raise ProviderServiceUnavailableError(exc) from exc
                 retryable_transport_failure = (
                     exc.category == "runtime_error"
                     and exc.details.get("retryable") is True
@@ -531,6 +586,11 @@ class CandidateAuthoringLoop:
                 terminal_transport_failure = (
                     exc.category == "runtime_error"
                     and exc.details.get("retryable") is False
+                )
+                response_feedback = (
+                    _transport_retry_feedback(exc)
+                    if retryable_transport_failure
+                    else build_provider_repair_feedback(exc)
                 )
                 if attempt == max_provider_attempts or terminal_transport_failure:
                     complete_attempt(
@@ -551,11 +611,6 @@ class CandidateAuthoringLoop:
                         ),
                         provider_failure=last_provider_failure,
                     )
-                repair_feedback = (
-                    _transport_retry_feedback(exc)
-                    if retryable_transport_failure
-                    else build_provider_repair_feedback(exc)
-                )
                 complete_attempt(disposition="continue")
                 continue
 
@@ -618,7 +673,7 @@ class CandidateAuthoringLoop:
                         ),
                         provider_failure=last_provider_failure,
                     )
-                repair_feedback = resolution.feedback
+                response_feedback = resolution.feedback
                 source_payloads = _merge_source_payloads(
                     source_payloads or [],
                     resolution.source_payloads,
@@ -629,6 +684,7 @@ class CandidateAuthoringLoop:
 
             assert isinstance(provider_response, CandidateDraftResponse)
             candidate = provider_response.candidate
+            response_feedback = None
             attempt_record["provider_status"] = "pass"
             attempt_record["provider_response_mode"] = (
                 provider_response.response_mode
@@ -705,29 +761,22 @@ class CandidateAuthoringLoop:
                 candidate,
                 self.component_smoke_adapter,
             )
+            if smoke_result.get("status") == "pass" and smoke_result.get("fixture_summary", {}).get("sample_cases"):
+                try:
+                    _, _, smoke_delta = project_candidate_single_component_operation_delta(
+                        candidate=candidate, prompt_payload=round_authoring_anchor_prompt)
+                except SingleComponentDeltaComparisonUnavailable:
+                    smoke_delta = None
+                after = smoke_delta.get("after_component") if smoke_delta else None
+                for observed in smoke_result.get("reward_results", ()):
+                    if after is not None and "RewardTerm:" + observed["name"] == after["mechanism_id"]:
+                        count = observed.get("observed_sample_count", 0)
+                        if count and (observed.get("observed_raw_nonzero_count") == 0
+                                      or observed.get("observed_clip_saturation_count") == count):
+                            smoke_result = {**smoke_result, "status": "advisory",
+                                "reason": "changed_term_zero_or_clip_saturated_on_fixture",
+                                "changed_component_observation": observed}
             attempt_record["component_smoke"] = smoke_result
-            advisory_repair_already_offered = any(
-                isinstance(record.get("component_smoke"), Mapping)
-                and record["component_smoke"].get("status") == "advisory"
-                for record in attempt_records[:-1]
-            )
-            if (
-                smoke_result.get("status") == "advisory"
-                and attempt < max_provider_attempts
-                and not advisory_repair_already_offered
-            ):
-                # A synthetic fixture can reveal an obviously inert declared
-                # term but cannot prove inactivity over the training state
-                # distribution. Offer one normal repair opportunity; if the
-                # next attempt remains advisory, runtime evidence retains the
-                # authority and the candidate is allowed to train.
-                repair_feedback = build_component_smoke_repair_feedback(
-                    candidate=candidate,
-                    smoke_result=smoke_result,
-                )
-                latest_failed_candidate = candidate
-                complete_attempt(disposition="continue")
-                continue
             if smoke_result.get("status") == "fail":
                 repair_feedback = build_component_smoke_repair_feedback(
                     candidate=candidate,
@@ -791,7 +840,7 @@ class CandidateAuthoringLoop:
                 else None
             )
             blocking_feedback = None
-            if blocking_assessment is not None:
+            if blocking_assessment is not None and blocking_feedback is None:
                 blocking_feedback = build_anti_degenerate_repair_feedback(
                     candidate=candidate,
                     assessment=blocking_assessment,
@@ -845,10 +894,13 @@ class CandidateAuthoringLoop:
                         exclusion=self.sibling_semantic_exclusion,
                     )
 
-            if (
-                blocking_assessment is None
-                and self.blocked_verifier_equivalence_keys
-            ):
+            # Negative evidence and prior evaluations retain separate provenance.
+            # Their union is used only by this existing admission comparison.
+            historical_keys = tuple(sorted(
+                set(self.blocked_verifier_equivalence_keys)
+                | set(self.evaluated_verifier_equivalence_keys)
+            ))
+            if blocking_assessment is None and historical_keys:
                 try:
                     equivalence_key = (
                         candidate_single_component_verifier_equivalence_key(
@@ -857,6 +909,7 @@ class CandidateAuthoringLoop:
                         )
                     )
                 except SingleComponentDeltaComparisonUnavailable:
+                    equivalence_key = None
                     historical_assessment = {
                         "schema_version": (
                             "true_rl_agent.historical_verifier_exclusion_assessment.v1"
@@ -867,13 +920,13 @@ class CandidateAuthoringLoop:
                         "verifier_equivalence_key": None,
                         "exclusion_set_hash": (
                             verifier_equivalence_exclusion_set_hash(
-                                self.blocked_verifier_equivalence_keys
+                                historical_keys
                             )
                         ),
                     }
                 else:
                     repeated = (
-                        equivalence_key in self.blocked_verifier_equivalence_keys
+                        equivalence_key in historical_keys
                     )
                     historical_assessment = {
                         "schema_version": (
@@ -889,10 +942,27 @@ class CandidateAuthoringLoop:
                         "verifier_equivalence_key": equivalence_key,
                         "exclusion_set_hash": (
                             verifier_equivalence_exclusion_set_hash(
-                                self.blocked_verifier_equivalence_keys
+                                historical_keys
                             )
                         ),
                     }
+                historical_assessment["exclusion_sources"] = [
+                    name for name, keys in (
+                        ("negative_evidence", self.blocked_verifier_equivalence_keys),
+                        ("same_parent_evaluated", self.evaluated_verifier_equivalence_keys),
+                    )
+                    if equivalence_key in keys
+                ]
+                historical_assessment["negative_evidence_exclusion_set_hash"] = (
+                    verifier_equivalence_exclusion_set_hash(
+                        self.blocked_verifier_equivalence_keys
+                    )
+                )
+                historical_assessment["evaluated_exclusion_set_hash"] = (
+                    verifier_equivalence_exclusion_set_hash(
+                        self.evaluated_verifier_equivalence_keys
+                    )
+                )
                 attempt_record[
                     "historical_verifier_exclusion_assessment"
                 ] = historical_assessment
@@ -944,6 +1014,8 @@ class CandidateAuthoringLoop:
                     )
                 continue
 
+            repair_feedback = None
+            latest_failed_candidate = None
             complete_attempt(
                 disposition="terminal",
                 stop_reason="candidate_verified",
@@ -964,6 +1036,21 @@ class CandidateAuthoringLoop:
         raise RuntimeError("authoring loop exhausted without a terminal result")
 
 
+def _authoring_feedback_for_prompt(
+    candidate_repair: Mapping[str, Any] | None,
+    latest_response: Mapping[str, Any] | None,
+    *, reasoning_exhausted: bool = False,
+) -> dict[str, Any] | None:
+    """Keep one unresolved candidate and one latest response; never grow a repair history."""
+    feedback = dict(latest_response or candidate_repair or {})
+    if latest_response is not None and candidate_repair is not None:
+        feedback["unresolved_candidate_repair"] = dict(candidate_repair)
+    if reasoning_exhausted:
+        # Derived from durable attempts on resume, with no second state store.
+        feedback["reasoning_output_exhausted_in_lane"] = True
+    return feedback or None
+
+
 def build_authoring_prompt(
     *,
     context_builder: PublicContextBuilder,
@@ -974,12 +1061,14 @@ def build_authoring_prompt(
     source_payloads: Sequence[Mapping[str, Any]] | None = None,
     authoring_capability_readiness: Mapping[str, Mapping[str, Any]] | None = None,
     candidate_verifier_prompt_rules: Mapping[str, Any] | None = None,
+    recoverable_sources: tuple[Mapping[str, Any], ...] = (),
 ) -> PublicPromptBuild:
     clean_repair_feedback = (
         _sanitize_repair_feedback(repair_feedback) if repair_feedback is not None else None
     )
     prompt_build = context_builder.build_prompt(
         records,
+        recoverable_sources=recoverable_sources,
         latest_failed_candidate=latest_failed_candidate,
         candidate_repair_feedback=clean_repair_feedback,
         source_payloads=source_payloads,
@@ -1072,10 +1161,7 @@ def _merge_source_repository_payload(
         retained_previous_payloads,
         current_payloads,
     )
-    return validate_prompt_source_sections(
-        repository,
-        require_inline_payloads=False,
-    )
+    return finalize_prompt_source_sections(repository)
 
 
 def _source_payload_matches_current_catalog(
@@ -1092,8 +1178,6 @@ def _source_payload_matches_current_catalog(
     catalog_item = catalog_items.get(logical_id)
     return bool(
         isinstance(catalog_item, Mapping)
-        and catalog_item.get("status") == "inline"
-        and catalog_item.get("inline_by_default") is True
         and catalog_item.get("content_sha256")
         == payload.get("content_sha256")
         and catalog_item.get("bytes") == payload.get("bytes")
@@ -1179,11 +1263,12 @@ def _restore_authoring_continuation(
         "stop_reason",
         "static_failure",
     }
+    schema_version = value.get("schema_version")
+    expected_fields.add("response_feedback")
     if set(value) != expected_fields:
         raise ValueError("authoring continuation fields mismatch")
     if (
-        value.get("schema_version")
-        != "true_rl_agent.authoring_continuation.v1"
+        schema_version != "true_rl_agent.authoring_continuation.v2"
         or value.get("round_id") != expected_round_id
     ):
         raise ValueError("authoring continuation identity mismatch")
@@ -1211,6 +1296,8 @@ def _restore_authoring_continuation(
         value.get("repair_feedback"),
         "repair_feedback",
     )
+    response_feedback = _optional_mapping(value.get("response_feedback"), "response_feedback")
+    latest_failed_candidate = _candidate_from_recovery_mapping(value.get("latest_failed_candidate"))
     selected_context = _optional_mapping(
         value.get("selected_round_public_context"),
         "selected_round_public_context",
@@ -1226,6 +1313,7 @@ def _restore_authoring_continuation(
     )
     for public_value in (
         repair_feedback,
+        response_feedback,
         list(source_payloads),
         selected_context,
         last_provider_failure,
@@ -1264,9 +1352,8 @@ def _restore_authoring_continuation(
         round_id=expected_round_id,
         disposition=str(disposition),
         repair_feedback=repair_feedback,
-        latest_failed_candidate=_candidate_from_recovery_mapping(
-            value.get("latest_failed_candidate")
-        ),
+        response_feedback=response_feedback,
+        latest_failed_candidate=latest_failed_candidate,
         frame_kind=frame_kind,
         source_payloads=source_payloads,
         source_repository_prompt_ref=repository_ref,
@@ -1769,7 +1856,7 @@ def _sanitize_repair_feedback(feedback: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def _transport_retry_feedback(error: ProviderCandidateError) -> dict[str, Any]:
-    """Retry a transient transport call without asking the author to change code."""
+    """Retain a request for service recovery without suggesting a code repair."""
 
     feedback = _sanitize_repair_feedback(
         {
@@ -1780,7 +1867,7 @@ def _transport_retry_feedback(error: ProviderCandidateError) -> dict[str, Any]:
             "reason": error.reason,
             "failure": error.to_public_dict(),
             "instructions": [
-                "Retry the same candidate authoring request; the prior request failed before a provider response was available.",
+                "Once provider service is available, retry the same candidate authoring request; the prior request produced no candidate response.",
                 "Do not infer a candidate-code defect from this transport failure.",
             ],
         }

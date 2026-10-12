@@ -9,6 +9,8 @@ from typing import Any
 from true_rl_agent.agent_core.generation_contract import (
     GENERATION_LANE_IDS,
     GENERATION_LEDGER_RECORD_SCHEMA_VERSION,
+    GENERATION_LEDGER_RECORD_V2_SCHEMA_VERSION,
+    GENERATION_LEDGER_RECORD_V3_SCHEMA_VERSION,
     GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION,
     GENERATION_WIDTH,
     GenerationLaneAssignment,
@@ -23,6 +25,7 @@ from true_rl_agent.agent_core.generation_receipts import (
     load_generation_selection_receipt,
 )
 from true_rl_agent.agent_core.public_safety import sanitize_prompt_public_value
+from true_rl_agent.agent_core.generation_early_rejection import SEALED_NOT_RUN, validate_early_rejection
 from true_rl_agent.agent_core.ledger import (
     PROVIDER_AUTHORING_MODE,
     append_ledger_record_once,
@@ -41,6 +44,7 @@ from true_rl_agent.candidates.sibling_exclusion import (
     build_single_component_semantic_exclusion_projection,
     validate_single_component_semantic_exclusion_projection,
 )
+from true_rl_agent.candidates.mechanism import RuntimeActivationEvidence
 from true_rl_agent.evaluation.acceptance_protocol import AcceptanceProtocol
 from true_rl_agent.evaluation.acceptance_replay import replay_acceptance_ledger
 from true_rl_agent.evaluation.binding import (
@@ -49,12 +53,15 @@ from true_rl_agent.evaluation.binding import (
     require_sha256_digest,
 )
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
-from true_rl_agent.evaluation.phases import EvaluationPhase
+from true_rl_agent.evaluation.phased_adapter import PhasedEvaluationAdapter
+from true_rl_agent.evaluation.phases import EvaluationPhase, EvaluationPhaseResult
 from true_rl_agent.evaluation.public_projection import assert_public_projection_safe
 from true_rl_agent.prompt_artifacts import (
+    authoring_prompt_verifier_rules,
     AuthoringEvidenceRef,
     PromptPayloadRef,
     authoring_outcome_from_evidence,
+    project_authoring_status,
     verify_authoring_evidence,
     verify_prompt_payload,
 )
@@ -118,6 +125,12 @@ _TRIAL_FIELDS = {
     "execution_receipt_checksum",
     "formal_record_hash",
 }
+
+
+def _generation_fields(record):
+    return (_GENERATION_FIELDS | {"early_rejection"}
+            if record.get("schema_version") in {GENERATION_LEDGER_RECORD_V2_SCHEMA_VERSION, GENERATION_LEDGER_RECORD_V3_SCHEMA_VERSION}
+            else _GENERATION_FIELDS)
 _AUTHORING_FIELDS = {
     "base_public_context_hash",
     "lane_intent_hash",
@@ -184,13 +197,18 @@ def validate_generation_ledger_record(
     acceptance_protocol: AcceptanceProtocol | None = None,
     expected_parent: CurrentBestEvalStats | None = None,
     expected_generation_session_contract_hash: str | None = None,
+    validated_execution_records_out: dict[str, Mapping[str, Any]] | None = None,
 ) -> CurrentBestEvalStats:
-    """Validate one generation and return its recomputed resulting head."""
+    """Validate one generation and return its recomputed resulting head.
 
-    if not isinstance(record, Mapping) or set(record) != _GENERATION_FIELDS:
+    Optional execution records are output only, published after all validation
+    succeeds. They are never read as evidence or reused across validation calls.
+    """
+
+    if not isinstance(record, Mapping) or set(record) != _generation_fields(record):
         raise ValueError("generation ledger record fields mismatch")
     if (
-        record.get("schema_version") != GENERATION_LEDGER_RECORD_SCHEMA_VERSION
+        record.get("schema_version") not in {GENERATION_LEDGER_RECORD_SCHEMA_VERSION, GENERATION_LEDGER_RECORD_V2_SCHEMA_VERSION, GENERATION_LEDGER_RECORD_V3_SCHEMA_VERSION}
         or record.get("record_kind") != "generation"
         or record.get("authoring_mode") != PROVIDER_AUTHORING_MODE
     ):
@@ -254,6 +272,7 @@ def validate_generation_ledger_record(
     if len({item["trial_id"] for item in trials}) != GENERATION_WIDTH:
         raise ValueError("generation trial IDs must be unique")
     assignments = {item.lane_id: item for item in manifest.lanes}
+    validated_execution_records: dict[str, Mapping[str, Any]] = {}
     for trial in trials:
         authoring = trial["authoring"]
         if trial["trial_status"] == "not_started":
@@ -290,7 +309,7 @@ def validate_generation_ledger_record(
                     "generation trial resource projection differs from manifest"
                 )
         if trial["execution_record_hash"] is not None:
-            _load_bound_trial_execution(
+            validated_execution_records[trial["trial_id"]] = _load_bound_trial_execution(
                 trial,
                 private_artifacts=record.get("private_artifacts"),
                 session_genesis_hash=session_hash,
@@ -314,15 +333,12 @@ def validate_generation_ledger_record(
                 )
     if trials[1]["trial_status"] != "not_started":
         delta = trials[0].get("mechanism_operation_delta")
-        if not isinstance(delta, Mapping):
+        if isinstance(delta, Mapping):
+            expected_exclusion = build_single_component_semantic_exclusion_projection(delta)
+            if trials[1]["authoring"]["sibling_exclusion_hash"] != expected_exclusion["exclusion_hash"]:
+                raise ValueError("generation sibling exclusion does not match lane A delta")
+        else:
             raise ValueError("generation lane B has no authoritative lane A exclusion")
-        expected_exclusion = build_single_component_semantic_exclusion_projection(
-            delta
-        )
-        if trials[1]["authoring"]["sibling_exclusion_hash"] != expected_exclusion[
-            "exclusion_hash"
-        ]:
-            raise ValueError("generation sibling exclusion does not match lane A delta")
 
     selection = record.get("selection")
     selection_receipt_checksum = record.get("selection_receipt_checksum")
@@ -403,7 +419,31 @@ def validate_generation_ledger_record(
         selected_trial_id=selected_trial_id,
         formal_round=formal_round,
         outcome=str(outcome),
+        early_rejected=record.get("early_rejection") is not None,
     )
+
+    early = record.get("early_rejection")
+    loaded_early = journal.load_early_rejection()
+    if early is None:
+        if loaded_early is not None:
+            raise ValueError("generation omits its early rejection receipt")
+    else:
+        if formal is not None or loaded_early is None or not isinstance(early, Mapping):
+            raise ValueError("generation early rejection must have its own receipt and no full result")
+        evidence, ref = loaded_early
+        if dict(early) != {"receipt_checksum": ref.checksum,
+                "selected_trial_id": selected_trial_id, "sealed_validation": SEALED_NOT_RUN}:
+            raise ValueError("generation early rejection projection mismatch")
+        declared_ref = _find_private_generation_receipt(private_artifacts,
+            artifact_kind="generation_early_rejection_receipt", receipt_kind="early_rejection",
+            checksum=ref.checksum)
+        if declared_ref != ref:
+            raise ValueError("generation early rejection receipt binding mismatch")
+        selected = next(item for item in trials if item["trial_id"] == selected_trial_id)
+        if acceptance_protocol is None:
+            acceptance_protocol = AcceptanceProtocol.from_mapping(evidence["acceptance_protocol"])
+        validate_early_rejection(evidence, manifest_hash=manifest.manifest_hash, trial=selected,
+            parent=parent, protocol=acceptance_protocol)
 
     result_head = parent
     if formal_round is not None:
@@ -442,6 +482,9 @@ def validate_generation_ledger_record(
             "resulting_current_best": result_head.to_public_dict(),
         }
     )
+    if validated_execution_records_out is not None:
+        validated_execution_records_out.clear()
+        validated_execution_records_out.update(validated_execution_records)
     return result_head
 
 
@@ -458,6 +501,14 @@ def project_generation_formal_round_record(
         acceptance_protocol=acceptance_protocol,
         expected_parent=expected_parent,
     )
+    return _project_validated_generation_formal_round_record(record)
+
+
+def _project_validated_generation_formal_round_record(
+    record: Mapping[str, Any],
+) -> Mapping[str, Any] | None:
+    """Derive the formal round after the caller validates this generation."""
+
     formal = record.get("formal")
     if formal is None:
         return None
@@ -473,12 +524,41 @@ def project_generation_formal_round_record(
     )
 
 
+def build_trial_phase_projection(
+    *,
+    phase_result: EvaluationPhaseResult,
+    job_spec_hash: str,
+    phase_receipt_checksum: str,
+    phased_evaluation_adapter: PhasedEvaluationAdapter,
+) -> dict[str, Any]:
+    """Project the same receipt-backed public phase in live and replay paths."""
+
+    return {
+        "schema_version": GENERATION_PHASE_PROJECTION_SCHEMA_VERSION,
+        "phase": phase_result.phase.value,
+        "job_spec_hash": job_spec_hash,
+        "evaluation_plan_hash": phase_result.evaluation_plan_hash,
+        "phase_result_hash": canonical_json_hash(phase_result.to_private_dict()),
+        "phase_receipt_checksum": phase_receipt_checksum,
+        "checkpoint_hash": phase_result.checkpoint_hash,
+        "execution_device": phase_result.execution_device,
+        "resource_binding_hash": phase_result.resource_binding_hash,
+        "task_evidence_hash": phase_result.task_evidence_hash,
+        "public_summary": dict(
+            phased_evaluation_adapter.project_public_phase_summary(
+                phase_result=phase_result
+            )
+        ),
+    }
+
+
 def project_generation_public_history_record(
     record: Mapping[str, Any],
     *,
     public_decision: Mapping[str, Any],
     acceptance_protocol: AcceptanceProtocol,
     expected_parent: CurrentBestEvalStats,
+    phased_evaluation_adapter: PhasedEvaluationAdapter | None = None,
 ) -> dict[str, Any]:
     """Build the one deterministic round-compatible view used by consumers.
 
@@ -487,16 +567,14 @@ def project_generation_public_history_record(
     sibling without inventing a second persisted winner record.
     """
 
+    validated_execution_records: dict[str, Mapping[str, Any]] = {}
     result_head = validate_generation_ledger_record(
         record,
         acceptance_protocol=acceptance_protocol,
         expected_parent=expected_parent,
+        validated_execution_records_out=validated_execution_records,
     )
-    formal = project_generation_formal_round_record(
-        record,
-        acceptance_protocol=acceptance_protocol,
-        expected_parent=expected_parent,
-    )
+    formal = _project_validated_generation_formal_round_record(record)
     selection_screens_by_trial: dict[str, dict[str, Any]] = {}
     guard_reference = None
     if record.get("selection") is not None:
@@ -529,8 +607,47 @@ def project_generation_public_history_record(
                 private_artifacts=record.get("private_artifacts"),
             )
             trial["lane_intent"] = lane_intent
+            trial["authoring_status"] = project_authoring_status(_evidence)
         else:
             trial["lane_intent"] = None
+        for phase in (EvaluationPhase.PUBLIC_DEV, EvaluationPhase.PUBLIC_ACCEPT):
+            raw_phase = raw_trial.get(phase.value)
+            if raw_phase is None:
+                continue
+            if phased_evaluation_adapter is None:
+                raise ValueError(
+                    "generation public phase projection requires the phased evaluation adapter"
+                )
+            phase_receipt = load_bound_generation_trial_phase_receipt(
+                record, trial_id=trial["trial_id"], phase=phase
+            )
+            canonical_phase = build_trial_phase_projection(
+                phase_result=phase_receipt.result,
+                job_spec_hash=phase_receipt.job_spec_hash,
+                phase_receipt_checksum=phase_receipt.receipt_ref.checksum,
+                phased_evaluation_adapter=phased_evaluation_adapter,
+            )
+            # Structural replay binds the other projection fields to the receipt.
+            # Task semantics belong to the adapter; never trust the ledger's
+            # independently editable public summary as evidence for the author.
+            if raw_phase["public_summary"] != canonical_phase["public_summary"]:
+                raise ValueError("generation public summary/phase receipt mismatch")
+            trial[phase.value] = _public_copy(canonical_phase)
+        if raw_trial.get("train") is not None:
+            train_receipt = load_bound_generation_trial_train_receipt(record, trial_id=trial["trial_id"])
+            trial["runtime_activation_summary"] = RuntimeActivationEvidence.from_train_summary(
+                train_receipt.result.summary
+            ).to_public_dict()
+        elif raw_trial.get("execution_record_hash") is not None:
+            # A failed training run has no checkpoint/train-result receipt.
+            # Its sealed execution receipt can still carry bounded sampling.
+            failed = validated_execution_records[trial["trial_id"]]
+            failure = failed.get("runner_error")
+            details = failure.get("details") if isinstance(failure, Mapping) else None
+            if (isinstance(failure, Mapping) and failure.get("type") == "CandidateRuntimeError"
+                    and isinstance(details, Mapping) and "training_sampling" in details):
+                trial["runtime_activation_summary"] = RuntimeActivationEvidence(
+                    training_sampling=details["training_sampling"]).to_public_dict()
         selection_screen = selection_screens_by_trial.get(str(trial.get("trial_id")))
         if selection_screen is not None:
             # The generation layer carries the task-owned public screen without
@@ -551,9 +668,28 @@ def project_generation_public_history_record(
         "guard_reference": guard_reference,
         "formal": _public_copy(record["formal"]),
     }
+    if any(trial.get("public_dev") is not None for trial in public_trials):
+        if phased_evaluation_adapter is None:
+            raise ValueError("generation parent public-dev projection requires the phased evaluation adapter")
+        # Selection screens carry only selection statistics. Preserve the
+        # bound parent's task evidence as well, so a task can compare behavior
+        # with its actual parent whether or not selection was reached.
+        # The generation layer does not interpret that evidence.
+        guard_ref = _find_guard_phase_receipt(record.get("private_artifacts"))
+        manifest = load_bound_generation_manifest(record)
+        if canonical_json_hash(guard_ref.to_dict()) != manifest.guard_reference_phase_receipt_hash:
+            raise ValueError("generation parent phase receipt differs from manifest")
+        parent_phase = load_trial_eval_phase_receipt(guard_ref).result
+        if (parent_phase.phase is not EvaluationPhase.PUBLIC_DEV
+                or parent_phase.checkpoint_hash != expected_parent.checkpoint_hash):
+            raise ValueError("generation parent public phase identity mismatch")
+        generation_summary["parent_public_dev"] = _public_copy(
+            phased_evaluation_adapter.project_public_phase_summary(phase_result=parent_phase))
+    if record.get("early_rejection") is not None:
+        generation_summary["sealed_validation"] = SEALED_NOT_RUN
     if formal is None:
         projected: dict[str, Any] = {
-            "schema_version": GENERATION_LEDGER_RECORD_SCHEMA_VERSION,
+            "schema_version": record["schema_version"],
             "record_kind": "generation",
             "round_id": record["generation_id"],
             "generation_id": record["generation_id"],
@@ -682,7 +818,7 @@ def load_bound_generation_trial_phase_receipt(
     task-specific projection semantics.
     """
 
-    if not isinstance(record, Mapping) or set(record) != _GENERATION_FIELDS:
+    if not isinstance(record, Mapping) or set(record) != _generation_fields(record):
         raise ValueError("generation ledger record fields mismatch")
     if not isinstance(trial_id, str) or not trial_id:
         raise ValueError("generation trial_id is required")
@@ -721,7 +857,7 @@ def load_bound_generation_trial_train_receipt(
     validate the generation chain that selected the trial.
     """
 
-    if not isinstance(record, Mapping) or set(record) != _GENERATION_FIELDS:
+    if not isinstance(record, Mapping) or set(record) != _generation_fields(record):
         raise ValueError("generation ledger record fields mismatch")
     if not isinstance(trial_id, str) or not trial_id:
         raise ValueError("generation trial_id is required")
@@ -1147,14 +1283,14 @@ def _load_bound_authoring_evidence(
         size_bytes=evidence_item["size_bytes"],
     )
     prompt_payload = verify_prompt_payload(prompt_ref)
-    verifier_rules = _provider_verifier_rules(prompt_payload)
+    verifier_rules = authoring_prompt_verifier_rules(prompt_payload)
     lane_intent = require_generation_lane_intent(
         verifier_rules.get("generation_lane_intent")
     )
     if canonical_json_hash(lane_intent) != authoring.get("lane_intent_hash"):
         raise ValueError("generation authoring prompt lane intent mismatch")
     raw_exclusion = verifier_rules.get("single_component_semantic_exclusion")
-    if trial["lane_id"] == GENERATION_LANE_IDS[0]:
+    if trial["lane_id"] == GENERATION_LANE_IDS[0] or authoring.get("sibling_exclusion_hash") is None:
         if raw_exclusion is not None or authoring.get("sibling_exclusion_hash") is not None:
             raise ValueError("generation lane A authoring prompt contains exclusion")
     else:
@@ -1173,25 +1309,11 @@ def _load_bound_authoring_evidence(
     expected_verified = (
         trial.get("trial_status") != "candidate_failed"
         or trial.get("trial_contract_hash") is not None
+        or trial.get("status_reason") == "sibling_exclusion_unavailable"
     )
     if candidate_verified != expected_verified:
         raise ValueError("generation trial status/authoring outcome mismatch")
     return evidence, lane_intent
-
-
-def _provider_verifier_rules(prompt_payload: Mapping[str, Any]) -> Mapping[str, Any]:
-    required = prompt_payload.get("required_candidate_package")
-    component_contract = (
-        required.get("component_contract") if isinstance(required, Mapping) else None
-    )
-    rules = (
-        component_contract.get("static_verifier_rules")
-        if isinstance(component_contract, Mapping)
-        else None
-    )
-    if not isinstance(rules, Mapping):
-        raise ValueError("generation authoring prompt has no verifier rules")
-    return rules
 
 
 def _find_private_artifact(
@@ -1333,6 +1455,7 @@ def _validate_status_relationships(
     selected_trial_id: str | None,
     formal_round: Mapping[str, Any] | None,
     outcome: str,
+    early_rejected: bool = False,
 ) -> None:
     statuses = [item["trial_status"] for item in trials]
     train_count = sum(item["train"] is not None for item in trials)
@@ -1347,7 +1470,7 @@ def _validate_status_relationships(
         ["candidate_failed", "verified_not_run"],
     ):
         expected_outcome = "paired_authoring_incomplete"
-    elif formal_round is None:
+    elif formal_round is None and not early_rejected:
         expected_outcome = (
             "candidate_execution_incomplete"
             if any(status == "candidate_failed" for status in statuses)
@@ -1356,7 +1479,7 @@ def _validate_status_relationships(
     else:
         if not selection_present or selected_trial_id is None:
             raise ValueError("generation formal result requires a selected trial")
-        decision = formal_round.get("decision")
+        decision = formal_round.get("decision") if formal_round is not None else None
         accepted = isinstance(decision, Mapping) and decision.get("accepted") is True
         expected_outcome = "accepted" if accepted else "formal_rejected"
         selected = next(
@@ -1403,7 +1526,7 @@ def _validate_status_relationships(
         != ["qualified_not_selected", "qualified_not_selected"]
     ):
         raise ValueError("generation no-selection evidence is incomplete")
-    if formal_round is None and selected_trial_id is not None and outcome != "candidate_execution_incomplete":
+    if formal_round is None and not early_rejected and selected_trial_id is not None and outcome != "candidate_execution_incomplete":
         raise ValueError("generation selected a trial without formal evidence")
 
 
@@ -1449,6 +1572,7 @@ __all__ = [
     "GENERATION_PHASE_PROJECTION_SCHEMA_VERSION",
     "GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION",
     "GENERATION_TRIAL_RECORD_SCHEMA_VERSION",
+    "build_trial_phase_projection",
     "commit_generation_record",
     "load_bound_generation_manifest",
     "load_bound_generation_trial_phase_receipt",

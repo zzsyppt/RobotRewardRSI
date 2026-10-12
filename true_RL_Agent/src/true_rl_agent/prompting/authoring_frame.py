@@ -9,8 +9,10 @@ from typing import Any
 from true_rl_agent.agent_core.provider_contract import SOURCE_REQUEST_SERVICE_ENABLED
 from true_rl_agent.agent_core.source_request_limits import (
     LATEST_FAILED_SOURCE_ID,
+    LATEST_NONACCEPTED_SOURCE_ID,
     MAX_SOURCE_REQUEST_BYTES_PER_ROUND,
 )
+from true_rl_agent.candidates.authoring_policy import select_authoring_anchor_source
 from true_rl_agent.prompt_serialization import MAX_AUTHORING_PROMPT_PAYLOAD_BYTES
 from true_rl_agent.prompting.public_safety import assert_public_only_prompt_payload
 from true_rl_agent.prompting.serialization import canonical_prompt_json_bytes
@@ -19,6 +21,7 @@ from true_rl_agent.prompting.source_catalog import (
     has_inline_current_authoring_failed_source,
 )
 from true_rl_agent.prompting.task_sections import (
+    PROVIDER_TASK_PROMPT_SECTION_KEYS,
     build_provider_task_prompt_receipt,
 )
 
@@ -82,11 +85,11 @@ _FRAME_POLICIES = {
             *_STABLE_CONTRACT_REFS,
             *_SOURCE_CONTEXT_REFS,
             "public_history",
+            "public_feedback_summary",
             "selection_guidance",
             "schema_version",
         ),
         optional_sections=(
-            "public_feedback_summary",
             "runtime_feedback_summary",
             "known_good_examples",
         ),
@@ -104,15 +107,15 @@ _FRAME_POLICIES = {
             "candidate_lineage",
             "source_payloads",
             "exploration_directive",
+            "public_feedback_summary",
+            "selection_guidance",
             "provider_or_runtime_repair_feedback",
             "schema_version",
         ),
         optional_sections=(
-            "public_feedback_summary",
             "runtime_feedback_summary",
             "public_history",
             "known_good_examples",
-            "selection_guidance",
         ),
     ),
     "source_followup": AuthoringFramePolicy(
@@ -123,16 +126,16 @@ _FRAME_POLICIES = {
             "source_catalog",
             "candidate_lineage",
             "source_payloads",
+            "exploration_directive",
+            "public_feedback_summary",
+            "selection_guidance",
             "provider_or_runtime_repair_feedback",
             "schema_version",
         ),
         optional_sections=(
-            "public_feedback_summary",
             "runtime_feedback_summary",
             "public_history",
             "known_good_examples",
-            "exploration_directive",
-            "selection_guidance",
         ),
         omitted_recent_history_reason="omitted_for_source_followup_frame",
     ),
@@ -194,7 +197,7 @@ def compact_public_history_for_frame(
             "section": "public_history.recent_outcomes",
             "reason": policy.omitted_recent_history_reason,
             "omitted_item_count": omitted_count,
-            "recoverable_from": "prior ledger public records",
+            "provider_recoverability": "omitted_not_requestable",
         }
     )
     return history, omitted
@@ -208,9 +211,10 @@ def project_sections_for_authoring_frame(
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     """Apply the frame's provider-visible section boundary.
 
-    Static repair deliberately keeps the exact failed source and stable contract/
-    lineage anchors, while excluding hypothesis-selection context that cannot help
-    repair the current static failure.
+    Static repair keeps the exact failed source, stable contracts, current intent
+    and the task's bounded public evidence. A verifier rejection does not make the
+    observations behind that intent obsolete. Optional history and examples may
+    be omitted, but prior rationale must not replace the task's measured feedback.
     """
 
     if frame_kind != "static_repair":
@@ -221,13 +225,42 @@ def project_sections_for_authoring_frame(
         raise TypeError("static repair source_payloads must be a list")
     if not has_inline_current_authoring_failed_source(section_values):
         return dict(section_values), []
+    retained_source_ids = {LATEST_FAILED_SOURCE_ID}
+    feedback = section_values.get("provider_or_runtime_repair_feedback")
+    if isinstance(feedback, Mapping):
+        pending = feedback.get("unresolved_candidate_repair")
+        repairs = (feedback, pending) if isinstance(pending, Mapping) else (feedback,)
+        historical_comparison = any(
+            item.get("failure_category") == "historical_verifier_equivalent_repeat"
+            or item.get("stage") == "historical_exact_exclusion"
+            for item in repairs
+        )
+        if historical_comparison or any(item.get("failure_category") == "authoring_policy_violation" for item in repairs):
+            # A mechanism rewrite needs the same source used by the verifier's
+            # comparison; a policy-best baseline may have no authoring source.
+            source, digest, _ = select_authoring_anchor_source(section_values)
+            if source is not None:
+                retained_source_ids.update(
+                    item["logical_id"] for item in source_payloads
+                    if isinstance(item, Mapping) and item.get("content_sha256") == digest
+                )
+            if historical_comparison:
+                # Already-public measured alternatives help replace a repeated
+                # mechanism; syntax repair still needs only the failed source.
+                retained_source_ids.add(LATEST_NONACCEPTED_SOURCE_ID)
     retained_payloads = [
         dict(item)
         for item in source_payloads
         if isinstance(item, Mapping)
-        and item.get("logical_id") == LATEST_FAILED_SOURCE_ID
+        and item.get("logical_id") in retained_source_ids
     ]
     allowed = frozenset(_FRAME_POLICIES[frame_kind].required_sections)
+    task_feedback = section_values.get("public_feedback_summary")
+    if isinstance(task_feedback, Mapping) and "capacity_projection_receipt" in task_feedback:
+        # A task's minimum-core receipt binds its complete section group. Keep
+        # that already bounded view atomically instead of silently invalidating
+        # its source hash or manufacturing a second projection receipt here.
+        allowed = allowed.union(PROVIDER_TASK_PROMPT_SECTION_KEYS)
     projected = {
         section: value
         for section, value in section_values.items()
@@ -250,7 +283,7 @@ def project_sections_for_authoring_frame(
                 "section": "static_repair_nonessential_context",
                 "reason": _STATIC_REPAIR_OMISSION_REASON,
                 "omitted_sections": omitted_section_names,
-                "recoverable_from": "initial authoring prompt and prior public ledger records",
+                "provider_recoverability": "omitted_not_requestable",
             }
         )
 

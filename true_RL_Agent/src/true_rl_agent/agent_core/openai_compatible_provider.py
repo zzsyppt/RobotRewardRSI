@@ -17,18 +17,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
 
+from true_rl_agent.agent_core.authoring_payload import AuthoringPayloadMaterializer, authoring_system_prompt
 from true_rl_agent.agent_core.authoring_response import (
     AuthoringProviderResponse,
-    CandidateDraftResponse,
     SourceRequestResponse,
     build_source_request_denied_error,
-)
-from true_rl_agent.agent_core.provider_contract import (
-    provider_authoring_response_mode,
-    provider_json_output_contract,
-    validate_declared_changed_components,
-    validate_provider_json_output_keys,
-    validate_source_request_json_output_keys,
 )
 from true_rl_agent.agent_core.provider_errors import (
     ProviderCandidateError,
@@ -45,23 +38,10 @@ from true_rl_agent.agent_core.provider_limits import (
     PROVIDER_TRANSPORT_POLICY_ID,
 )
 from true_rl_agent.agent_core.public_safety import (
-    contains_forbidden_public_value_marker,
     redact_secret_key_markers,
 )
-from true_rl_agent.candidates.component_source_semantics import (
-    extract_training_components_rationale,
-)
-from true_rl_agent.candidates.loader import (
-    CANDIDATE_SCHEMA_VERSION,
-    CONTROLLED_ENTRYPOINT,
-)
-from true_rl_agent.candidates.package_contract import (
-    CANDIDATE_PACKAGE_FILE_MAX_BYTES,
-)
 from true_rl_agent.candidates.schema import (
-    CandidateChangeSet,
     CandidatePackageRef,
-    require_candidate_id,
 )
 from true_rl_agent.json_contract import strict_json_object_loads
 from true_rl_agent.prompting import (
@@ -70,7 +50,6 @@ from true_rl_agent.prompting import (
 )
 from true_rl_agent.prompting.source_catalog import (
     has_inline_current_authoring_failed_source,
-    prompt_source_catalog_logical_ids,
 )
 
 
@@ -95,6 +74,7 @@ class OpenAICompatibleProviderConfig:
     reasoning_mode: str = DEFAULT_PROVIDER_REASONING_MODE
     reasoning_effort: str | None = None
     empty_final_reasoning_retry: bool = False
+    model_context: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
         if (
@@ -103,6 +83,11 @@ class OpenAICompatibleProviderConfig:
             or self.max_tokens <= 0
         ):
             raise ValueError("provider max_tokens must be a positive integer")
+        if self.model_context is not None:
+            from true_rl_agent.agent_core.provider_limits import validate_provider_model_context
+            context = validate_provider_model_context(self.model_context)
+            if self.max_tokens > min(context["max_output_tokens"], context["context_window_tokens"]):
+                raise ValueError("requested output exceeds the declared provider model capacity")
         if (
             isinstance(self.max_response_bytes, bool)
             or not isinstance(self.max_response_bytes, int)
@@ -354,7 +339,7 @@ class OpenAICompatibleCandidateProvider:
         self.transport = transport or UrllibJsonTransport(
             max_response_bytes=config.max_response_bytes
         )
-        self._counter = _existing_candidate_counter(config.output_dir)
+        self._materializer = AuthoringPayloadMaterializer(config.output_dir, backend="openai_compatible_chat")
 
     def next_candidate(self, *, prompt_payload: dict[str, Any]) -> CandidatePackageRef:
         response = self.next_authoring_response(prompt_payload=prompt_payload)
@@ -363,7 +348,7 @@ class OpenAICompatibleCandidateProvider:
         return response.candidate
 
     def next_authoring_response(self, *, prompt_payload: dict[str, Any]) -> AuthoringProviderResponse:
-        self._counter += 1
+        self._materializer.begin_attempt()
         assert_public_only_prompt_payload(prompt_payload)
         request_payload = self._chat_completion_request(prompt_payload)
         response = self.transport.post_json(
@@ -380,7 +365,30 @@ class OpenAICompatibleCandidateProvider:
             finish_reason=finish_reason,
             transport_policy_id=_transport_policy_id(self.transport),
             response_max_bytes=_transport_response_max_bytes(self.transport),
+            model_context=self.config.model_context,
         )
+        if (
+            _receipt_proves_empty_final_content_with_reasoning(
+                provider_receipt
+            )
+        ):
+            raise ProviderCandidateError(
+                "reasoning_output_exhausted" if finish_reason == "length" else "json_parse_error",
+                "reasoning exhausted the output budget before final JSON" if finish_reason == "length"
+                else "provider final content channel was empty",
+                details={
+                    "failure_kind": (
+                        PROVIDER_EMPTY_FINAL_REASONING_FAILURE_KIND
+                    ),
+                    **(
+                        {"finish_reason": finish_reason}
+                        if finish_reason is not None
+                        else {}
+                    ),
+                },
+                provider_usage=provider_usage,
+                provider_receipt=provider_receipt,
+            )
         try:
             response_text = _response_text(response)
         except ValueError as exc:
@@ -400,90 +408,9 @@ class OpenAICompatibleCandidateProvider:
                 provider_usage=provider_usage,
                 provider_receipt=provider_receipt,
             ) from exc
-        if (
-            self.config.empty_final_reasoning_retry
-            and finish_reason != "length"
-            and _receipt_proves_empty_final_content_with_reasoning(
-                provider_receipt
-            )
-        ):
-            raise ProviderCandidateError(
-                "json_parse_error",
-                "provider final content channel was empty",
-                details={
-                    "failure_kind": (
-                        PROVIDER_EMPTY_FINAL_REASONING_FAILURE_KIND
-                    ),
-                    **(
-                        {"finish_reason": finish_reason}
-                        if finish_reason is not None
-                        else {}
-                    ),
-                },
-                provider_usage=provider_usage,
-                provider_receipt=provider_receipt,
-            )
-        try:
-            proposal = _json_object_from_text(response_text, "candidate proposal")
-        except ValueError as exc:
-            truncated = finish_reason == "length"
-            raise ProviderCandidateError(
-                "response_truncated" if truncated else "json_parse_error",
-                (
-                    "provider response reached its output limit before candidate JSON completed"
-                    if truncated
-                    else "candidate proposal was not valid JSON object"
-                ),
-                details=(
-                    {"finish_reason": finish_reason}
-                    if finish_reason is not None
-                    else None
-                ),
-                provider_usage=provider_usage,
-                provider_receipt=provider_receipt,
-            ) from exc
-        try:
-            mode = provider_authoring_response_mode(proposal)
-            if mode == "source_request":
-                return self._parse_source_request(
-                    proposal,
-                    prompt_payload=prompt_payload,
-                    provider_usage=provider_usage,
-                    provider_receipt=provider_receipt,
-                )
-            return CandidateDraftResponse(
-                candidate=self._materialize_candidate(proposal),
-                provider_usage=provider_usage,
-                provider_receipt=provider_receipt,
-            )
-        except ProviderCandidateError as exc:
-            if (
-                (not provider_usage or exc.provider_usage)
-                and (not provider_receipt or exc.provider_receipt)
-            ):
-                raise
-            raise ProviderCandidateError(
-                exc.category,
-                exc.reason,
-                details=exc.details,
-                provider_usage=exc.provider_usage or provider_usage,
-                provider_receipt=exc.provider_receipt or provider_receipt,
-            ) from exc
-        except ValueError as exc:
-            raise ProviderCandidateError(
-                "schema_error",
-                str(exc),
-                provider_usage=provider_usage,
-                provider_receipt=provider_receipt,
-            ) from exc
-        except OSError as exc:
-            raise ProviderCandidateError(
-                "candidate_materialize_error",
-                "candidate package could not be materialized",
-                details={"error_type": type(exc).__name__},
-                provider_usage=provider_usage,
-                provider_receipt=provider_receipt,
-            ) from exc
+        return self._materializer.parse(response_text, prompt_payload=prompt_payload,
+            provider_usage=provider_usage, provider_receipt=provider_receipt,
+            finish_reason=finish_reason)
 
     def _chat_completion_request(self, prompt_payload: Mapping[str, Any]) -> dict[str, Any]:
         request = {
@@ -491,7 +418,7 @@ class OpenAICompatibleCandidateProvider:
             "messages": [
                 {
                     "role": "system",
-                    "content": _system_prompt(),
+                    "content": authoring_system_prompt(),
                 },
                 {
                     "role": "user",
@@ -520,6 +447,11 @@ class OpenAICompatibleCandidateProvider:
             request["temperature"] = self.config.temperature
         return request
 
+    def validate_credential(self) -> None:
+        """Check local credential availability before expensive session work."""
+        if not _is_safe_authorization_credential(self._api_key()):
+            raise RuntimeError("provider API key is not a valid authorization credential")
+
     def _api_key(self) -> str:
         if self.config.api_key:
             return self.config.api_key
@@ -531,127 +463,6 @@ class OpenAICompatibleCandidateProvider:
             raise RuntimeError(f"missing provider API key env var: {self.config.api_key_env}")
         return value
 
-    def _materialize_candidate(self, proposal: Mapping[str, Any]) -> CandidatePackageRef:
-        validate_provider_json_output_keys(dict(proposal))
-        candidate_id = require_candidate_id(proposal.get("candidate_id"))
-        components_py = _require_text(proposal.get("components_py"), "components_py")
-        components_bytes = _bounded_candidate_file_bytes(
-            "training_code/components.py",
-            components_py,
-        )
-        _reject_secret_markers(components_py)
-        rationale = extract_training_components_rationale(components_py)
-        if rationale is None:
-            raise ValueError(
-                "components_py must set TrainingComponents.rationale to a "
-                "non-empty statically resolvable string literal"
-            )
-        rationale_bytes = _bounded_candidate_file_bytes(
-            "rationale.md",
-            rationale,
-        )
-        changed_components = _changed_components(proposal.get("declared_changed_components"))
-
-        file_bytes = {
-            "candidate_manifest.yaml": _bounded_candidate_file_bytes(
-                "candidate_manifest.yaml",
-                "\n".join(
-                    [
-                        f"schema_version: {CANDIDATE_SCHEMA_VERSION}",
-                        f"candidate_id: {candidate_id}",
-                        f"entrypoint: {CONTROLLED_ENTRYPOINT}",
-                        "",
-                    ]
-                ),
-            ),
-            "training_code/components.py": components_bytes,
-            "rationale.md": rationale_bytes,
-            "operation_diff.json": _bounded_candidate_file_bytes(
-                "operation_diff.json",
-                json.dumps(
-                    {
-                        "schema_version": "true_rl_agent.provider.operation_diff.v1",
-                        "candidate_id": candidate_id,
-                        "declared_changed_components": sorted(changed_components),
-                        "derived_from": ["declared_changed_components"],
-                        "materialized_by": "openai_compatible_candidate_materializer",
-                        "provider_backend": "openai_compatible_chat",
-                        "verifier_derived_change_set_is_authoritative": True,
-                    },
-                    indent=2,
-                    sort_keys=True,
-                )
-                + "\n",
-            ),
-            "diagnostics.json": _bounded_candidate_file_bytes(
-                "diagnostics.json",
-                json.dumps(
-                    {
-                        "schema_version": "true_rl_agent.provider.diagnostics.v1",
-                        "candidate_id": candidate_id,
-                        "materialized_by": "openai_compatible_candidate_materializer",
-                        "provider_backend": "openai_compatible_chat",
-                        "status": "provider_materialized",
-                        "diagnostic_items": [],
-                        "notes": [
-                            "Provider JSON v2 does not accept LLM-authored diagnostics.",
-                            "Task runtime diagnostics must be declared through DiagnosticTerm in components.py.",
-                        ],
-                    },
-                    indent=2,
-                    sort_keys=True,
-                )
-                + "\n",
-            ),
-        }
-
-        candidate_dir = self.config.output_dir / f"{self._counter:03d}_{candidate_id}"
-        candidate_dir.mkdir(parents=True, exist_ok=False)
-        for relative_path, content in file_bytes.items():
-            target = candidate_dir / relative_path
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(content)
-        return CandidatePackageRef(
-            candidate_id=candidate_id,
-            path=str(candidate_dir),
-            change_set=CandidateChangeSet(frozenset(changed_components)),
-            metadata={"provider": "openai_compatible_chat", "declared_change_set_provisional": True},
-        )
-
-    def _parse_source_request(
-        self,
-        proposal: Mapping[str, Any],
-        *,
-        prompt_payload: Mapping[str, Any],
-        provider_usage: Mapping[str, int],
-        provider_receipt: Mapping[str, Any],
-    ) -> SourceRequestResponse:
-        validate_source_request_json_output_keys(dict(proposal))
-        logical_ids = proposal.get("logical_ids")
-        if not isinstance(logical_ids, list) or not all(isinstance(item, str) for item in logical_ids):
-            raise ValueError("source_request logical_ids must be a JSON array of strings")
-        rationale = _require_text(proposal.get("rationale", ""), "rationale")
-        _reject_secret_markers(rationale)
-        return SourceRequestResponse(
-            logical_ids=tuple(logical_ids),
-            rationale=rationale,
-            source_catalog_logical_ids=tuple(sorted(prompt_source_catalog_logical_ids(prompt_payload))),
-            provider_usage=provider_usage,
-            provider_receipt=provider_receipt,
-        )
-
-
-def _bounded_candidate_file_bytes(relative_path: str, content: str) -> bytes:
-    maximum = CANDIDATE_PACKAGE_FILE_MAX_BYTES[relative_path]
-    encoded = content.encode("utf-8")
-    if len(encoded) > maximum:
-        raise ValueError(
-            "candidate package file exceeds its byte limit: "
-            f"{relative_path} ({len(encoded)} > {maximum})"
-        )
-    return encoded
-
-
 def load_env_file(path: Path) -> dict[str, str]:
     values: dict[str, str] = {}
     for raw_line in path.read_text(encoding="utf-8").splitlines():
@@ -662,45 +473,6 @@ def load_env_file(path: Path) -> dict[str, str]:
         key = key.removeprefix("export ").strip()
         values[key] = value.strip().strip("\"'")
     return values
-
-
-def _existing_candidate_counter(output_dir: Path) -> int:
-    if not output_dir.exists():
-        return 0
-    if not output_dir.is_dir():
-        raise NotADirectoryError(
-            f"provider candidate output is not a directory: {output_dir}"
-        )
-    indices = []
-    for child in output_dir.iterdir():
-        prefix, separator, _ = child.name.partition("_")
-        if child.is_dir() and separator and prefix.isdecimal():
-            indices.append(int(prefix))
-    return max(indices, default=0)
-
-
-def _system_prompt() -> str:
-    contract = provider_json_output_contract()
-    draft_required = ", ".join(contract["one_of"]["candidate_draft"]["required_keys"])
-    source_request_required = ", ".join(contract["one_of"]["source_request"]["required_keys"])
-    return (
-        "You are an OpenAI-compatible candidate-package provider. "
-        "The user payload is the only source of task-specific context, public evidence, component "
-        "contract details, and output-field constraints. Return exactly one valid JSON object and "
-        "no prose outside JSON. The JSON object must match exactly one response shape from "
-        "provider_json_output.one_of in the user payload. The default response mode is "
-        "candidate_draft; candidate_draft may omit response_mode and must include: "
-        f"{draft_required}. A source_request must set response_mode='source_request' and include: "
-        f"{source_request_required}. Do not mix candidate_draft and source_request fields. "
-        "Use prompt-visible task/eval summaries only as read-only evidence; do not treat them as "
-        "candidate-controllable targets. Do not read non-prompt files, environment variables, raw "
-        "seeds, checkpoints, runner state, eval state, private budgets, private success metrics, "
-        "or private task invariants. Only use candidate-writable surfaces listed in the user payload. "
-        "Do not propose changes to runner code, eval protocol, training budget, seed policy, "
-        "checkpoint policy, PPO, task invariants, curriculum, or acceptance rules. Follow the "
-        "candidate package and component contracts in the user payload. Do not include secrets or "
-        "hidden/private data."
-    )
 
 
 def _join_url(base_url: str, endpoint: str) -> str:
@@ -845,7 +617,10 @@ def _resolved_thinking_mode(
     repair = prompt_payload.get("provider_or_runtime_repair_feedback")
     if (
         empty_final_reasoning_retry
-        and _is_empty_final_reasoning_retry_feedback(repair)
+        and (_is_empty_final_reasoning_retry_feedback(repair)
+             or (isinstance(repair, Mapping) and (
+                 repair.get("failure_category") == "reasoning_output_exhausted"
+                 or repair.get("reasoning_output_exhausted_in_lane") is True)))
     ):
         return "disabled"
     if (
@@ -864,9 +639,9 @@ def _receipt_proves_empty_final_content_with_reasoning(
 
     empty_sha256 = "sha256:" + hashlib.sha256(b"").hexdigest()
     return (
-        receipt.get("response_text_present") is True
-        and receipt.get("response_text_utf8_bytes") == 0
-        and receipt.get("response_text_sha256") == empty_sha256
+        (receipt.get("response_text_present") is False or (
+            receipt.get("response_text_utf8_bytes") == 0
+            and receipt.get("response_text_sha256") == empty_sha256))
         and receipt.get("reasoning_content_present") is True
         and isinstance(receipt.get("reasoning_content_utf8_bytes"), int)
         and not isinstance(receipt.get("reasoning_content_utf8_bytes"), bool)
@@ -878,12 +653,12 @@ def _receipt_proves_empty_final_content_with_reasoning(
 def _is_empty_final_reasoning_retry_feedback(value: Any) -> bool:
     if not isinstance(value, Mapping):
         return False
-    if value.get("failure_category") != "json_parse_error":
+    if value.get("failure_category") not in {"json_parse_error", "reasoning_output_exhausted"}:
         return False
     failure = value.get("failure")
     if (
         not isinstance(failure, Mapping)
-        or failure.get("category") != "json_parse_error"
+        or failure.get("category") != value.get("failure_category")
     ):
         return False
     details = failure.get("details")
@@ -901,6 +676,7 @@ def _provider_response_receipt(
     finish_reason: str | None,
     transport_policy_id: str | None,
     response_max_bytes: int | None,
+    model_context: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build content-free, bounded metadata for immutable attempt evidence."""
 
@@ -925,7 +701,8 @@ def _provider_response_receipt(
     )
     receipt: dict[str, Any] = {
         "schema_version": (
-            "true_rl_agent.provider_response_receipt.v3"
+            "true_rl_agent.provider_response_receipt.v4" if model_context is not None and transport_bound
+            else "true_rl_agent.provider_response_receipt.v3"
             if transport_bound
             else "true_rl_agent.provider_response_receipt.v1"
         ),
@@ -944,6 +721,15 @@ def _provider_response_receipt(
     if transport_bound:
         receipt["transport_policy_id"] = transport_policy_id
         receipt["response_max_bytes"] = response_max_bytes
+        if model_context is not None:
+            usage = normalize_provider_usage(response.get("usage"))
+            input_tokens = usage.get("request_units")
+            receipt["model_context"] = dict(model_context)
+            receipt["input_tokens"] = input_tokens
+            receipt["joint_capacity_status"] = (
+                "unknown_without_provider_usage" if input_tokens is None else "within_declared_window"
+                if input_tokens + int(request_payload["max_tokens"]) <= model_context["context_window_tokens"]
+                else "exceeds_declared_window")
     return normalize_provider_receipt(receipt)
 
 
@@ -986,62 +772,6 @@ def _text_receipt(prefix: str, value: str | None) -> dict[str, Any]:
         f"{prefix}_utf8_bytes": len(payload),
         f"{prefix}_sha256": "sha256:" + hashlib.sha256(payload).hexdigest(),
     }
-
-
-def _json_object_from_text(text: str, name: str) -> dict[str, Any]:
-    try:
-        return strict_json_object_loads(text, context=name)
-    except ValueError as strict_error:
-        extracted = _extract_first_json_object(text)
-        if extracted is None:
-            raise ValueError(f"{name} was not valid JSON: {_safe_error(text)}") from strict_error
-        try:
-            return strict_json_object_loads(extracted, context=name)
-        except ValueError as extracted_error:
-            raise ValueError(f"{name} contained an invalid JSON object: {_safe_error(text)}") from extracted_error
-
-
-def _extract_first_json_object(text: str) -> str | None:
-    start = text.find("{")
-    if start < 0:
-        return None
-    depth = 0
-    in_string = False
-    escaped = False
-    for index in range(start, len(text)):
-        char = text[index]
-        if in_string:
-            if escaped:
-                escaped = False
-            elif char == "\\":
-                escaped = True
-            elif char == '"':
-                in_string = False
-            continue
-        if char == '"':
-            in_string = True
-        elif char == "{":
-            depth += 1
-        elif char == "}":
-            depth -= 1
-            if depth == 0:
-                return text[start : index + 1]
-    return None
-
-
-def _require_text(value: Any, name: str) -> str:
-    if not isinstance(value, str) or not value.strip():
-        raise ValueError(f"{name} must be a non-empty string")
-    return value
-
-
-def _changed_components(value: Any) -> set[str]:
-    return set(validate_declared_changed_components(value))
-
-
-def _reject_secret_markers(text: str) -> None:
-    if contains_forbidden_public_value_marker(text):
-        raise ValueError("candidate text contains a secret-looking marker")
 
 
 def _safe_error(text: str) -> str:

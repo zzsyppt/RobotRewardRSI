@@ -22,6 +22,42 @@ from true_rl_agent.robots.base import (
 )
 from true_rl_agent.tasks.stair_climbing.config import STAIR_TASK_ID
 
+
+def stair_contact_force_history_snapshot(*, contact_sensor, resolved_projection,
+                                        runtime_projection, physics_dt: float,
+                                        control_dt: float, lazy_sensor_update: bool) -> dict:
+    """Copy the existing sensor buffer; do not infer contact pairs or surfaces."""
+    from true_rl_agent.backends.isaac_lab_arrays import as_torch
+
+    history = as_torch(contact_sensor.data.net_forces_w_history)
+    count = runtime_projection.contact_history_length
+    if history is None or history.ndim != 4 or history.shape[1] != count or history.shape[-1] != 3:
+        raise RuntimeError("Stair contact force history does not match the bound sensor history")
+    period = float(contact_sensor.cfg.update_period)
+    physics_dt, control_dt = float(physics_dt), float(control_dt)
+    if (not all(math.isfinite(v) and v > 0 for v in (period, physics_dt, control_dt))
+            or not math.isclose(period, physics_dt, rel_tol=1e-9)
+            or not math.isclose(control_dt / period, round(control_dt / period), rel_tol=1e-9)):
+        raise RuntimeError("Stair contact history requires the configured physics-step sensor update period")
+    return {
+        "support_contact_forces_w_history": history[:, :, resolved_projection.contact_support_body_ids, :].detach().clone(),
+        "forbidden_contact_forces_w_history": history[:, :, resolved_projection.contact_forbidden_body_ids, :].detach().clone(),
+        "contact_force_history": {
+            "schema_version": "true_rl_agent.stair.contact_force_history.v1",
+            "source": "contact_sensor.net_forces_w_history",
+            "force_semantics": "world_frame_net_normal_contact_force_N_not_contact_pair_or_surface",
+            "history_length": count, "history_order": "newest_to_oldest",
+            "history_clock": "contact_sensor_buffer_update_events",
+            "configured_sensor_update_period_s": period, "physics_dt_s": physics_dt, "control_dt_s": control_dt,
+            "physics_steps_per_control": round(control_dt / period),
+            "lazy_sensor_update": bool(lazy_sensor_update),
+            "per_history_slot_timestamps": "not_recorded; configured_update_period_is_not_observed_sample_spacing",
+            "coverage": "existing_sensor_buffer_at_pre_reset_control_step_end; not_full_physics_trajectory",
+            "reset_history": "sensor_zeroes_history_on_reset; no_per_slot_validity_flags",
+        },
+    }
+
+
 STAIR_RUNTIME_PROJECTION_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.runtime_projection.vnext.v1"
 )

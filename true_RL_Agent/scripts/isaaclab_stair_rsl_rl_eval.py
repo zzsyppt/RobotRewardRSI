@@ -18,6 +18,7 @@ if str(SRC_ROOT) not in sys.path:
 from true_rl_agent.backends.isaac_lab_execution_environment import (  # noqa: E402
     verify_current_isaac_lab_execution_environment,
 )
+from true_rl_agent.backends.isaac_lab_runtime import require_physx_success  # noqa: E402
 from true_rl_agent.evaluation.binding import require_sha256_digest  # noqa: E402
 from true_rl_agent.evaluation.phases import (  # noqa: E402
     EVALUATION_PHASE_SUMMARY_SCHEMA_VERSION,
@@ -27,21 +28,26 @@ from true_rl_agent.runner.checkpoint import (  # noqa: E402
     build_checkpoint_safety_report,
 )
 from true_rl_agent.runner.isaac_app_lifecycle import (  # noqa: E402
+    bind_isaac_log_path,
     close_isaac_app_on_success,
+)
+from true_rl_agent.runner.native_video import (  # noqa: E402
+    add_native_video_arguments, native_video_options_from_args,
 )
 from true_rl_agent.runner.specs import require_execution_device  # noqa: E402
 from true_rl_agent.tasks.stair_climbing.entrypoint_contract import (  # noqa: E402
     STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION,
     STAIR_EVAL_PURPOSE_FORMAL,
+    STAIR_EVAL_PURPOSE_PUBLIC_DEV_DIAGNOSTIC,
     StairEvalEntrypointContext,
     validate_stair_eval_invocation,
 )
-from true_rl_agent.tasks.stair_climbing.gpu_process_binding import (  # noqa: E402
-    StairGpuRuntimeBinding,
-    add_stair_gpu_process_binding_arguments,
-    attach_stair_gpu_runtime_evidence,
-    capture_stair_gpu_compute_context,
-    validate_stair_gpu_process_binding_invocation,
+from true_rl_agent.runner.gpu_process_binding import (  # noqa: E402
+    GpuRuntimeBinding,
+    add_gpu_process_binding_arguments,
+    attach_gpu_runtime_evidence,
+    capture_gpu_compute_context,
+    validate_gpu_process_binding_invocation,
 )
 from true_rl_agent.tasks.stair_climbing.phased_evaluation import (  # noqa: E402
     STAIR_FULL_EVAL_SUMMARY_SCHEMA_VERSION,
@@ -89,17 +95,23 @@ def _build_parser(app_launcher_class: Any) -> argparse.ArgumentParser:
     ):
         required_actions.append(parser.add_argument(option))
     parser.add_argument("--evaluation-phase")
+    parser.add_argument("--stair-final-plan", type=Path)
     parser.add_argument("--evaluation-plan-hash")
     parser.add_argument("--base-task-protocol-hash", default=None)
+    parser.add_argument("--diagnostic-cohort", default="v1")
     parser.add_argument(
         "--stair-eval-purpose",
         choices=(
             STAIR_EVAL_PURPOSE_FORMAL,
             STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION,
+            STAIR_EVAL_PURPOSE_PUBLIC_DEV_DIAGNOSTIC,
         ),
         default=STAIR_EVAL_PURPOSE_FORMAL,
     )
     add_resolved_cell_manifest_arguments(parser)
+    add_native_video_arguments(parser)
+    parser.add_argument("--numeric-evidence-dir", type=Path)
+    parser.add_argument("--numeric-evidence-max-bytes", type=int, default=2 * 1024**3)
     for option in (
         "--public-seeds",
         "--public-accept-seeds",
@@ -109,7 +121,7 @@ def _build_parser(app_launcher_class: Any) -> argparse.ArgumentParser:
     ):
         required_actions.append(parser.add_argument(option, type=int))
     app_launcher_class.add_app_launcher_args(parser)
-    add_stair_gpu_process_binding_arguments(parser)
+    add_gpu_process_binding_arguments(parser)
     for action in required_actions:
         action.required = True
     parser.set_defaults(headless=True)
@@ -135,12 +147,13 @@ def main(
         app_launcher_class = AppLauncher
 
     args = _build_parser(app_launcher_class).parse_args(argv)
+    args.native_video = native_video_options_from_args(args)
     try:
         args.device = require_execution_device(
             args.device,
             "stair eval execution device",
         )
-        gpu_runtime_binding = validate_stair_gpu_process_binding_invocation(
+        gpu_runtime_binding = validate_gpu_process_binding_invocation(
             args,
             environment=os.environ,
         )
@@ -186,6 +199,7 @@ def main(
         print(str(checkpoint_report["reason"]), file=sys.stderr)
         return 2
 
+    bind_isaac_log_path(args, args.summary_path)
     app_launcher = (
         app_launcher_class(args, multi_gpu=False)
         if gpu_runtime_binding is not None
@@ -223,11 +237,11 @@ def main(
                 gpu_runtime_binding=gpu_runtime_binding,
             )
         compute_context_observation = (
-            capture_stair_gpu_compute_context(gpu_runtime_binding)
+            capture_gpu_compute_context(gpu_runtime_binding)
             if gpu_runtime_binding is not None
             else None
         )
-        summary = attach_stair_gpu_runtime_evidence(
+        summary = attach_gpu_runtime_evidence(
             summary,
             gpu_runtime_binding,
             compute_context_observation=compute_context_observation,
@@ -238,6 +252,7 @@ def main(
 
         summary_path = _local_output_path(args.summary_path, "summary_path")
         summary_path.parent.mkdir(parents=True, exist_ok=True)
+        require_physx_success(summary_path.with_suffix(".kit.log"))
         summary_path.write_text(
             json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
             encoding="utf-8",
@@ -292,6 +307,17 @@ def _run_eval(
         splits=splits,
         runtime_lease=runtime_lease,
         resolved_cell_manifest=getattr(args, "resolved_cell_manifest", None),
+        native_video=getattr(args, "native_video", None),
+        numeric_evidence_dir=getattr(args, "numeric_evidence_dir", None),
+        numeric_evidence_max_bytes=getattr(args, "numeric_evidence_max_bytes", 2 * 1024**3),
+        numeric_evidence_identity={
+            **context.identity.to_public_dict(),
+            "program_source_checksum": context.program_source_checksum,
+            "training_binding_hash": context.training_binding_hash,
+            "capability_profile_hash": context.capability_profile_hash,
+            "evaluation_binding": context.evaluation_binding.to_public_dict(),
+            "evaluation_plan_hash": getattr(args, "evaluation_plan_hash", None),
+        },
     )
     if phase is not None:
         assert args.evaluation_plan_hash is not None
@@ -336,7 +362,7 @@ def _failure_summary(
     error: BaseException,
     phase: EvaluationPhase | None = None,
     evaluation_plan_hash: str | None = None,
-    gpu_runtime_binding: StairGpuRuntimeBinding | None = None,
+    gpu_runtime_binding: GpuRuntimeBinding | None = None,
 ) -> dict[str, Any]:
     result = {
         "schema_version": (

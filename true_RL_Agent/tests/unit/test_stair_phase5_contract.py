@@ -28,7 +28,7 @@ from true_rl_agent.tasks.stair_climbing.reference_program import (
     resolve_official_stair_reference_program,
 )
 from true_rl_agent.tasks.stair_climbing.robot_binding import (
-    STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+    STAIR_GO2_12DOF_UNIFIED_V2_CELL_VARIANT_ID,
     resolve_stair_cell_manifest,
 )
 from true_rl_agent.tasks.stair_climbing.runtime_projection import (
@@ -93,13 +93,18 @@ class StairPhase5ContractTests(unittest.TestCase):
             },
         )
         runtime = isaaclab_locomotion_runtime_spec(adapter.runtime_adapter_id)
-        self.assertIn("config.go2.rough_env_cfg", runtime.environment_cfg_entrypoint)
+        self.assertEqual(runtime.environment_cfg_entrypoint,
+                         "true_rl_agent.robots.isaaclab_locomotion:_go2_environment_cfg")
+        self.assertIn(
+            "manager_based/locomotion/velocity/config/go2/rough_env_cfg.py",
+            [source.package_relative_path for source in runtime.upstream_sources],
+        )
         self.assertEqual(runtime.agent_configuration.algorithm["entropy_coef"], 0.01)
 
     def test_go2_binding_compiles_one_four_support_unified_cell(self) -> None:
         self.assertEqual(
             self.config.cell_variant_id,
-            STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+            STAIR_GO2_12DOF_UNIFIED_V2_CELL_VARIANT_ID,
         )
         self.assertEqual(
             self.manifest.robot_profile["robot_profile_id"],
@@ -120,7 +125,7 @@ class StairPhase5ContractTests(unittest.TestCase):
         values = StairClimbingCompositionConfig.defaults(
             project_root=ROOT
         ).to_task_defaults()
-        values["cell_variant_id"] = STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID
+        values["cell_variant_id"] = STAIR_GO2_12DOF_UNIFIED_V2_CELL_VARIANT_ID
         selected = StairClimbingCompositionConfig.from_values(
             values
         ).bind_selected_cell_contract(project_root=ROOT)

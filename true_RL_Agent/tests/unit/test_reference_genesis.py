@@ -6,6 +6,7 @@ import sys
 import tempfile
 import unittest
 from concurrent.futures import ThreadPoolExecutor
+from copy import deepcopy
 from dataclasses import replace
 from pathlib import Path
 from threading import Event
@@ -460,6 +461,12 @@ class _PhasedReferenceRunner(_ReferenceRunner):
 
 
 class _ReferencePhasedAdapter:
+    def __init__(self, gate_status=None):
+        self.gate_status = gate_status
+
+    def project_reference_public_dev_gate(self, *, phase_result):
+        return None if self.gate_status is None else {"status": self.gate_status}
+
     def assemble_reference_full_summary(
         self,
         *,
@@ -803,13 +810,19 @@ def _reference_program_for_task(
     )
 
 
-def _reference_fixture(tmp_path: Path) -> dict[str, object]:
+def _reference_fixture(tmp_path: Path, *, scientific: bool = False) -> dict[str, object]:
     task = _ReferenceTaskPlugin()
     backend = _ReferenceBackend()
     runner = _ReferenceRunner()
     binding = backend.evaluation_binding_for(task.task_spec)
     source, reference = _reference_program_for_task(tmp_path, task)
     genesis_identity_snapshot = {"fixture": "reference-session-v1"}
+    if scientific:
+        genesis_identity_snapshot = {
+            "schema_version": "true_rl_agent.runtime_composition_snapshot.v3",
+            "scientific": {"fixture": "reference-session-v1", "budget_steps": 128},
+            "execution_placement": {"project_root": str(tmp_path), "execution_device": "cuda:0"},
+        }
     genesis = prepare_session_genesis(
         output_dir=tmp_path,
         session_id="reference-session",
@@ -1076,6 +1089,89 @@ def _run_reference_live_case(
 
 
 class ReferenceGenesisContractTests(unittest.TestCase):
+    def test_scientific_import_owns_checkpoint_and_preserves_origin_on_resume(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source_dir = root / "source"
+            source_dir.mkdir()
+            fixture = _reference_fixture(source_dir, scientific=True)
+            source = fixture["genesis"]
+            origin_bytes = source.artifact_path.read_bytes()
+            target = root / "new-session"
+            contract_ref = _publish_test_generation_contract(
+                target,
+                session_id="import-owned",
+                task=fixture["task"],
+                backend=fixture["backend"],
+            )
+            snapshot = deepcopy(fixture["genesis_identity_snapshot"])
+            snapshot["execution_placement"] = {
+                "project_root": "/relocated/project",
+                "execution_device": "cuda:1",
+            }
+            kwargs = dict(
+                output_dir=target,
+                session_id="import-owned",
+                task_plugin=fixture["task"],
+                backend_adapter=fixture["backend"],
+                runner=fixture["runner"],
+                policy_initialization=PolicyInitialization.random(),
+                genesis_identity_snapshot=snapshot,
+                reference_program_artifact=fixture["reference"],
+                generation_session_contract_ref=contract_ref,
+                source_reference_genesis_dir=source_dir,
+                source_reference_session_id="reference-session",
+            )
+            imported = prepare_session_genesis(**kwargs)
+            self.assertEqual(
+                imported.artifact.runtime_snapshot_hash,
+                source.artifact.runtime_snapshot_hash,
+            )
+            local_checkpoint = Path(
+                imported.reference_eval_plan().checkpoint.metadata["local_path"]
+            )
+            self.assertEqual(local_checkpoint, target / "reference_checkpoint.pt")
+            self.assertEqual(
+                file_sha256(local_checkpoint), source.artifact.anchor.checkpoint_hash
+            )
+            self.assertEqual(imported.artifact.anchor, source.artifact.anchor)
+            for original in {
+                Path(source.artifact.anchor.checkpoint_artifact.uri),
+                source_dir / "reference_checkpoint.pt",
+            }:
+                original.chmod(0o600)
+                original.unlink()
+            reloaded = prepare_session_genesis(**kwargs, require_existing=True)
+            self.assertEqual(
+                reloaded.reference_eval_plan().checkpoint.metadata["local_path"],
+                str(local_checkpoint),
+            )
+            self.assertEqual(
+                reloaded.session_genesis_hash, imported.session_genesis_hash
+            )
+            self.assertEqual(source.artifact_path.read_bytes(), origin_bytes)
+            self.assertEqual(
+                (fixture["runner"].train_calls, fixture["runner"].eval_calls), (1, 1)
+            )
+            changed = deepcopy(snapshot)
+            changed["scientific"]["budget_steps"] += 1
+            with self.assertRaisesRegex(ValueError, "identity drift"):
+                prepare_session_genesis(
+                    **{**kwargs, "genesis_identity_snapshot": changed},
+                    require_existing=True,
+                )
+            local_checkpoint.chmod(0o600)
+            content = local_checkpoint.read_bytes()
+            local_checkpoint.write_bytes(bytes([content[0] ^ 1]) + content[1:])
+            with self.assertRaisesRegex(ValueError, "checkpoint copy bytes changed"):
+                prepare_session_genesis(**kwargs, require_existing=True)
+            self.assertEqual(
+                (fixture["runner"].train_calls, fixture["runner"].eval_calls), (1, 1)
+            )
+            self.assertEqual(source.artifact_path.read_bytes(), origin_bytes)
+
     def test_reference_eval_plan_restores_private_checkpoint_for_process_preflight(
         self,
     ) -> None:
@@ -1658,6 +1754,38 @@ class ReferenceGenesisContractTests(unittest.TestCase):
             self.assertEqual(loaded.session_genesis_hash, created.session_genesis_hash)
             self.assertEqual(runner.phase_calls, list(EvaluationPhase))
 
+    def test_reference_dev_gate_stops_before_holdouts_and_reuses_failed_receipt(self):
+        from unittest.mock import patch
+        from true_rl_agent.agent_core.session_genesis import _run_reference_phased_evaluation
+
+        for status in ("pass", "fail"):
+            with self.subTest(status=status), tempfile.TemporaryDirectory() as tmp:
+                output_dir = Path(tmp)
+                task, backend, runner = _ReferenceTaskPlugin(), _CountingReferenceBackend(), _PhasedReferenceRunner()
+                _, reference = _reference_program_for_task(output_dir, task)
+                kwargs = dict(output_dir=output_dir, session_id="dev-gated-reference", task_plugin=task,
+                    backend_adapter=backend, runner=runner, policy_initialization=PolicyInitialization.random(),
+                    genesis_identity_snapshot={"fixture": "dev-gated-reference"}, reference_program_artifact=reference,
+                    reference_phased_evaluation_adapter=_ReferencePhasedAdapter(status))
+                with patch("true_rl_agent.agent_core.session_genesis._run_reference_phased_evaluation",
+                           wraps=_run_reference_phased_evaluation) as invoked:
+                    if status == "fail":
+                        with self.assertRaisesRegex(ValueError, "task-owned public-dev gate"):
+                            prepare_session_genesis(**kwargs)
+                    else:
+                        prepare_session_genesis(**kwargs)
+                gate_path = output_dir / "reference_public_dev_gate.json"
+                original = (gate_path.read_bytes(), gate_path.stat().st_mtime_ns)
+                self.assertEqual(json.loads(original[0])["task_gate"]["status"], status)
+                self.assertEqual(runner.phase_calls, [EvaluationPhase.PUBLIC_DEV] if status == "fail" else list(EvaluationPhase))
+                self.assertEqual(runner.train_calls, 1)
+                if status == "fail":
+                    self.assertFalse((output_dir / SESSION_GENESIS_FILENAME).exists())
+                    with self.assertRaisesRegex(ValueError, "task-owned public-dev gate"):
+                        _run_reference_phased_evaluation(**invoked.call_args.kwargs)
+                    self.assertEqual(runner.phase_calls, [EvaluationPhase.PUBLIC_DEV])
+                    self.assertEqual((gate_path.read_bytes(), gate_path.stat().st_mtime_ns), original)
+
     def test_gpu_bound_phased_reference_round_trips_three_receipts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             output_dir = Path(tmp)
@@ -1919,6 +2047,26 @@ class ReferenceGenesisContractTests(unittest.TestCase):
             self.assertFalse((tmp_path / SESSION_GENESIS_FILENAME).exists())
             self.assertFalse((tmp_path / "reference_eval_artifact.json").exists())
             self.assertFalse((tmp_path / "ledger.jsonl").exists())
+            failure = json.loads(
+                (tmp_path / "reference_qualification_failure.json").read_text("utf-8")
+            )
+            self.assertEqual(failure["session_id"], "failed-reference-session")
+            self.assertEqual(failure["reference_manifest_hash"], reference.manifest.manifest_hash)
+            self.assertEqual(failure["qualification_gate"]["status"], "fail")
+            evidence = failure["qualification_evidence"]
+            self.assertEqual(evidence["result"], "fixture-fail")
+            self.assertEqual(
+                failure["qualification_gate"]["evidence_hash"],
+                canonical_json_hash({k: v for k, v in evidence.items() if k != "evidence_hash"}),
+            )
+            self.assertEqual(
+                failure["evaluation_binding"]["task_protocol_hash"],
+                task.task_spec.resolved_task_protocol_hash(),
+            )
+            from true_rl_agent.agent_core.session_genesis import _reject_partial_session_without_genesis
+            with self.assertRaisesRegex(ValueError, "reference_qualification_failure.json"):
+                _reject_partial_session_without_genesis(
+                    tmp_path, session_id="failed-reference-session", allow_pre_genesis_state=True)
 
     def test_wrong_qualification_protocol_fails_before_genesis_commit(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -1945,6 +2093,7 @@ class ReferenceGenesisContractTests(unittest.TestCase):
             self.assertFalse((tmp_path / SESSION_GENESIS_FILENAME).exists())
             self.assertFalse((tmp_path / "reference_eval_artifact.json").exists())
             self.assertFalse((tmp_path / "ledger.jsonl").exists())
+            self.assertFalse((tmp_path / "reference_qualification_failure.json").exists())
 
     def test_restores_current_best_and_source_projection(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -1966,6 +2115,14 @@ class ReferenceGenesisContractTests(unittest.TestCase):
                 canonical_json_hash(anchor_evidence["public_result"]),
                 anchor_evidence["public_result_hash"],
             )
+            builder = PublicContextBuilder(
+                acceptance_protocol=FAKE_ACCEPTANCE_PROTOCOL,
+                initial_current_best=genesis.initial_current_best,
+                initial_anchor_public_evidence=anchor_evidence,
+            )
+            self.assertEqual(builder.initial_anchor_public_evidence, anchor_evidence)
+            self.assertEqual(anchor_evidence["training_runtime"]["checkpoint_hash"],
+                             genesis.initial_current_best.checkpoint_hash)
             tampered = json.loads(json.dumps(anchor_evidence))
             tampered["public_result"]["public_score"] = 0.99
             with self.assertRaisesRegex(ValueError, "hash mismatch"):

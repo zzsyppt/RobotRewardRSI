@@ -43,6 +43,23 @@ class StairClimbingTaskPlugin(TaskPlugin):
 
     curriculum_capabilities: Mapping[str, Mapping[str, Any]] = {}
 
+    def bind_training_diagnostics(self, train_spec, *, parent_source, parent_evidence,
+                                  mechanism_operation_delta):
+        from true_rl_agent.tasks.stair_climbing.training_diagnostics import bind_stair_training_diagnostics
+        return bind_stair_training_diagnostics(train_spec, parent_source=parent_source,
+            parent_evidence=parent_evidence, mechanism_operation_delta=mechanism_operation_delta)
+
+    def training_runtime_issue(self, *, train_summary, mechanism_operation_delta):
+        from true_rl_agent.tasks.stair_climbing.public_projection import build_stair_candidate_runtime_effect_evidence
+        evidence = build_stair_candidate_runtime_effect_evidence(train_summary,
+            mechanism_operation_delta=mechanism_operation_delta)
+        # Old sampled-only evidence cannot establish full-transition inactivity.
+        runtime = train_summary.get("runtime_activation_summary", {})
+        comparison = runtime.get("operation_effect", {})
+        if evidence["status"] == "fail" and comparison.get("coverage") == "all_dispatched_training_transitions":
+            return evidence
+        return None
+
     def robot_requirements(self) -> RobotRequirements:
         return RobotRequirements(
             roles=(
@@ -473,6 +490,39 @@ class StairClimbingTaskPlugin(TaskPlugin):
         return StairPhasedEvaluationAdapter(
             self.config,
             objective_family_mask_provider=self.objective_family_mask,
+        )
+
+    def bind_genesis_evidence(self, public_evidence: Mapping[str, Any]) -> None:
+        if self.config.is_unified_protocol:
+            from true_rl_agent.tasks.stair_climbing.unified_scoring import objective_family_mask_from_public_result
+
+            self.bind_objective_family_mask(objective_family_mask_from_public_result(
+                suite=self.config.ordered_evaluation_suite,
+                public_result=public_evidence.get("public_result"),
+            ))
+
+    def bind_final_eval_plan(self, eval_plan, *, plan, plan_path):
+        from true_rl_agent.tasks.stair_climbing.generation_finalization import bind_stair_final_job
+
+        return bind_stair_final_job(eval_plan, config=self.config, plan=plan, plan_path=plan_path)
+
+    def summarize_final_comparison(self, *, plan, plan_path, reference, final):
+        from true_rl_agent.tasks.stair_climbing.generation_finalization import summarize_stair_final_comparison
+
+        return summarize_stair_final_comparison(config=self.config, plan=plan,
+            plan_path=plan_path, reference=reference, final=final,
+            objective_family_mask=self.objective_family_mask())
+
+    def prepare_final_confirmation(
+        self, *, output_dir, session_id, required_closed_generations,
+        resume_existing, replication_source=None,
+    ):
+        from true_rl_agent.tasks.stair_climbing.generation_finalization import prepare_stair_final_plan
+
+        return prepare_stair_final_plan(
+            output_dir=output_dir, session_id=session_id, config=self.config,
+            required_closed_generations=required_closed_generations,
+            resume_existing=resume_existing, replication_source=replication_source,
         )
 
 

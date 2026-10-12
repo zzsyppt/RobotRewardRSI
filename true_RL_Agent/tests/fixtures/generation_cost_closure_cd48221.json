@@ -1,0 +1,1084 @@
+{
+  "closure": {
+    "acceptance_authority": false,
+    "actual_cost_receipt": {
+      "event_id": "generation-001-settlement",
+      "path": "/data/yuyangliu/AGENT/p4_baseline_cd48221/formal-output/generation_actual_cost/0003-generation-001-settlement.json",
+      "payload_hash": "93d5aa670541b71d05953bbb9e097b1cfedff923dc89787c2f7392d2ab2418f3"
+    },
+    "closed_by_segment_id": "93a8f5216bcf4029aebf998a73d1197c",
+    "closure_hash": "409c81a3d41887a09db72817b692abaf573ffbab90f08ce08ee3fda64fe948c2",
+    "generation_execution_receipt": {
+      "checksum": "sha256:5c5575d9a61be68db88825cffd5a3a9eaea37b156081bd9cdb8c0b3a52225410",
+      "kind": "execution",
+      "path": "/data/yuyangliu/AGENT/p4_baseline_cd48221/formal-output/generation_receipts/p6d-production-shaped-fixture-generation-001/a69c1c37fea49d5d6fc5610b7b512c434445d0a3631119b719760b7d60a5f12a/execution.json",
+      "schema_version": "true_rl_agent.generation_receipt_ref.v1",
+      "size_bytes": 18555
+    },
+    "generation_execution_receipt_hash": "7ad90055bbefc38cf2eb0d5bb249ef9fb6578e80ad1e629980e133464d598e74",
+    "generation_id": "p6d-production-shaped-fixture-generation-001",
+    "generation_index": 1,
+    "generation_record_hash": "2a0d98d998c9803b84558e7ea1989b51c711d47d9c89b0b46a62a5b7efc188e3",
+    "ledger_prefix_hash": "493be4a518f27f3a21001d28deb7db6832f895aafab27cd55638ddfcff7935b0",
+    "resource_evidence": {
+      "acceptance_authority": false,
+      "attempt_chain": {
+        "closed_result_count": 4,
+        "generation_index": 1,
+        "open_reservation_count": 0,
+        "reservation_count": 4,
+        "schema_version": "true_rl_agent.stair.generation_attempt_chain_closure.v2",
+        "source": "validated-job-attempt-journal"
+      },
+      "completed_bound_job_count": 4,
+      "final_compute_idle": {
+        "rows": [],
+        "schema_version": "true_rl_agent.stair.generation_compute_idle.v1",
+        "source": "nvidia-smi-query-compute-apps",
+        "stage": "final",
+        "target_gpu_uuids": [
+          "GPU-00000000-0000-0000-0000-000000000001",
+          "GPU-00000000-0000-0000-0000-000000000002"
+        ]
+      },
+      "generation_index": 1,
+      "lease_reacquire": {
+        "passed": true,
+        "resource_binding_hashes": [
+          "af5650bfc19fa04518d3d138bb0d3584416f3aa6496dba4c78e732e3d60c2260",
+          "b842183da19176bb29f4ba9815d04cb9550db9365171fcf3c9feb9bc901c5097"
+        ],
+        "simultaneous": true
+      },
+      "schema_version": "true_rl_agent.stair.generation_resource_closure.v2",
+      "startup_compute_idle": {
+        "rows": [],
+        "schema_version": "true_rl_agent.stair.generation_compute_idle.v1",
+        "source": "nvidia-smi-query-compute-apps",
+        "stage": "startup",
+        "target_gpu_uuids": [
+          "GPU-00000000-0000-0000-0000-000000000001",
+          "GPU-00000000-0000-0000-0000-000000000002"
+        ]
+      },
+      "summaries": [
+        {
+          "external_compute_context_observation": {
+            "monotonic_ns": 3579084,
+            "process_id": 3579084,
+            "rows": [
+              {
+                "gpu_uuid": "GPU-00000000-0000-0000-0000-000000000001",
+                "used_gpu_memory_mib": 1
+              }
+            ],
+            "schema_version": "true_rl_agent.task.stair_climbing.gpu_compute_context_observation.v1",
+            "source": "nvidia-smi-query-compute-apps"
+          },
+          "gpu_process_binding": {
+            "host_execution_device": "cuda:0",
+            "process_execution_device": "cuda:0",
+            "resource_binding_hash": "af5650bfc19fa04518d3d138bb0d3584416f3aa6496dba4c78e732e3d60c2260"
+          },
+          "job_id": "p6d-production-shaped-fixture-eval-public-accept",
+          "process_group_id": 3579084,
+          "process_id": 3579084,
+          "raw_sha256": "8e1fd0501e2976191fe44e5d751680628bb32b08686cf4c11e8fa480cf898a00",
+          "relative_path": "runner/p6d-production-shaped-fixture/eval/public_accept/summary.json"
+        },
+        {
+          "external_compute_context_observation": {
+            "monotonic_ns": 5972557,
+            "process_id": 5972557,
+            "rows": [
+              {
+                "gpu_uuid": "GPU-00000000-0000-0000-0000-000000000001",
+                "used_gpu_memory_mib": 1
+              }
+            ],
+            "schema_version": "true_rl_agent.task.stair_climbing.gpu_compute_context_observation.v1",
+            "source": "nvidia-smi-query-compute-apps"
+          },
+          "gpu_process_binding": {
+            "host_execution_device": "cuda:0",
+            "process_execution_device": "cuda:0",
+            "resource_binding_hash": "af5650bfc19fa04518d3d138bb0d3584416f3aa6496dba4c78e732e3d60c2260"
+          },
+          "job_id": "p6d-production-shaped-fixture-eval-public-dev",
+          "process_group_id": 5972557,
+          "process_id": 5972557,
+          "raw_sha256": "8c9bc44dabbc526c0a55cac3e02e31c00fb555ea1350b41a2998d1074dae16fe",
+          "relative_path": "runner/p6d-production-shaped-fixture/eval/public_dev/summary.json"
+        },
+        {
+          "external_compute_context_observation": {
+            "monotonic_ns": 11437072,
+            "process_id": 11437072,
+            "rows": [
+              {
+                "gpu_uuid": "GPU-00000000-0000-0000-0000-000000000001",
+                "used_gpu_memory_mib": 1
+              }
+            ],
+            "schema_version": "true_rl_agent.task.stair_climbing.gpu_compute_context_observation.v1",
+            "source": "nvidia-smi-query-compute-apps"
+          },
+          "gpu_process_binding": {
+            "host_execution_device": "cuda:0",
+            "process_execution_device": "cuda:0",
+            "resource_binding_hash": "af5650bfc19fa04518d3d138bb0d3584416f3aa6496dba4c78e732e3d60c2260"
+          },
+          "job_id": "p6d-production-shaped-fixture-eval-sealed-validation",
+          "process_group_id": 11437072,
+          "process_id": 11437072,
+          "raw_sha256": "a7b66a470dd806649f8313d7bdea5d12f6af18ded57e602c226b5311a54d9513",
+          "relative_path": "runner/p6d-production-shaped-fixture/eval/sealed_validation/summary.json"
+        },
+        {
+          "external_compute_context_observation": {
+            "monotonic_ns": 9265114,
+            "process_id": 9265114,
+            "rows": [
+              {
+                "gpu_uuid": "GPU-00000000-0000-0000-0000-000000000001",
+                "used_gpu_memory_mib": 1
+              }
+            ],
+            "schema_version": "true_rl_agent.task.stair_climbing.gpu_compute_context_observation.v1",
+            "source": "nvidia-smi-query-compute-apps"
+          },
+          "gpu_process_binding": {
+            "host_execution_device": "cuda:0",
+            "process_execution_device": "cuda:0",
+            "resource_binding_hash": "af5650bfc19fa04518d3d138bb0d3584416f3aa6496dba4c78e732e3d60c2260"
+          },
+          "job_id": "p6d-production-shaped-fixture-train",
+          "process_group_id": 9265114,
+          "process_id": 9265114,
+          "raw_sha256": "cbe1458172a0006a540e9426c4c160aa70eecfc5b8e9395007c39eecdbb9d00d",
+          "relative_path": "runner/p6d-production-shaped-fixture/train/summary.json"
+        }
+      ]
+    },
+    "resource_evidence_hash": "7e5c20608785de7e38bfd63252918e06233464100cd35dc87813d24644366c6a",
+    "resulting_current_best_hash": "803acd80ec518903f73795c261649fc6b366522982f57e693d4eea3f3cc241a5",
+    "schema_version": "true_rl_agent.stair.generation_closure.v1",
+    "session_id": "p6d-production-shaped-fixture"
+  },
+  "cost_contract": {
+    "contract_hash": "607719bfbcca00840a8acfc0a57e47f1e942d59bb9a716ccde275610ab0c38de",
+    "max_generations": 15,
+    "operation_reserves": {
+      "derivation": {
+        "capacity_time_unit": "allocated_gpu_capacity_ns",
+        "headroom_denominator": 4,
+        "headroom_numerator": 5,
+        "output_unit": "bytes",
+        "rule": "ceil_per_operation"
+      },
+      "entries": [
+        {
+          "allocated_gpu_capacity_ns": 4641895451453,
+          "allocated_gpu_capacity_ns_per_attempt": 4641895451453,
+          "budget_class": "successful_session",
+          "multiplicity": 1,
+          "operation_class": "reference_train",
+          "output_bytes": 417640512,
+          "output_bytes_per_attempt": 417640512,
+          "source_allocated_gpu_capacity_ns_per_attempt": 3713516361162,
+          "source_output_bytes_per_attempt": 334112409
+        },
+        {
+          "allocated_gpu_capacity_ns": 1090062590938,
+          "allocated_gpu_capacity_ns_per_attempt": 1090062590938,
+          "budget_class": "successful_session",
+          "multiplicity": 1,
+          "operation_class": "reference_qualification",
+          "output_bytes": 356293,
+          "output_bytes_per_attempt": 356293,
+          "source_allocated_gpu_capacity_ns_per_attempt": 872050072750,
+          "source_output_bytes_per_attempt": 285034
+        },
+        {
+          "allocated_gpu_capacity_ns": 69897379577610,
+          "allocated_gpu_capacity_ns_per_attempt": 4659825305174,
+          "budget_class": "successful_session",
+          "multiplicity": 15,
+          "operation_class": "lane_a_train",
+          "output_bytes": 6264607680,
+          "output_bytes_per_attempt": 417640512,
+          "source_allocated_gpu_capacity_ns_per_attempt": 3727860244139,
+          "source_output_bytes_per_attempt": 334112409
+        },
+        {
+          "allocated_gpu_capacity_ns": 71085423489600,
+          "allocated_gpu_capacity_ns_per_attempt": 4739028232640,
+          "budget_class": "successful_session",
+          "multiplicity": 15,
+          "operation_class": "lane_b_train",
+          "output_bytes": 6264607680,
+          "output_bytes_per_attempt": 417640512,
+          "source_allocated_gpu_capacity_ns_per_attempt": 3791222586112,
+          "source_output_bytes_per_attempt": 334112409
+        },
+        {
+          "allocated_gpu_capacity_ns": 3835890684900,
+          "allocated_gpu_capacity_ns_per_attempt": 255726045660,
+          "budget_class": "successful_session",
+          "multiplicity": 15,
+          "operation_class": "lane_a_public_dev",
+          "output_bytes": 1549425,
+          "output_bytes_per_attempt": 103295,
+          "source_allocated_gpu_capacity_ns_per_attempt": 204580836528,
+          "source_output_bytes_per_attempt": 82636
+        },
+        {
+          "allocated_gpu_capacity_ns": 3677903444475,
+          "allocated_gpu_capacity_ns_per_attempt": 245193562965,
+          "budget_class": "successful_session",
+          "multiplicity": 15,
+          "operation_class": "lane_b_public_dev",
+          "output_bytes": 1549425,
+          "output_bytes_per_attempt": 103295,
+          "source_allocated_gpu_capacity_ns_per_attempt": 196154850372,
+          "source_output_bytes_per_attempt": 82636
+        },
+        {
+          "allocated_gpu_capacity_ns": 6278813136870,
+          "allocated_gpu_capacity_ns_per_attempt": 418587542458,
+          "budget_class": "successful_session",
+          "multiplicity": 15,
+          "operation_class": "lane_a_public_accept",
+          "output_bytes": 2094885,
+          "output_bytes_per_attempt": 139659,
+          "source_allocated_gpu_capacity_ns_per_attempt": 334870033966,
+          "source_output_bytes_per_attempt": 111727
+        },
+        {
+          "allocated_gpu_capacity_ns": 5899646135955,
+          "allocated_gpu_capacity_ns_per_attempt": 393309742397,
+          "budget_class": "successful_session",
+          "multiplicity": 15,
+          "operation_class": "lane_b_public_accept",
+          "output_bytes": 2094885,
+          "output_bytes_per_attempt": 139659,
+          "source_allocated_gpu_capacity_ns_per_attempt": 314647793917,
+          "source_output_bytes_per_attempt": 111727
+        },
+        {
+          "allocated_gpu_capacity_ns": 8748013910486,
+          "allocated_gpu_capacity_ns_per_attempt": 514589053558,
+          "budget_class": "successful_session",
+          "multiplicity": 17,
+          "operation_class": "sealed_validation",
+          "output_bytes": 2742695,
+          "output_bytes_per_attempt": 161335,
+          "source_allocated_gpu_capacity_ns_per_attempt": 411671242846,
+          "source_output_bytes_per_attempt": 129068
+        },
+        {
+          "allocated_gpu_capacity_ns": 4739028232640,
+          "allocated_gpu_capacity_ns_per_attempt": 4739028232640,
+          "budget_class": "retry_reserve",
+          "multiplicity": 1,
+          "operation_class": "reference_train_retry",
+          "output_bytes": 417640512,
+          "output_bytes_per_attempt": 417640512,
+          "source_allocated_gpu_capacity_ns_per_attempt": 3791222586112,
+          "source_output_bytes_per_attempt": 334112409
+        },
+        {
+          "allocated_gpu_capacity_ns": 514589053558,
+          "allocated_gpu_capacity_ns_per_attempt": 514589053558,
+          "budget_class": "retry_reserve",
+          "multiplicity": 1,
+          "operation_class": "sealed_validation_retry",
+          "output_bytes": 161335,
+          "output_bytes_per_attempt": 161335,
+          "source_allocated_gpu_capacity_ns_per_attempt": 411671242846,
+          "source_output_bytes_per_attempt": 129068
+        }
+      ],
+      "physical_unallocated_headroom": {
+        "allocated_gpu_capacity_ns": 1391354291515,
+        "output_bytes": 1120469297
+      },
+      "schema_version": "true_rl_agent.stair.generation_operation_reserves.v2",
+      "source": {
+        "g4_audit_sha256": "ad691299c0ca5b08383f984a68f514d987c1831cdd3b24d367a9ca34d7266a93",
+        "session_id": "p6c-415bfad-20260823T042422Z",
+        "source_commit": "415bfad6eb6e85c6cf0cf94851c6b39d1067116b"
+      },
+      "totals": {
+        "retry_reserve": {
+          "reserved_allocated_gpu_capacity_ns": 5253617286198,
+          "reserved_output_bytes": 417801847,
+          "source_allocated_gpu_capacity_ns": 4202893828958,
+          "source_output_bytes": 334241477
+        },
+        "successful_session": {
+          "reserved_allocated_gpu_capacity_ns": 175155028422287,
+          "reserved_output_bytes": 12957243480,
+          "source_allocated_gpu_capacity_ns": 140124022737804,
+          "source_non_job_output_bytes": 13448831,
+          "source_output_bytes": 10365794759,
+          "source_total_output_bytes": 10379243590
+        }
+      }
+    },
+    "physical_cap": {
+      "allocated_active_gpu_hours": 50.5,
+      "conservative_eval_control_steps_per_seed_unit": 188064,
+      "episodes": 109728,
+      "eval_seed_units": 381,
+      "output_bytes": 14495514624,
+      "simulated_control_steps": 6363108384,
+      "train_jobs": 32,
+      "train_steps": 6291456000
+    },
+    "provider": {
+      "attempt_cap": 150,
+      "attempts_per_lane_per_generation": 5,
+      "generation_width": 2,
+      "input_unit_cap": 45000000,
+      "input_units_per_attempt_reserve": 300000,
+      "money_governor": "waived_by_user_20260820",
+      "output_unit_cap": 4915200,
+      "output_units_per_attempt_cap": 32768,
+      "total_unit_cap": 49915200
+    },
+    "retry_reserve": {
+      "allocated_active_gpu_hours": 1.5,
+      "episodes": 2016,
+      "eval_seed_units": 7,
+      "output_bytes": 536870912,
+      "simulated_control_steps": 197924448,
+      "train_jobs": 1,
+      "train_steps": 196608000
+    },
+    "schema_version": "true_rl_agent.stair.generation_session_cost.v3",
+    "scientific_cost_basis": {
+      "episodes_per_seed_unit": 288,
+      "eval_seed_units_per_generation": 23,
+      "final_confirmation_seed_units": 14,
+      "max_eval_control_steps_per_seed_unit": 188064,
+      "parent_bootstrap_seed_units": 0,
+      "phased_evaluation_cost_contract_hash": "ba806de61a11ae9c1b84f65ef1ea2f9c59e6f0da3b1bbb7f4d93b229534a9794",
+      "public_accept_seed_units_per_job": 5,
+      "public_dev_seed_units_per_job": 3,
+      "reference_eval_seed_units": 15,
+      "schema_version": "true_rl_agent.stair.generation_scientific_cost_basis.v1",
+      "sealed_validation_seed_units_per_job": 7,
+      "task_protocol_hash": "69feeb5aaf2216e9725148cebb24aa736284b85f40066761059e7824b8e8e243",
+      "train_jobs_per_generation": 2,
+      "train_steps_per_job": 196608000
+    },
+    "session_mode": "formal_generation_session",
+    "successful_session": {
+      "allocated_active_gpu_hours": 49.0,
+      "episodes": 107712,
+      "eval_seed_units": 374,
+      "final_confirmation_seed_units": 14,
+      "generation": {
+        "eval_seed_units": 345,
+        "train_jobs": 30,
+        "train_steps": 5898240000
+      },
+      "output_bytes": 13958643712,
+      "parent_public_dev_bootstrap_seed_units": 0,
+      "reference_qualification": {
+        "eval_seed_units": 15,
+        "train_jobs": 1,
+        "train_steps": 196608000
+      },
+      "simulated_control_steps": 6165183936,
+      "train_jobs": 31,
+      "train_steps": 6094848000
+    }
+  },
+  "provenance": {
+    "commit": "cd48221384c7b658eac18c275298a393e1d7b381",
+    "files": {
+      "closure": {
+        "path": "/data/yuyangliu/AGENT/p4_baseline_cd48221/formal-output/generation_closures/p6d-production-shaped-fixture-generation-001.json",
+        "sha256": "f2be2360d49fc726edde064054587d247ecff7467e479adf440c723c0fca88ea"
+      },
+      "cost_contract": {
+        "path": "/data/yuyangliu/AGENT/p4_baseline_cd48221/formal-output/generation_session_cost.json",
+        "sha256": "37348af4cb4cb4fa257c073cc08ef0e63e6ffe51ca01fe0313a4aab11f3c4b2e"
+      },
+      "receipt": {
+        "path": "/data/yuyangliu/AGENT/p4_baseline_cd48221/formal-output/generation_actual_cost/0003-generation-001-settlement.json",
+        "sha256": "81ea9e35c1b6614a60076faf9c7e1afe757cb27e97b4f2ffde66c0bd0dcfd2ad"
+      }
+    },
+    "source": "pre-P4 completed formal fixture"
+  },
+  "receipt": {
+    "acceptance_authority": false,
+    "actual": {
+      "accounted_output_bytes": 5772035,
+      "allocated_gpu_capacity_hours_charged": 0.0006527982094444444,
+      "conservatively_charged_gpu_capacity_ns": 0,
+      "eval_seed_units": 15,
+      "finalization_output_reserve_bytes": 1048576,
+      "job_attempts": 4,
+      "job_cost_evidence_hash": "a456c431a567c0e20818b40e971ac92f0f9e5cdfc3b61de5aadeb96761cf30d8",
+      "observed_output_bytes": 4723459,
+      "observed_output_files": 55,
+      "provider_attempts": 1,
+      "provider_conservative_attempts": 0,
+      "provider_reasoning_units": 10,
+      "provider_request_units": 100,
+      "provider_response_units": 50,
+      "provider_total_units": 150,
+      "resource_lease_wall_duration_ns": 2350073554,
+      "simulated_control_steps": 196694400,
+      "train_jobs": 1,
+      "train_steps": 196608000,
+      "unmeasured_bound_attempts": 0
+    },
+    "cap_checks": {
+      "all_passed": true,
+      "allocated_gpu_capacity_hours_within_cap": true,
+      "eval_seed_units_within_cap": true,
+      "output_bytes_within_cap": true,
+      "provider_attempts_within_cap": true,
+      "provider_request_units_within_cap": true,
+      "provider_response_units_within_cap": true,
+      "provider_total_units_within_cap": true,
+      "resource_lease_accounting_complete": true,
+      "simulated_control_steps_within_cap": true,
+      "train_jobs_within_cap": true,
+      "train_steps_within_cap": true
+    },
+    "conservative_charges": [],
+    "event_id": "generation-001-settlement",
+    "previous_cost_chain_head_hash": "5f3bd3e3d547a20fcf053cde240bba9d4960bcc0d58fe331d65f740b087e5d24",
+    "previous_task_cost_receipt_hash": "5f3bd3e3d547a20fcf053cde240bba9d4960bcc0d58fe331d65f740b087e5d24",
+    "reservation": {
+      "allocated_gpu_capacity_hours_cap": 50.5,
+      "eval_seed_unit_cap": 381,
+      "output_byte_cap": 14495514624,
+      "provider_attempt_cap": 150,
+      "provider_input_unit_cap": 45000000,
+      "provider_output_unit_cap": 4915200,
+      "provider_total_unit_cap": 49915200,
+      "simulated_control_step_cap": 6363108384,
+      "train_job_cap": 32,
+      "train_step_cap": 6291456000
+    },
+    "schema_version": "true_rl_agent.stair.generation_actual_cost.v1",
+    "session_cost_contract_hash": "607719bfbcca00840a8acfc0a57e47f1e942d59bb9a716ccde275610ab0c38de"
+  },
+  "record": {
+    "authoring_mode": "provider_authoring",
+    "formal": null,
+    "generation_id": "p6d-production-shaped-fixture-generation-001",
+    "generation_index": 1,
+    "generation_outcome": "paired_authoring_incomplete",
+    "generation_session_contract_hash": "f3ddecb8573a42ece3ffe47b32a5fc8b1511d4280c743d2ef0993fd22294ebc7",
+    "ledger_epoch_hash": "4d1ec088d48f32c735d127ed1f0732689dea9f5cf9cc1774e2de8afbae38c89d",
+    "manifest": {
+      "base_public_context_hash": "caea07b46e27bea80f609e42f148c94b022f3dd927b2ecfb35aba8fd65ee4185",
+      "current_best_evidence_hash": "803acd80ec518903f73795c261649fc6b366522982f57e693d4eea3f3cc241a5",
+      "evaluation_binding_hash": "6e96e04f07f8cb000d5e658c46913a788e3c0380aaea78ee8c46faa15251b666",
+      "generation_id": "p6d-production-shaped-fixture-generation-001",
+      "generation_index": 1,
+      "generation_session_contract_hash": "f3ddecb8573a42ece3ffe47b32a5fc8b1511d4280c743d2ef0993fd22294ebc7",
+      "guard_reference_evidence_hash": "a4b64026b7d4dec3eafe5bfc7f0477f693ad2b50a6d8a8333f5c8508a56e97ad",
+      "guard_reference_phase_receipt_hash": "11a65a2641eb9e18a64b23df8ea01a8ab307b27ba6337847b7178e96fb6461d9",
+      "lanes": [
+        {
+          "execution_device": "cuda:0",
+          "gpu_process_binding": {
+            "process_execution_device": "cuda:0",
+            "resource_binding_hash": "af5650bfc19fa04518d3d138bb0d3584416f3aa6496dba4c78e732e3d60c2260"
+          },
+          "lane_id": "lane-a",
+          "lane_intent_hash": "9f9fde6f4df583b2fe371ca6c24baf5f5ba3e507bb7361b1c5a9642b773a9431",
+          "resource_binding_hash": "af5650bfc19fa04518d3d138bb0d3584416f3aa6496dba4c78e732e3d60c2260"
+        },
+        {
+          "execution_device": "cuda:0",
+          "gpu_process_binding": {
+            "process_execution_device": "cuda:0",
+            "resource_binding_hash": "b842183da19176bb29f4ba9815d04cb9550db9365171fcf3c9feb9bc901c5097"
+          },
+          "lane_id": "lane-b",
+          "lane_intent_hash": "be2e56906187ce7173e39f78d04cee3005e1b9e332dbeb438323df7353740ab6",
+          "resource_binding_hash": "b842183da19176bb29f4ba9815d04cb9550db9365171fcf3c9feb9bc901c5097"
+        }
+      ],
+      "ledger_epoch_hash": "4d1ec088d48f32c735d127ed1f0732689dea9f5cf9cc1774e2de8afbae38c89d",
+      "manifest_hash": "a69c1c37fea49d5d6fc5610b7b512c434445d0a3631119b719760b7d60a5f12a",
+      "parent_checkpoint_hash": "sha256:2c2e9d8fd4e55880f256c7f2b21e0fffebd83199747fc9a063ef35023b058ad9",
+      "parent_program_source_checksum": "sha256:3462bdf78d874ce2e4ab527cea3c1530ebc93cf9750d2b4fc64292e3a63adfb8",
+      "schema_version": "true_rl_agent.generation_manifest.v2",
+      "session_genesis_hash": "d740a24eb40e83bd0bcbfff931d928659e40f9553e2d6e79fd1809eb4c3e0515",
+      "training_initialization_hash": "26d10e69af57b30e8f0bdd0f2885b7420a26d18593924ffd913b06f3cc8bad4f"
+    },
+    "manifest_receipt_checksum": "sha256:cd4a248377fb0bf9ecc7cfb7c03c20c4e8bad29b9053b14226cf65bab98a1908",
+    "parent_current_best": {
+      "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+      "accepted_candidate_id": null,
+      "accepted_round_id": null,
+      "anchor_id": "official-g1-rough-reward-vnext-v1",
+      "anchor_kind": "reference",
+      "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+      "checkpoint_hash": "sha256:2c2e9d8fd4e55880f256c7f2b21e0fffebd83199747fc9a063ef35023b058ad9",
+      "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+      "evaluation_binding_hash": "6e96e04f07f8cb000d5e658c46913a788e3c0380aaea78ee8c46faa15251b666",
+      "gate_statuses": {
+        "accept_evidence_gate": "pass",
+        "budget_accounting": "pass",
+        "reference_capability_gate": "pass",
+        "runtime_activation_gate": "pass",
+        "sealed_validation_gate": "pass",
+        "stair_behavior_gate": "pass"
+      },
+      "guard_score_stats": {},
+      "min_score_count": 5,
+      "mode": "reference",
+      "named_guard_evidence": {
+        "c0_id": {
+          "absolute_accept_floor": 0.1,
+          "max_regression": 0.05,
+          "name": "c0_id",
+          "regression_margin": 0.02,
+          "score_samples": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "score_source": "unified_score.c0_id.score_stats.mean",
+          "score_stats": {
+            "count": 5,
+            "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+            "mean": 1.0,
+            "score_samples": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "standard_error": 0.0,
+            "statistics_version": "true_rl_agent.derived_statistics.v1",
+            "std": 0.0
+          }
+        },
+        "c1_id": {
+          "absolute_accept_floor": 0.1,
+          "max_regression": 0.05,
+          "name": "c1_id",
+          "regression_margin": 0.02,
+          "score_samples": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "score_source": "unified_score.c1_id.score_stats.mean",
+          "score_stats": {
+            "count": 5,
+            "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+            "mean": 1.0,
+            "score_samples": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "standard_error": 0.0,
+            "statistics_version": "true_rl_agent.derived_statistics.v1",
+            "std": 0.0
+          }
+        },
+        "j_ood": {
+          "absolute_accept_floor": 0.1,
+          "max_regression": 0.05,
+          "name": "j_ood",
+          "regression_margin": 0.02,
+          "score_samples": [
+            0.6833333333333333,
+            0.6833333333333333,
+            0.6833333333333333,
+            0.6833333333333333,
+            0.6833333333333333
+          ],
+          "score_source": "unified_score.j_ood.score_stats.mean",
+          "score_stats": {
+            "count": 5,
+            "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+            "mean": 0.6833333333333333,
+            "score_samples": [
+              0.6833333333333333,
+              0.6833333333333333,
+              0.6833333333333333,
+              0.6833333333333333,
+              0.6833333333333333
+            ],
+            "standard_error": 0.0,
+            "statistics_version": "true_rl_agent.derived_statistics.v1",
+            "std": 0.0
+          }
+        },
+        "joint_ood": {
+          "absolute_accept_floor": 0.1,
+          "max_regression": 0.05,
+          "name": "joint_ood",
+          "regression_margin": 0.02,
+          "score_samples": [
+            0.6833333333333333,
+            0.6833333333333333,
+            0.6833333333333333,
+            0.6833333333333333,
+            0.6833333333333333
+          ],
+          "score_source": "unified_score.joint_ood.score_stats.mean",
+          "score_stats": {
+            "count": 5,
+            "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+            "mean": 0.6833333333333333,
+            "score_samples": [
+              0.6833333333333333,
+              0.6833333333333333,
+              0.6833333333333333,
+              0.6833333333333333,
+              0.6833333333333333
+            ],
+            "standard_error": 0.0,
+            "statistics_version": "true_rl_agent.derived_statistics.v1",
+            "std": 0.0
+          }
+        },
+        "phase_control": {
+          "absolute_accept_floor": 0.1,
+          "max_regression": 0.05,
+          "name": "phase_control",
+          "regression_margin": 0.02,
+          "score_samples": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "score_source": "unified_score.phase_control.score_stats.mean",
+          "score_stats": {
+            "count": 5,
+            "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+            "mean": 1.0,
+            "score_samples": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "standard_error": 0.0,
+            "statistics_version": "true_rl_agent.derived_statistics.v1",
+            "std": 0.0
+          }
+        }
+      },
+      "program_source_checksum": "sha256:3462bdf78d874ce2e4ab527cea3c1530ebc93cf9750d2b4fc64292e3a63adfb8",
+      "public_accept_stats": {
+        "count": 5,
+        "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+        "mean": 0.6833333333333333,
+        "score_samples": [
+          0.6833333333333333,
+          0.6833333333333333,
+          0.6833333333333333,
+          0.6833333333333333,
+          0.6833333333333333
+        ],
+        "standard_error": 0.0,
+        "statistics_version": "true_rl_agent.derived_statistics.v1",
+        "std": 0.0
+      },
+      "public_score": 0.6833333333333333,
+      "sealed_validation_evidence": {
+        "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+        "checkpoint_hash": "sha256:2c2e9d8fd4e55880f256c7f2b21e0fffebd83199747fc9a063ef35023b058ad9",
+        "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+        "evaluation_binding_hash": "6e96e04f07f8cb000d5e658c46913a788e3c0380aaea78ee8c46faa15251b666",
+        "evaluation_subject": {
+          "id": "official-g1-rough-reward-vnext-v1",
+          "kind": "reference",
+          "schema_version": "true_rl_agent.experiment.subject.v2"
+        },
+        "expected_seed_count": 7,
+        "observed_seed_count": 7,
+        "program_source_checksum": "sha256:3462bdf78d874ce2e4ab527cea3c1530ebc93cf9750d2b4fc64292e3a63adfb8",
+        "reason": "unified_stair_reference_sealed_telemetry_complete",
+        "schema_version": "true_rl_agent.sealed_validation.evidence.v4",
+        "score_stats": {
+          "count": 7,
+          "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+          "mean": 0.6833333333333333,
+          "standard_error": 0.0,
+          "statistics_version": "true_rl_agent.derived_statistics.v1",
+          "std": 0.0,
+          "values": [
+            0.6833333333333333,
+            0.6833333333333333,
+            0.6833333333333333,
+            0.6833333333333333,
+            0.6833333333333333,
+            0.6833333333333333,
+            0.6833333333333333
+          ]
+        },
+        "status": "pass",
+        "subject_manifest_hash": "4090bd3b80113ee956400870e17dbe60809cf55d0a15e351ff11583942ff924f",
+        "task_evidence_hash": "300c1f6153ed466a289c40fddbd1edbeaab3b7ae38abab2198a132483a8e6090",
+        "training_binding_hash": "d7aea85d7742c57eae1753b8b236b32555269d9bcd8c25ed2b3742d2e045e14c"
+      },
+      "sealed_validation_gate": {
+        "candidate_code_loaded_in_eval": false,
+        "candidate_isolation_status": "pass",
+        "candidate_package_loaded_in_eval": false,
+        "candidate_path_argument_present": false,
+        "checkpoint_hash_match_status": "pass",
+        "checkpoint_safety_status": "pass",
+        "eval_protocol_hash_match_status": "pass",
+        "evaluation_binding_hash_match_status": "pass",
+        "holdout_rollout_status": "pass",
+        "reason": "sealed_validation_complete",
+        "status": "pass"
+      },
+      "seed_cohort_hash": "a37aa82260394873113a6bf3ff92d5eee65378ad99fdda25dd73377bc6b333ae",
+      "subject_manifest_hash": "4090bd3b80113ee956400870e17dbe60809cf55d0a15e351ff11583942ff924f",
+      "task_protocol_hash": "69feeb5aaf2216e9725148cebb24aa736284b85f40066761059e7824b8e8e243",
+      "training_binding_hash": "d7aea85d7742c57eae1753b8b236b32555269d9bcd8c25ed2b3742d2e045e14c"
+    },
+    "parent_current_best_hash": "803acd80ec518903f73795c261649fc6b366522982f57e693d4eea3f3cc241a5",
+    "private_artifacts": [
+      {
+        "checksum": "sha256:cd4a248377fb0bf9ecc7cfb7c03c20c4e8bad29b9053b14226cf65bab98a1908",
+        "kind": "generation_manifest_receipt",
+        "size_bytes": 2284,
+        "uri": "/data/yuyangliu/AGENT/p4_baseline_cd48221/formal-output/generation_receipts/p6d-production-shaped-fixture-generation-001/a69c1c37fea49d5d6fc5610b7b512c434445d0a3631119b719760b7d60a5f12a/manifest.json"
+      },
+      {
+        "checksum": "sha256:5580e3c08e3ee08f0e5b99c2b7e9b2d585198f198120ad9ff3a2a65fdfc98268",
+        "kind": "generation_guard_reference_phase_receipt",
+        "size_bytes": 182530,
+        "uri": "/data/yuyangliu/AGENT/p4_baseline_cd48221/formal-output/reference_program_artifacts/evaluation_receipts/cbd7f117ddf7de62f691c465fc454cbf925b90b91a7982b152d9c00d2c4949a9/eval_phases/public_dev.json"
+      },
+      {
+        "checksum": "sha256:77893b27358350fdc3d0fa19b3f82fa984543bc53316763e2dfab9e1b602ecf5",
+        "kind": "lane-a_prompt_payload",
+        "reason": "generation_lane_authoring",
+        "size_bytes": 88198,
+        "uri": "/data/yuyangliu/AGENT/p4_baseline_cd48221/formal-output/authoring/p6d-production-shaped-fixture-generation-001/lane-a/authoring_attempts/attempt_000001/prompt_payload.json"
+      },
+      {
+        "checksum": "sha256:63126ea610950a0b7edac1593d1fc873b15519fb6ac90c635365dafe0b271a67",
+        "kind": "lane-a_authoring_evidence",
+        "reason": "generation_lane_authoring",
+        "size_bytes": 2226,
+        "uri": "/data/yuyangliu/AGENT/p4_baseline_cd48221/formal-output/authoring/p6d-production-shaped-fixture-generation-001/lane-a/authoring_evidence/evidence_95f9fe75ff9e4f90a307634b6bd2ed56.json"
+      }
+    ],
+    "record_kind": "generation",
+    "resulting_current_best": {
+      "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+      "accepted_candidate_id": null,
+      "accepted_round_id": null,
+      "anchor_id": "official-g1-rough-reward-vnext-v1",
+      "anchor_kind": "reference",
+      "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+      "checkpoint_hash": "sha256:2c2e9d8fd4e55880f256c7f2b21e0fffebd83199747fc9a063ef35023b058ad9",
+      "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+      "evaluation_binding_hash": "6e96e04f07f8cb000d5e658c46913a788e3c0380aaea78ee8c46faa15251b666",
+      "gate_statuses": {
+        "accept_evidence_gate": "pass",
+        "budget_accounting": "pass",
+        "reference_capability_gate": "pass",
+        "runtime_activation_gate": "pass",
+        "sealed_validation_gate": "pass",
+        "stair_behavior_gate": "pass"
+      },
+      "guard_score_stats": {},
+      "min_score_count": 5,
+      "mode": "reference",
+      "named_guard_evidence": {
+        "c0_id": {
+          "absolute_accept_floor": 0.1,
+          "max_regression": 0.05,
+          "name": "c0_id",
+          "regression_margin": 0.02,
+          "score_samples": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "score_source": "unified_score.c0_id.score_stats.mean",
+          "score_stats": {
+            "count": 5,
+            "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+            "mean": 1.0,
+            "score_samples": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "standard_error": 0.0,
+            "statistics_version": "true_rl_agent.derived_statistics.v1",
+            "std": 0.0
+          }
+        },
+        "c1_id": {
+          "absolute_accept_floor": 0.1,
+          "max_regression": 0.05,
+          "name": "c1_id",
+          "regression_margin": 0.02,
+          "score_samples": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "score_source": "unified_score.c1_id.score_stats.mean",
+          "score_stats": {
+            "count": 5,
+            "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+            "mean": 1.0,
+            "score_samples": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "standard_error": 0.0,
+            "statistics_version": "true_rl_agent.derived_statistics.v1",
+            "std": 0.0
+          }
+        },
+        "j_ood": {
+          "absolute_accept_floor": 0.1,
+          "max_regression": 0.05,
+          "name": "j_ood",
+          "regression_margin": 0.02,
+          "score_samples": [
+            0.6833333333333333,
+            0.6833333333333333,
+            0.6833333333333333,
+            0.6833333333333333,
+            0.6833333333333333
+          ],
+          "score_source": "unified_score.j_ood.score_stats.mean",
+          "score_stats": {
+            "count": 5,
+            "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+            "mean": 0.6833333333333333,
+            "score_samples": [
+              0.6833333333333333,
+              0.6833333333333333,
+              0.6833333333333333,
+              0.6833333333333333,
+              0.6833333333333333
+            ],
+            "standard_error": 0.0,
+            "statistics_version": "true_rl_agent.derived_statistics.v1",
+            "std": 0.0
+          }
+        },
+        "joint_ood": {
+          "absolute_accept_floor": 0.1,
+          "max_regression": 0.05,
+          "name": "joint_ood",
+          "regression_margin": 0.02,
+          "score_samples": [
+            0.6833333333333333,
+            0.6833333333333333,
+            0.6833333333333333,
+            0.6833333333333333,
+            0.6833333333333333
+          ],
+          "score_source": "unified_score.joint_ood.score_stats.mean",
+          "score_stats": {
+            "count": 5,
+            "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+            "mean": 0.6833333333333333,
+            "score_samples": [
+              0.6833333333333333,
+              0.6833333333333333,
+              0.6833333333333333,
+              0.6833333333333333,
+              0.6833333333333333
+            ],
+            "standard_error": 0.0,
+            "statistics_version": "true_rl_agent.derived_statistics.v1",
+            "std": 0.0
+          }
+        },
+        "phase_control": {
+          "absolute_accept_floor": 0.1,
+          "max_regression": 0.05,
+          "name": "phase_control",
+          "regression_margin": 0.02,
+          "score_samples": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "score_source": "unified_score.phase_control.score_stats.mean",
+          "score_stats": {
+            "count": 5,
+            "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+            "mean": 1.0,
+            "score_samples": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "standard_error": 0.0,
+            "statistics_version": "true_rl_agent.derived_statistics.v1",
+            "std": 0.0
+          }
+        }
+      },
+      "program_source_checksum": "sha256:3462bdf78d874ce2e4ab527cea3c1530ebc93cf9750d2b4fc64292e3a63adfb8",
+      "public_accept_stats": {
+        "count": 5,
+        "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+        "mean": 0.6833333333333333,
+        "score_samples": [
+          0.6833333333333333,
+          0.6833333333333333,
+          0.6833333333333333,
+          0.6833333333333333,
+          0.6833333333333333
+        ],
+        "standard_error": 0.0,
+        "statistics_version": "true_rl_agent.derived_statistics.v1",
+        "std": 0.0
+      },
+      "public_score": 0.6833333333333333,
+      "sealed_validation_evidence": {
+        "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+        "checkpoint_hash": "sha256:2c2e9d8fd4e55880f256c7f2b21e0fffebd83199747fc9a063ef35023b058ad9",
+        "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+        "evaluation_binding_hash": "6e96e04f07f8cb000d5e658c46913a788e3c0380aaea78ee8c46faa15251b666",
+        "evaluation_subject": {
+          "id": "official-g1-rough-reward-vnext-v1",
+          "kind": "reference",
+          "schema_version": "true_rl_agent.experiment.subject.v2"
+        },
+        "expected_seed_count": 7,
+        "observed_seed_count": 7,
+        "program_source_checksum": "sha256:3462bdf78d874ce2e4ab527cea3c1530ebc93cf9750d2b4fc64292e3a63adfb8",
+        "reason": "unified_stair_reference_sealed_telemetry_complete",
+        "schema_version": "true_rl_agent.sealed_validation.evidence.v4",
+        "score_stats": {
+          "count": 7,
+          "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+          "mean": 0.6833333333333333,
+          "standard_error": 0.0,
+          "statistics_version": "true_rl_agent.derived_statistics.v1",
+          "std": 0.0,
+          "values": [
+            0.6833333333333333,
+            0.6833333333333333,
+            0.6833333333333333,
+            0.6833333333333333,
+            0.6833333333333333,
+            0.6833333333333333,
+            0.6833333333333333
+          ]
+        },
+        "status": "pass",
+        "subject_manifest_hash": "4090bd3b80113ee956400870e17dbe60809cf55d0a15e351ff11583942ff924f",
+        "task_evidence_hash": "300c1f6153ed466a289c40fddbd1edbeaab3b7ae38abab2198a132483a8e6090",
+        "training_binding_hash": "d7aea85d7742c57eae1753b8b236b32555269d9bcd8c25ed2b3742d2e045e14c"
+      },
+      "sealed_validation_gate": {
+        "candidate_code_loaded_in_eval": false,
+        "candidate_isolation_status": "pass",
+        "candidate_package_loaded_in_eval": false,
+        "candidate_path_argument_present": false,
+        "checkpoint_hash_match_status": "pass",
+        "checkpoint_safety_status": "pass",
+        "eval_protocol_hash_match_status": "pass",
+        "evaluation_binding_hash_match_status": "pass",
+        "holdout_rollout_status": "pass",
+        "reason": "sealed_validation_complete",
+        "status": "pass"
+      },
+      "seed_cohort_hash": "a37aa82260394873113a6bf3ff92d5eee65378ad99fdda25dd73377bc6b333ae",
+      "subject_manifest_hash": "4090bd3b80113ee956400870e17dbe60809cf55d0a15e351ff11583942ff924f",
+      "task_protocol_hash": "69feeb5aaf2216e9725148cebb24aa736284b85f40066761059e7824b8e8e243",
+      "training_binding_hash": "d7aea85d7742c57eae1753b8b236b32555269d9bcd8c25ed2b3742d2e045e14c"
+    },
+    "resulting_current_best_hash": "803acd80ec518903f73795c261649fc6b366522982f57e693d4eea3f3cc241a5",
+    "schema_version": "true_rl_agent.generation_ledger_record.v1",
+    "selection": null,
+    "selection_receipt_checksum": null,
+    "session_genesis_hash": "d740a24eb40e83bd0bcbfff931d928659e40f9553e2d6e79fd1809eb4c3e0515",
+    "trials": [
+      {
+        "authoring": {
+          "authoring_evidence_checksum": "sha256:63126ea610950a0b7edac1593d1fc873b15519fb6ac90c635365dafe0b271a67",
+          "base_public_context_hash": "caea07b46e27bea80f609e42f148c94b022f3dd927b2ecfb35aba8fd65ee4185",
+          "lane_intent_hash": "9f9fde6f4df583b2fe371ca6c24baf5f5ba3e507bb7361b1c5a9642b773a9431",
+          "prompt_payload_checksum": "sha256:77893b27358350fdc3d0fa19b3f82fa984543bc53316763e2dfab9e1b602ecf5",
+          "sibling_exclusion_hash": null
+        },
+        "candidate": null,
+        "candidate_surface": null,
+        "execution_receipt_checksum": null,
+        "execution_record_hash": null,
+        "formal_record_hash": null,
+        "lane_id": "lane-a",
+        "mechanism_operation_delta": null,
+        "public_accept": null,
+        "public_dev": null,
+        "schema_version": "true_rl_agent.generation_trial.v1",
+        "status_reason": "authoring_provider_failed",
+        "train": null,
+        "trial_contract_hash": null,
+        "trial_id": "p6d-production-shaped-fixture-generation-001-lane-a",
+        "trial_status": "candidate_failed",
+        "verifier": null
+      },
+      {
+        "authoring": null,
+        "candidate": null,
+        "candidate_surface": null,
+        "execution_receipt_checksum": null,
+        "execution_record_hash": null,
+        "formal_record_hash": null,
+        "lane_id": "lane-b",
+        "mechanism_operation_delta": null,
+        "public_accept": null,
+        "public_dev": null,
+        "schema_version": "true_rl_agent.generation_trial.v1",
+        "status_reason": "lane_not_started",
+        "train": null,
+        "trial_contract_hash": null,
+        "trial_id": "p6d-production-shaped-fixture-generation-001-lane-b",
+        "trial_status": "not_started",
+        "verifier": null
+      }
+    ]
+  }
+}

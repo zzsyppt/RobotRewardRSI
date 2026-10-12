@@ -10,7 +10,7 @@ from collections.abc import Mapping
 from contextlib import nullcontext
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable, Protocol, TypeVar
 
 from true_rl_agent.agent_core.public_safety import (
     redact_secret_key_markers,
@@ -19,7 +19,10 @@ from true_rl_agent.agent_core.public_safety import (
 from true_rl_agent.backends.base import (
     BACKEND_EXECUTION_ENVIRONMENT_VERIFICATION_SCHEMA_VERSION,
 )
-from true_rl_agent.composition.cell_manifest import load_resolved_cell_manifest
+from true_rl_agent.composition.cell_manifest import (
+    ResolvedCellManifestV1,
+    load_resolved_cell_manifest,
+)
 from true_rl_agent.evaluation.binding import (
     EvaluationBindingV1,
     canonical_json_hash,
@@ -56,6 +59,7 @@ from true_rl_agent.runner.base import (
     RunnerFailureKind,
     TrainJobResult,
 )
+from true_rl_agent.runner.budget import build_budget_accounting
 from true_rl_agent.runner.checkpoint import (
     seal_checkpoint,
     validate_checkpoint_safety_report,
@@ -161,6 +165,13 @@ AttemptAdmissionHook = Callable[
     [JobAttemptExecutionScope, str, str, int],
     int | None,
 ]
+EvalCheckpointAdmissionHook = Callable[
+    [CheckpointRef, ResolvedCellManifestV1, tuple[str, ...]], None
+]
+class EvalPhaseSummaryFinalizer(Protocol):
+    def __call__(
+        self, eval_spec: EvalPhaseJobSpec, summary: Mapping[str, Any], *, output_dir: Path,
+    ) -> Mapping[str, Any]: ...
 
 
 @dataclass(frozen=True)
@@ -176,6 +187,12 @@ class SubprocessRunner(Runner):
         default=None,
         repr=False,
         compare=False,
+    )
+    eval_checkpoint_admission_hook: EvalCheckpointAdmissionHook | None = field(
+        default=None, repr=False, compare=False,
+    )
+    eval_phase_summary_finalizer: EvalPhaseSummaryFinalizer | None = field(
+        default=None, repr=False, compare=False,
     )
 
     def __post_init__(self) -> None:
@@ -204,6 +221,14 @@ class SubprocessRunner(Runner):
             self.attempt_admission_hook
         ):
             raise TypeError("attempt_admission_hook must be callable when provided")
+        if self.eval_checkpoint_admission_hook is not None and not callable(
+            self.eval_checkpoint_admission_hook
+        ):
+            raise TypeError("eval_checkpoint_admission_hook must be callable when provided")
+        if self.eval_phase_summary_finalizer is not None and not callable(
+            self.eval_phase_summary_finalizer
+        ):
+            raise TypeError("eval_phase_summary_finalizer must be callable when provided")
 
     def run_train(self, train_spec: TrainJobSpec) -> TrainJobResult:
         return self._execute_with_attempts(
@@ -223,6 +248,12 @@ class SubprocessRunner(Runner):
                 reuse_existing_summary=True,
                 execution_context=execution_context,
             ),
+        )
+
+    def recover_completed_train(self, train_spec: TrainJobSpec) -> TrainJobResult:
+        """Validate retained training evidence without launching or retrying a job."""
+        return self._run_train_once(
+            train_spec, process_log_dir=None, reuse_existing_summary=True,
         )
 
     def _run_train_once(
@@ -263,6 +294,7 @@ class SubprocessRunner(Runner):
             attempt_timeout_s=attempt_timeout_s,
             reuse_existing_summary=reuse_existing_summary,
             execution_context=execution_context,
+            reused_gpu_process_binding=(train_spec.gpu_process_binding if reuse_existing_summary else None),
         )
         summary = completion.summary
         actual_gpu_process_binding = completion.gpu_process_binding
@@ -337,6 +369,9 @@ class SubprocessRunner(Runner):
             raise RunnerExecutionError(
                 f"{train_spec.job_id}: sealed_checkpoint_uri must be a non-empty string"
             )
+        summary = self._project_formal_training_completion(
+            summary, train_spec=train_spec, argv=argv, checkpoint=checkpoint
+        )
         return TrainJobResult(
             job_id=train_spec.job_id,
             subject=train_spec.subject,
@@ -356,6 +391,66 @@ class SubprocessRunner(Runner):
             initial_policy_state_pairing=initial_policy_state_pairing,
             summary=summary,
         )
+
+    def _project_formal_training_completion(
+        self,
+        summary: Mapping[str, Any],
+        *,
+        train_spec: TrainJobSpec,
+        argv: list[str],
+        checkpoint: CheckpointRef,
+    ) -> Mapping[str, Any]:
+        """Recognize complete runner evidence without rewriting its source file.
+
+        Explicit producer declarations retain their exact historical result.
+        Missing declarations are projected only after the ordinary train path
+        has validated identity, backend, ABI, binding and checkpoint bytes.
+        Incomplete evidence remains unqualified at the existing Genesis gate.
+        """
+        if "formal_training_executed" in summary or summary.get("status") != "pass":
+            return summary
+        if "dry_run" in summary and summary["dry_run"] is not False:
+            return summary
+        training = summary.get("training")
+        if not isinstance(training, Mapping):
+            return summary
+        try:
+            expected = build_budget_accounting(
+                budget_steps=train_spec.budget_steps,
+                num_envs=int(unique_option_value(argv, "--num-envs")),
+                num_steps_per_env=int(unique_option_value(argv, "--num-steps-per-env")),
+                max_iterations=int(unique_option_value(argv, "--max-iterations")),
+            )
+            for name in ("budget_steps", "num_envs", "num_steps_per_env", "max_iterations"):
+                if type(training.get(name)) is not int or training[name] != expected[name]:
+                    return summary
+            if training.get("budget_accounting") != expected:
+                return summary
+            final_iteration = training.get("latest_checkpoint_iteration")
+            if type(final_iteration) is not int or final_iteration != expected["max_iterations"] - 1:
+                return summary
+            require_sha256_digest(training.get("initial_policy_state_hash"), "initial policy state hash")
+        except (TypeError, ValueError):
+            return summary
+        source_path = self._summary_path(train_spec.metadata, job_id=train_spec.job_id)
+        source_bytes = source_path.read_bytes()
+        if strict_json_object_loads(source_bytes.decode("utf-8"), context="completed train summary") != dict(summary):
+            raise RunnerExecutionError(f"{train_spec.job_id}: completed train summary changed during validation")
+        return {
+            **summary,
+            "formal_training_executed": True,
+            "runner_training_completion": {
+                "schema_version": "true_rl_agent.runner.training_completion.v1",
+                "source_summary_path": str(source_path),
+                "source_summary_sha256": "sha256:" + hashlib.sha256(source_bytes).hexdigest(),
+                "source_formal_training_declaration": "missing",
+                "job_spec_hash": canonical_json_hash(train_spec.to_public_dict()),
+                "training_binding_hash": train_spec.training_binding.binding_hash,
+                "budget_accounting_hash": canonical_json_hash(expected),
+                "final_checkpoint_iteration": final_iteration,
+                "checkpoint_sha256": checkpoint.checksum,
+            },
+        }
 
     def run_eval(self, eval_spec: EvalJobSpec) -> PublicEvalResult:
         return self._execute_with_attempts(
@@ -392,11 +487,17 @@ class SubprocessRunner(Runner):
                     execution_context=execution_context,
                 )
             ),
-            recover_completed=lambda execution_context: self._run_evaluation_phase(
+            finalize=lambda completion: self._complete_evaluation_phase(
+                eval_spec, completion,
+            ),
+            recover_completed=lambda execution_context: self._complete_evaluation_phase(
                 eval_spec,
-                process_log_dir=None,
-                reuse_existing_summary=True,
-                execution_context=execution_context,
+                self._run_evaluation_phase(
+                    eval_spec,
+                    process_log_dir=None,
+                    reuse_existing_summary=True,
+                    execution_context=execution_context,
+                ),
             ),
         )
 
@@ -634,7 +735,7 @@ class SubprocessRunner(Runner):
         attempt_timeout_s: int | None = None,
         reuse_existing_summary: bool = False,
         execution_context: _GpuJobExecutionContext | None = None,
-    ) -> EvaluationPhaseResult:
+    ) -> _SummaryJobCompletion:
         try:
             checkpoint = eval_spec.execution_checkpoint()
         except (TypeError, ValueError) as exc:
@@ -661,15 +762,66 @@ class SubprocessRunner(Runner):
             attempt_timeout_s=attempt_timeout_s,
             reuse_existing_summary=reuse_existing_summary,
             execution_context=execution_context,
+            allow_postprocessing=(
+                not reuse_existing_summary
+                and self.eval_phase_summary_finalizer is not None
+            ),
         )
         summary = completion.summary
+        if (not reuse_existing_summary and eval_spec.metadata.get("numeric_evidence_dir")
+                and self.eval_phase_summary_finalizer is not None and completion.status != "postprocessing"):
+            raise RunnerExecutionError(
+                f"{eval_spec.job_id}: requested numeric capture requires a CPU postprocessing handoff",
+                failure_kind=RunnerFailureKind.SUMMARY_INVALID,
+            )
         self._validate_backend_execution_environment_summary(summary, eval_spec)
         self._validate_execution_device_summary(summary, eval_spec)
         self._validate_eval_protocol_binding(summary, eval_spec)
+        return completion
+
+    def _complete_evaluation_phase(
+        self,
+        eval_spec: EvalPhaseJobSpec,
+        completion: _SummaryJobCompletion,
+    ) -> EvaluationPhaseResult:
+        """Finalize task CPU evidence after process exit and lease release.
+
+        A handoff summary is never an EvaluationPhaseResult. Completed historical
+        summaries are replayed without re-analysis or attachment access.
+        """
+        summary = completion.summary
+        if completion.status == "postprocessing":
+            finalizer = self.eval_phase_summary_finalizer
+            if finalizer is None:
+                raise RunnerExecutionError("eval phase requires a summary finalizer")
+            try:
+                path = self._summary_path(eval_spec.metadata, job_id=eval_spec.job_id)
+                summary = dict(finalizer(eval_spec, summary, output_dir=path.parent))
+                validate_job_summary_identity(
+                    summary, expected=eval_spec.job_identity(),
+                    summary_name="finalized eval phase summary",
+                )
+                self._validate_eval_protocol_binding(summary, eval_spec)
+                result = self._phase_result_from_summary(
+                    summary, eval_spec=eval_spec,
+                    expected_checkpoint_hash=eval_spec.execution_checkpoint().checksum,
+                    actual_gpu_process_binding=completion.gpu_process_binding,
+                )
+                temporary = path.with_name(path.name + ".finalizing")
+                temporary.write_bytes(canonical_json_bytes(summary) + b"\n")
+                temporary.replace(path)
+                return result
+            except Exception as exc:
+                # Retrying CPU evidence must never replay an already completed
+                # rollout under the infrastructure retry policy.
+                raise RunnerExecutionError(
+                    f"{eval_spec.job_id}: eval phase finalization failed: {exc}",
+                    failure_kind=RunnerFailureKind.SUMMARY_INVALID,
+                ) from exc
         return self._phase_result_from_summary(
             summary,
             eval_spec=eval_spec,
-            expected_checkpoint_hash=checkpoint.checksum,
+            expected_checkpoint_hash=eval_spec.execution_checkpoint().checksum,
             actual_gpu_process_binding=completion.gpu_process_binding,
         )
 
@@ -680,8 +832,9 @@ class SubprocessRunner(Runner):
         job_kind: str,
         operation: Callable[
             [Path | None, _GpuJobExecutionContext | None, int],
-            _ExecutionResultT,
+            Any,
         ],
+        finalize: Callable[[Any], _ExecutionResultT] | None = None,
         recover_completed: Callable[
             [_GpuJobExecutionContext | None],
             _ExecutionResultT,
@@ -696,7 +849,8 @@ class SubprocessRunner(Runner):
                     f"{spec.job_id}: GPU process binding requires an attempt scope",
                     failure_kind=RunnerFailureKind.CONTRACT_INVALID,
                 )
-            return operation(None, None, self.timeout_s)
+            result = operation(None, None, self.timeout_s)
+            return finalize(result) if finalize is not None else result
         if not isinstance(scope, JobAttemptExecutionScope):
             raise TypeError("job attempt scope is invalid")
 
@@ -914,12 +1068,22 @@ class SubprocessRunner(Runner):
                     if resource_binding_hash is not None
                     else None
                 )
+                lease_wall_duration_ns = None
                 try:
                     result = operation(
                         log_dir,
                         execution_context,
                         attempt_timeout_s,
                     )
+                    if finalize is not None:
+                        if resource_binding_hash is not None:
+                            # The owned process has exited. Release the same
+                            # lease before task CPU work, not merely its timer.
+                            lease_context.release()
+                            lease_wall_duration_ns = self._resource_lease_wall_duration_ns(
+                                lease_wall_started_ns
+                            )
+                        result = finalize(result)
                 except CandidateRuntimeError as exc:
                     journal.finish(
                         reservation,
@@ -929,7 +1093,8 @@ class SubprocessRunner(Runner):
                         output_hash=None,
                         returncode=None,
                         resource_lease_wall_duration_ns=(
-                            self._resource_lease_wall_duration_ns(lease_wall_started_ns)
+                            lease_wall_duration_ns if lease_wall_duration_ns is not None
+                            else self._resource_lease_wall_duration_ns(lease_wall_started_ns)
                         ),
                     )
                     raise
@@ -947,7 +1112,8 @@ class SubprocessRunner(Runner):
                         output_hash=None,
                         returncode=None,
                         resource_lease_wall_duration_ns=(
-                            self._resource_lease_wall_duration_ns(lease_wall_started_ns)
+                            lease_wall_duration_ns if lease_wall_duration_ns is not None
+                            else self._resource_lease_wall_duration_ns(lease_wall_started_ns)
                         ),
                     )
                     if retryable:
@@ -962,7 +1128,8 @@ class SubprocessRunner(Runner):
                         output_hash=None,
                         returncode=None,
                         resource_lease_wall_duration_ns=(
-                            self._resource_lease_wall_duration_ns(lease_wall_started_ns)
+                            lease_wall_duration_ns if lease_wall_duration_ns is not None
+                            else self._resource_lease_wall_duration_ns(lease_wall_started_ns)
                         ),
                     )
                     raise
@@ -975,7 +1142,8 @@ class SubprocessRunner(Runner):
                         output_hash=None,
                         returncode=None,
                         resource_lease_wall_duration_ns=(
-                            self._resource_lease_wall_duration_ns(lease_wall_started_ns)
+                            lease_wall_duration_ns if lease_wall_duration_ns is not None
+                            else self._resource_lease_wall_duration_ns(lease_wall_started_ns)
                         ),
                     )
                     raise
@@ -992,7 +1160,8 @@ class SubprocessRunner(Runner):
                     output_hash=self._attempt_output_hash(result),
                     returncode=None,
                     resource_lease_wall_duration_ns=(
-                        self._resource_lease_wall_duration_ns(lease_wall_started_ns)
+                        lease_wall_duration_ns if lease_wall_duration_ns is not None
+                        else self._resource_lease_wall_duration_ns(lease_wall_started_ns)
                     ),
                 )
                 return result
@@ -1137,6 +1306,14 @@ class SubprocessRunner(Runner):
                         "checkpoint resolved cell manifest hash is required"
                     )
                 if (
+                    self.eval_checkpoint_admission_hook is not None
+                    and checkpoint_path_option == _EVAL_CHECKPOINT_OPTIONS[0]
+                ):
+                    # A composition-owned task policy validates cross-version
+                    # admission; artifact metadata cannot extend its lineage.
+                    self.eval_checkpoint_admission_hook(checkpoint, manifest, tuple(argv))
+                    return
+                if (
                     checkpoint_cell_hash is not None
                     and checkpoint_cell_hash
                     not in allowed_checkpoint_manifest_hashes
@@ -1163,6 +1340,8 @@ class SubprocessRunner(Runner):
         attempt_timeout_s: int | None = None,
         reuse_existing_summary: bool = False,
         execution_context: _GpuJobExecutionContext | None = None,
+        reused_gpu_process_binding: GpuProcessBinding | None = None,
+        allow_postprocessing: bool = False,
     ) -> _SummaryJobCompletion:
         """Interpret process exit and a fresh structured summary as one contract."""
 
@@ -1180,6 +1359,12 @@ class SubprocessRunner(Runner):
             except ValueError as exc:
                 raise RunnerExecutionError(f"{identity.job_id}: {exc}") from exc
         if reuse_existing_summary:
+            # Recovery validates the original job's binding without acquiring a
+            # new lease or pretending its completed process is being launched.
+            expected_binding = (
+                execution_context.gpu_process_binding if execution_context is not None
+                else reused_gpu_process_binding
+            )
             try:
                 summary = self._read_summary(metadata, job_id=identity.job_id)
                 validate_job_summary_identity(
@@ -1199,13 +1384,13 @@ class SubprocessRunner(Runner):
                 actual_gpu_process_binding = (
                     self._validated_gpu_process_binding_from_summary(
                         summary,
-                        execution_context=execution_context,
+                        expected_binding=expected_binding,
                     )
                 )
                 owned_process_identity = (
                     self._validated_owned_process_identity_from_summary(
                         summary,
-                        execution_context=execution_context,
+                        expected_binding=expected_binding,
                         expected_process_id=None,
                     )
                 )
@@ -1248,20 +1433,24 @@ class SubprocessRunner(Runner):
                 argv=argv,
                 job_id=identity.job_id,
             )
-            status = validate_result_status(
-                summary.get("status"),
-                field_name=f"{summary_name} status",
+            status = (
+                "postprocessing"
+                if allow_postprocessing and summary.get("status") == "postprocessing"
+                else validate_result_status(
+                    summary.get("status"),
+                    field_name=f"{summary_name} status",
+                )
             )
             actual_gpu_process_binding = (
                 self._validated_gpu_process_binding_from_summary(
                     summary,
-                    execution_context=execution_context,
+                    expected_binding=(execution_context.gpu_process_binding if execution_context is not None else None),
                 )
             )
             owned_process_identity = (
                 self._validated_owned_process_identity_from_summary(
                     summary,
-                    execution_context=execution_context,
+                    expected_binding=(execution_context.gpu_process_binding if execution_context is not None else None),
                     expected_process_id=(completed.pid if os.name != "nt" else None),
                 )
             )
@@ -1299,16 +1488,16 @@ class SubprocessRunner(Runner):
     def _validated_gpu_process_binding_from_summary(
         summary: Mapping[str, Any],
         *,
-        execution_context: _GpuJobExecutionContext | None,
+        expected_binding: GpuProcessBinding | None,
     ) -> GpuProcessBinding | None:
-        if execution_context is None:
+        if expected_binding is None:
             if summary.get("gpu_process_binding") is not None:
                 raise ValueError("unbound summary cannot claim a GPU process binding")
             return None
         actual = GpuProcessBinding.from_mapping(summary.get("gpu_process_binding"))
-        if actual != execution_context.gpu_process_binding:
+        if actual != expected_binding:
             raise ValueError(
-                "summary GPU process binding does not match trusted launch context"
+                "summary GPU process binding does not match trusted job binding"
             )
         return actual
 
@@ -1316,11 +1505,11 @@ class SubprocessRunner(Runner):
     def _validated_owned_process_identity_from_summary(
         summary: Mapping[str, Any],
         *,
-        execution_context: _GpuJobExecutionContext | None,
+        expected_binding: GpuProcessBinding | None,
         expected_process_id: int | None,
     ) -> Mapping[str, Any] | None:
         raw = summary.get("owned_process_identity")
-        if execution_context is None:
+        if expected_binding is None:
             if raw is not None:
                 raise ValueError(
                     "unbound summary cannot claim a runner-owned process identity"
@@ -1742,6 +1931,10 @@ class SubprocessRunner(Runner):
             "candidate_failure_contract": contract.to_public_dict(),
             "candidate_failure": evidence.to_public_dict(),
         }
+        training = summary.get("training")
+        if isinstance(training, Mapping) and "numeric_evidence" in training:
+            from true_rl_agent.evaluation.public_projection import project_public_training_sampling
+            details["training_sampling"] = project_public_training_sampling(training["numeric_evidence"])
         raise CandidateRuntimeError(
             f"{job_id}: candidate program failed during "
             f"{evidence.failure_stage} ({evidence.reason_code})",

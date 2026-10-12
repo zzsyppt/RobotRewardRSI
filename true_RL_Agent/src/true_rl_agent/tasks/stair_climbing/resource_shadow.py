@@ -21,8 +21,8 @@ from true_rl_agent.tasks.stair_climbing.config import (
     STAIR_TASK_ID,
     StairClimbingTaskConfig,
 )
-from true_rl_agent.tasks.stair_climbing.gpu_process_binding import (
-    stair_single_gpu_kit_args,
+from true_rl_agent.runner.gpu_process_binding import (
+    single_gpu_kit_args,
 )
 from true_rl_agent.tasks.stair_climbing.isaaclab_execution import (
     StairTrainingExecutionResult,
@@ -175,7 +175,7 @@ def stair_resource_shadow_kit_args(*, renderer_active_gpu_ordinal: int) -> str:
         renderer_active_gpu_ordinal,
         "Stair resource-shadow renderer GPU ordinal",
     )
-    return stair_single_gpu_kit_args(
+    return single_gpu_kit_args(
         renderer_active_gpu_ordinal=renderer_active_gpu_ordinal
     )
 

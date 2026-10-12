@@ -41,7 +41,7 @@ from true_rl_agent.tasks.stair_climbing.final_confirmation import (
     STAIR_FINAL_CONFIRMATION_REQUIRED_ROUNDS,
 )
 from true_rl_agent.tasks.stair_climbing.row_catalog import (
-    STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
+    DEFAULT_STAIR_CELL_VARIANT_ID,
     active_unified_stair_cell_variant_ids,
 )
 
@@ -78,7 +78,7 @@ def _build_parser(*, execution_device: object) -> argparse.ArgumentParser:
     parser.add_argument(
         "--cell-variant-id",
         choices=active_unified_stair_cell_variant_ids(),
-        default=STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
+        default=DEFAULT_STAIR_CELL_VARIANT_ID,
     )
     parser.add_argument("--final-confirmation-plan", type=Path, default=None)
     add_execution_device_argument(parser, default=execution_device)

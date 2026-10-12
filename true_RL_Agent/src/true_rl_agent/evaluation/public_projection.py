@@ -121,7 +121,71 @@ def _project_training_summary(training: Mapping[str, Any]) -> dict[str, Any]:
     budget_accounting = training.get("budget_accounting")
     if isinstance(budget_accounting, Mapping):
         projected["budget_accounting"] = _public_value(budget_accounting)
+    if "numeric_evidence" in training:
+        projected["numeric_evidence"] = project_public_training_sampling(training["numeric_evidence"])
     return projected
+
+
+def project_public_training_sampling(value: Any) -> dict[str, Any]:
+    """Bound only sampling coverage; task term meanings remain opaque references.
+
+    No archive I/O is needed during ledger replay. ``complete`` describes the
+    published attachment; each window separately says what was actually sampled.
+    The same allowlist handles the raw receipt and its public projection.
+    """
+    if not isinstance(value, Mapping) or not value:
+        return {"status": "not_available"}
+    status = value.get("status")
+    if status not in {"complete", "not_enabled", "not_started", "incomplete", "not_available"}:
+        return {"status": "not_available"}
+    if status != "complete":
+        return {"status": status}
+    coverage = value.get("coverage", value)
+    if not isinstance(coverage, Mapping) or not isinstance(coverage.get("windows"), list | tuple):
+        return {"status": "incomplete"}
+    result: dict[str, Any] = {
+        "status": "complete",
+        "scope": "fixed_windows_and_environment_subset_not_whole_training_distribution",
+    }
+    for key in ("planned_control_steps", "observed_control_steps", "num_envs", "steps_per_iteration", "source_step_offset_excluded"):
+        item = coverage.get(key)
+        if type(item) is int and item >= 0:
+            result[key] = item
+    if coverage.get("training_status") in {"pass", "fail"}:
+        result["training_status"] = coverage["training_status"]
+    env_ids = coverage.get("sampled_env_ids")
+    sampled_count = len(env_ids) if isinstance(env_ids, list | tuple) else coverage.get("sampled_env_count")
+    if type(sampled_count) is int and 0 <= sampled_count <= 16:
+        result["sampled_env_count"] = sampled_count
+    schema = coverage.get("schema_version", coverage.get("capture_schema_version"))
+    if schema in {"true_rl_agent.training_numeric_capture.v1", "true_rl_agent.training_numeric_capture.v2"}:
+        result["capture_schema_version"] = schema
+    # Refer to the original task-owned term contract without copying term arrays,
+    # source paths, or interpreting rate/step-reward meanings in shared code.
+    from true_rl_agent.evaluation.binding import canonical_json_hash, is_sha256_digest
+    semantics = coverage.get("semantics")
+    semantics_hash = canonical_json_hash(semantics) if isinstance(semantics, Mapping) else coverage.get("term_semantics_hash")
+    if is_sha256_digest(semantics_hash):
+        result["term_semantics_hash"] = semantics_hash
+    reference = value.get("reference")
+    archive_hash = reference.get("manifest_sha256") if isinstance(reference, Mapping) else value.get("archive_manifest_sha256")
+    if is_sha256_digest(archive_hash):
+        result["archive_manifest_sha256"] = archive_hash
+    windows = {w.get("name"): w for w in coverage["windows"] if isinstance(w, Mapping)}
+    result["windows"] = []
+    for name in ("early", "middle", "late"):
+        raw = windows.get(name, {})
+        window_status = raw.get("status")
+        item = {"name": name, "status": window_status if window_status in {
+            "sampled", "partial", "not_reached", "not_sampled", "not_scheduled", "not_available"
+        } else "not_available"}
+        for key in ("start_step", "end_step", "planned_sample_steps", "sampled_control_steps",
+                    "sampled_env_transitions", "planned_sampled_env_transitions"):
+            number = raw.get(key)
+            if type(number) is int and number >= 0:
+                item[key] = number
+        result["windows"].append(item)
+    return result
 
 
 def _project_candidate_summary(candidate: Mapping[str, Any]) -> dict[str, Any]:

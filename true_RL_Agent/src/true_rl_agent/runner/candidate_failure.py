@@ -261,7 +261,7 @@ def validate_candidate_runtime_failure_details(value: Any) -> dict[str, Any]:
         "candidate_failure_contract",
         "candidate_failure",
     }
-    if set(value) != expected_fields:
+    if set(value) - {"training_sampling"} != expected_fields:
         raise ValueError("candidate runtime failure detail fields mismatch")
     if value.get("status") != "fail":
         raise ValueError("candidate runtime failure status must be fail")
@@ -274,12 +274,19 @@ def validate_candidate_runtime_failure_details(value: Any) -> dict[str, Any]:
         value.get("candidate_failure_contract")
     )
     evidence = contract.validate_evidence(value.get("candidate_failure"))
-    return {
+    result = {
         "status": "fail",
         "subprocess_returncode": returncode,
         "candidate_failure_contract": contract.to_public_dict(),
         "candidate_failure": evidence.to_public_dict(),
     }
+    if "training_sampling" in value:
+        from true_rl_agent.evaluation.public_projection import project_public_training_sampling
+        sampled = project_public_training_sampling(value["training_sampling"])
+        if sampled != value["training_sampling"]:
+            raise ValueError("candidate failure training sampling is not a public projection")
+        result["training_sampling"] = sampled
+    return result
 
 
 def is_infrastructure_runtime_exception(exc: BaseException) -> bool:

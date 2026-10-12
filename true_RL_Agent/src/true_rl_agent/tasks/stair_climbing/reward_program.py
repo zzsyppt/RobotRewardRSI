@@ -12,7 +12,7 @@ from true_rl_agent.candidates.artifact import (
     SealedCandidateArtifactRef,
     load_sealed_candidate_artifact,
 )
-from true_rl_agent.candidates.authoring_policy import require_component_name
+from true_rl_agent.candidates.authoring_policy import require_component_name, require_mechanism_operation_delta
 from true_rl_agent.candidates.components import RewardTerm, TrainingComponents
 from true_rl_agent.candidates.loader import load_training_components_source_bytes
 from true_rl_agent.candidates.verifier import (
@@ -46,6 +46,7 @@ from true_rl_agent.tasks.stair_climbing.reward_inputs import (
 from true_rl_agent.tasks.stair_climbing.reward_source_semantics import (
     audit_stair_reward_source_semantics,
 )
+from true_rl_agent.tasks.stair_climbing.vnext_reward_contract import STAIR_COMPLETE_REWARD_RUNTIME_VNEXT_SCHEMA_VERSION
 from true_rl_agent.training_programs import (
     CANONICAL_TRAINING_COMPONENTS_PATH,
     VerifiedReferenceProgramArtifact,
@@ -269,6 +270,11 @@ def qualify_stair_candidate_reward_program(
     )
 
 
+def qualify_stair_diagnostic_parent(**kwargs) -> QualifiedStairRewardProgram:
+    """Qualify the byte-bound authoring parent for diagnostics only."""
+    return _qualify_exact_stair_reward_source(require_reference_term_set=False, **kwargs)
+
+
 def _qualify_exact_stair_reward_source(
     *,
     contract: StairCompleteRewardRuntimeContract,
@@ -432,14 +438,50 @@ class StairCompleteRewardDispatcher:
         self.term_calls = 0
         self.last_common_step: int | None = None
         self.last_evaluation: StairRewardEvaluation | None = None
+        self.training_numeric_capture = None
         self._sampled_term_stats: dict[str, dict[str, Any]] = {}
         self._last_total_mean: Any = None
         self._max_abs_total: Any = None
+        self._runtime_comparison = None
+        self._operation_nonzero_count = None
+        self._operation_max_abs = None
         self._evidence_interval_steps = int(
             program.contract.dispatcher_contract[
                 "evidence_sample_interval_steps"
             ]
         )
+
+    def bind_runtime_comparison(self, *, parent_program, operation_delta, context_hash):
+        delta = require_mechanism_operation_delta(operation_delta)
+        if self.step_calls or delta["candidate_source_checksum"] != self.program.program_source_checksum:
+            raise ValueError("runtime comparison must bind this program before training")
+        if (not isinstance(parent_program, QualifiedStairRewardProgram)
+                or parent_program.program_source_checksum != delta["anchor_source_checksum"]
+                or parent_program.contract.input_schema_hash != self.program.contract.input_schema_hash):
+            raise ValueError("runtime comparison parent identity differs")
+        require_sha256_digest(context_hash, "runtime comparison context")
+        self._runtime_comparison = (parent_program, delta, context_hash)
+
+    def bind_training_numeric_capture(self, capture) -> None:
+        if self.training_numeric_capture is not None:
+            raise ValueError("Stair training numeric capture already bound")
+        if capture.recorder.source_step_offset != self.step_calls or capture.recorder.num_envs != self.num_envs:
+            raise ValueError("Stair training capture offset or environment count differs")
+        self.training_numeric_capture = capture
+
+    def training_numeric_semantics(self, *, control_dt: float) -> dict[str, Any]:
+        return {
+            "program_source_checksum": self.program.program_source_checksum,
+            "qualification_hash": self.program.qualification_hash,
+            "raw_term": "guarded_and_clipped_program_term_before_weight",
+            "weighted_term": "raw_term_times_declared_weight_reward_rate",
+            "total": "actual_dispatcher_total_rate_before_RewardManager_dt",
+            "control_dt_s": control_dt, "reward_manager_weight": 1.0,
+            "step_reward_relation": "RewardManager multiplies total_rate by control_dt_s once",
+            "terms": [{"index": index, "name": term.name, "weight": float(term.weight),
+                       "clip_min": term.clip_min, "clip_max": term.clip_max}
+                      for index, term in enumerate(self.program.reward_terms)],
+        }
 
     def compute(
         self,
@@ -463,7 +505,37 @@ class StairCompleteRewardDispatcher:
         self.last_common_step = common_step
         self.last_evaluation = evaluation
         self._record_evidence(evaluation)
+        if self._runtime_comparison is not None:
+            self._record_operation_effect(inputs, evaluation)
+        capture = self.training_numeric_capture
+        if capture is not None and capture.active:
+            def sample():
+                arrays = {"total_rate": evaluation.total_rate}
+                for index, name in enumerate(self.program.term_names):
+                    arrays[f"raw_term_{index:03d}"] = evaluation.raw_terms[name]
+                    arrays[f"weighted_term_{index:03d}"] = evaluation.weighted_terms[name]
+                return arrays, {"common_step": common_step}
+            capture.observe(self.step_calls, sample)
         return evaluation.total_rate
+
+    def _record_operation_effect(self, inputs, evaluation):
+        import torch
+        parent, delta, _ = self._runtime_comparison
+        before, after = delta["before_component"], delta["after_component"]
+        parent_value = 0.0
+        if before is not None:
+            before_name = before["mechanism_id"].partition(":")[2]
+            parent_value = evaluate_stair_reward_program(parent, inputs, num_envs=self.num_envs,
+                only_term_name=before_name).weighted_terms[before_name]
+        candidate_value = (evaluation.weighted_terms[after["mechanism_id"].partition(":")[2]]
+                           if after is not None else 0.0)
+        difference = (candidate_value - parent_value).detach().abs()
+        nonzero = (difference > 1.0e-12).sum()
+        maximum = difference.max()
+        self._operation_nonzero_count = (nonzero if self._operation_nonzero_count is None
+                                         else self._operation_nonzero_count + nonzero)
+        self._operation_max_abs = (maximum if self._operation_max_abs is None
+                                  else torch.maximum(self._operation_max_abs, maximum))
 
     def runtime_summary(self) -> dict[str, Any]:
         term_records = []
@@ -474,6 +546,10 @@ class StairCompleteRewardDispatcher:
                     "name": name,
                     "call_count": self.step_calls,
                     "sample_count": int(stats["sample_count"]) if stats else 0,
+                    "sampled_env_transitions": int(stats["sample_count"]) * self.num_envs if stats else 0,
+                    "last_sample_common_step": stats["last_sample_common_step"] if stats else None,
+                    "sampled_env_count": self.num_envs,
+                    "nonzero_env_transitions": int(_tensor_scalar(stats["nonzero_count"])) if stats else 0,
                     "last_raw_mean": _tensor_scalar(stats["last_raw_mean"])
                     if stats
                     else None,
@@ -497,18 +573,32 @@ class StairCompleteRewardDispatcher:
                 "component_kind": "reward_term",
                 "call_count": record["call_count"],
                 "observation_count": record["sample_count"],
+                "sampled_env_transitions": record["sampled_env_transitions"],
+                "nonzero_env_transitions": record["nonzero_env_transitions"],
                 "last_weighted_mean": record["last_weighted_mean"],
+                "last_sample_common_step": record["last_sample_common_step"],
+                "sampled_env_count": record["sampled_env_count"],
                 "max_abs_weighted_contribution": record[
                     "max_abs_weighted_rate"
                 ],
             }
             for record in term_records
         ]
+        if self._runtime_comparison is not None:
+            component = self._runtime_comparison[1]["after_component"]
+            for record in component_records:
+                if component is not None and record["name"] == component["mechanism_id"].partition(":")[2]:
+                    record.update(max_abs_parent_delta=_tensor_scalar(self._operation_max_abs),
+                        delta_sampled_env_transitions=self.step_calls * self.num_envs,
+                        delta_nonzero_env_transitions=int(_tensor_scalar(self._operation_nonzero_count) or 0))
         return {
             "schema_version": STAIR_REWARD_RUNTIME_EVIDENCE_SCHEMA_VERSION,
             "status": "pass" if self.step_calls > 0 else "not_executed",
             "program": self.program.to_public_dict(),
             "dispatcher_calls": self.step_calls,
+            "step_calls": self.step_calls,
+            "reward_term_count": len(self.program.term_names),
+            "diagnostic_term_count": 0,
             "term_calls": self.term_calls,
             "declared_term_count": len(self.program.term_names),
             "last_common_step": self.last_common_step,
@@ -532,6 +622,17 @@ class StairCompleteRewardDispatcher:
             "diagnostic_outputs": {},
             "component_activation_records": component_records,
             "feature_activation_records": [],
+            **({"operation_effect": {
+                "schema_version": "true_rl_agent.stair_reward_operation_effect.v1",
+                "context_hash": self._runtime_comparison[2],
+                "mechanism_operation_delta": self._runtime_comparison[1],
+                "comparison": "same_transition_weighted_rate_difference",
+                "coverage": "all_dispatched_training_transitions",
+                "sampled_control_steps": self.step_calls,
+                "sampled_env_transitions": self.step_calls * self.num_envs,
+                "nonzero_env_transitions": int(_tensor_scalar(self._operation_nonzero_count) or 0),
+                "max_abs_weighted_delta": _tensor_scalar(self._operation_max_abs),
+            }} if self._runtime_comparison is not None else {}),
             "capability_activation_records": [
                 COMPLETE_REWARD_PROGRAM_CAPABILITY_ID
             ],
@@ -554,8 +655,11 @@ class StairCompleteRewardDispatcher:
             current = self._sampled_term_stats.get(name)
             self._sampled_term_stats[name] = {
                 "sample_count": 1 + (int(current["sample_count"]) if current else 0),
+                "nonzero_count": (weighted.detach().abs() > 1.0e-12).sum()
+                    + (current["nonzero_count"] if current else 0),
                 "last_raw_mean": raw_mean,
                 "last_weighted_mean": weighted_mean,
+                "last_sample_common_step": self.last_common_step,
                 "max_abs_weighted_rate": torch.maximum(
                     current["max_abs_weighted_rate"],
                     weighted_max,
@@ -578,6 +682,7 @@ def evaluate_stair_reward_program(
     inputs: StairRewardInputsV2 | StairRewardInputsVNext,
     *,
     num_envs: int,
+    only_term_name: str | None = None,
 ) -> StairRewardEvaluation:
     """Evaluate one complete program with input and RNG isolation guards."""
 
@@ -606,6 +711,8 @@ def evaluate_stair_reward_program(
         output = program.contract.output_contract
         term_bound = float(output["maximum_absolute_term_rate"])
         for term in program.reward_terms:
+            if only_term_name is not None and term.name != only_term_name:
+                continue
             value = term.fn(inputs)
             value = _guard_reward_vector(
                 value,

@@ -20,6 +20,8 @@ from true_rl_agent.agent_core.generation_contract import (
     generation_resource_plan_hash,
     generation_training_initialization_hash,
     load_generation_session_contract,
+    load_replay_generation_session_contract,
+    latest_nonaccepted_trial,
     publish_generation_session_contract,
 )
 from true_rl_agent.runner.specs import GpuProcessBinding
@@ -45,6 +47,57 @@ def _bound_contract_hashes(*, resource_plan_hash: str) -> dict[str, str]:
 
 
 class GenerationContractTests(unittest.TestCase):
+    def test_readonly_replay_uses_frozen_authoring_identity_but_execution_stays_strict(self):
+        stored = self._v3_contract()
+        current = replace(stored, bound_contract_hashes={**stored.bound_contract_hashes,
+                                                        "authoring_policy": "a" * 64})
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            ref = publish_generation_session_contract(root, stored)
+            path = root / ref.logical_name
+            before = (path.read_bytes(), path.stat().st_mtime_ns)
+            self.assertEqual(load_replay_generation_session_contract(root, current), (stored, ref))
+            with self.assertRaises(FileExistsError):
+                publish_generation_session_contract(root, current, require_existing=True)
+            for changed in (replace(current, session_id="other-session"),
+                            replace(current, bound_contract_hashes={**current.bound_contract_hashes,
+                                                                  "selector": "b" * 64}),
+                            replace(current, bound_contract_hashes={**current.bound_contract_hashes,
+                                                                  "provider_policy": "c" * 64})):
+                with self.assertRaisesRegex(ValueError, "outside authoring_policy"):
+                    load_replay_generation_session_contract(root, changed)
+            self.assertEqual((path.read_bytes(), path.stat().st_mtime_ns), before)
+
+    def test_latest_trained_nonaccepted_trial_crosses_incomplete_and_accepted_generations(self):
+        trained = {"trial_id": "g1-b", "trial_status": "qualified_not_selected",
+                   "candidate": {"candidate_id": "sibling"}, "train": {"completed": True}}
+        accepted = {**trained, "trial_id": "g1-a", "trial_status": "accepted"}
+        untrained = {**trained, "trial_id": "g2-b", "trial_status": "candidate_failed", "train": None}
+        records = [{"generation": {"trials": [trained, accepted]}},
+                   {"generation": {"trials": [untrained]}}]
+        self.assertEqual(latest_nonaccepted_trial(records), (0, trained))
+        self.assertIsNone(latest_nonaccepted_trial(records[1:]))
+
+    def test_nonaccepted_source_prefers_task_selection_then_existing_fallback(self):
+        selected = {"trial_id": "g1-a", "trial_status": "formal_rejected",
+                    "candidate": {"candidate_id": "selected"}, "train": {"completed": True}}
+        sibling = {"trial_id": "g1-b", "trial_status": "qualified_not_selected",
+                   "candidate": {"candidate_id": "sibling"}, "train": {"completed": True}}
+        for status, selection, expected in (
+            ("formal_rejected", {"selected_trial_id": "g1-a"}, "g1-a"),
+            ("accepted", {"selected_trial_id": "g1-a"}, "g1-b"),
+            ("formal_rejected", None, "g1-b"),
+        ):
+            with self.subTest(status=status, selection=selection):
+                records = [{"generation": {
+                    "trials": [{**selected, "trial_status": status}, sibling],
+                    "selection": selection,
+                }}]
+                result = latest_nonaccepted_trial(records)
+                self.assertIsNotNone(result)
+                self.assertEqual(result[0], 0)
+                self.assertEqual(result[1]["trial_id"], expected)
+
     def _lanes(self) -> tuple[GenerationLaneAssignment, GenerationLaneAssignment]:
         return (
             GenerationLaneAssignment(

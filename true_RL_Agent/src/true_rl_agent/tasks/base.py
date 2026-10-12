@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from pathlib import Path
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Mapping
 
@@ -15,6 +16,8 @@ from true_rl_agent.evaluation.binding import canonical_json_hash, require_sha256
 from true_rl_agent.evaluation.public_result import PublicEvalResult
 
 if TYPE_CHECKING:
+    from true_rl_agent.agent_core.generation_finalization import GenerationFinalPlan
+    from true_rl_agent.evaluation.phased_adapter import PhasedEvaluationAdapter
     from true_rl_agent.robots.base import RobotRequirements
     from true_rl_agent.tasks.component_smoke import ComponentSmokeAdapter
     from true_rl_agent.tasks.prompt_adapter import TaskPromptAdapter
@@ -203,7 +206,36 @@ class TaskPlugin(ABC):
 
         return NeutralComponentSmokeAdapter(self.task_spec.task_id)
 
-    def phased_evaluation_adapter(self) -> object | None:
+    def phased_evaluation_adapter(self) -> "PhasedEvaluationAdapter | None":
         """Return an optional task-owned phased-evaluation capability."""
 
         return None
+
+    def bind_training_diagnostics(self, train_spec, *, parent_source, parent_evidence,
+                                  mechanism_operation_delta):
+        """Bind task-owned diagnostic inputs before the train receipt contract freezes."""
+        return train_spec
+
+    def training_runtime_issue(self, *, train_summary, mechanism_operation_delta):
+        """Return a task-owned failure only after a complete training receipt exists."""
+        return None
+
+    def bind_genesis_evidence(self, public_evidence: Mapping[str, Any]) -> None:
+        """Bind task-owned qualification facts after verified Genesis replay."""
+
+    def bind_final_eval_plan(self, eval_plan, *, plan, plan_path: Path):
+        """Attach task-owned final cohort arguments to an already bound job."""
+        raise NotImplementedError("task does not support final evaluation")
+
+    def summarize_final_comparison(self, *, plan, plan_path, reference, final):
+        """Interpret final task evidence without acceptance or feedback authority."""
+        raise NotImplementedError("task does not support final comparison")
+
+    def prepare_final_confirmation(
+        self, *, output_dir: Path, session_id: str,
+        required_closed_generations: int, resume_existing: bool,
+        replication_source: Path | None = None,
+    ) -> "GenerationFinalPlan":
+        """Commit the task's final cohort before a shared generation session."""
+
+        raise NotImplementedError(f"task {self.task_spec.task_id!r} has no final confirmation contract")

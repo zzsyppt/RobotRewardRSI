@@ -16,6 +16,10 @@ STAIR_NORMALIZED_TRANSITION_SCHEMA_VERSION = (
 )
 LEGACY_G1_SUPPORT_COUNT = 2
 LEGACY_G1_FORBIDDEN_CONTACT_COUNT = 1
+STAIR_CONTACT_HISTORY_TENSOR_FIELDS = (
+    "support_contact_forces_w_history", "forbidden_contact_forces_w_history",
+)
+STAIR_CONTACT_HISTORY_FIELDS = {*STAIR_CONTACT_HISTORY_TENSOR_FIELDS, "contact_force_history"}
 
 _NORMALIZED_COMMON_FIELDS = {
     "base_pos_w",
@@ -72,8 +76,12 @@ def normalize_stair_transition_payload(raw: Mapping[str, Any]) -> dict[str, Any]
     if not isinstance(raw, Mapping):
         raise ValueError("Stair transition recorder payload must be an object")
     schema_version = raw.get("schema_version")
+    history_fields = STAIR_CONTACT_HISTORY_FIELDS.intersection(raw)
+    if history_fields and history_fields != STAIR_CONTACT_HISTORY_FIELDS:
+        raise ValueError("Stair contact force history fields must be present together")
+    history = {name: raw[name] for name in history_fields}
     if schema_version == STAIR_NORMALIZED_TRANSITION_SCHEMA_VERSION:
-        if set(raw) != _NORMALIZED_FIELDS:
+        if set(raw) - history_fields != _NORMALIZED_FIELDS:
             raise ValueError("Stair normalized transition fields mismatch")
         return dict(raw)
     if schema_version == STAIR_TRANSITION_RECORDER_SCHEMA_VERSION:
@@ -99,9 +107,10 @@ def normalize_stair_transition_payload(raw: Mapping[str, Any]) -> dict[str, Any]
             "forbidden_contact_count": LEGACY_G1_FORBIDDEN_CONTACT_COUNT,
         }
     if schema_version == STAIR_TRANSITION_VNEXT_SCHEMA_VERSION:
-        if set(raw) != _VNEXT_FIELDS:
+        if set(raw) - history_fields != _VNEXT_FIELDS:
             raise ValueError("Stair VNext transition recorder fields mismatch")
         return {
+            **history,
             **{name: raw[name] for name in _NORMALIZED_COMMON_FIELDS},
             "schema_version": STAIR_NORMALIZED_TRANSITION_SCHEMA_VERSION,
             "source_schema_version": schema_version,

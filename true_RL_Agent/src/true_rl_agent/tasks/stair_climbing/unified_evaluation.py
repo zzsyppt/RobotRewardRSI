@@ -8,7 +8,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Mapping
 
-from true_rl_agent.evaluation.binding import canonical_json_hash
+from true_rl_agent.evaluation.binding import canonical_json_hash, require_sha256_digest
 from true_rl_agent.evaluation.protocol import EvaluationProtocol
 from true_rl_agent.json_contract import load_strict_json_object
 from true_rl_agent.tasks.stair_climbing.ordered_evaluation import (
@@ -36,6 +36,12 @@ STAIR_UNIFIED_EVALUATION_SUITE_RELATIVE_PATH = (
 STAIR_UNIFIED_EVALUATION_SUITE_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.unified_evaluation_suite.v1"
 )
+STAIR_CALIBRATED_EVALUATION_SUITE_SCHEMA_VERSION = (
+    "true_rl_agent.task.stair_climbing.unified_evaluation_suite.v2"
+)
+STAIR_CELL_SCORE_FORMULA = "0.5*success_rate+0.5*mean_goal_progress_fraction"
+# Frozen summaries used this spelling; preserve their bytes on historical replay.
+LEGACY_STAIR_CELL_SCORE_FORMULA = "0.5*success_rate+0.5*goal_progress_fraction"
 STAIR_UNIFIED_FORMAL_COHORTS = (
     "public_dev",
     "public_accept",
@@ -62,16 +68,31 @@ _SUITE_FIELDS = {
     "cohort_hashes",
     "suite_hash",
 }
-_STRATA = (
-    "c0_id",
-    "c1_id",
-    "height_ood",
-    "tread_ood",
-    "joint_ood",
-    "phase_composition_ood",
-    "c1_conditional_frontier",
-    "c2_mechanism_ood",
-)
+STAIR_STRATUM_CLAIMS = {
+    "c0_id": (STAIR_TERRAIN_REGIME_C0, "in_distribution", "regular"),
+    "c1_id": (STAIR_TERRAIN_REGIME_C1, "in_distribution", "c1"),
+    "height_ood": (STAIR_TERRAIN_REGIME_C0, "scalar_extrapolation", "regular"),
+    "tread_ood": (STAIR_TERRAIN_REGIME_C0, "scalar_extrapolation", "regular"),
+    "joint_ood": (STAIR_TERRAIN_REGIME_C0, "joint_scalar_extrapolation", "regular"),
+    "phase_composition_ood": (STAIR_TERRAIN_REGIME_C1, "known_family_held_out_phase", "c1"),
+    "c1_conditional_frontier": (STAIR_TERRAIN_REGIME_C1, "conditional_on_c1_support", "c1"),
+    "c2_mechanism_ood": (STAIR_TERRAIN_REGIME_C2, "surface_mechanism_shift", "c2"),
+}
+_STRATA = tuple(STAIR_STRATUM_CLAIMS)
+
+STAIR_CALIBRATED_SCORE_CONTRACT = {
+    "episode_to_cell": "equal_weight_mean_over_episodes",
+    "cell_score": STAIR_CELL_SCORE_FORMULA,
+    "cell_to_stratum": "equal_weight_mean_over_cells",
+    "stratum_to_seed": "preserve_paired_seed_vector",
+    "j_id": "0.5*S_C0-ID+0.5*S_C1-ID",
+    "j_ood": "equal_weight_mean_over_qualified_nonempty_families",
+    "j_primary": "J_OOD",
+    "families": {"F_scalar": ["height_ood", "tread_ood", "joint_ood"],
+                 "F_c1": ["c1_conditional_frontier"],
+                 "F_c2": ["c2_mechanism_ood"]},
+    "named_guards": ["j_ood", "c0_id", "c1_id", "joint_ood", "phase_control"],
+}
 
 
 @dataclass(frozen=True)
@@ -137,8 +158,16 @@ class StairUnifiedEvaluationSuite(StairOrderedEvaluationSuite):
     ) -> "StairUnifiedEvaluationSuite":
         copied = _json_copy(payload)
         _validate_suite(copied, training_profile=training_profile)
-        cells = _expand_cells(copied, training_profile=training_profile)
+        cells = resolve_stair_suite_cells(copied, training_profile=training_profile)
         _validate_formal_geometry_isolation(cells)
+        if "final_holdout_policy" in copied:
+            for cohort in STAIR_UNIFIED_FORMAL_COHORTS:
+                cohort_cells = [cell for cell in cells if cell.cohort == cohort]
+                flat_bases = {(cell.riser_heights_m, cell.tread_depths_m) for cell in cohort_cells
+                              if cell.surface_profile["kind"] == STAIR_FLAT_SURFACE_KIND}
+                if any((cell.riser_heights_m, cell.tread_depths_m) not in flat_bases
+                       for cell in cohort_cells if cell.stratum_id == "c2_mechanism_ood"):
+                    raise ValueError("Stair formal C2 is missing its matching flat control")
         declarations = compute_unified_suite_declarations(copied, cells=cells)
         for name, expected in declarations.items():
             if copied.get(name) != expected:
@@ -160,13 +189,39 @@ class StairUnifiedEvaluationSuite(StairOrderedEvaluationSuite):
             evaluation_protocol=protocol,
         )
 
+    @classmethod
+    def freeze(
+        cls, payload: Mapping[str, Any], *, training_profile: StairUnifiedTrainingProfile
+    ) -> "StairUnifiedEvaluationSuite":
+        """Freeze task-authored declarations through the same loader as execution."""
+        copied = _json_copy(payload)
+        copied.update(compute_unified_suite_declarations(
+            copied, cells=resolve_stair_suite_cells(copied, training_profile=training_profile)
+        ))
+        return cls.from_mapping(copied, training_profile=training_profile)
+
     @property
     def score_contract(self) -> Mapping[str, Any]:
         return MappingProxyType(dict(self._payload["score_contract"]))
 
     @property
+    def is_calibrated(self) -> bool:
+        """The calibrated suite schema owns scale, scoring and qualification."""
+        return self._payload["schema_version"] == STAIR_CALIBRATED_EVALUATION_SUITE_SCHEMA_VERSION
+
+    @property
+    def records_episode_facts(self) -> bool:
+        return self.is_calibrated
+
+    @property
     def qualification_rule(self) -> Mapping[str, Any]:
         return MappingProxyType(dict(self._payload["qualification_rule"]))
+
+    @property
+    def source_suite_hash(self) -> str:
+        """The public suite that qualified the reference for this final instance."""
+        instance = self._payload.get("study_instance")
+        return str(instance["source_suite_hash"]) if instance is not None else self.suite_hash
 
     def task_projection(self) -> dict[str, Any]:
         return {
@@ -206,6 +261,8 @@ def compute_unified_suite_declarations(
                     if cohort == "calibration"
                     else payload["seed_counts"][cohort]
                 ),
+                **({"study_instance": payload["study_instance"]}
+                   if cohort == "sealed_validation" and "study_instance" in payload else {}),
                 "cells": [
                     {
                         "cell_id": cell.cell_id,
@@ -239,15 +296,33 @@ def _validate_suite(
     *,
     training_profile: StairUnifiedTrainingProfile,
 ) -> None:
-    if set(payload) != _SUITE_FIELDS:
+    calibrated = payload.get("schema_version") == STAIR_CALIBRATED_EVALUATION_SUITE_SCHEMA_VERSION
+    expected_fields = _SUITE_FIELDS | {"scale_context"} if calibrated else _SUITE_FIELDS
+    if calibrated and "final_holdout_policy" in payload:
+        from true_rl_agent.tasks.stair_climbing.study_holdout import FINAL_HOLDOUT_POLICY, LEGACY_FINAL_HOLDOUT_POLICY
+
+        expected_fields |= {"final_holdout_policy"}
+        if payload["final_holdout_policy"] not in (FINAL_HOLDOUT_POLICY, LEGACY_FINAL_HOLDOUT_POLICY):
+            raise ValueError("Stair study holdout generation rule drifted")
+        if "study_instance" in payload:
+            expected_fields |= {"study_instance"}
+            instance = payload["study_instance"]
+            if not isinstance(instance, Mapping) or set(instance) != {"source_suite_hash", "instance_key_hash"}:
+                raise ValueError("Stair study instance identity fields mismatch")
+            for key, value in instance.items():
+                require_sha256_digest(value, "Stair study " + key)
+    if set(payload) != expected_fields:
         raise ValueError("Stair unified evaluation suite fields mismatch")
-    if payload.get("schema_version") != STAIR_UNIFIED_EVALUATION_SUITE_SCHEMA_VERSION:
+    if payload.get("schema_version") not in {
+        STAIR_UNIFIED_EVALUATION_SUITE_SCHEMA_VERSION,
+        STAIR_CALIBRATED_EVALUATION_SUITE_SCHEMA_VERSION,
+    }:
         raise ValueError("Stair unified evaluation suite schema mismatch")
     suite_id = payload.get("suite_id")
     if (
         not isinstance(suite_id, str)
         or not suite_id.startswith("stair_unified_")
-        or not suite_id.endswith("_v1")
+        or not suite_id.endswith("_v2" if calibrated else "_v1")
     ):
         raise ValueError("Stair unified evaluation suite_id is invalid")
     if payload.get("training_profile_hash") != training_profile.profile_hash:
@@ -266,7 +341,9 @@ def _validate_suite(
         raise ValueError("Stair unified seed counts are invalid")
     if payload.get("calibration_seed_count") != 3:
         raise ValueError("Stair unified calibration seed count drifted")
-    if payload.get("episodes_per_seed_per_cell") != 3:
+    episodes = payload.get("episodes_per_seed_per_cell")
+    if (isinstance(episodes, bool) or not isinstance(episodes, int)
+            or (episodes < 12 if calibrated else episodes != 3)):
         raise ValueError("Stair unified episodes per cell drifted")
     geometry_policy = payload.get("geometry_policy")
     if (
@@ -279,12 +356,27 @@ def _validate_suite(
     ):
         raise ValueError("Stair unified evaluation geometry policy drifted")
     qualification = payload.get("qualification_rule")
-    if not isinstance(qualification, Mapping) or qualification != {
+    expected_qualification = {
         "minimum_cells_per_stratum_per_cohort": 3,
         "minimum_reference_score": 0.1,
         "family_mask_mode": "exclude_reference_floor_only",
         "requires_at_least_one_qualified_ood_family": True,
-    }:
+    }
+    if calibrated:
+        expected_qualification.update(
+            family_mask_mode="require_all_objective_strata_with_success_transition",
+            minimum_learnable_success_rate=0.2,
+            maximum_learnable_success_rate=0.8,
+        )
+        scale = payload["scale_context"]
+        if not isinstance(scale, Mapping) or set(scale) != {
+            "robot_profile_hash", "length_source", "support_length_m", "gravity_mps2"
+        } or scale["length_source"] != "nominal_root_to_support_body_center_z_m":
+            raise ValueError("Stair calibrated scale context mismatch")
+        _positive(scale["support_length_m"], "support length")
+        _positive(scale["gravity_mps2"], "gravity")
+        require_sha256_digest(scale["robot_profile_hash"], "Stair scale robot profile hash")
+    if not isinstance(qualification, Mapping) or qualification != expected_qualification:
         raise ValueError("Stair unified qualification rule drifted")
     minimum_cells = int(qualification["minimum_cells_per_stratum_per_cohort"])
     templates = payload.get("cell_templates")
@@ -323,7 +415,17 @@ def _validate_suite(
                 training_profile=training_profile,
             )
     calibration = payload.get("calibration_templates")
-    if (
+    if calibrated:
+        if not isinstance(calibration, list) or len(calibration) != 6 * len(_STRATA):
+            raise ValueError("Stair calibrated pool must contain six levels per stratum")
+        calibration_ids = [item["template_id"] for item in calibration]
+        if len(calibration_ids) != len(set(calibration_ids)):
+            raise ValueError("Stair calibration template IDs are duplicated")
+        for item in calibration:
+            _validate_template_claim(item, training_profile=training_profile)
+        if any(sum(item["stratum_id"] == name for item in calibration) != 6 for name in _STRATA):
+            raise ValueError("Stair calibration stratum coverage mismatch")
+    elif (
         not isinstance(calibration, list)
         or len(calibration) != 5
         or len(calibration) != len(set(calibration))
@@ -331,12 +433,15 @@ def _validate_suite(
     ):
         raise ValueError("Stair unified calibration templates are invalid")
     score = payload.get("score_contract")
-    if not isinstance(score, Mapping) or score.get("named_guards") != [
+    expected_guards = [
         "j_ood",
         "c0_id",
         "c1_id",
-    ]:
+    ] + (["joint_ood", "phase_control"] if calibrated else [])
+    if not isinstance(score, Mapping) or score.get("named_guards") != expected_guards:
         raise ValueError("Stair unified score contract drifted")
+    if calibrated and score != STAIR_CALIBRATED_SCORE_CONTRACT:
+        raise ValueError("Stair calibrated score contract differs from its arithmetic")
     if not isinstance(payload.get("cohort_hashes"), Mapping) or set(
         payload["cohort_hashes"]
     ) != set(STAIR_UNIFIED_RUNNABLE_COHORTS):
@@ -366,42 +471,26 @@ def _validate_template_claim(
     geometry = template["geometry"] if geometry is None else geometry
     if not isinstance(geometry, Mapping):
         raise ValueError("Stair unified cohort geometry must be an object")
-    expected_claims = {
-        "c0_id": (STAIR_TERRAIN_REGIME_C0, "in_distribution", "regular"),
-        "c1_id": (STAIR_TERRAIN_REGIME_C1, "in_distribution", "c1"),
-        "height_ood": (
-            STAIR_TERRAIN_REGIME_C0,
-            "scalar_extrapolation",
-            "regular",
-        ),
-        "tread_ood": (
-            STAIR_TERRAIN_REGIME_C0,
-            "scalar_extrapolation",
-            "regular",
-        ),
-        "joint_ood": (
-            STAIR_TERRAIN_REGIME_C0,
-            "joint_scalar_extrapolation",
-            "regular",
-        ),
-        "phase_composition_ood": (
-            STAIR_TERRAIN_REGIME_C1,
-            "known_family_held_out_phase",
-            "c1",
-        ),
-        "c1_conditional_frontier": (
-            STAIR_TERRAIN_REGIME_C1,
-            "conditional_on_c1_support",
-            "c1",
-        ),
-        "c2_mechanism_ood": (
-            STAIR_TERRAIN_REGIME_C2,
-            "surface_mechanism_shift",
-            "c2",
-        ),
-    }
-    if (regime, claim, geometry.get("kind")) != expected_claims[stratum]:
+    if (regime, claim, geometry.get("kind")) != STAIR_STRATUM_CLAIMS[stratum]:
         raise ValueError("Stair unified template claim identity mismatch")
+
+    if stratum == "c2_mechanism_ood" and "base_geometry" in geometry:
+        if set(geometry) != {"kind", "base_geometry", "surface_profile"}:
+            raise ValueError("Stair C2 composed geometry fields mismatch")
+        base = geometry["base_geometry"]
+        if not isinstance(base, Mapping) or base.get("kind") not in {"regular", "c1"}:
+            raise ValueError("Stair C2 base must be a known training regime")
+        regular = base["kind"] == "regular"
+        _validate_template_claim(
+            {"template_id": template["template_id"],
+             "stratum_id": "c0_id" if regular else "c1_id",
+             "terrain_regime_id": STAIR_TERRAIN_REGIME_C0 if regular else STAIR_TERRAIN_REGIME_C1,
+             "claim_kind": "in_distribution", "geometry": base},
+            training_profile=training_profile,
+        )
+        if normalize_stair_surface_profile(geometry["surface_profile"])["kind"] != STAIR_C2_SURFACE_KIND:
+            raise ValueError("Stair C2 requires a rough surface")
+        return
 
     terrain = training_profile.terrain
     c0 = terrain["c0"]
@@ -441,13 +530,18 @@ def _validate_template_claim(
         for value in training_profile.tread_bases_m
     )
     training_phase = int(pattern["training_phase_steps"])
+    offsets_in = all(
+        math.isclose(_positive(geometry.get(key, c1[key]), key), float(c1[key]), abs_tol=1e-9)
+        for key in ("riser_offset_m", "tread_offset_m")
+    )
     if stratum == "c1_id" and not (
-        riser_in and tread_in and phase_steps == training_phase
+        riser_in and tread_in and offsets_in and phase_steps == training_phase
     ):
         raise ValueError("Stair unified C1-ID claim mismatches training support")
     if stratum == "phase_composition_ood" and not (
         riser_in
         and tread_in
+        and offsets_in
         and training_profile.is_held_out_phase(
             pattern_id=pattern_id,
             phase_steps=phase_steps,
@@ -457,13 +551,13 @@ def _validate_template_claim(
             "Stair unified held-out-phase claim mismatches training support"
         )
     if stratum == "c1_conditional_frontier" and not (
-        phase_steps == training_phase and not (riser_in and tread_in)
+        phase_steps == training_phase and not (riser_in and tread_in and offsets_in)
     ):
         raise ValueError(
             "Stair unified conditional-frontier claim is not outside support"
         )
     if stratum == "c2_mechanism_ood":
-        if not (riser_in and tread_in and phase_steps == training_phase):
+        if not (riser_in and tread_in and offsets_in and phase_steps == training_phase):
             raise ValueError(
                 "Stair unified C2 claim must isolate the unseen surface mechanism"
             )
@@ -472,11 +566,12 @@ def _validate_template_claim(
             raise ValueError("Stair unified C2 claim requires a rough surface")
 
 
-def _expand_cells(
+def resolve_stair_suite_cells(
     payload: Mapping[str, Any],
     *,
     training_profile: StairUnifiedTrainingProfile,
 ) -> tuple[UnifiedStairCellSpec, ...]:
+    """Resolve declared geometry identically for freezing and holdout exclusion."""
     geometry_policy = payload["geometry_policy"]
     terrain = training_profile.terrain
     template_by_id = {
@@ -497,13 +592,18 @@ def _expand_cells(
             )
             for item in payload["cell_templates"]
         )
+    calibration = payload["calibration_templates"]
+    calibration_items = (
+        calibration if payload["schema_version"] == STAIR_CALIBRATED_EVALUATION_SUITE_SCHEMA_VERSION
+        else [template_by_id[template_id] for template_id in calibration]
+    )
     rows.extend(
         (
             "calibration",
-            template_by_id[template_id],
-            template_by_id[template_id]["geometry"],
+            template,
+            template["geometry"],
         )
-        for template_id in payload["calibration_templates"]
+        for template in calibration_items
     )
     cells: list[UnifiedStairCellSpec] = []
     anchor_progress_goal_m = round(
@@ -560,6 +660,20 @@ def _expand_cells(
     return tuple(cells)
 
 
+def _surface_control_geometry_digests(cells) -> set[str]:
+    """Exact ID controls paired to a rough surface within the same cohort."""
+    bases = {
+        (cell.cohort, cell.riser_heights_m, cell.tread_depths_m)
+        for cell in cells if cell.stratum_id == "c2_mechanism_ood"
+    }
+    return {
+        cell.geometry_digest for cell in cells
+        if cell.stratum_id in {"c0_id", "c1_id"}
+        and cell.surface_profile["kind"] == STAIR_FLAT_SURFACE_KIND
+        and (cell.cohort, cell.riser_heights_m, cell.tread_depths_m) in bases
+    }
+
+
 def _validate_formal_geometry_isolation(
     cells: tuple[UnifiedStairCellSpec, ...],
 ) -> None:
@@ -573,7 +687,12 @@ def _validate_formal_geometry_isolation(
             raise ValueError(f"Stair unified {cohort} contains duplicate geometries")
     for index, left in enumerate(STAIR_UNIFIED_FORMAL_COHORTS):
         for right in STAIR_UNIFIED_FORMAL_COHORTS[index + 1 :]:
-            if digests[left] & digests[right]:
+            shared_controls = _surface_control_geometry_digests(
+                tuple(cell for cell in cells if cell.cohort == left)
+            ) & _surface_control_geometry_digests(
+                tuple(cell for cell in cells if cell.cohort == right)
+            )
+            if (digests[left] & digests[right]) - shared_controls:
                 raise ValueError(
                     f"Stair unified formal cohort geometries overlap: {left}/{right}"
                 )
@@ -591,6 +710,14 @@ def _resolve_geometry(
     dict[str, Any],
 ]:
     kind = geometry.get("kind")
+    if kind == "c2" and "base_geometry" in geometry:
+        risers, treads, factors, _ = _resolve_geometry(
+            geometry["base_geometry"], training_profile=training_profile, step_count=step_count,
+        )
+        surface = normalize_stair_surface_profile(geometry["surface_profile"])
+        factors.update(roughness_band=f"{surface['amplitude_m']:.3f}",
+                       surface_pattern=f"l{surface['longitudinal_cycles']}_y{surface['lateral_cycles']}")
+        return risers, treads, factors, surface
     if kind == "regular":
         if set(geometry) != {"kind", "riser_height_m", "tread_depth_m"}:
             raise ValueError("Stair regular template geometry fields mismatch")
@@ -617,6 +744,10 @@ def _resolve_geometry(
         "phase_steps",
     }
     c2_fields = {*c1_fields, "surface_profile"}
+    offset_fields = {"riser_offset_m", "tread_offset_m"}
+    if offset_fields & set(geometry):
+        c1_fields |= offset_fields
+        c2_fields |= offset_fields
     if kind == "c1" and set(geometry) == c1_fields:
         surface_profile = {"kind": STAIR_FLAT_SURFACE_KIND}
     elif kind == "c2" and set(geometry) == c2_fields:
@@ -634,6 +765,8 @@ def _resolve_geometry(
         tread_base_m=_positive(geometry["tread_base_m"], "tread base"),
         pattern_id=pattern_id,
         phase_steps=phase_steps,
+        riser_offset_m=geometry.get("riser_offset_m"),
+        tread_offset_m=geometry.get("tread_offset_m"),
     )
     return (
         tuple(sequence["riser_heights_m"]),
@@ -655,6 +788,58 @@ def _resolve_geometry(
         },
         surface_profile,
     )
+
+
+def stair_geometry_variant(
+    geometry: Mapping[str, Any], *, stratum_id: str,
+    training_profile: StairUnifiedTrainingProfile, support_length_m: float,
+    height_fraction: float, tread_fraction: float, surface_phase_shift: int = 0,
+    preserve_surface_ratio: bool = True,
+) -> dict[str, Any]:
+    """Real geometric variation within the declared training-support relation.
+
+    ID dimensions stay in training support; extrapolated dimensions reflect at
+    its boundary. C2 changes the same flat base as its paired ID control and
+    preserves amplitude / minimum realized riser, including C1 offsets.
+    The false setting is only for replaying the frozen v1 final generator.
+    """
+    result = _json_copy(geometry)
+    if "base_geometry" in result:
+        base = result["base_geometry"]
+        result["base_geometry"] = stair_geometry_variant(
+            base, stratum_id="c0_id" if base["kind"] == "regular" else "c1_id",
+            training_profile=training_profile, support_length_m=support_length_m,
+            height_fraction=height_fraction, tread_fraction=0.0,
+        )
+        surface = result["surface_profile"]
+        if preserve_surface_ratio:
+            old_risers = _resolve_geometry(base, training_profile=training_profile,
+                step_count=int(training_profile.terrain["step_count"]))[0]
+            new_risers = _resolve_geometry(result["base_geometry"], training_profile=training_profile,
+                step_count=int(training_profile.terrain["step_count"]))[0]
+            surface["amplitude_m"] *= min(new_risers) / min(old_risers)
+        surface["phase_index"] = (surface["phase_index"] + surface_phase_shift) % surface["phase_count"]
+        return result
+    regular = result["kind"] == "regular"
+    terrain = training_profile.terrain["c0" if regular else "c1"]
+    low, high = map(float, terrain["riser_range_m" if regular else "riser_base_range_m"])
+    key = "riser_height_m" if regular else "riser_base_m"
+    value = float(result[key]) + height_fraction * support_length_m
+    extrapolated = stratum_id in {"height_ood", "joint_ood", "c1_conditional_frontier"}
+    if extrapolated:
+        value = high + max(0.001 * (high - low), abs(value - high))
+    else:
+        width = high - low
+        folded = (value - low) % (2 * width)
+        value = low + (folded if folded <= width else 2 * width - folded)
+    result[key] = value
+    if stratum_id in {"tread_ood", "joint_ood"}:
+        d0 = float(terrain["tread_depth_m"])
+        gap = abs(d0 - result["tread_depth_m"] - tread_fraction * support_length_m)
+        result["tread_depth_m"] = d0 - min(0.95 * d0, max(0.001 * d0, gap))
+    elif stratum_id == "c1_conditional_frontier":
+        result["tread_base_m"] += tread_fraction * support_length_m
+    return result
 
 
 def _positive(value: Any, field_name: str) -> float:

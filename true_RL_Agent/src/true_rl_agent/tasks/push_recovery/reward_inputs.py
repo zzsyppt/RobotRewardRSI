@@ -14,3 +14,14 @@ class PushRecoveryRewardInputs(RewardInputs):
 
     push_active: Any
     push_vec_public: Any
+
+
+@dataclass(frozen=True)
+class PushRecoveryV2RewardInputs(PushRecoveryRewardInputs):
+    """Versioned task-only normalization; historical input identities stay intact."""
+
+    nominal_base_height: Any
+    base_height_relative: Any
+    base_lin_vel_scaled: Any
+    base_ang_vel_scaled: Any
+    terminated_non_timeout: Any

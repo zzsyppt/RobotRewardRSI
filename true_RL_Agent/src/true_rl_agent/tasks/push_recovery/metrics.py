@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import math
-from datetime import datetime, timezone
 from statistics import mean, stdev
 from typing import Any, Mapping, Sequence
 
@@ -11,6 +10,7 @@ from true_rl_agent.evaluation.acceptance_protocol import AcceptanceProtocol
 from true_rl_agent.evaluation.protocol import EvaluationProtocol
 from true_rl_agent.evaluation.public_result import PublicEvalResult
 from true_rl_agent.evaluation.result_contract import validate_finite_number
+from true_rl_agent.evaluation.derived_statistics import sample_statistics
 from true_rl_agent.evaluation.sealed_validation import build_sealed_rollout_evidence
 from true_rl_agent.evaluation.subject import ExperimentSubject
 from true_rl_agent.tasks.push_recovery.config import PushRecoveryTaskConfig
@@ -27,7 +27,18 @@ DEFAULT_MOTION_LIMITS = {
 }
 DEFAULT_MIN_PUBLIC_ACCEPT_COUNT = 3
 FORBIDDEN_SOURCE_TOKENS = ("private", "hidden", "iid_hidden", "trusted_seed", "accept_reject")
-SUCCESS_FAILURE_LABELS = {"success", "recovered"}
+SUCCESS_FAILURE_LABELS = {"success", "recovered", "success_recovered"}
+RECOVERY_ROLLOUT_SCHEMA = "true_rl_agent.push_recovery.rollout.v2"
+FORCE_ROLLOUT_SCHEMA = "true_rl_agent.push_recovery.rollout.v3"
+RECOVERY_ROLLOUT_SCHEMAS = {RECOVERY_ROLLOUT_SCHEMA, FORCE_ROLLOUT_SCHEMA}
+RECOVERY_MAX_PUBLIC_TO_SEALED_DROP = 0.1
+
+
+def recovery_validation_contract() -> dict[str, Any]:
+    return {"schema_version": "true_rl_agent.push_recovery.validation.v2",
+            "distribution_relation": "same_balanced_magnitude_and_direction_distribution_independent_seeds",
+            "max_public_to_sealed_score_drop": RECOVERY_MAX_PUBLIC_TO_SEALED_DROP,
+            "validation_feedback": "status_only"}
 FAILURE_BREAKDOWN_METADATA_KEYS = {
     "diagnostic_only",
     "dominant_failure",
@@ -88,6 +99,7 @@ def build_push_public_result_from_summaries(
     motion_limits: Mapping[str, float] | None = None,
     min_public_accept_count: int = DEFAULT_MIN_PUBLIC_ACCEPT_COUNT,
     acceptance_protocol: AcceptanceProtocol | None = None,
+    evaluation_protocol: EvaluationProtocol | None = None,
 ) -> PublicEvalResult:
     """Project push-recovery rollout summaries into a public-only eval result.
 
@@ -111,22 +123,31 @@ def build_push_public_result_from_summaries(
     errors: list[dict[str, Any]] = []
     limits = {**DEFAULT_MOTION_LIMITS, **dict(motion_limits or {})}
     public_accept_summaries = public_accept_summaries or []
-    dev = _project_split(public_dev_summaries, split_name="public_dev", errors=errors)
-    accept = _project_split(public_accept_summaries, split_name="public_accept", errors=errors)
-    motion_gate = _motion_quality_gate(
-        [*public_dev_summaries, *public_accept_summaries],
-        limits=limits,
-        prior_errors=errors,
-    )
-    behavior_gate = _behavior_quality_gate(
-        public_dev_summaries=public_dev_summaries,
-        public_accept_summaries=public_accept_summaries,
-        limits=limits,
-        prior_errors=errors,
-    )
+    dev = project_push_split(public_dev_summaries, split_name="public_dev", errors=errors)
+    accept = project_push_split(public_accept_summaries, split_name="public_accept", errors=errors)
+    recovery_v2 = any(item.get("schema_version") in RECOVERY_ROLLOUT_SCHEMAS
+                      for item in (*public_dev_summaries, *public_accept_summaries))
+    if recovery_v2:
+        # V2 success includes posture, height, velocity and dwell; the old G1
+        # absolute-height checks have no authority in this comparison domain.
+        task_gates = {"recovery_evidence_gate": push_recovery_evidence_gate(
+            [*public_dev_summaries, *public_accept_summaries])}
+    else:
+        task_gates = {
+            "motion_quality_gate": push_motion_quality_gate(
+                [*public_dev_summaries, *public_accept_summaries], limits=limits, prior_errors=errors),
+            "behavior_quality_gate": push_behavior_quality_gate(
+                public_dev_summaries=public_dev_summaries, public_accept_summaries=public_accept_summaries,
+                limits=limits, prior_errors=errors),
+        }
     budget_gate = _budget_accounting_gate(budget_summary)
     accept_stats = accept["score_stats"]
     dev_stats = dev["score_stats"]
+    # Executable projections bind statistics to the supplied evaluation domain.
+    # Unbound projections remain useful for raw rollout inspection only.
+    if evaluation_protocol is not None:
+        for stats in (dev_stats, accept_stats):
+            stats["eval_protocol_hash"] = evaluation_protocol.protocol_hash
     accept_evidence_gate = _accept_evidence_gate(
         accept_stats,
         min_public_accept_count=min_public_accept_count,
@@ -141,8 +162,7 @@ def build_push_public_result_from_summaries(
         "required_pass_gates": [
             "accept_evidence_gate",
             "budget_accounting",
-            "motion_quality_gate",
-            "behavior_quality_gate",
+            *task_gates,
         ],
         "acceptance_protocol_hash": protocol.protocol_hash,
         "absolute_accept_floor": protocol.absolute_accept_floor,
@@ -155,8 +175,7 @@ def build_push_public_result_from_summaries(
         "prompt_feedback": _prompt_feedback_from_splits(public_dev=dev),
         "budget_accounting": budget_gate,
         "accept_evidence_gate": accept_evidence_gate,
-        "motion_quality_gate": motion_gate,
-        "behavior_quality_gate": behavior_gate,
+        **task_gates,
         "ood_stress_gate": {
             "status": "not_run",
             "required": False,
@@ -164,7 +183,6 @@ def build_push_public_result_from_summaries(
         },
         "acceptance": acceptance,
         "errors": errors,
-        "created_at_utc": datetime.now(timezone.utc).isoformat(),
     }
     if public_accept_summaries:
         metrics["public_accept"] = accept
@@ -186,16 +204,14 @@ def build_push_sealed_rollout_evidence(
     program_source_checksum: str | None = None,
     training_binding_hash: str | None = None,
     capability_profile_hash: str,
-    acceptance_protocol: AcceptanceProtocol | None = None,
+    acceptance_protocol: AcceptanceProtocol,
+    public_accept_score: float | None = None,
 ) -> dict[str, Any]:
     """Project runner-owned holdout rollouts without exposing per-run detail."""
 
-    protocol = acceptance_protocol or PushRecoveryTaskConfig(
-        public_accept_seed_count=evaluation_protocol.public_accept_seed_count,
-        sealed_validation_seed_count=evaluation_protocol.sealed_validation_seed_count,
-    ).acceptance_protocol()
+    protocol = acceptance_protocol
     errors: list[dict[str, Any]] = []
-    projected = _project_split(
+    projected = project_push_split(
         summaries,
         split_name="sealed_validation",
         errors=errors,
@@ -208,6 +224,15 @@ def build_push_sealed_rollout_evidence(
         and score_mean is not None
         and score_mean >= protocol.absolute_accept_floor
     )
+    recovery_v2 = any(item.get("schema_version") in RECOVERY_ROLLOUT_SCHEMAS for item in summaries)
+    if recovery_v2:
+        behavior_passed = bool(
+            behavior_passed
+            and (protocol.protocol_id != "unitree_push_recovery_acceptance_v3" or score_mean > 0.0)
+            and push_recovery_evidence_gate(summaries)["status"] == "pass"
+            and public_accept_score is not None
+            and public_accept_score - score_mean <= RECOVERY_MAX_PUBLIC_TO_SEALED_DROP
+        )
     return build_sealed_rollout_evidence(
         score_stats=score_stats,
         expected_seed_count=evaluation_protocol.sealed_validation_seed_count,
@@ -217,7 +242,11 @@ def build_push_sealed_rollout_evidence(
         checkpoint_hash=checkpoint_hash,
         task_validation_status="pass" if behavior_passed else "fail",
         reason=(
-            "push_recovery_holdout_floor_met"
+            "push_recovery_holdout_contract_met"
+            if recovery_v2 and behavior_passed
+            else "push_recovery_holdout_contract_not_met"
+            if recovery_v2
+            else "push_recovery_holdout_floor_met"
             if behavior_passed
             else "push_recovery_holdout_floor_not_met"
         ),
@@ -235,7 +264,7 @@ def attach_push_budget_gate(
 ) -> PublicEvalResult:
     metrics = dict(public_result.metrics)
     metrics["budget_accounting"] = _budget_accounting_gate(budget_summary)
-    if not _mapping(metrics.get("behavior_quality_gate")):
+    if "recovery_evidence_gate" not in metrics and not _mapping(metrics.get("behavior_quality_gate")):
         metrics["behavior_quality_gate"] = _missing_behavior_quality_gate(
             "behavior_quality_gate_missing_from_public_result"
         )
@@ -243,7 +272,7 @@ def attach_push_budget_gate(
     gates = list(acceptance.get("required_pass_gates", [])) if isinstance(acceptance.get("required_pass_gates"), list) else []
     if "budget_accounting" not in gates:
         gates.append("budget_accounting")
-    if "behavior_quality_gate" not in gates:
+    if "recovery_evidence_gate" not in metrics and "behavior_quality_gate" not in gates:
         gates.append("behavior_quality_gate")
     if "sealed_validation_gate" in metrics and "sealed_validation_gate" not in gates:
         gates.append("sealed_validation_gate")
@@ -294,10 +323,11 @@ def extract_push_failure_breakdown(metrics: Mapping[str, Any]) -> dict[str, floa
 
 
 def extract_push_prompt_failure_breakdown(metrics: Mapping[str, Any]) -> dict[str, float]:
-    """Return only prompt-visible diagnostic failure labels.
+    """Read public-dev diagnostics, with support for legacy flat feedback.
 
-    Public-accept failure labels are intentionally excluded; that split is
-    prompt-visible as aggregate stats only.
+    Active Push authoring excludes both acceptance scores and failure labels.
+    A legacy flat ``failure_breakdown`` remains caller-projected input; this
+    reader does not inspect ``public_accept``.
     """
 
     direct = _failure_breakdown_from_payload(metrics.get("failure_breakdown"))
@@ -363,7 +393,7 @@ def _dominant_failure_prompt_feedback(
     }
 
 
-def _project_split(
+def project_push_split(
     summaries: Sequence[Mapping[str, Any]],
     *,
     split_name: str,
@@ -372,6 +402,13 @@ def _project_split(
     seed_results: list[dict[str, Any]] = []
     success_rates: list[float] = []
     episode_counts: list[int] = []
+    schemas = {item.get("schema_version") for item in summaries}
+    recovery_v2 = bool(schemas & RECOVERY_ROLLOUT_SCHEMAS)
+    if recovery_v2 and len(schemas) != 1:
+        errors.append({"split": split_name, "reason": "mixed_recovery_rollout_schemas"})
+    if any(isinstance(schema, str) and schema.startswith("true_rl_agent.push_recovery.rollout.")
+           and schema not in RECOVERY_ROLLOUT_SCHEMAS for schema in schemas):
+        errors.append({"split": split_name, "reason": "unsupported_recovery_rollout_schema"})
     for index, summary in enumerate(summaries, start=1):
         if _has_forbidden_source_token(summary):
             errors.append({"split": split_name, "run_index": index, "reason": "forbidden_source_token"})
@@ -390,6 +427,12 @@ def _project_split(
             continue
         status = str(summary.get("status", "missing"))
         aggregate = _mapping(summary.get("aggregate"))
+        if recovery_v2:
+            try:
+                recovery_counts = recovery_episode_counts(summary)
+            except ValueError as exc:
+                errors.append({"split": split_name, "run_index": index, "reason": str(exc)})
+                recovery_counts = None
         success_rate = _optional_finite_float(aggregate.get("success_rate"))
         if status != "pass":
             errors.append({"split": split_name, "run_index": index, "reason": "summary_status_not_pass"})
@@ -411,19 +454,126 @@ def _project_split(
                 "secondary_metrics": _project_secondary_metrics(summary.get("secondary_metrics")),
             }
         )
+        if recovery_v2 and recovery_counts is not None:
+            seed_results[-1]["recovery_counts"] = recovery_counts
+            strata = _mapping(aggregate.get("stratum_results"))
+            seed_results[-1]["stratum_results"] = {
+                name: {key: _optional_int(row.get(key)) for key in ("episodes", "successes")}
+                for name in ("low", "medium", "high", "repeated")
+                if isinstance((row := strata.get(name)), Mapping)
+            }
     if not summaries and split_name == "public_dev":
         errors.append({"split": split_name, "reason": "missing_required_split"})
     return {
-        "score_stats": _stats(success_rates, episode_counts=episode_counts),
+        "score_stats": _stats(success_rates, episode_counts=episode_counts, canonical=recovery_v2),
         "seed_results": seed_results,
     }
 
 
-def _stats(values: Sequence[float], *, episode_counts: Sequence[int] = ()) -> dict[str, Any]:
+def recovery_episode_counts(summary: Mapping[str, Any]) -> dict[str, int]:
+    """Read versioned integer closure; early falls remain in the planned cohort."""
+    schema = summary.get("schema_version")
+    if schema not in RECOVERY_ROLLOUT_SCHEMAS:
+        raise ValueError("recovery_rollout_schema_mismatch")
+    aggregate = _mapping(summary.get("aggregate"))
+    names = ("episodes", "successes", "eligible_episode_count", "control_episode_count",
+             "planned_push_event_count", "pushed_episode_count", "push_event_count",
+             "invalid_injection_count")
+    names += (("completed_push_event_count", "verified_push_event_count", "sequence_recovered_count")
+              if schema == FORCE_ROLLOUT_SCHEMA else ("recovered_event_count",))
+    counts = {name: aggregate.get(name) for name in names}
+    if any(isinstance(value, bool) or not isinstance(value, int) or value < 0 for value in counts.values()):
+        raise ValueError("recovery_counts_missing_or_invalid")
+    total = counts["episodes"]
+    if (total <= 0 or counts["eligible_episode_count"] != total
+            or counts["control_episode_count"] != 0
+            or counts["planned_push_event_count"] < total):
+        raise ValueError("recovery_formal_cohort_must_have_planned_pushes_only")
+    if not (counts["successes"] <= counts["pushed_episode_count"] <= total
+            and counts["push_event_count"] <= counts["planned_push_event_count"]):
+        raise ValueError("recovery_event_counts_do_not_close")
+    if schema == FORCE_ROLLOUT_SCHEMA:
+        if not (counts["successes"] <= counts["sequence_recovered_count"] <= counts["pushed_episode_count"]
+                and counts["sequence_recovered_count"] <= counts["completed_push_event_count"] <= counts["push_event_count"]
+                and counts["sequence_recovered_count"] <= counts["verified_push_event_count"] <= counts["push_event_count"]):
+            raise ValueError("force_sequence_counts_do_not_close")
+    elif not counts["successes"] <= counts["recovered_event_count"] <= counts["push_event_count"]:
+        raise ValueError("recovery_event_counts_do_not_close")
+    labels = _mapping(_mapping(aggregate.get("failure_breakdown")).get("counts"))
+    if (not labels or any(isinstance(v, bool) or not isinstance(v, int) or v < 0 for v in labels.values())
+            or sum(labels.values()) != total or labels.get("success_recovered", 0) != counts["successes"]):
+        raise ValueError("recovery_episode_labels_do_not_close")
+    if aggregate.get("success_rate") != counts["successes"] / total:
+        raise ValueError("recovery_score_differs_from_integer_counts")
+    if schema == FORCE_ROLLOUT_SCHEMA:
+        _validate_force_episode_evidence(summary, counts)
+    return counts
+
+
+def _validate_force_episode_evidence(summary: Mapping[str, Any], counts: Mapping[str, int]) -> None:
+    """Bind force counts to recorded pulses without assigning per-pulse recovery."""
+    from true_rl_agent.tasks.push_recovery.rollout import aggregate_recovery_episodes
+
+    rows = summary.get("per_episode")
+    if not isinstance(rows, list) or len(rows) != counts["episodes"]:
+        raise ValueError("force_episode_records_missing")
+    try:
+        for row in rows:
+            events = row["force_events"]
+            if (row["push_event_count"] != len(events)
+                    or row["completed_push_event_count"] != sum(event["completed"] for event in events)
+                    or row["verified_push_event_count"] != sum(event["injection_verified"] for event in events)
+                    or row["failure_label"] == "out_of_bounds"
+                    or "recovered_event_count" in row):
+                raise ValueError("force_pulse_evidence_does_not_close")
+            for event in events:
+                if (not isinstance(event["completed"], bool) or not isinstance(event["injection_verified"], bool)
+                        or event["actual_substeps"] <= 0 or event["expected_substeps"] <= 0
+                        or event["actual_substeps"] > event["expected_substeps"]
+                        or event["completed"] != (event["actual_substeps"] == event["expected_substeps"])):
+                    raise ValueError("force_pulse_completion_differs_from_substeps")
+            complete = len(events) == row["planned_push_count"] and bool(events) and all(
+                event["completed"] and event["injection_verified"] for event in events)
+            if (not isinstance(row["sequence_recovered"], bool)
+                    or (row["sequence_recovered"] and not complete)
+                    or (row["success"] and not (row["sequence_recovered"] and row["final_recovery_condition"]
+                                               and row["failure_label"] == "success_recovered"))):
+                raise ValueError("force_sequence_recovery_evidence_inconsistent")
+        recomputed = aggregate_recovery_episodes(rows, force_sequence=True)
+        if any(recomputed[name] != value for name, value in counts.items()):
+            raise ValueError("force_episode_aggregate_differs_from_records")
+        if recomputed["failure_breakdown"]["counts"] != summary["aggregate"]["failure_breakdown"]["counts"]:
+            raise ValueError("force_episode_labels_differ_from_records")
+    except (KeyError, TypeError) as exc:
+        raise ValueError("force_episode_evidence_missing_or_invalid") from exc
+
+
+def push_recovery_evidence_gate(summaries: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    """Validate versioned task evidence; unsuccessful valid policies stay measurable."""
+    failures = []
+    for index, summary in enumerate(summaries, start=1):
+        try:
+            counts = recovery_episode_counts(summary)
+            if summary.get("status") != "pass" or counts["invalid_injection_count"]:
+                raise ValueError("recovery_injection_or_rollout_invalid")
+        except ValueError as exc:
+            failures.append({"run_index": index, "reason": str(exc)})
+    if not summaries:
+        failures.append({"reason": "no_rollout_summaries"})
+    return {"status": "fail" if failures else "pass",
+            "schema_version": ("true_rl_agent.push_recovery.evidence_gate.v3"
+                               if any(item.get("schema_version") == FORCE_ROLLOUT_SCHEMA for item in summaries)
+                               else "true_rl_agent.push_recovery.evidence_gate.v2"),
+            "failures": failures}
+
+
+def _stats(values: Sequence[float], *, episode_counts: Sequence[int] = (), canonical: bool = False) -> dict[str, Any]:
     rounded = [_round(value) for value in values]
     episode_count = sum(int(value) for value in episode_counts) if episode_counts else None
     if not values:
         return {"count": 0, "episode_count": episode_count, "mean": None, "std": None, "standard_error": None, "values": []}
+    if canonical:
+        return {**sample_statistics(values), "episode_count": episode_count, "values": list(values)}
     if len(values) == 1:
         return {"count": 1, "episode_count": episode_count, "mean": rounded[0], "std": 0.0, "standard_error": 0.0, "values": rounded}
     sample_std = stdev(values)
@@ -469,7 +619,7 @@ def _accept_evidence_gate(
     return gate
 
 
-def _motion_quality_gate(
+def push_motion_quality_gate(
     summaries: Sequence[Mapping[str, Any]],
     *,
     limits: Mapping[str, float],
@@ -500,7 +650,7 @@ def _motion_quality_gate(
     }
 
 
-def _behavior_quality_gate(
+def push_behavior_quality_gate(
     *,
     public_dev_summaries: Sequence[Mapping[str, Any]],
     public_accept_summaries: Sequence[Mapping[str, Any]],
@@ -676,6 +826,7 @@ def _project_secondary_metrics(value: Any) -> dict[str, Any] | None:
         "mean_max_abs_pitch_rad",
         "mean_max_abs_roll_rad",
         "mean_final_xy_drift_m",
+        "mean_max_xy_drift_m",
         "mean_final_planar_speed_mps",
         "recovery_window_success_rate",
     )
@@ -822,6 +973,8 @@ def _has_forbidden_source_token(value: Any) -> bool:
 
 def _failure_breakdown_from_split(value: Any) -> dict[str, float]:
     split = _mapping(value)
+    if isinstance(split.get("failure_breakdown"), Mapping):
+        return _failure_breakdown_from_payload(split["failure_breakdown"])
     seed_results = split.get("seed_results")
     if not isinstance(seed_results, Sequence) or isinstance(seed_results, (str, bytes)):
         return {}

@@ -882,6 +882,8 @@ def _require_train_result_matches_spec(
     result: TrainJobResult,
     spec: TrainJobSpec,
 ) -> None:
+    if spec.runtime_diagnostic_context_hash is not None and result.summary.get("runtime_diagnostic_context_hash") != spec.runtime_diagnostic_context_hash:
+        raise ValueError("train receipt runtime diagnostic context mismatch")
     expected = {
         "job_id": spec.job_id,
         "subject": spec.subject,

@@ -9,13 +9,9 @@ from __future__ import annotations
 from true_rl_agent.backends.rsl_rl_training_config import RslRlAgentConfiguration
 from true_rl_agent.robots.defaults import (
     G1_29DOF_UNITREE_RL_LAB_ADAPTER_ID,
-    G1_37DOF_ISAACLAB_ADAPTER_ID,
-    G1_37DOF_ISAACLAB_GROUPED_ADAPTER_ID,
-    GO2_12DOF_ISAACLAB_ADAPTER_ID,
 )
 from true_rl_agent.robots.isaaclab_locomotion import (
-    G1_ROUGH_AGENT_CONFIGURATION,
-    GO2_ROUGH_AGENT_CONFIGURATION,
+    isaaclab_locomotion_runtime_spec,
 )
 
 
@@ -51,26 +47,12 @@ G1_29DOF_UNITREE_RL_LAB_AGENT_CONFIGURATION = RslRlAgentConfiguration(
 )
 
 
-_AGENT_CONFIGURATIONS = {
-    G1_29DOF_UNITREE_RL_LAB_ADAPTER_ID: (
-        G1_29DOF_UNITREE_RL_LAB_AGENT_CONFIGURATION
-    ),
-    G1_37DOF_ISAACLAB_ADAPTER_ID: G1_ROUGH_AGENT_CONFIGURATION,
-    G1_37DOF_ISAACLAB_GROUPED_ADAPTER_ID: G1_ROUGH_AGENT_CONFIGURATION,
-    GO2_12DOF_ISAACLAB_ADAPTER_ID: GO2_ROUGH_AGENT_CONFIGURATION,
-}
-
-
 def rsl_rl_agent_configuration(
     runtime_adapter_id: str,
 ) -> RslRlAgentConfiguration:
-    try:
-        return _AGENT_CONFIGURATIONS[runtime_adapter_id]
-    except KeyError as exc:
-        raise KeyError(
-            "runtime adapter has no robot-owned RSL-RL configuration: "
-            + str(runtime_adapter_id)
-        ) from exc
+    if runtime_adapter_id == G1_29DOF_UNITREE_RL_LAB_ADAPTER_ID:
+        return G1_29DOF_UNITREE_RL_LAB_AGENT_CONFIGURATION
+    return isaaclab_locomotion_runtime_spec(runtime_adapter_id).agent_configuration
 
 
 __all__ = [

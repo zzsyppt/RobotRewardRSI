@@ -61,7 +61,10 @@ def _training_binding(profile: CandidateCapabilityProfile) -> TrainingBinding:
 class PhaseAContractTests(unittest.TestCase):
     def test_rsl_rl_execution_config_is_applied_and_bound_to_argv(self) -> None:
         configuration = RslRlAgentConfiguration(
-            policy={"class_name": "ActorCritic", "hidden_dims": [64, 32]},
+            policy={"class_name": "ActorCritic", "actor_hidden_dims": [64, 32],
+                    "critic_hidden_dims": [32, 16], "activation": "elu",
+                    "actor_obs_normalization": False, "critic_obs_normalization": True,
+                    "init_noise_std": 1.0, "noise_std_type": "scalar"},
             algorithm={"class_name": "PPO", "learning_rate": 0.001},
         )
 
@@ -79,16 +82,22 @@ class PhaseAContractTests(unittest.TestCase):
 
             def to_dict(self) -> dict:
                 return {
-                    "policy": dict(vars(self.policy)),
-                    "algorithm": dict(vars(self.algorithm)),
+                    "actor": self.actor,
+                    "critic": self.critic,
+                    "algorithm": self.algorithm,
                 }
 
         agent_cfg = AgentCfg()
-        configuration.apply_and_verify(agent_cfg)
+        configuration.apply_to(agent_cfg)
         self.assertEqual(
-            agent_cfg.to_dict()["policy"],
-            configuration.to_dict()["policy"],
+            agent_cfg.to_dict(),
+            configuration.runtime_sections(),
         )
+        self.assertIsNone(agent_cfg.policy)
+        self.assertEqual(agent_cfg.actor["hidden_dims"], [64, 32])
+        self.assertEqual(agent_cfg.critic["hidden_dims"], [32, 16])
+        self.assertTrue(agent_cfg.critic["obs_normalization"])
+        self.assertEqual(agent_cfg.actor["distribution_cfg"]["std_type"], "scalar")
         binding = TrainingBinding(
             initialization_mode="random",
             policy_architecture_hash=str(configuration.policy_architecture_hash),

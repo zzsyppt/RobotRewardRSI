@@ -7,7 +7,6 @@ does not accept candidates and never reads sealed rollout detail.
 from __future__ import annotations
 
 import math
-import statistics
 from dataclasses import dataclass
 from typing import Any, Mapping, Protocol
 
@@ -33,6 +32,7 @@ from true_rl_agent.tasks.stair_climbing.public_projection import (
 )
 from true_rl_agent.tasks.stair_climbing.unified_scoring import (
     UNIFIED_STAIR_PROMPT_OBJECTIVE_SCORE_SOURCE,
+    build_unified_guard_floor_projection,
     build_unified_score_projection,
     unified_stair_prompt_named_guard_score_source,
     validate_unified_stair_summary,
@@ -366,62 +366,23 @@ class StairExplorationProjector:
         """Project only prompt-visible public_dev evidence for revisit scheduling."""
 
         protocol = self.config.acceptance_protocol
-        canonical = validate_unified_stair_summary(
-            suite=self.config.ordered_evaluation_suite,
-            semantics=self.config.evaluation_semantics,
-            split="public_dev",
-            summary=public_dev,
-        )
-        projection = build_unified_score_projection(
-            canonical,
-            objective_family_mask=self._required_objective_family_mask(),
-        )
+        projection = self._unified_dev_score_projection(public_dev)
         objective = projection["j_primary"]
         candidate_score = float(objective["score_stats"]["mean"])
         guard_evidence: dict[str, dict[str, Any]] = {}
-        guard_seed_vectors: list[tuple[float, ...]] = []
         for guard in protocol.named_guards:
             source = projection[guard.name]
             candidate_guard = float(source["score_stats"]["mean"])
-            guard_seed_vectors.append(
-                tuple(float(value) for value in source["seed_macro_scores"])
-            )
             guard_evidence[guard.name] = {
                 "score_source": unified_stair_prompt_named_guard_score_source(
                     guard.name
                 ),
                 "candidate": candidate_guard,
             }
-        candidate_guard_floor = statistics.fmean(
-            min(values[index] for values in guard_seed_vectors)
-            for index in range(len(guard_seed_vectors[0]))
-        )
-        projected_reference = _mapping(
-            generation.get("public_dev_parent_reference")
-        )
-        projected_reference_is_public_dev = (
-            projected_reference.get("source_split") == "public_dev"
-            and projected_reference.get("acceptance_authority") is False
-        )
-        reference = _mapping(generation.get("guard_reference"))
-        raw_reference_is_public_dev = (
-            reference.get("screen_role") == "guard_reference"
-            and reference.get("acceptance_authority") is False
-        )
-        parent_score = (
-            _numeric(projected_reference, "objective_score")
-            if projected_reference_is_public_dev
-            else _numeric(reference.get("generalization_score_stats"), "mean")
-            if raw_reference_is_public_dev
-            else None
-        )
-        parent_guard_floor = (
-            _numeric(projected_reference, "guard_floor_score")
-            if projected_reference_is_public_dev
-            else _numeric(reference.get("anchor_score_stats"), "mean")
-            if raw_reference_is_public_dev
-            else None
-        )
+        candidate_guard_floor = self._unified_guard_floor(projection)
+        reference = self.public_dev_parent_reference(generation)
+        parent_score = _numeric(reference, "objective_score")
+        parent_guard_floor = _numeric(reference, "guard_floor_score")
         if parent_score is None or parent_guard_floor is None:
             return TaskExplorationAssessment(
                 observed_effect="unknown",
@@ -459,9 +420,9 @@ class StairExplorationProjector:
             effect = "strong_positive" if selected else "positive"
             value = "high" if selected else "medium"
             reasons = (
-                "selected_public_dev_objective_improved_without_guard_regression",
-            ) if selected else (
-                "public_dev_objective_improved_without_guard_regression",
+                ("selected_public_dev_objective_improved_without_guard_regression",)
+                if selected
+                else ("public_dev_objective_improved_without_guard_regression",)
             )
         elif objective_improved or guard_improved:
             effect, value, reasons = (
@@ -484,12 +445,8 @@ class StairExplorationProjector:
         summary = {
             "status": "public_complete",
             "source_split": "public_dev",
-            "objective_family_mask_hash": projection[
-                "objective_family_mask_hash"
-            ],
-            "qualified_ood_families": list(
-                projection["qualified_ood_families"]
-            ),
+            "objective_family_mask_hash": projection["objective_family_mask_hash"],
+            "qualified_ood_families": list(projection["qualified_ood_families"]),
             "objective": {
                 "score_source": UNIFIED_STAIR_PROMPT_OBJECTIVE_SCORE_SOURCE,
                 "candidate": candidate_score,
@@ -498,9 +455,7 @@ class StairExplorationProjector:
             },
             "named_guards": guard_evidence,
             "guard_floor": {
-                "score_source": (
-                    "minimum_named_guard_per_seed_then_mean"
-                ),
+                "score_source": ("minimum_named_guard_per_seed_then_mean"),
                 "candidate": candidate_guard_floor,
                 "parent": parent_guard_floor,
                 "delta": guard_delta,
@@ -520,6 +475,62 @@ class StairExplorationProjector:
             ),
         )
 
+    def public_dev_parent_reference(
+        self, generation: Mapping[str, Any]
+    ) -> dict[str, Any] | None:
+        """Project the same measured parent for exploration and prompt display."""
+
+        compact = _mapping(generation.get("public_dev_parent_reference"))
+        raw = _mapping(generation.get("guard_reference"))
+        if (
+            compact.get("source_split") == "public_dev"
+            and compact.get("acceptance_authority") is False
+        ):
+            objective = _numeric(compact, "objective_score")
+            guard_floor = _numeric(compact, "guard_floor_score")
+        elif (
+            raw.get("screen_role") == "guard_reference"
+            and raw.get("acceptance_authority") is False
+        ):
+            objective = _numeric(raw.get("generalization_score_stats"), "mean")
+            guard_floor = _numeric(raw.get("anchor_score_stats"), "mean")
+        else:
+            objective = guard_floor = None
+        parent_summary = generation.get("parent_public_dev")
+        if (objective is None or guard_floor is None) and isinstance(parent_summary, Mapping):
+            projection = self._unified_dev_score_projection(parent_summary)
+            objective = float(projection["j_primary"]["score_stats"]["mean"])
+            guard_floor = self._unified_guard_floor(projection)
+        if objective is None or guard_floor is None:
+            return None
+        return {
+            "source_split": "public_dev",
+            "acceptance_authority": False,
+            "objective_score": objective,
+            "guard_floor_score": guard_floor,
+        }
+
+    def _unified_dev_score_projection(self, summary: Mapping[str, Any]) -> dict[str, Any]:
+        canonical = validate_unified_stair_summary(
+            suite=self.config.ordered_evaluation_suite,
+            semantics=self.config.evaluation_semantics,
+            split="public_dev",
+            summary={key: value for key, value in summary.items() if key not in {"behavior", "behavior_comparison", "description_status"}},
+        )
+        return build_unified_score_projection(
+            canonical,
+            objective_family_mask=self._required_objective_family_mask(),
+        )
+
+    def _unified_guard_floor(self, projection: Mapping[str, Any]) -> float:
+        floor = build_unified_guard_floor_projection(
+            projection,
+            named_guard_names=tuple(
+                guard.name for guard in self.config.acceptance_protocol.named_guards
+            ),
+        )
+        return float(floor["score_stats"]["mean"])
+
     def _validated_summary(
         self,
         value: Mapping[str, Any],
@@ -531,7 +542,7 @@ class StairExplorationProjector:
                 suite=self.config.ordered_evaluation_suite,
                 semantics=self.config.evaluation_semantics,
                 split=split,
-                summary=value,
+                summary={key: item for key, item in value.items() if key not in {"behavior", "behavior_comparison", "description_status"}},
             )
             projection = build_unified_score_projection(
                 canonical,

@@ -27,7 +27,6 @@ from scripts.isaaclab_stair_rsl_rl_train import (  # noqa: E402
 )
 from scripts.isaaclab_stair_rsl_rl_train import (  # noqa: E402
     _load_and_qualify_program,
-    _status_summary,
 )
 from scripts.isaaclab_stair_rsl_rl_train import main as stair_train_main  # noqa: E402
 
@@ -52,7 +51,6 @@ from true_rl_agent.evaluation.binding import (  # noqa: E402
 )
 from true_rl_agent.evaluation.phases import EvaluationPhase  # noqa: E402
 from true_rl_agent.json_contract import canonical_json_text  # noqa: E402
-from true_rl_agent.runner.base import RunnerExecutionError  # noqa: E402
 from true_rl_agent.runner.checkpoint import file_sha256  # noqa: E402
 from true_rl_agent.runner.job_argv import (  # noqa: E402
     validate_eval_job_argv,
@@ -63,7 +61,6 @@ from true_rl_agent.runner.process_handle import (  # noqa: E402
     run_owned_process,
 )
 from true_rl_agent.runner.specs import CheckpointRef, GpuProcessBinding  # noqa: E402
-from true_rl_agent.runner.subprocess_runner import SubprocessRunner  # noqa: E402
 from true_rl_agent.tasks.stair_climbing.candidate_failure import (  # noqa: E402
     STAIR_CANDIDATE_FAILURE_CONTRACT,
 )
@@ -83,26 +80,24 @@ from true_rl_agent.tasks.stair_climbing.entrypoint_contract import (  # noqa: E4
     validate_stair_eval_invocation,
     validate_stair_train_invocation,
 )
-from true_rl_agent.tasks.stair_climbing.gpu_process_binding import (  # noqa: E402
-    attach_stair_gpu_runtime_evidence,
-    capture_stair_gpu_compute_context,
-    validate_stair_gpu_process_binding_invocation,
-    validate_stair_gpu_runtime_summary_evidence,
+from true_rl_agent.runner.gpu_process_binding import (  # noqa: E402
+    attach_gpu_runtime_evidence,
+    capture_gpu_compute_context,
+    validate_gpu_process_binding_invocation,
+    validate_gpu_runtime_summary_evidence,
 )
 from true_rl_agent.tasks.stair_climbing.reference_program import (  # noqa: E402
     resolve_official_stair_reference_program,
 )
 from true_rl_agent.tasks.stair_climbing.row_catalog import (  # noqa: E402
-    STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+    STAIR_GO2_12DOF_UNIFIED_V2_CELL_VARIANT_ID,
 )
 from true_rl_agent.tasks.stair_climbing.reward_program import (  # noqa: E402
     STAIR_REWARD_ENVIRONMENT_AXIS_EVIDENCE_SCHEMA_VERSION,
-    StairRewardProgramError,
     qualify_stair_candidate_reward_program,
 )
 from true_rl_agent.tasks.stair_climbing.seed_policy import (  # noqa: E402
     STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE,
-    STAIR_FORMAL_EVAL_NAMESPACE,
 )
 
 TEST_INITIAL_POLICY_STATE_HASH = "1" * 64
@@ -286,7 +281,14 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
             self.assertEqual(eval_context.config.protocol_state, "active")
 
     def test_final_confirmation_eval_purpose_binds_the_disjoint_namespace(self) -> None:
+        from true_rl_agent.tasks.stair_climbing.final_confirmation import (
+            create_stair_generation_final_confirmation_plan,
+        )
+
         with tempfile.TemporaryDirectory() as tmp:
+            plan, plan_path = create_stair_generation_final_confirmation_plan(
+                output_dir=Path(tmp), session_id="stair-final-confirmation", config=self.config,
+            )
             _, jobs = self._materialize(
                 Path(tmp),
                 "stair-final-confirmation",
@@ -309,11 +311,7 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
                     self.config.acceptance_protocol.protocol_hash
                 ),
                 task_protocol_hash=self.config.task_protocol_hash,
-                seed_cohort_hash=(
-                    self.config.seed_resolver().namespace_cohort_hash(
-                        STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE
-                    )
-                ),
+                seed_cohort_hash=plan.seed_cohort_hash,
             )
             argv[argv.index("--seed-cohort-hash") + 1] = (
                 final_binding.seed_cohort_hash
@@ -325,6 +323,8 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
                 [
                     "--stair-eval-purpose",
                     STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION,
+                    "--stair-final-plan",
+                    str(plan_path),
                 ]
             )
 
@@ -337,6 +337,26 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
                 context.seed_namespace,
                 STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE,
             )
+
+            without_plan = list(argv)
+            plan_index = without_plan.index("--stair-final-plan")
+            del without_plan[plan_index:plan_index + 2]
+            with self.assertRaisesRegex(ValueError, "requires its committed plan and final purpose"):
+                validate_stair_eval_invocation(
+                    build_eval_parser(_FakeAppLauncher).parse_args(without_plan),
+                    project_root=ROOT,
+                    resolved_cell_manifest=self.resolved_cell_manifest,
+                )
+
+            without_final_purpose = list(argv)
+            purpose_index = without_final_purpose.index("--stair-eval-purpose")
+            del without_final_purpose[purpose_index:purpose_index + 2]
+            with self.assertRaisesRegex(ValueError, "requires its committed plan and final purpose"):
+                validate_stair_eval_invocation(
+                    build_eval_parser(_FakeAppLauncher).parse_args(without_final_purpose),
+                    project_root=ROOT,
+                    resolved_cell_manifest=self.resolved_cell_manifest,
+                )
 
     def test_bound_materialization_uses_child_cuda_zero_and_phase_inherits(self) -> None:
         binding = GpuProcessBinding(
@@ -386,7 +406,7 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
                 {"CUDA_VISIBLE_DEVICES": TEST_GPU_UUID},
                 clear=True,
             ):
-                runtime = validate_stair_gpu_process_binding_invocation(
+                runtime = validate_gpu_process_binding_invocation(
                     train_args,
                     environment=os.environ,
                 )
@@ -408,44 +428,44 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
             )
             pid = owned_child_identity["process_id"]
             with patch(
-                "true_rl_agent.tasks.stair_climbing.gpu_process_binding."
+                "true_rl_agent.runner.gpu_process_binding."
                 "current_owned_process_identity",
                 return_value=owned_child_identity,
             ):
-                summary = attach_stair_gpu_runtime_evidence(
+                summary = attach_gpu_runtime_evidence(
                     {"status": "pass"},
                     runtime,
                 )
             self.assertEqual(summary["gpu_process_binding"], binding.to_dict())
             self.assertEqual(
-                summary["stair_gpu_runtime_evidence"]["physical_gpu_uuid"],
+                summary["gpu_runtime_evidence"]["physical_gpu_uuid"],
                 TEST_GPU_UUID,
             )
             completed = SimpleNamespace(
                 stdout=f"{TEST_GPU_UUID}, {pid}, 512\n",
             )
             with patch(
-                "true_rl_agent.tasks.stair_climbing.gpu_process_binding."
+                "true_rl_agent.runner.gpu_process_binding."
                 "current_owned_process_identity",
                 return_value=owned_child_identity,
             ), patch(
-                "true_rl_agent.tasks.stair_climbing.gpu_process_binding."
+                "true_rl_agent.runner.gpu_process_binding."
                 "subprocess.run",
                 return_value=completed,
             ):
-                observation = capture_stair_gpu_compute_context(runtime)
-                observed_summary = attach_stair_gpu_runtime_evidence(
+                observation = capture_gpu_compute_context(runtime)
+                observed_summary = attach_gpu_runtime_evidence(
                     {"status": "pass"},
                     runtime,
                     compute_context_observation=observation,
                 )
             self.assertEqual(
-                observed_summary["stair_gpu_runtime_evidence"]
+                observed_summary["gpu_runtime_evidence"]
                 ["external_compute_context_observation"]["rows"],
                 [{"gpu_uuid": TEST_GPU_UUID, "used_gpu_memory_mib": 512}],
             )
             self.assertEqual(
-                validate_stair_gpu_runtime_summary_evidence(
+                validate_gpu_runtime_summary_evidence(
                     observed_summary,
                     expected_binding=binding,
                     expected_physical_gpu_uuid=TEST_GPU_UUID,
@@ -456,19 +476,19 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
                     for key in (
                         "gpu_process_binding",
                         "owned_process_identity",
-                        "stair_gpu_runtime_evidence",
+                        "gpu_runtime_evidence",
                     )
                 },
             )
             with self.assertRaisesRegex(ValueError, "PID-to-UUID"):
-                validate_stair_gpu_runtime_summary_evidence(
+                validate_gpu_runtime_summary_evidence(
                     summary,
                     expected_binding=binding,
                     expected_physical_gpu_uuid=TEST_GPU_UUID,
                     require_compute_context_observation=True,
                 )
             with patch(
-                "true_rl_agent.tasks.stair_climbing.gpu_process_binding."
+                "true_rl_agent.runner.gpu_process_binding."
                 "subprocess.run",
                 return_value=SimpleNamespace(
                     stdout=(
@@ -478,12 +498,12 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
                 ),
             ):
                 with self.assertRaisesRegex(ValueError, "exactly one"):
-                    capture_stair_gpu_compute_context(runtime)
+                    capture_gpu_compute_context(runtime)
             nvidia_visible_args = build_train_parser().parse_args(
                 jobs.train_spec.metadata["cli_argv"][2:]
             )
             with self.assertRaisesRegex(ValueError, "NVIDIA_VISIBLE_DEVICES"):
-                validate_stair_gpu_process_binding_invocation(
+                validate_gpu_process_binding_invocation(
                     nvidia_visible_args,
                     environment={
                         "CUDA_VISIBLE_DEVICES": TEST_GPU_UUID,
@@ -718,6 +738,8 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
     def test_eval_summary_is_written_before_simulation_app_close(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             summary_path = Path(tmp) / "eval-summary.json"
+            # The fake SimulationApp has no logger; model its successful Kit log.
+            summary_path.with_suffix(".kit.log").write_text("", encoding="utf-8")
             argv = [
                 "--job-id",
                 "stair-eval-close-order",
@@ -1035,7 +1057,7 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
             output_dir = Path(tmp)
             provider = StairClimbingCompositionProvider()
             values = dict(provider.cli_defaults())
-            values["cell_variant_id"] = STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID
+            values["cell_variant_id"] = STAIR_GO2_12DOF_UNIFIED_V2_CELL_VARIANT_ID
             composition = resolve_task_composition(
                 provider=provider,
                 values=values,
@@ -1075,7 +1097,7 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
             )
             self.assertEqual(
                 context.config.cell_variant_id,
-                STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+                STAIR_GO2_12DOF_UNIFIED_V2_CELL_VARIANT_ID,
             )
 
     def test_preflight_rejects_binding_and_config_drift(self) -> None:

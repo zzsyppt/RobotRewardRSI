@@ -199,7 +199,7 @@ class StairCompleteRewardContractTests(unittest.TestCase):
         self.assertIn("0 newest", axes["foot_contact_force_history"])
         self.assertIn("0 left", axes["foot_contact_force_history"])
         self.assertIn("max all 3 history", axes["foot_contact_force_history"])
-        self.assertIn("index0 contact", axes["foot_contact_force_history"])
+        self.assertIn("does not identify every onset", axes["foot_contact_force_history"])
         self.assertIn("world +x stair-forward", axes["spatial_vectors"])
         remaining = prompt["field_semantics_constraints"][
             "remaining_goal_distance_m"
@@ -805,8 +805,9 @@ class StairCompleteRewardContractTests(unittest.TestCase):
 
             def to_dict(self) -> dict[str, object]:
                 return {
-                    "policy": dict(vars(self.policy)),
-                    "algorithm": dict(vars(self.algorithm)),
+                    "actor": self.actor,
+                    "critic": self.critic,
+                    "algorithm": self.algorithm,
                 }
 
         agent_cfg = FakeAgentCfg()
@@ -859,8 +860,9 @@ class StairCompleteRewardContractTests(unittest.TestCase):
 
             def to_dict(self) -> dict[str, object]:
                 return {
-                    "policy": dict(vars(self.policy)),
-                    "algorithm": dict(vars(self.algorithm)),
+                    "actor": self.actor,
+                    "critic": self.critic,
+                    "algorithm": self.algorithm,
                 }
 
         execution = config.protocol_v2.to_public_dict()["training_execution"]
@@ -1100,6 +1102,8 @@ class StairCompleteRewardContractTests(unittest.TestCase):
         )
 
         self.assertEqual(evidence.reward_term_calls, len(program.term_names))
+        self.assertTrue(all(record["last_sample_common_step"] == 1 and record["sampled_env_count"] == 2
+                            for record in evidence.component_activation_records))
         self.assertTrue(evidence.nonzero_reward_contribution)
         self.assertEqual(decision.status, "pass")
         self.assertEqual(

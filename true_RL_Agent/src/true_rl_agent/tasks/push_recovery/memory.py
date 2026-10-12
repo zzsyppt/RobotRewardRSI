@@ -7,6 +7,9 @@ from statistics import fmean
 from typing import Any, Mapping, Sequence
 
 from true_rl_agent.agent_core.context import sanitize_public_context
+from true_rl_agent.agent_core.exploration import build_generation_exploration_plan
+from true_rl_agent.tasks.push_recovery.config import PushRecoveryTaskConfig
+from true_rl_agent.tasks.push_recovery.exploration import PushExplorationProjector
 from true_rl_agent.tasks.push_recovery.metrics import (
     classify_push_prompt_failure,
     extract_push_prompt_failure_breakdown,
@@ -18,6 +21,29 @@ class PushTaskMemoryAdapter:
     """Summarize push recovery public eval history for future prompts."""
 
     task_id: str = "unitree_push_recovery"
+    config: PushRecoveryTaskConfig | None = None
+
+    def exploration_projector(self) -> PushExplorationProjector:
+        if self.config is None:
+            raise ValueError("Push generation requires the resolved task configuration")
+        return PushExplorationProjector(self.config)
+
+    def exploration_projector_contract(self) -> Mapping[str, Any]:
+        return self.exploration_projector().contract()
+
+    def build_generation_exploration_plan(self, history, *, generation_session_contract):
+        if generation_session_contract is None or generation_session_contract.task_id != self.task_id:
+            raise ValueError("Push generation requires its bound session contract")
+        return build_generation_exploration_plan(
+            history, task_projector=self.exploration_projector(),
+            expected_projector_contract_hash=generation_session_contract.bound_contract_hashes["exploration_projector"],
+        )
+
+    def build_exploration_projection_from_validated_history(self, history, *, generation_session_contract):
+        if not any(isinstance(record.get("generation"), Mapping) for record in history.records):
+            return {}
+        return self.build_generation_exploration_plan(history,
+            generation_session_contract=generation_session_contract).prompt_projection
 
     def build_public_summary(
         self,

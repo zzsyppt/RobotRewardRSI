@@ -29,12 +29,12 @@ from true_rl_agent.tasks.stair_climbing.config import (  # noqa: E402
     STAIR_PROTOCOL_V2_RELATIVE_PATH,
     StairClimbingTaskConfig,
 )
-from true_rl_agent.tasks.stair_climbing.gpu_process_binding import (  # noqa: E402
-    StairGpuRuntimeBinding,
-    add_stair_gpu_process_binding_arguments,
-    attach_stair_gpu_runtime_evidence,
-    capture_stair_gpu_compute_context,
-    validate_stair_gpu_process_binding_invocation,
+from true_rl_agent.runner.gpu_process_binding import (  # noqa: E402
+    GpuRuntimeBinding,
+    add_gpu_process_binding_arguments,
+    attach_gpu_runtime_evidence,
+    capture_gpu_compute_context,
+    validate_gpu_process_binding_invocation,
 )
 from true_rl_agent.tasks.stair_climbing.reference_program import (  # noqa: E402
     resolve_official_stair_reference_program,
@@ -51,7 +51,7 @@ def _build_parser() -> argparse.ArgumentParser:
     checkpoint_action = parser.add_argument("--checkpoint-output", type=Path)
     parser.add_argument("--nvidia-smi-executable")
     AppLauncher.add_app_launcher_args(parser)
-    add_stair_gpu_process_binding_arguments(parser)
+    add_gpu_process_binding_arguments(parser)
     output_action.required = True
     checkpoint_action.required = True
     parser.set_defaults(headless=True)
@@ -59,14 +59,14 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 args = _build_parser().parse_args()
-gpu_runtime_binding = validate_stair_gpu_process_binding_invocation(
+gpu_runtime_binding = validate_gpu_process_binding_invocation(
     args,
     environment=os.environ,
 )
 
 
 def _bound_nvidia_smi(
-    runtime: StairGpuRuntimeBinding | None,
+    runtime: GpuRuntimeBinding | None,
 ) -> str | None:
     if runtime is None:
         return None
@@ -204,6 +204,7 @@ def main() -> int:
             runner,
             execution_contract=execution,
         )
+        effective_agent["constructed_learner"] = config.training_agent_configuration().verify_runner(runner)
         effective_agent["resolved_observation_groups"] = (
             resolved_observation_groups
         )
@@ -313,7 +314,7 @@ def main() -> int:
 
         if gpu_runtime_binding is not None:
             assert bound_nvidia_smi is not None
-            compute_context_observation = capture_stair_gpu_compute_context(
+            compute_context_observation = capture_gpu_compute_context(
                 gpu_runtime_binding,
                 nvidia_smi=bound_nvidia_smi,
             )
@@ -417,7 +418,7 @@ def main() -> int:
                 pass
 
     if gpu_runtime_binding is not None:
-        report = attach_stair_gpu_runtime_evidence(
+        report = attach_gpu_runtime_evidence(
             report,
             gpu_runtime_binding,
             compute_context_observation=compute_context_observation,

@@ -6,6 +6,8 @@ import sys
 import tempfile
 import time
 import unittest
+
+import torch
 from contextlib import contextmanager
 from dataclasses import replace
 from pathlib import Path
@@ -50,9 +52,9 @@ from true_rl_agent.candidates.schema import (  # noqa: E402
     CandidateChangeSet,
     CandidatePackageRef,
 )
+from true_rl_agent.evaluation.binding import canonical_json_hash  # noqa: E402
 from true_rl_agent.tasks.component_smoke import (  # noqa: E402
     ComponentSmokeFixture,
-    SmokeTensor,
 )
 from true_rl_agent.tasks.push_recovery.reward_inputs import (
     PushRecoveryRewardInputs,  # noqa: E402
@@ -95,15 +97,15 @@ class _SmokeAdapter:
 
     def build_component_smoke_fixture(self) -> ComponentSmokeFixture:
         num_envs = 3
-        vector = SmokeTensor.vector([0.35, 0.4, 0.45])
-        matrix2 = SmokeTensor.matrix(
+        vector = torch.tensor([0.35, 0.4, 0.45])
+        matrix2 = torch.tensor(
             [
                 [0.0, 0.1],
                 [0.1, 0.0],
                 [0.0, -0.1],
             ]
         )
-        matrix3 = SmokeTensor.matrix(
+        matrix3 = torch.tensor(
             [
                 [0.1, 0.0, 0.0],
                 [0.0, 0.1, 0.0],
@@ -114,8 +116,8 @@ class _SmokeAdapter:
             task_id=self.task_id,
             reward_inputs=PushRecoveryRewardInputs(
                 base_height=vector,
-                roll=SmokeTensor.vector([0.01, -0.02, 0.03]),
-                pitch=SmokeTensor.vector([0.02, 0.01, -0.01]),
+                roll=torch.tensor([0.01, -0.02, 0.03]),
+                pitch=torch.tensor([0.02, 0.01, -0.01]),
                 base_pos_xy=matrix2,
                 base_lin_vel=matrix3,
                 base_ang_vel=matrix3,
@@ -127,9 +129,9 @@ class _SmokeAdapter:
                 last_action=matrix3,
                 prev_action=matrix3,
                 action_delta=matrix3,
-                push_active=SmokeTensor.vector([0.0, 1.0, 0.0]),
+                push_active=torch.tensor([0.0, 1.0, 0.0]),
                 push_vec_public=matrix2,
-                progress_fraction=SmokeTensor.vector([0.1, 0.5, 0.9]),
+                progress_fraction=torch.tensor([0.1, 0.5, 0.9]),
             ),
             expected_reward_output_shape=(num_envs,),
             public_summary={"fixture_owner": "task_owned_test", "num_envs": num_envs},
@@ -171,7 +173,7 @@ class _DelayedUnpickleSmokeAdapter(_SmokeAdapter):
 
 
 class _DelayedOperationTensor:
-    def __init__(self, value: SmokeTensor, delay_s: float) -> None:
+    def __init__(self, value: torch.Tensor, delay_s: float) -> None:
         self.value = value
         self.delay_s = delay_s
 
@@ -304,50 +306,6 @@ components = [RewardTerm(name=term_name, weight=1.0, fn=reward)]
             assessment["reason"],
             "canonical_component_mechanisms_cannot_be_identified",
         )
-
-    def test_smoke_tensor_supports_torch_like_masks_and_common_math(self) -> None:
-        heights = SmokeTensor.vector([0.2, 0.3, 0.4])
-
-        low_mask = (heights < 0.3).float()
-        high_mask = (heights >= 0.3).float()
-        positive_excess = (heights - 0.25 > 0.0).float()
-        square = heights.square()
-        roots = SmokeTensor.vector([4.0, 9.0]).sqrt()
-        pow_method = heights.pow(2)
-        relu = (heights - 0.3).relu()
-        clamp_min = (0.3 - heights).clamp_min(0.0)
-        clamp_max = heights.clamp_max(0.3)
-        row_norm = SmokeTensor.matrix([[3.0, 4.0], [5.0, 12.0]]).norm(p=2, dim=-1)
-        row_sum = SmokeTensor.matrix([[1.0, 2.0], [3.0, 4.0]]).sum(dim=-1, keepdim=False)
-        row_mean = SmokeTensor.matrix([[1.0, 3.0], [3.0, 7.0]]).mean(dim=-1, keepdim=False)
-
-        self.assertEqual(low_mask.values, (1.0, 0.0, 0.0))
-        self.assertEqual(high_mask.values, (0.0, 1.0, 1.0))
-        self.assertEqual(positive_excess.values, (0.0, 1.0, 1.0))
-        self.assertEqual(square.values, (0.04000000000000001, 0.09, 0.16000000000000003))
-        self.assertEqual(roots.values, (2.0, 3.0))
-        self.assertEqual(pow_method.values, square.values)
-        self.assertEqual(relu.values, (0.0, 0.0, 0.10000000000000003))
-        self.assertEqual(clamp_min.values, (0.09999999999999998, 0.0, 0.0))
-        self.assertEqual(clamp_max.values, (0.2, 0.3, 0.3))
-        self.assertEqual(row_norm.values, (5.0, 13.0))
-        self.assertEqual(row_sum.values, (3.0, 7.0))
-        self.assertEqual(row_mean.values, (2.0, 5.0))
-        with self.assertRaisesRegex(ValueError, "ambiguous"):
-            bool(heights > 0.3)
-
-    def test_smoke_tensor_supports_standard_ellipsis_indexing(self) -> None:
-        values = SmokeTensor.matrix(
-            [
-                [1.0, 2.0, 3.0],
-                [4.0, 5.0, 6.0],
-            ]
-        )
-
-        self.assertEqual(values[..., :2], values[:, :2])
-        self.assertEqual(values[..., 1], SmokeTensor.vector([2.0, 5.0]))
-        self.assertEqual(values[1, ...], SmokeTensor.vector([4.0, 5.0, 6.0]))
-        self.assertEqual(values[1, 2], 6.0)
 
     def test_component_smoke_accepts_valid_ellipsis_tensor_slices(self) -> None:
         source = """
@@ -603,7 +561,7 @@ def build_training_components():
                     candidate,
                     _DelayedUnpickleSmokeAdapter(0.6),
                     timeout_s=0.25,
-                    worker_startup_timeout_s=2.0,
+                    worker_startup_timeout_s=60.0,
                 )
 
         self.assertEqual(result["status"], "pass")
@@ -747,7 +705,8 @@ def build_training_components():
             current_best_source=current_best,
         )
         self.assertEqual(numeric_assessment["classification"], "parameter_only_delta")
-        self.assertEqual(numeric_assessment["status"], "warning")
+        self.assertEqual(numeric_assessment["status"], "fail")
+        self.assertTrue(numeric_assessment["blocking"])
         numeric_and_rationale_only = (
             current_best.replace("0.5", "0.7")
             .replace('name="best"', 'name="renamed"')
@@ -761,7 +720,8 @@ def build_training_components():
             mixed_assessment["classification"],
             "parameter_and_rationale_only_delta",
         )
-        self.assertEqual(mixed_assessment["status"], "warning")
+        self.assertEqual(mixed_assessment["status"], "fail")
+        self.assertTrue(mixed_assessment["blocking"])
         self.assertEqual(
             assess_anti_degenerate_source(
                 candidate_source=mechanism,
@@ -769,6 +729,121 @@ def build_training_components():
             )["classification"],
             "mechanism_delta_present",
         )
+
+    def test_real_parameter_guard_variant_requires_repair_without_changing_identity(self) -> None:
+        # Exact sealed A03 generation-001 B and generation-002 B source bytes.
+        fixtures = PROJECT_ROOT / "tests" / "fixtures" / "authoring_admission"
+        parent = (fixtures / "a03_parent.txt").read_text(encoding="utf-8")
+        candidate_source = (fixtures / "a03_parameter_variant.txt").read_text(encoding="utf-8")
+        self.assertEqual(hashlib.sha256(parent.encode()).hexdigest(),
+                         "054e8440f35076be0ad36c4cf00606da4f16d65eca04b5ed2b1de9067eebc104")
+        self.assertEqual(hashlib.sha256(candidate_source.encode()).hexdigest(),
+                         "53a183d5b92a446d88b4b8f0c9aeb33d2e4708b043cd97a6db165259919b2411")
+        # This value was captured before adding the admission-only projection.
+        delta = project_single_component_operation_delta(
+            candidate_source=candidate_source, anchor_source=parent)
+        self.assertEqual(canonical_json_hash(delta),
+                         "4d25721ab5ab31ea83f419d439eb202501ffc193efebafcf1db521a44f5fe736")
+        with tempfile.TemporaryDirectory() as tmp:
+            candidate = _write_candidate(Path(tmp), "parameter_guard", candidate_source)
+            assessment = assess_anti_degenerate_candidate(candidate, {"source_payloads": [{
+                "logical_id": "current_best/training_code/components.py", "content": parent,
+                "content_sha256": hashlib.sha256(parent.encode()).hexdigest(),
+            }]})
+        self.assertEqual(assessment["classification"], "parameter_only_delta")
+        self.assertTrue(assessment["blocking"])
+        self.assertEqual(assessment["evaluated_history_source_count"], 0)
+        self.assertEqual(assessment["structural_comparison"], "admission_only_parameter_family")
+
+    def test_real_outward_damping_variant_remains_structurally_distinct(self) -> None:
+        fixtures = PROJECT_ROOT / "tests" / "fixtures" / "authoring_admission"
+        parent = (fixtures / "a03_parent.txt").read_text(encoding="utf-8")
+        candidate = (fixtures / "a03_structural_variant.txt").read_text(encoding="utf-8")
+        self.assertEqual(hashlib.sha256(candidate.encode()).hexdigest(),
+                         "8d32268957c93080771df4d286faf4020cb52e7c553fc4621ae3378432d544be")
+        assessment = assess_anti_degenerate_source(
+            candidate_source=candidate, current_best_source=parent)
+        self.assertEqual(assessment["classification"], "mechanism_delta_present")
+        self.assertFalse(assessment["blocking"])
+        self.assertEqual(canonical_json_hash(project_single_component_operation_delta(
+            candidate_source=candidate, anchor_source=parent)),
+            "b0fd28c2cb1832a7163346cadcecafccee6d8154d50e25068c4e23e9ee4bce27")
+
+    def test_admission_preserves_effective_and_unproven_clamps(self) -> None:
+        parent = (PROJECT_ROOT / "tests/fixtures/authoring_admission/a03_parent.txt").read_text(encoding="utf-8")
+        for label, anchor, expression in (
+            ("effective", parent, "(1.0 - lean).clamp(min=0.75)"),
+            ("unknown_range", parent.replace(
+                "inputs.projected_gravity[:, :2].square().sum(dim=1).sqrt().clamp(max=1.0)",
+                "inputs.roll"), "(1.0 - lean).clamp(min=0.0)"),
+        ):
+            with self.subTest(label=label):
+                candidate = anchor.replace("1.0 - 0.5 * lean", expression)
+                assessment = assess_anti_degenerate_source(
+                    candidate_source=candidate, current_best_source=anchor)
+                self.assertEqual(assessment["classification"], "mechanism_delta_present")
+                self.assertFalse(assessment["blocking"])
+
+    def test_implicit_unit_coefficient_and_rename_are_not_a_new_mechanism(self) -> None:
+        parent = (PROJECT_ROOT / "tests/fixtures/authoring_admission/a03_parent.txt").read_text(encoding="utf-8")
+        candidate = parent.replace("1.0 - 0.5 * lean", "1.0 - lean").replace(
+            "bounded_damping", "renamed_damping")
+        assessment = assess_anti_degenerate_source(
+            candidate_source=candidate, current_best_source=parent)
+        self.assertEqual(assessment["classification"], "parameter_only_delta")
+        self.assertTrue(assessment["blocking"])
+
+    def test_real_duplicate_tail_is_parameter_only_without_changing_identity(self) -> None:
+        fixtures = PROJECT_ROOT / "tests/fixtures/authoring_admission"
+        parent = (fixtures / "a06_parent.txt").read_text(encoding="utf-8")
+        candidate = (fixtures / "a06_tail_coefficient_variant.txt").read_text(encoding="utf-8")
+        self.assertEqual(hashlib.sha256(candidate.encode()).hexdigest(),
+                         "0d6169a0b666b52718297bf13892b3ddcd06bc96bf36d12c5331a4be10c63e22")
+        # Frozen A06 delta, captured before the admission repair.
+        self.assertEqual(canonical_json_hash(project_single_component_operation_delta(
+            candidate_source=candidate, anchor_source=parent)),
+            "c2f50b0615392c728bae72fc843c2c542cf9eb04e1cae7a52500384f3bc3debd")
+        assessment = assess_anti_degenerate_source(
+            candidate_source=candidate, current_best_source=parent)
+        self.assertEqual(assessment["classification"], "parameter_only_delta")
+        self.assertTrue(assessment["blocking"])
+        # Independently show the actual callable only triples the existing tail.
+        parent_ns, candidate_ns = {}, {}
+        exec(parent, parent_ns)
+        exec(candidate, candidate_ns)
+        class Inputs:
+            base_lin_vel_scaled = torch.tensor([
+                [0.0, 0.0, 0.0], [0.04, 0.0, 0.0], [0.08, 0.0, 0.0],
+                [0.0801, 0.0, 0.0], [0.16, 0.0, 0.0], [0.08, 0.08, 0.0],
+            ], dtype=torch.float64)
+            base_ang_vel_scaled = base_lin_vel_scaled * 6.25
+        inputs = Inputs()
+        planar = inputs.base_lin_vel_scaled[:, :2].norm(dim=1) / 0.08
+        angular = inputs.base_ang_vel_scaled.norm(dim=1) / 0.5
+        existing_tail = (planar - planar.clamp(max=1.0)) + (angular - angular.clamp(max=1.0))
+        expected = parent_ns["stationary_v3"](inputs) - 0.5 * existing_tail
+        torch.testing.assert_close(candidate_ns["stationary_brake"](inputs), expected)
+
+    def test_additive_tail_comparison_preserves_new_atoms(self) -> None:
+        fixtures = PROJECT_ROOT / "tests/fixtures/authoring_admission"
+        parent = (fixtures / "a06_parent.txt").read_text(encoding="utf-8")
+        candidate = (fixtures / "a06_tail_coefficient_variant.txt").read_text(encoding="utf-8")
+        for label, brake in (
+            ("new_threshold", "(planar_speed - 1.2).clamp(min=0.0)"),
+            ("new_input", "inputs.roll.square()"),
+            ("new_index", "inputs.base_lin_vel_scaled[:, 2].square()"),
+            ("nonlinear_tail", "(planar_speed - 1.0).clamp(min=0.0).square()"),
+            ("state_dependent_weight", "inputs.roll * (planar_speed - 1.0).clamp(min=0.0)"),
+        ):
+            with self.subTest(label=label):
+                updated = candidate.replace(
+                    "0.5 * (planar_speed - 1.0).clamp(min=0.0) + 0.5 * (angular_speed - 1.0).clamp(min=0.0)",
+                    brake,
+                )
+                assessment = assess_anti_degenerate_source(
+                    candidate_source=updated, current_best_source=parent)
+                self.assertEqual(assessment["classification"], "mechanism_delta_present")
+                self.assertFalse(assessment["blocking"])
 
     def test_compound_component_mechanism_delta_is_blocking(self) -> None:
         anchor = """
